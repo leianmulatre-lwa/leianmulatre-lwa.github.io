@@ -220,11 +220,11 @@
     deck.append(rail);
     const lanes=[...topRow.children].map((topCard,i)=>{
      const lane=tag('div','politc-deck-lane politc-three-up');
-     lane.append(topCard);
      const card=trackers[i];
      card.classList.add('politc-deck-tracker');
      card.dataset.politcTrack=String(i+1);
-     lane.append(card);
+     // Live tracker first; its research/election panel stays directly below.
+     lane.append(card,topCard);
      deck.append(lane);
      return lane;
     });
@@ -233,7 +233,8 @@
      if(cards.some(card=>!card))return;
      if(direction>0)cards.unshift(cards.pop());
      else cards.push(cards.shift());
-     lanes.forEach((lane,i)=>lane.append(cards[i]));
+     // Maintain tracker-on-top order when rotating with the arrows.
+     lanes.forEach((lane,i)=>lane.prepend(cards[i]));
      order.textContent='3 tracks';
      order.title=cards.map(card=>card.querySelector('h3')?.textContent?.trim()||'Tracker').join(' · ');
     };

@@ -105,12 +105,13 @@ test('county map shows geographic outlines only with no guessed county-level vot
  assert.match(pjs,/e\.key==='Enter'/);
  assert.match(pcss,/\.politc-county-svg path\.is-selected/);
 });
-test('Live trackers are compact and independently stacked beneath each top card',()=>{
+test('Live trackers appear above the matching accordion and retain order when rotated',()=>{
  assert.match(pjs,/politc-independent-deck/);
  assert.match(pjs,/topRow\.replaceWith\(deck\)/);
  assert.match(pjs,/trackers=\[\.\.\.live\.children\]/);
- assert.match(pjs,/lane\.append\(topCard\)/);
- assert.match(pjs,/lane\.append\(card\)/);
+ assert.match(pjs,/lane\.append\(card,topCard\)/);
+ assert.match(pjs,/lanes\.forEach\(\(lane,i\)=>lane\.prepend\(cards\[i\]\)\)/);
+ assert.doesNotMatch(pjs,/lane\.append\(topCard\)/);
  assert.match(pjs,/prev\.addEventListener\('click',\(\)=>rotate\(-1\)\)/);
  assert.match(pjs,/next\.addEventListener\('click',\(\)=>rotate\(1\)\)/);
  assert.match(pjs,/live\.remove\(\)/);
