@@ -36,7 +36,7 @@ test('Songs use real licensed previews on-site without auto-playing search or do
 test('SoundCloud search is only mounted when the Songs tab is open',()=>{
  assert.match(search,/activeCategory==='songs'&&!isSocialGreeting&&window\.BigLWAMusicDiscovery/);
  assert.match(search,/if\(section\.id===sectionId\('SoundCloud'\)\)return category==='songs'/);
- assert.match(search,/fromClick&&\['songs','widgets','places','stream'\]\.includes\(category\)/);
+ assert.match(search,/fromClick&&\['songs','widgets','places','stream','jobs'\]\.includes\(category\)/);
  assert.doesNotMatch(search,/if\(!isSocialGreeting&&window\.BigLWAMusicDiscovery&&/);
 });
 test('Vinyl record becomes prominent, with no loss of artwork accuracy',()=>{
