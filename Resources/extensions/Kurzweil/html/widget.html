@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+<head>
+    <title>Kurzweil Read The Web</title>
+    <link rel="stylesheet" type="text/css" href="/css/readtheweb.css"/>
+    <link rel="stylesheet" type="text/css" href="/css/toolbar.css"/>
+    <script src="/js/widgetScript.min.js"></script>
+</head>
+<body>
+<div id="toolbar-container" class="toolbar-container">
+    <div id="toolbar" class="toolbar">
+        <div class="toolbar-top-row">
+            <img id="firefly-logo" class="logo" src="/images/logo.png">
+            <div class="toolbar-controls">
+
+                <div id="login-form" class="login-container">
+                    <input id="login-username" type="text" name="username" title="username" placeholder="username">
+                    <input id="login-password" type="password" name="password" title="password" placeholder="password">
+                    <div class="login-wrapper">
+                        <input id="login-submit" type="submit" class="login-button" value="login" title="Login">
+                        <input class='hidden google-login' id="google-login" value="Sign in with Google" type="submit" title="Sign in with Google">
+                        <div id="loading-indicator" class="loading-indicator hidden"><img src="/images/loading.gif">
+                        </div>
+                    </div>
+                </div>
+                <div id="logged-in-container" class="audio-container hidden">
+                    <div id="audio-options-container" class="hidden audio-options-container dropdown">
+                        <button id="btn-audio-options" class="audio-options" title="Options"></button>
+                        <div id="audio-options-dropdown" class="dropdown-content hidden">
+                            <div><h2>Options</h2></div>
+                            <div class="audio-options-controls-container">
+                                <div class="audio-options-controls-column">
+                                    <div class="audio-option-group">
+                                        <h3>Voice</h3>
+                                        <select id="reading-voice" title="Voice">
+                                        </select>
+                                    </div>
+
+                                    <div class="audio-option-group">
+                                        <h3>Reading Speed</h3>
+                                        <div class="reading-speed-container">
+                                            <span id="reading-speed" class="read-speed" title="Reading Speed">0</span>
+                                            <button type="button" id="btn-read-faster" title="Reading Speed - Faster"
+                                                    class="reading-speed-button">
+                                                <img src="/images/speed-faster.png">Faster
+                                            </button>
+                                            <button type="button" id="btn-read-slower" title="Reading Speed - Slower"
+                                                    class="reading-speed-button">
+                                                <img src="/images/speed-slower.png">Slower
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="divider"></div>
+                                <div class="audio-options-controls-column">
+                                    <div class="audio-option-group">
+                                        <h3>Unit</h3>
+                                        <button type="button" id="btn-reading-unit-word" title="Reading Unit - Word">
+                                            Word
+                                        </button>
+                                        <button type="button" id="btn-reading-unit-sentence"
+                                                title="Reading Unit - Sentence">Sentence
+                                        </button>
+                                        <button type="button" id="btn-reading-unit-paragraph"
+                                                title="Reading Unit - Paragraph">Paragraph
+                                        </button>
+                                    </div>
+
+                                    <div class="audio-option-group">
+                                        <h3>Mode</h3>
+                                        <button type="button" id="btn-reading-mode-continuous"
+                                                title="Reading Mode - Continuous">Continuous
+                                        </button>
+                                        <button type="button" id="btn-reading-mode-self-paced"
+                                                title="Reading Mode - Self Paced">Self Paced
+                                        </button>
+                                        <button type="button" id="btn-reading-mode-word-by-word"
+                                                title="Reading Mode - Word by Word">Word by Word
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class=""><br />
+                                <input type="checkbox" id="chk-read-alternate-text" class="read-alternate-text" title="Read the Alternate Text Associated with Images">Read Alternate Text for Images
+                            </div>
+                        </div>
+                    </div>
+                    <img src="/images/divider.png">
+                    <button id="rewind-btn" type="button" class="rewind toolbar-button"
+                            title="Go back one reading unit"></button>
+                    <button id="play-btn" type="button" class="play-button toolbar-button" title="Read"></button>
+                    <button id="fast-forward-btn" type="button" class="fast-forward toolbar-button"
+                            title="Go forward one reading unit"></button>
+                    <button id="sound-btn" type="button" class="hidden sound toolbar-button" title="Audible Reading"></button>
+                    <img src="/images/divider.png">
+                    <div id="image-reader-container" class="image-reader-container">
+                        <button id="image-reader-btn" type="button" class="hidden image-reader toolbar-button" title="Enable Reader"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="toolbar-info">
+            <div class="toolbar-title">Kurzweil 3000 Read the Web</div>
+            <button id="display-btn" class="hidden display-btn" title="Toggle Display"></button>
+            <div id="account-info" class="account-info hidden">
+                <span id="username" class="username"></span>
+                <button type="button" id="logout" title="Log Out" class="hidden link">Log Out</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="message-box" class="message-box hidden error">
+    <span id="message-box-text" class="message"></span>
+    <button id="message-box-close" class="close" title="Close error message">X</button>
+</div>
+</body>
+</html>

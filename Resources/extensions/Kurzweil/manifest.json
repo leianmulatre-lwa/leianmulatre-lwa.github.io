@@ -1,0 +1,18 @@
+{
+  "manifest_version": 2,
+  "name": "Kurzweil Read The Web extension for lock down browsers",
+  "description": "Used in CEF based lock down browsers.",
+  "version": "21.0.2",
+  "permissions": [
+    "tabs",
+    "storage",
+    "<all_urls>",
+    "http://*/*",
+    "https://*/*"
+  ],
+  "browser_action": {
+    "default_title": "Kurzweil Read The Web extension for lock down browsers",
+    "default_icon": "images/icon.png",
+    "default_popup": "html/widget.html"
+  }
+}
