@@ -71,7 +71,7 @@ test('L’wazi Jobs tab, original postings, and Werk Window are bound without re
  assert.match(lwazi,/api\.searchLwazi\?\.\(clean,12\)/);
  assert.match(lwazi,/data-werk-preview-url/);
  assert.match(werk,/data-werk-window-open/);
- assert.match(werk,/data\.werkPreviewUrl=url/);
+ assert.match(werk,/dataset\.werkPreviewUrl=url/);
  assert.match(windowCode,/window\.BigLWAJobWindow=Object\.freeze/);
  assert.match(windowCode,/getJobByUrl/);
  assert.doesNotMatch(windowCode,/<iframe|srcdoc=|eval\(|new Function|LockDown|Respondus/i,'No third-party script execution or exam browser integration');
