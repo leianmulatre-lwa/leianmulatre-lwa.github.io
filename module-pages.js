@@ -3774,7 +3774,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       <section aria-label="BIG LWA map">
       <p id="biglwaMapStatus" role="status">Loading your map inside Studio…</p>
       <iframe id="biglwaMapApp" src="/map-app.html?embed=1&v=20261113-inpage-navigation-go-5" loading="eager" referrerpolicy="same-origin"
-       title="BIG LWA interactive map and saved pins" allow="geolocation 'self'; fullscreen" allowfullscreen></iframe>
+       title="BIG LWA interactive map and saved pins" allow="geolocation 'self'; microphone 'self'; fullscreen" allowfullscreen></iframe>
       <button type="button" class="module-action ghost" id="biglwaMapRetry">Reload map only</button>
       </section>`;
     const frame=$('#biglwaMapApp',body),status=$('#biglwaMapStatus',body);
