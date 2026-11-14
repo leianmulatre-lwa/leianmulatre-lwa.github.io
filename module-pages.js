@@ -2209,6 +2209,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     // Curated introductory records are examples for browsing, not verdicts on
     // anyone's character or invitations to target them.
     const curated=[{"id":"curated-1","category":"cunting","name":"Zendaya","note":"Actor and producer; screen and fashion figure.","source":"https://www.britannica.com/biography/Zendaya","photo":"","curated":true},{"id":"curated-2","category":"cunting","name":"Beyoncé","note":"Singer, songwriter and cultural innovator.","source":"https://www.britannica.com/biography/Beyonce","photo":"","curated":true},{"id":"curated-3","category":"cunting","name":"Rihanna","note":"Singer, entrepreneur and beauty industry founder.","source":"https://www.britannica.com/biography/Rihanna","photo":"","curated":true},{"id":"curated-4","category":"cunting","name":"Jennifer Lawrence","note":"Academy Award-winning actor.","source":"https://www.britannica.com/biography/Jennifer-Lawrence","photo":"","curated":true},{"id":"curated-5","category":"cunting","name":"Anne Hathaway","note":"Academy Award-winning actor.","source":"https://www.britannica.com/biography/Anne-Hathaway-American-actress","photo":"","curated":true},{"id":"curated-6","category":"cunting","name":"Ida B. Wells","note":"Journalist and anti-lynching civil rights organizer.","source":"https://www.nps.gov/people/ida-b-wells-barnett.htm","photo":"","curated":true},{"id":"curated-7","category":"cunting","name":"Malcolm X","note":"Black liberation leader and human-rights advocate.","source":"https://www.britannica.com/biography/Malcolm-X","photo":"","curated":true},{"id":"curated-8","category":"cunting","name":"Martin Luther King Jr.","note":"Civil rights organizer and Nobel Peace Prize laureate.","source":"https://www.nps.gov/malu/index.htm","photo":"","curated":true},{"id":"curated-9","category":"cunting","name":"Elaine Brown","note":"Former chair of the Black Panther Party.","source":"https://www.britannica.com/biography/Elaine-Brown","photo":"","curated":true},{"id":"curated-10","category":"cunting","name":"Kathleen Cleaver","note":"Black Panther Party leader and legal scholar.","source":"https://en.wikipedia.org/wiki/Kathleen_Cleaver","photo":"","curated":true},{"id":"curated-11","category":"cunting","name":"Ericka Huggins","note":"Black Panther Party organizer and educator.","source":"https://en.wikipedia.org/wiki/Ericka_Huggins","photo":"","curated":true},{"id":"curated-12","category":"cunting","name":"Fred Hampton","note":"Black Panther Party organizer and community leader.","source":"https://en.wikipedia.org/wiki/Fred_Hampton","photo":"","curated":true},{"id":"curated-13","category":"cunting","name":"Bobby Seale","note":"Co-founder of the Black Panther Party.","source":"https://www.britannica.com/biography/Bobby-Seale","photo":"","curated":true},{"id":"curated-14","category":"cunting","name":"Huey P. Newton","note":"Co-founder of the Black Panther Party.","source":"https://www.britannica.com/biography/Huey-P-Newton","photo":"","curated":true},{"id":"curated-15","category":"hunting","name":"Derek Chauvin","note":"Convicted in connection with George Floyd’s murder; public court record.","source":"https://www.justice.gov/opa/pr/former-minneapolis-police-officer-derek-chauvin-sentenced-more-20-years-prison-depriving","photo":"","curated":true},{"id":"curated-16","category":"hunting","name":"Jeffrey Epstein","note":"Convicted sex offender; documented institutional accountability issues.","source":"https://www.justice.gov/epstein","photo":"","curated":true},{"id":"curated-17","category":"hunting","name":"Elon Musk","note":"Billionaire technology executive; examine ownership and public influence.","source":"https://www.britannica.com/money/Elon-Musk","photo":"","curated":true},{"id":"curated-18","category":"hunting","name":"Jeff Bezos","note":"Amazon founder; examine concentrated wealth and corporate power.","source":"https://www.britannica.com/money/Jeff-Bezos","photo":"","curated":true},{"id":"curated-19","category":"hunting","name":"Peter Thiel","note":"Billionaire investor and political donor; examine public influence.","source":"https://www.britannica.com/money/Peter-Thiel","photo":"","curated":true},{"id":"curated-20","category":"hunting","name":"Cornell University · Chi Phi case","note":"2026 civil lawsuit concerning alleged sexual assault in 2024 and Cornell’s response. Investigation reopened; allegations disputed and not established in court.","source":"https://www.nbcchicago.com/news/local/cornell-7-what-happened-with-the-case-what-to-know-as-prosecutor-reopens-investigation/3995362/","photo":"","curated":true},{"id":"curated-21","category":"cunting","name":"Angela Davis","note":"Scholar and organizer for prison abolition, civil rights, and liberation.","source":"https://www.britannica.com/biography/Angela-Davis","photo":"","curated":true},{"id":"curated-22","category":"cunting","name":"Fannie Lou Hamer","note":"Voting-rights organizer and Mississippi Freedom Democratic Party leader.","source":"https://www.nps.gov/people/fannie-lou-hamer.htm","photo":"","curated":true},{"id":"curated-23","category":"cunting","name":"Shirley Chisholm","note":"First Black woman elected to the U.S. Congress.","source":"https://history.house.gov/People/Listing/C/CHISHOLM,-Shirley-Anita-(C000371)/","photo":"","curated":true},{"id":"curated-24","category":"cunting","name":"Audre Lorde","note":"Poet and activist whose writing shaped Black feminist thought.","source":"https://www.poetryfoundation.org/poets/audre-lorde","photo":"","curated":true},{"id":"curated-25","category":"cunting","name":"bell hooks","note":"Feminist theorist and writer on race, love, education, and power.","source":"https://www.britannica.com/biography/bell-hooks","photo":"","curated":true},{"id":"curated-26","category":"cunting","name":"Toni Morrison","note":"Nobel Prize–winning novelist and editor.","source":"https://www.nobelprize.org/prizes/literature/1993/morrison/facts/","photo":"","curated":true},{"id":"curated-27","category":"cunting","name":"Nina Simone","note":"Singer, pianist, and civil-rights voice.","source":"https://www.britannica.com/biography/Nina-Simone","photo":"","curated":true},{"id":"curated-28","category":"cunting","name":"Tarana Burke","note":"Organizer who founded the Me Too movement.","source":"https://metoomvmt.org/get-to-know-us/tarana-burke-founder/","photo":"","curated":true}];
+    // Preserve the original 28 entries and their source URLs, then add the
+    // specifically curated, exact-title historical/icon catalogs. Entries are
+    // editorial public-record references, never a crowd conviction or ranking.
+    const catalog=window.BigLWAPolitcPosterCatalog;
+    if(catalog&&Array.isArray(catalog.hunting)&&Array.isArray(catalog.cunting))
+      curated.push(...catalog.hunting,...catalog.cunting);
     const visibleNominations=[...curated.filter(item=>!curatedHidden.has(item.id)),...nominations];
 
     // Never attach an automatically sourced image by approximate name search.
@@ -2254,15 +2260,41 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const portrait=item=>{
       const monogram=String(item.name||'').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toLocaleUpperCase();
       const record=item.category==='hunting';
-      const wiki=wikiPortraits[item.id]||'';
-      return '<article class="politc-person politc-poster'+(record?' is-record':' is-icon')+'">'+
-        '<div class="politc-poster-eyebrow">'+(record?'PUBLIC RECORD · CASE FILE':'WANTED · FOR ICON STATUS')+'</div>'+
+      const wiki=wikiPortraits[item.id]||item.wiki||'';
+      // Disambiguated, explicitly matched article titles prevent a portrait
+      // being assigned by fuzzy name matching.
+      const life=item.life||({
+        'curated-1':'living','curated-2':'living','curated-3':'living',
+        'curated-4':'living','curated-5':'living','curated-6':'deceased',
+        'curated-7':'deceased','curated-8':'deceased',
+        'curated-9':'living','curated-10':'unknown','curated-11':'living',
+        'curated-12':'deceased','curated-13':'unknown','curated-14':'deceased',
+        'curated-15':'living','curated-16':'deceased',
+        'curated-17':'living','curated-18':'living','curated-19':'living',
+        'curated-21':'living','curated-22':'deceased','curated-23':'deceased',
+        'curated-24':'deceased','curated-25':'deceased','curated-26':'deceased',
+        'curated-27':'deceased','curated-28':'living'
+      })[item.id]||'unknown';
+      const recordLabel={
+        convicted:'COURT CONVICTION',indicted:'INDICTED · NO FINAL VERDICT',
+        historical:'HISTORICAL RECORD',scrutiny:'PUBLIC POLICY SCRUTINY'
+      }[item.kind]||'ACCOUNTABILITY CONTEXT';
+      const iconCaption={
+        arts:'Wanted for stealing the whole scene.',
+        music:'Wanted for having the world on repeat.',
+        writing:'Wanted for rewriting the narrative.',
+        civil:'Wanted for changing what justice looks like.',
+        style:'Wanted for raising the fashion stakes.'
+      }[item.kind]||'Wanted for being too good for us.';
+      return '<article class="politc-person politc-poster'+(record?' is-record':' is-icon')+' is-'+life+'">'+
+        '<div class="politc-poster-eyebrow">'+(record?recordLabel:'WANTED · FOR ICON STATUS')+'</div>'+
         '<div class="politc-poster-photo"'+(wiki?' data-politc-wiki="'+esc(wiki)+'"':'')+(verifiedPosterPhotos[item.id]?' data-politc-verified="'+esc(verifiedPosterPhotos[item.id])+'"':'')+'>'+
          (item.photo?'<img src="'+esc(item.photo)+'" alt="Portrait of '+esc(item.name)+'" loading="lazy" decoding="async">':
           '<span class="politc-poster-monogram" aria-hidden="true">'+esc(monogram)+'</span>')+
         '</div>'+
         '<strong>'+esc(item.name)+'</strong>'+
-        '<details class="politc-poster-context"><summary>Details & source ↗</summary>'+
+        (!record?'<p class="politc-poster-wanted">'+esc(iconCaption)+'</p>':'')+
+        '<details class="politc-poster-context"><summary>'+(record?'What the records document':'Achievements & source')+' ↗</summary>'+
          (item.note?'<p>'+esc(item.note)+'</p>':'')+
          (item.source?'<a href="'+esc(item.source)+'" target="_blank" rel="noopener noreferrer">Read source ↗</a>':'<span>Personal nomination · not verified</span>')+
         '</details>'+
