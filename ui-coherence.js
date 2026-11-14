@@ -629,7 +629,7 @@
   }
   function navigationLabel(control,key){
     if(key==='diary')return 'Journal';
-    if(key==='notes')return 'Sqwidz';
+    if(key==='notes')return 'sqwibbl/r';
     if(key==='feed')return 'myfeed';
     return String(control?.querySelector?.(':scope > b,:scope > span:last-child')?.textContent||control?.getAttribute?.('aria-label')||key).trim();
   }
