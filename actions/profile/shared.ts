@@ -1,0 +1,106 @@
+import prisma from "@/lib/db";
+import { isResumeFilePath } from "@/lib/resumeFiles";
+import { ENTRY_ORDER, CERTIFICATION_ORDER } from "@/lib/jobs/resumeDetailInclude";
+
+// Not a "use server" module: it exports selects, so it stays internal to
+// src/actions/profile/ and is never imported by a client component.
+
+// Re-exported so the existing "./shared" import in each profile module keeps
+// working now that requireUser is shared with the other action directories.
+export { requireUser } from "../shared";
+
+// Canonical IDOR guard for actions that only need to confirm resume ownership
+export const assertResumeOwnership = async (
+  resumeId: string,
+  userId: string,
+) => {
+  const owned = await prisma.resume.findUnique({
+    where: { id: resumeId, profile: { userId } },
+    select: { id: true },
+  });
+  if (!owned) throw new Error("Resume not found or access denied");
+};
+
+type ResumeEntryRefs = {
+  jobTitleId?: string;
+  companyId?: string;
+  locationId?: string;
+};
+
+// Foreign keys prove a row exists, not that the caller owns it
+export const assertResumeRefsOwned = async (
+  userId: string,
+  refs: ResumeEntryRefs,
+) => {
+  const owned = { createdBy: userId };
+  const [title, company, location] = await Promise.all([
+    refs.jobTitleId
+      ? prisma.jobTitle.count({ where: { id: refs.jobTitleId, ...owned } })
+      : 1,
+    refs.companyId
+      ? prisma.company.count({ where: { id: refs.companyId, ...owned } })
+      : 1,
+    refs.locationId
+      ? prisma.location.count({ where: { id: refs.locationId, ...owned } })
+      : 1,
+  ]);
+
+  if (title === 0) throw new Error("Job title not found");
+  if (company === 0) throw new Error("Company not found");
+  if (location === 0) throw new Error("Location not found");
+};
+
+// db is the transaction client when the caller swaps a resume's file
+export const createFileEntry = async (
+  fileName: string | undefined,
+  filePath: string | undefined,
+  db: Pick<typeof prisma, "file"> = prisma,
+) => {
+  // Only paths built by saveResumeUpload belong here
+  if (!filePath || !isResumeFilePath(filePath)) {
+    throw new Error("File path is outside the resumes directory");
+  }
+  const newFileEntry = await db.file.create({
+    data: {
+      fileName: fileName!,
+      filePath,
+      fileType: "resume",
+    },
+  });
+  return newFileEntry.id;
+};
+
+export const resumeListSelect = {
+  id: true,
+  profileId: true,
+  FileId: true,
+  createdAt: true,
+  updatedAt: true,
+  title: true,
+  _count: {
+    select: {
+      Job: true,
+      ResumeSections: true,
+    },
+  },
+} as const;
+
+// Full section tree for cloning. Unlike resumeDetailInclude this includes
+// `others` and omits File/Tag joins, which a copy does not need.
+export const resumeCopySelect = {
+  id: true,
+  profileId: true,
+  title: true,
+  ContactInfo: true,
+  ResumeSections: {
+    orderBy: { id: "asc" },
+    include: {
+      summary: true,
+      workExperiences: { orderBy: ENTRY_ORDER },
+      educations: { orderBy: ENTRY_ORDER },
+      licenseOrCertifications: { orderBy: CERTIFICATION_ORDER },
+      others: { orderBy: ENTRY_ORDER },
+      skills: true,
+    },
+  },
+} as const;
