@@ -197,18 +197,50 @@
    // pushing down unrelated trackers. Use the original live data nodes.
    const trackers=[...live.children].filter(node=>node.matches('section.politc-panel')).slice(0,3);
    if(trackers.length===3){
+    // Two public-interest research sources join the carousel without
+    // masquerading as quantified "live" counters. No graphic media,
+    // individual contributor lists, or accusations are reproduced here.
+    const archiveCard=tag('section','politc-panel politc-accountability-card');
+    archiveCard.dataset.politcTrack='4';
+    archiveCard.append(tag('h3','','ArchiveGenocide'),
+     tag('p','politc-sub','Document archive · Gaza and West Bank reporting · text-only discovery'),
+     tag('p','politc-note','Search preserved captions and sources in the Reading Room. A posting is evidence of what was shared, not automatic verification of every claim. Some originals contain graphic content.'));
+    const archiveAction=tag('button','politc-accountability-action','Search records in Reading Room');
+    archiveAction.type='button';archiveCard.append(archiveAction);
+    const archiveLink=link('https://archivegenocide.com/api-docs/','API · source notes & review limits');
+    archiveCard.append(archiveLink);
+    const moneyCard=tag('section','politc-panel politc-accountability-card');
+    moneyCard.dataset.politcTrack='5';
+    moneyCard.append(tag('h3','','Who Funded Genocide'),
+     tag('p','politc-sub','Campaign-finance research · US FEC filings and source disclosures'),
+     tag('p','politc-note','A political donation or independent expenditure does not establish a donor\'s beliefs, intentions or legal responsibility. Check original filings and amendments.'));
+    const moneyAction=tag('button','politc-accountability-action','Browse funding records');
+    moneyAction.type='button';moneyCard.append(moneyAction);
+    moneyCard.append(link('https://www.whofundedgenocide.com/methodology.html','Method and corrections'),
+     link('https://www.fec.gov/data/','Original FEC records'));
+    const openInRoom=kind=>{
+     const room=body.querySelector('#politcResearchDesk');
+     const details=room?.querySelector('.politc-research-fold');
+     const select=room?.querySelector('select[name="provider"]');
+     if(details)details.open=true;
+     if(select){select.value=kind;select.dispatchEvent(new Event('change',{bubbles:true}));}
+     room?.scrollIntoView?.({behavior:'smooth',block:'nearest'});
+     room?.querySelector('input[name="q"]')?.focus?.({preventScroll:true});
+    };
+    archiveAction.addEventListener('click',()=>openInRoom('archivegenocide'));
+    moneyAction.addEventListener('click',()=>openInRoom('whofundedgenocide'));
     const deck=tag('section','politc-independent-deck');
     deck.setAttribute('aria-label','Political research and live trackers');
     const rail=tag('div','politc-live-rail');
     rail.append(tag('span','politc-result-kicker','POLITIC · LIVE DATA'),
      tag('h2','','Live trackers'),
-     tag('p','','Three views of published data. Use the arrows to rotate the cards without losing your place.'));
+     tag('p','','Five sourced research collections. Rotate the cards; claims remain linked to their original records.'));
     const controls=tag('div','politc-live-arrows');
     const prev=tag('button','','←');prev.type='button';
     prev.setAttribute('aria-label','Rotate live trackers left');
     const next=tag('button','','→');next.type='button';
     next.setAttribute('aria-label','Rotate live trackers right');
-    const order=tag('span','politc-live-order','1–3 of 3');
+    const order=tag('span','politc-live-order','1–3 of 5');
     order.setAttribute('aria-live','polite');
     controls.append(prev,order,next);
     rail.append(controls);
@@ -228,18 +260,31 @@
      deck.append(lane);
      return lane;
     });
+    const trackerPool=[...trackers,archiveCard,moneyCard];
+    [archiveCard,moneyCard].forEach(card=>card.classList.add('politc-deck-tracker'));
+    const cache=tag('div','politc-live-card-cache');
+    cache.hidden=true;cache.setAttribute('aria-hidden','true');deck.append(cache);
+    [archiveCard,moneyCard].forEach(card=>cache.append(card));
+    let first=0;
+    const showTrackers=()=>{
+     // The hidden cache retains detached cards and their listeners, keeping
+     // the existing live data queries and refresh buttons functional.
+     lanes.forEach(lane=>{
+      const visible=lane.querySelector('.politc-deck-tracker');
+      if(visible)cache.append(visible);
+     });
+     lanes.forEach((lane,i)=>lane.prepend(trackerPool[(first+i)%trackerPool.length]));
+     const indexes=lanes.map((_,i)=>(first+i)%trackerPool.length+1);
+     order.textContent=indexes.join(' · ')+' / '+trackerPool.length;
+     order.title=lanes.map(lane=>lane.querySelector('h3')?.textContent?.trim()||'Tracker').join(' · ');
+    };
     const rotate=direction=>{
-     const cards=lanes.map(lane=>lane.querySelector('.politc-deck-tracker'));
-     if(cards.some(card=>!card))return;
-     if(direction>0)cards.unshift(cards.pop());
-     else cards.push(cards.shift());
-     // Maintain tracker-on-top order when rotating with the arrows.
-     lanes.forEach((lane,i)=>lane.prepend(cards[i]));
-     order.textContent='3 tracks';
-     order.title=cards.map(card=>card.querySelector('h3')?.textContent?.trim()||'Tracker').join(' · ');
+     first=(first+direction+trackerPool.length)%trackerPool.length;
+     showTrackers();
     };
     prev.addEventListener('click',()=>rotate(-1));
     next.addEventListener('click',()=>rotate(1));
+    showTrackers();
     topRow.replaceWith(deck);
     live.remove();
    }
