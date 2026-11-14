@@ -54,6 +54,7 @@
   '<p class="map-nav-caveat">Navigation only runs while this page stays open. Check signs, closures and surroundings; never rely on the screen while cycling or driving.</p>';
  planner.append(controls);
  const go=get('mapNavGo'),stopButton=get('mapNavStop'),voiceButton=get('mapNavVoice');
+ go.disabled=true; // Go requires an actual route with turn data, never a dashed preview.
  const speakInput=get('mapNavSpeakDestination'),replan=get('mapNavReplan');
  const status=get('mapNavStatus'),nextBox=controls.querySelector('.map-nav-next');
  const nextText=get('mapNavNextText'),distanceLabel=get('mapNavDistance'),list=get('mapNavTurns');
