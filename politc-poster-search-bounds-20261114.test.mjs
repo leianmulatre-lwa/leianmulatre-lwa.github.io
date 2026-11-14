@@ -85,6 +85,11 @@ test('poster pagination has a stable hidden state, and life status drives photo 
  assert.match(studio,/data-politc-paged="true"/);
  assert.match(studio,/data-politc-show-more/);
  assert.match(studio,/hidden\.slice\(0,24\)/);
+ assert.match(studio,/name="life"/);
+ assert.match(studio,/value="living">Living · color/);
+ assert.match(studio,/value="deceased">Deceased · black & white/);
+ assert.match(studio,/const life=\['living','deceased','unknown'\]/);
+
  assert.match(studio,/revealed\.forEach\(card=>card\.hidden=false\)/);
  assert.match(studio,/class="politc-person politc-poster/);
  assert.match(posterCSS,/\.politc-person\[data-politc-paged\]\[hidden\]\{/);
