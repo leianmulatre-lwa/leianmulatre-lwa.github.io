@@ -1257,11 +1257,38 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
         '<button type="button" role="tab" data-calendar-mode="geez" aria-selected="'+isGeez+'"'+(geezSupported?'':' disabled title="Ge’ez calendar is not supported in this browser"')+'>Pre-colonial</button></nav>';
       const conversionNote=isGeez?'<p class="calendar-geez-note">Ge’ez Calendar · 13 months · '+esc(chosenDate.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}))+' Gregorian equivalent. Your events and Google sync keep their original dates.</p>':'';
       calendarContent.innerHTML=heading('calendar')+modeTabs+'<p class="module-status" role="status">'+esc(syncMessage||(connected?'Google Calendar connected through Orbit.':'Connect Google Calendar in Orbit to see your events here.'))+'</p><div class="calendar-shell"><section class="calendar-board"><div class="calendar-toolbar"><div class="module-actions"><button class="module-action ghost" id="calPrev" aria-label="Previous month">←</button><button class="module-action ghost" id="calToday">Today</button><button class="module-action ghost" id="calOrbit" type="button">Manage in Orbit</button></div><h2>'+esc(monthLabel)+'</h2><div class="module-actions"><button class="module-action ghost" id="calNext" aria-label="Next month">→</button>'+(connected?'<button class="module-action ghost" id="calRefresh" type="button">Refresh</button>':'')+'</div></div><div class="calendar-weekdays">'+calendarWeekdays.map((x,i)=>'<span class="'+(i===0||i===6?'weekend':'')+'">'+x+'</span>').join('')+'</div><div class="calendar-days">'+days+'</div></section><aside class="module-card"><h2>'+esc(selectedLabel)+'</h2>'+conversionNote+'<p>Google events and UN observances are read-only. New events below are saved in this browser.</p><p><a href="https://www.un.org/en/observances/list-days-weeks" target="_blank" rel="noopener">UN days &amp; weeks ↗</a> · <span id="unCalendarStatus">Loading observances…</span></p><form class="module-form" id="calendarEventForm"><input class="module-input" name="title" placeholder="Event title" required><input class="module-input" type="time" name="time"><button class="module-action" type="submit">Add local event</button></form><div class="module-list" id="calendarSelectedEvents">'+crushAgenda+listHtml(local,'event')+readOnlyRows.map(e=>'<div class="module-list-item"><div><b>'+esc(e.title)+'</b><small>'+esc(e.meta)+'</small></div></div>').join('')+'</div></aside></div>';
+      const actualHeading=calendarContent.querySelector('.module-heading h1');
+      if(actualHeading)actualHeading.textContent=isGeez?'Ge’ez Calendar':'Calendar';
+      $('.calendar-modes [data-calendar-mode]',calendarContent).forEach(button=>{
+        button.onclick=()=>{
+          const requested=button.dataset.calendarMode;
+          if(requested==='geez'&&!geezSupported||requested===calendarMode)return;
+          calendarMode=requested;
+          workspace.dataset.calendarMode=calendarMode;
+          if(calendarMode==='geez')geezAnchor=new Date(selected+'T12:00:00');
+          else{
+            const d=new Date(selected+'T12:00:00');
+            view={year:d.getFullYear(),month:d.getMonth()};
+            writeJSON('biglwaCalendarView',view);
+          }
+          try{localStorage.setItem('biglwaCalendarSystemV1',calendarMode);}catch{}
+          remote=[];loaded='';++requestId;draw();load();
+        };
+      });
       const unStatus=$('#unCalendarStatus',body),unData=window.BigLWAObservances?.data;
       if(unStatus&&unData)unStatus.textContent='Auto-updated daily · last fetched '+new Date(unData.updatedAt).toLocaleDateString()+(unData.retrievedFrom.includes('indonesia.un.org')?' · UN Indonesia mirror':'')+'. Lunar dates require checking the source.';
-      const change=n=>{const d=new Date(view.year,view.month+n,1);view={year:d.getFullYear(),month:d.getMonth()};writeJSON('biglwaCalendarView',view);remote=[];draw();load()};
+      const change=n=>{
+        if(calendarMode==='geez'&&geezSupported){
+          const next=geez.shift(geezAnchor,n);if(!next)return;
+          geezAnchor=next;
+        }else{
+          const d=new Date(view.year,view.month+n,1);view={year:d.getFullYear(),month:d.getMonth()};
+          writeJSON('biglwaCalendarView',view);
+        }
+        remote=[];loaded='';++requestId;draw();load();
+      };
       $('#calPrev',body).onclick=()=>change(-1);$('#calNext',body).onclick=()=>change(1);
-      $('#calToday',body).onclick=()=>{const n=new Date();view={year:n.getFullYear(),month:n.getMonth()};selected=dayKey(n);writeJSON('biglwaCalendarView',view);localStorage.setItem('biglwaCalendarSelected',selected);remote=[];loaded='';draw();load()};
+      $('#calToday',body).onclick=()=>{const n=new Date();view={year:n.getFullYear(),month:n.getMonth()};selected=dayKey(n);geezAnchor=new Date(n.getFullYear(),n.getMonth(),n.getDate(),12);writeJSON('biglwaCalendarView',view);localStorage.setItem('biglwaCalendarSelected',selected);remote=[];loaded='';++requestId;draw();load()};
       $('#calOrbit',body).onclick=()=>openModule('orbit');
       const refresh=$('#calRefresh',body);if(refresh)refresh.onclick=()=>{loaded='';load()};
       $$('.calendar-day',body).forEach(btn=>btn.onclick=()=>{selected=btn.dataset.calDate;localStorage.setItem('biglwaCalendarSelected',selected);draw()});
@@ -1270,9 +1297,14 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     };
     async function load(){
       const orbit=window.__biglwaGoogleOrbit;if(!orbit?.state.connected||!orbit.calendarEvents)return;
-      const key=view.year+'-'+view.month;if(loaded===key)return;loaded=key;const id=++requestId;
+      const range=calendarGrid();
+      const key=calendarMode+':'+dayKey(range.dates[0])+':'+range.dates.length;
+      if(loaded===key)return;loaded=key;const id=++requestId;
       syncMessage='Loading Google events…';draw();
-      try{const start=calendarGridDate(view.year,view.month,0),end=calendarGridDate(view.year,view.month,42);const items=await orbit.calendarEvents(start.toISOString(),end.toISOString());if(id!==requestId||!active())return;remote=items;syncMessage='Google events refreshed from Orbit.'}
+      try{
+        const start=range.dates[0],end=new Date(range.dates[range.dates.length-1]);
+        end.setDate(end.getDate()+1);
+        const items=await orbit.calendarEvents(start.toISOString(),end.toISOString());if(id!==requestId||!active())return;remote=items;syncMessage='Google events refreshed from Orbit.'}
       catch(e){if(id!==requestId||!active())return;remote=[];loaded='';syncMessage=e.message}
       if(active())draw();
     }
