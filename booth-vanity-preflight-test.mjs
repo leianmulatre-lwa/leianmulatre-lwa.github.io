@@ -10,10 +10,10 @@ assert.doesNotThrow(()=>new Script(pages),'Module JavaScript still parses');
 assert.doesNotThrow(()=>new Script(heads),'Version header still parses');
 assert.doesNotThrow(()=>new Script(canvas),'Project canvas still parses');
 assert.match(heads,/notes:\{title:'sqwibbl\/r'/,'Sqwibbl/r keeps the original notes module route');
-assert.match(heads,/projects:\{title:'visualiz\/r'/,'Visualiz/r keeps the original projects route');
-assert.match(pages,/notes:'sqwibbl\/r',projects:'visualiz\/r'/,'Module heading labels updated together');
-assert.match(canvas,/<h1>visualiz\/r<\/h1>/,'Visual workspace title remains in sync');
-assert.match(pages,/font-family:"CS Bergamot Stitched","Bergamot Stitched"/,'Visualiz/r uses Sqwip screenplay heading font');
+assert.match(heads,/projects:\{title:'visualize\/r'/,'Visualize/r keeps the original projects route');
+assert.match(pages,/notes:'sqwibbl\/r',projects:'visualize\/r'/,'Module heading labels updated together');
+assert.match(canvas,/<h1>visualize\/r<\/h1>/,'Visual workspace title remains in sync');
+assert.match(pages,/font-family:"CS Bergamot Stitched","Bergamot Stitched"/,'Visualize/r uses Sqwip screenplay heading font');
 assert.match(pages,/<span aria-hidden="true">▤<\/span> Sqwib/,'Sqwib tab keeps its original archive mark');
 assert.match(pages,/<span aria-hidden="true">♢<\/span> Sqwip/,'Sqwip tab keeps its original diamond mark');
 
