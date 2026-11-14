@@ -34,10 +34,22 @@ test('post-election desk is compact by default; original form controls are prese
  assert.match(pjs,/details\.append\(sum\)/);
  assert.doesNotMatch(pjs,/localStorage\.(?:removeItem|clear)\(/);
 });
-test('reading room sits directly after live tracker without losing the data panels',()=>{
- assert.match(pjs,/live\.insertAdjacentElement\('afterend',reader\)/);
- assert.match(pjs,/board\.insertBefore\(section,live\)/);
- assert.match(pjs,/reader\.classList\.add\('politc-after-live'\)/);
+test('Election, results and Reading Room occupy one responsive row',()=>{
+ const research=read('politc-research-desk-20261113.js');
+ assert.match(pjs,/board\.insertBefore\(topRow,live\)/);
+ assert.match(pjs,/topRow\.append\(election,section,reader\)/);
+ assert.match(pjs,/politc-three-up/);
+ assert.match(pjs,/politc-card-expanded/);
+ assert.match(pjs,/fold\.addEventListener\('toggle',sync\)/);
+ assert.match(pcss,/grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+ assert.match(pcss,/max-width:1120px/);
+ assert.match(pcss,/max-width:760px/);
+ assert.match(pcss,/\.politc-three-up > \.politc-card-expanded/);
+ assert.match(research,/politc-research-fold/);
+ assert.match(research,/foldSummary\.append\(intro,foldButton\)/);
+ assert.match(research,/foldBody\.append\(form,state,results,viewer\)/);
+ assert.match(research,/fold\.append\(foldSummary,foldBody\)/);
+ assert.match(pjs,/const live=board\?\.querySelector\('\.politc-live-zone'\)/);
 });
 test('official LA result shape is parsed from real source and never invents a race call',()=>{
  const context={window:{},document:{addEventListener:()=>{}},
