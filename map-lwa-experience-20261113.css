@@ -89,3 +89,137 @@ body.preview .map-plan,body.preview .map-brand-strip,body.preview .map-layer-tip
 /* Visible source identification on both full Map and L'wazi mini-map. */
 .map-stage .map-provider-indicator{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:750;max-width:70%;padding:6px 11px;border:1px solid #dac0c8;border-radius:99px;background:rgba(255,249,245,.94);color:#6c3141;font:700 10px/1.3 system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 9px #23121524;pointer-events:none}
 body.preview .map-stage .map-provider-indicator{font-size:9px;padding:5px 9px;max-width:80%;top:6px}
+
+/* 2026-11-13 · persistent 2-column Map desk.
+   Right-hand actions scroll independently; Leaflet stays visible on left.
+   .map-workspace-split is applied only after JS has moved live editor nodes. */
+@media (min-width: 960px) {
+ body.embedded.map-workspace-split main{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(350px,0.96fr)!important;
+  align-items:start!important;
+  column-gap:14px!important;
+  width:100%!important;
+  min-width:0!important;
+ }
+ body.embedded.map-workspace-split .map-side{
+  grid-column:1!important;
+  position:sticky!important;top:8px!important;
+  min-width:0!important;align-self:start!important;
+ }
+ body.embedded.map-workspace-split .map-side .map-stage{
+  height:clamp(490px,calc(100dvh - 220px),830px)!important;
+ }
+ body.embedded.map-workspace-split #map{
+  height:100%!important;min-height:0!important;
+ }
+ body.embedded.map-workspace-split main>aside{
+  grid-column:2!important;
+  height:clamp(490px,calc(100dvh - 166px),890px)!important;
+  max-height:calc(100dvh - 50px)!important;
+  display:flex!important;flex-direction:column!important;
+  gap:0!important;
+  padding:0!important;
+  overflow:hidden!important;min-height:0!important;
+  position:relative;
+ }
+ body.embedded.map-workspace-split .map-desk-heading{padding:14px 16px 9px}
+ body.embedded.map-workspace-split .map-action-tabs{padding:0 12px 10px}
+ body.embedded.map-workspace-split .map-tool-panels{
+  flex:1 1 auto;min-height:0;
+  overflow:auto;overscroll-behavior:contain;
+  scrollbar-color:#ad8791 transparent;
+  scrollbar-width:thin;
+ }
+ body.embedded.map-workspace-split .map-workspace-pane{
+  padding:14px 17px 22px!important;
+ }
+ body.embedded.map-workspace-split .map-plan .map-trip-fields{grid-template-columns:1fr!important}
+ body.embedded.map-workspace-split #pinForm{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ body.embedded.map-workspace-split #pinForm>label{grid-column:span 1!important}
+ body.embedded.map-workspace-split #pinForm>label:has(#pinName),
+ body.embedded.map-workspace-split #pinForm>label:has(#pinNotes),
+ body.embedded.map-workspace-split #pinForm>.place-search-label,
+ body.embedded.map-workspace-split #pinForm>.place-search-status,
+ body.embedded.map-workspace-split #pinForm>.place-source,
+ body.embedded.map-workspace-split #pinForm>.pin-public,
+ body.embedded.map-workspace-split #pinForm>.toolbar,
+ body.embedded.map-workspace-split #pinForm>.row,
+ body.embedded.map-workspace-split #pinForm>label:has(#area){
+  grid-column:1/-1!important;
+ }
+ body.embedded.map-workspace-split .saved #pins{
+  grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr))!important;
+  max-height:none!important;overflow:visible!important;
+ }
+}
+body.embedded.map-workspace-split main>aside{
+ background:rgba(255,249,243,.95)!important;
+ border:1px solid #d9c2c1!important;
+ box-shadow:0 3px 12px #6d3b4714;
+}
+body.embedded.map-workspace-split .map-desk-heading{
+ display:flex;gap:7px;align-items:baseline;justify-content:space-between;flex-wrap:wrap;
+ font:600 11px/1.35 system-ui,sans-serif;color:#85606b;
+}
+body.embedded.map-workspace-split .map-desk-heading>span{letter-spacing:.1em;font-size:9px;font-weight:800}
+body.embedded.map-workspace-split .map-desk-heading>b{font:700 17px/1.3 Georgia,serif;color:#573441}
+body.embedded.map-workspace-split .map-action-tabs{
+ display:flex;flex-wrap:wrap;gap:5px;
+ border-bottom:1px solid #dfcaca;
+}
+body.embedded.map-workspace-split .map-action-tab{
+ flex:1 1 auto;min-height:34px;padding:8px 10px;border:1px solid #d0b5bd;
+ border-radius:9px;background:#fff9f5;color:#765363;
+ font:700 11px/1.35 system-ui,sans-serif;cursor:pointer;
+ white-space:nowrap;
+}
+body.embedded.map-workspace-split .map-action-tab[aria-selected="true"]{
+ background:#6e3549;color:#fffaf4;border-color:#6e3549;
+}
+body.embedded.map-workspace-split .map-action-tab:focus-visible{
+ outline:3px solid #bc637e;outline-offset:2px;
+}
+body.embedded.map-workspace-split .map-workspace-pane[hidden]{display:none!important}
+body.embedded.map-workspace-split .map-workspace-pane{
+ width:100%;box-sizing:border-box;min-width:0;
+ display:block;
+}
+body.embedded.map-workspace-split .map-workspace-pane h2{
+ margin:0 0 12px;
+ font:700 clamp(20px,2vw,27px)/1.25 Georgia,serif;
+ color:#452f35;
+}
+body.embedded.map-workspace-split .map-workspace-pane>.status{
+ margin:8px 0;font:600 11px/1.5 system-ui,sans-serif;
+}
+body.embedded.map-workspace-split .map-workspace-pane .saved{
+ padding-top:0!important;margin:0!important;
+ border:0!important;
+}
+body.embedded.map-workspace-split .map-workspace-pane .saved h2{margin-top:0}
+body.embedded.map-workspace-split .map-workspace-pane #pinForm{
+ margin:0!important;
+}
+body.embedded.map-workspace-split .map-workspace-pane #pinForm .row{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+body.embedded.map-workspace-split .map-workspace-pane #pinForm .pin-public input{min-height:0!important;width:auto!important}
+body.embedded.map-workspace-split .map-workspace-pane .public-strip{
+ margin:0!important;min-width:0;
+}
+body.embedded.map-workspace-split .map-workspace-pane .map-plan{
+ margin:0!important;box-shadow:none!important;
+}
+body.embedded.map-workspace-split #fullscreenMap{margin:0!important}
+@media (max-width: 959px){
+ body.embedded.map-workspace-split main{grid-template-columns:1fr!important;gap:10px!important}
+ body.embedded.map-workspace-split .map-side{position:static!important}
+ body.embedded.map-workspace-split main>aside{
+  display:flex!important;flex-direction:column!important;padding:0!important;
+  gap:0!important;overflow:hidden!important;
+ }
+ body.embedded.map-workspace-split .map-desk-heading{padding:14px 14px 9px}
+ body.embedded.map-workspace-split .map-action-tabs{padding:0 10px 10px}
+ body.embedded.map-workspace-split .map-workspace-pane{padding:14px!important}
+ body.embedded.map-workspace-split .map-tool-panels{min-height:0;overflow:visible}
+ body.embedded.map-workspace-split #map{height:clamp(300px,50vh,540px)!important}
+}
