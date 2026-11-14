@@ -221,3 +221,41 @@
 /* Four native Stream channel controls remain on the title line. */
 #studioApp #moduleWorkspace[data-module-key="stream"] .module-heading--with-versions>.module-heading-right{max-width:min(72vw,600px)!important}
 #studioApp #moduleWorkspace[data-module-key="stream"] .stream-heading-versions{max-width:100%!important;overflow-x:auto!important}
+
+
+/* 2026-11-14 R-series typography:
+   Sqwibbl keeps its original Subwaygraph face; Visualize matches the light
+   Courier Prime screenplay body from Sqwip; the literal /r stays stitched.
+   These spans override older all-Stitch heading rules without changing
+   layout, symbols, controls, or the actual module route. */
+#studioApp .lwa-mixed-r-title{
+  font-synthesis:none!important;
+  white-space:normal;
+}
+#studioApp .lwa-mixed-r-title[data-lwa-mixed-title="notes"] > .lwa-title-base{
+  font-family:"Subwaygraph",Georgia,serif!important;
+  font-weight:400!important;
+  font-style:normal!important;
+  letter-spacing:normal!important;
+}
+#studioApp .lwa-mixed-r-title[data-lwa-mixed-title="projects"] > .lwa-title-base{
+  font-family:"Courier Prime","Courier New",Courier,monospace!important;
+  font-weight:400!important;
+  font-style:normal!important;
+  letter-spacing:-.075em!important;
+}
+#studioApp .module-heading h1.lwa-mixed-r-title[data-lwa-mixed-title="projects"] > .lwa-title-base{
+  font-size:.83em!important;
+}
+#studioApp .lwa-mixed-r-title > .lwa-title-r{
+  font-family:"CS Bergamot Stitched",Georgia,serif!important;
+  font-style:normal!important;
+  font-weight:400!important;
+  letter-spacing:-.025em!important;
+  text-transform:lowercase!important;
+}
+#studioApp .lwa-mixed-r-title > .lwa-title-base,
+#studioApp .lwa-mixed-r-title > .lwa-title-r{
+  display:inline!important;
+  line-height:inherit!important;
+}

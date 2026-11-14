@@ -10,10 +10,13 @@ assert.doesNotThrow(()=>new Script(pages),'Module JavaScript still parses');
 assert.doesNotThrow(()=>new Script(heads),'Version header still parses');
 assert.doesNotThrow(()=>new Script(canvas),'Project canvas still parses');
 assert.match(heads,/notes:\{title:'sqwibbl\/r'/,'Sqwibbl/r keeps the original notes module route');
-assert.match(heads,/projects:\{title:'visualiz\/r'/,'Visualiz/r keeps the original projects route');
-assert.match(pages,/notes:'sqwibbl\/r',projects:'visualiz\/r'/,'Module heading labels updated together');
-assert.match(canvas,/<h1>visualiz\/r<\/h1>/,'Visual workspace title remains in sync');
-assert.match(pages,/font-family:"CS Bergamot Stitched","Bergamot Stitched"/,'Visualiz/r uses Sqwip screenplay heading font');
+assert.match(heads,/projects:\{title:'visualize\/r'/,'Visualize/r keeps the original projects route');
+assert.match(pages,/notes:'sqwibbl\/r',projects:'visualize\/r'/,'Module heading labels updated together');
+assert.match(canvas,/<h1>visualize\/r<\/h1>/,'Visual workspace title remains in sync');
+const titleCss=read('lwazi-header-series-20261026.css');
+assert.match(titleCss,/font-family:"Courier Prime","Courier New",Courier,monospace!important/,"Visualize uses Sqwip's thin screenplay font");
+assert.match(titleCss,/\.lwa-mixed-r-title > \.lwa-title-r/,'Mixed R title suffix is separately styled');
+assert.match(heads,/function paintMixedTitle\(/,'Widget and page headings render independent text spans');
 assert.match(pages,/<span aria-hidden="true">▤<\/span> Sqwib/,'Sqwib tab keeps its original archive mark');
 assert.match(pages,/<span aria-hidden="true">♢<\/span> Sqwip/,'Sqwip tab keeps its original diamond mark');
 
