@@ -192,6 +192,56 @@
     fold.addEventListener('toggle',sync);
     sync();
    });
+
+   // Independent newspaper columns prevent one expanded accordion from
+   // pushing down unrelated trackers. Use the original live data nodes.
+   const trackers=[...live.children].filter(node=>node.matches('section.politc-panel')).slice(0,3);
+   if(trackers.length===3){
+    const deck=tag('section','politc-independent-deck');
+    deck.setAttribute('aria-label','Political research and live trackers');
+    const rail=tag('div','politc-live-rail');
+    rail.append(tag('span','politc-result-kicker','POLITIC · LIVE DATA'),
+     tag('h2','','Live trackers'),
+     tag('p','','Three views of published data. Use the arrows to rotate the cards without losing your place.'));
+    const controls=tag('div','politc-live-arrows');
+    const prev=tag('button','','←');prev.type='button';
+    prev.setAttribute('aria-label','Rotate live trackers left');
+    const next=tag('button','','→');next.type='button';
+    next.setAttribute('aria-label','Rotate live trackers right');
+    const order=tag('span','politc-live-order','1–3 of 3');
+    order.setAttribute('aria-live','polite');
+    controls.append(prev,order,next);
+    rail.append(controls);
+    const refresh=live.querySelector('#politcLiveRefresh');
+    if(refresh){
+     refresh.classList.add('politc-deck-refresh');
+     rail.append(refresh);
+    }
+    deck.append(rail);
+    const lanes=[...topRow.children].map((topCard,i)=>{
+     const lane=tag('div','politc-deck-lane');
+     lane.append(topCard);
+     const card=trackers[i];
+     card.classList.add('politc-deck-tracker');
+     card.dataset.politcTrack=String(i+1);
+     lane.append(card);
+     deck.append(lane);
+     return lane;
+    });
+    const rotate=direction=>{
+     const cards=lanes.map(lane=>lane.querySelector('.politc-deck-tracker'));
+     if(cards.some(card=>!card))return;
+     if(direction>0)cards.unshift(cards.pop());
+     else cards.push(cards.shift());
+     lanes.forEach((lane,i)=>lane.append(cards[i]));
+     order.textContent='Showing '+cards.map(card=>card.querySelector('h3')?.textContent?.trim()||'Tracker').join(' · ');
+    };
+    prev.addEventListener('click',()=>rotate(-1));
+    next.addEventListener('click',()=>rotate(1));
+    topRow.replaceWith(deck);
+    live.remove();
+   }
+
   }else{
    board.insertBefore(section,live);
    if(reader)live.insertAdjacentElement('afterend',reader);
