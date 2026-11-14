@@ -121,6 +121,18 @@
    board.insertBefore(topRow,live);
    topRow.append(election,section,reader);
    reader.classList.remove('politc-after-live');
+   // Expand only the selected card (never every card's internal details).
+   const folds=[
+    [election,election.querySelector('.politc-post-election-details')],
+    [section,section.querySelector('.politc-result-details')],
+    [reader,reader.querySelector('.politc-research-fold')]
+   ];
+   folds.forEach(([card,fold])=>{
+    if(!fold)return;
+    const sync=()=>card.classList.toggle('politc-card-expanded',fold.open);
+    fold.addEventListener('toggle',sync);
+    sync();
+   });
   }else{
    board.insertBefore(section,live);
    if(reader)live.insertAdjacentElement('afterend',reader);
