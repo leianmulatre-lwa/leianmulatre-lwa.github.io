@@ -10,12 +10,11 @@
  // Never describe these as current, certified, or statewide.
  const SNAPSHOT={Timestamp:'2026-11-10T17:01:24.383',Election:{
   ContestGroups:[
-   {Name:'Governor',Contests:[{Title:'GOVERNOR',Type:'Candidate',AdditionalText:'Los Angeles County Results Only',Candidates:[
-    {Name:'XAVIER BECERRA',Party:'Democratic',Votes:2257836},
-    {Name:'STEVE HILTON',Party:'Republican',Votes:823543}]}]},
-   {Name:'Attorney General',Contests:[{Title:'ATTORNEY GENERAL',Type:'Candidate',AdditionalText:'Los Angeles County Results Only',Candidates:[
-    {Name:'ROB BONTA',Party:'Democratic',Votes:2212982},
-    {Name:'MICHAEL E. GATES',Party:'Republican',Votes:798564}]}]}
+   {Name:'Governor',Contests:[{Title:'GOVERNOR',Type:'Candidate',
+    AdditionalText:'LA County source snapshot, published November 10, 2026; NOT current or certified',
+    Candidates:[{Name:'XAVIER BECERRA',Party:'Democratic',Votes:2257836},
+      {Name:'STEVE HILTON',Party:'Republican',Votes:823543}]}]}
+
  ]}};
  const tag=(name,className,txt)=>{
   const el=document.createElement(name);
