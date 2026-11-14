@@ -1,12 +1,15 @@
 {
   "schema": 1,
   "status": "published",
-  "generated_at": "2026-11-14T22:41:04.415441Z",
-  "source_library": "werk-main / JobSpy 1.4.1 (MIT; Cullen Watson and contributors)",
+  "generated_at": "2026-11-14T23:29:56.556127Z",
+  "source_library": "werk-main / JobSpy 1.4.1 (MIT) + public Greenhouse, Lever and Ashby read-only job board APIs",
   "search_term": "Curated BIG LWA searches",
   "location": "Multiple locations",
   "sources": [
-    "indeed"
+    "ashby",
+    "greenhouse",
+    "indeed",
+    "lever"
   ],
   "searches": [
     {
@@ -40,6 +43,32 @@
       "limit": 7
     }
   ],
+  "ats_boards": [
+    {
+      "name": "The New York Times",
+      "provider": "greenhouse",
+      "count": 14,
+      "status": "ok"
+    },
+    {
+      "name": "Spotify",
+      "provider": "lever",
+      "count": 14,
+      "status": "ok"
+    },
+    {
+      "name": "TrueShort",
+      "provider": "ashby",
+      "count": 7,
+      "status": "ok"
+    },
+    {
+      "name": "OpenAI",
+      "provider": "ashby",
+      "count": 0,
+      "status": "unavailable"
+    }
+  ],
   "jobs": [
     {
       "url": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=c657fecb-eda2-42b3-a456-16fb4622b44a&ccId=19000101_000001&jobId=943108&source=IN&lang=en_US",
@@ -60,15 +89,6 @@
       "searchTerm": "creative director"
     },
     {
-      "url": "https://apply.workable.com/j/3643A05872",
-      "title": "Art Director",
-      "company": "Milani Cosmetics",
-      "source": "indeed",
-      "location": "Culver City, CA, USA",
-      "postedAt": "2026-11-13",
-      "searchTerm": "creative director"
-    },
-    {
       "url": "https://zealot.applytojob.com/apply/7Wfvopak0I/Art-Director?source=INDE&~",
       "title": "Art Director",
       "company": "Zealot",
@@ -78,11 +98,20 @@
       "searchTerm": "creative director"
     },
     {
-      "url": "https://expedia.wd108.myworkdayjobs.com/en-US/search/job/USA---California---West-Hollywood/Creative-Director---Creative-Integration_R-111044",
-      "title": "Creative Director - Creative Integration",
-      "company": "Expedia Group",
+      "url": "https://apply.workable.com/j/3643A05872",
+      "title": "Art Director",
+      "company": "Milani Cosmetics",
       "source": "indeed",
-      "location": "West Hollywood, CA, USA",
+      "location": "Culver City, CA, USA",
+      "postedAt": "2026-11-13",
+      "searchTerm": "creative director"
+    },
+    {
+      "url": "https://jobs.ashbyhq.com/doctronic/9a3248ce-05de-40f6-a647-f001e42cb28e?utm_source=ON6K3yYqqy",
+      "title": "Creative Director",
+      "company": "doctronic",
+      "source": "indeed",
+      "location": "Los Angeles, CA, USA",
       "postedAt": "2026-11-12",
       "searchTerm": "creative director"
     },
@@ -222,15 +251,6 @@
       "searchTerm": "software developer"
     },
     {
-      "url": "https://secure4.saashr.com/ta/6167768.careers?ShowJob=1074006466",
-      "title": "Software Engineer",
-      "company": "Moore",
-      "source": "indeed",
-      "location": "Remote, USA",
-      "postedAt": "2026-11-14",
-      "searchTerm": "software developer"
-    },
-    {
       "url": "https://holmanautogroup.wd1.myworkdayjobs.com/HolmanEnterprisesCareers/job/Remote-NJ-US/Developer-III_R0055355",
       "title": "Developer III",
       "company": "Holman",
@@ -243,6 +263,15 @@
       "url": "https://mind-computing.breezy.hr/p/48cd591eca92-net-developer-remote-opportunity?source=indeed",
       "title": ".NET Developer (Remote Opportunity)",
       "company": "Mind Computing",
+      "source": "indeed",
+      "location": "Remote, USA",
+      "postedAt": "2026-11-13",
+      "searchTerm": "software developer"
+    },
+    {
+      "url": "https://pacemate.applytojob.com/apply/NIKzas1MSv/Associate-Application-Engineer?source=INDE&~",
+      "title": "Associate Application Engineer",
+      "company": "PaceMate™",
       "source": "indeed",
       "location": "Remote, USA",
       "postedAt": "2026-11-13",
@@ -265,6 +294,321 @@
       "location": "Fort Huachuca, AZ, USA",
       "postedAt": "2026-11-12",
       "searchTerm": "software developer"
+    },
+    {
+      "url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4747650005",
+      "title": "Ad Solutions Producer",
+      "company": "The New York Times",
+      "source": "greenhouse",
+      "location": "New York, NY",
+      "postedAt": "2026-10-27",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4750496005",
+      "title": "Advertising Business Data Analyst Intern",
+      "company": "The New York Times",
+      "source": "greenhouse",
+      "location": "New York, NY",
+      "postedAt": "2026-11-03",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4748487005",
+      "title": "Advertising Business Operations & Enablement Operations Intern",
+      "company": "The New York Times",
+      "source": "greenhouse",
+      "location": "New York, NY",
+      "postedAt": "2026-10-30",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4751091005",
+      "title": "Advertising Events & Socials Intern",
+      "company": "The New York Times",
+      "source": "greenhouse",
+      "location": "New York, NY",
+      "postedAt": "2026-11-04",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4751089005",
+      "title": "Advertising Marketing Design Intern",
+      "company": "The New York Times",
+      "source": "greenhouse",
+      "location": "New York, NY",
+      "postedAt": "2026-11-04",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4750498005",
+      "title": "Advertising Marketing Measurement Intern",
+      "company": "The New York Times",
+      "source": "greenhouse",
+      "location": "New York, NY",
+      "postedAt": "2026-11-03",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4748489005",
+      "title": "Advertising Revenue Operations Intern",
+      "company": "The New York Times",
+      "source": "greenhouse",
+      "location": "New York, NY",
+      "postedAt": "2026-10-30",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4751917005",
+      "title": "Android Engineering Intern",
+      "company": "The New York Times",
+      "source": "greenhouse",
+      "location": "New York, NY",
+      "postedAt": "2026-11-06",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4732855005",
+      "title": "Assistant Editor, Data Journalism",
+      "company": "The New York Times",
+      "source": "greenhouse",
+      "location": "New York, NY; Washington, DC",
+      "postedAt": "2026-09-22",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4743605005",
+      "title": "Assistant Editor, Visuals",
+      "company": "The New York Times",
+      "source": "greenhouse",
+      "location": "Seoul, Korea",
+      "postedAt": "2026-10-14",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4748035005",
+      "title": "Assistant White House Editor",
+      "company": "The New York Times",
+      "source": "greenhouse",
+      "location": "Washington, DC",
+      "postedAt": "2026-10-27",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4749501005",
+      "title": "Associate Creative Director",
+      "company": "The New York Times",
+      "source": "greenhouse",
+      "location": "New York, NY",
+      "postedAt": "2026-10-30",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4752928005",
+      "title": "Audience Insights Intern",
+      "company": "The New York Times",
+      "source": "greenhouse",
+      "location": "New York, NY",
+      "postedAt": "2026-11-09",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4748501005",
+      "title": "Audience Team Intern, Wirecutter",
+      "company": "The New York Times",
+      "source": "greenhouse",
+      "location": "New York, NY",
+      "postedAt": "2026-10-30",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.lever.co/spotify/93b9a474-0e4e-4214-9c9a-974496478068",
+      "title": "Artist & Label Partnerships Manager - GSA (15-month fixed-term)",
+      "company": "Spotify",
+      "source": "lever",
+      "location": "Berlin",
+      "postedAt": "2026-10-21",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.lever.co/spotify/c152d042-642d-4a48-862b-8be8d6cdc819",
+      "title": "Communications Lead - MENAT+",
+      "company": "Spotify",
+      "source": "lever",
+      "location": "Dubai",
+      "postedAt": "2026-08-24",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.lever.co/spotify/ffe7380b-8c91-4201-bf60-25273493a1d8",
+      "title": "Content Marketing Manager Indonesia",
+      "company": "Spotify",
+      "source": "lever",
+      "location": "Jakarta",
+      "postedAt": "2026-09-22",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.lever.co/spotify/1bbaf909-5ff3-4ed6-87ca-f7ff007a169c",
+      "title": "Data Scientist - Music Mission",
+      "company": "Spotify",
+      "source": "lever",
+      "location": "New York, NY",
+      "postedAt": "2026-06-22",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.lever.co/spotify/56ea6f2e-f20b-4e46-ab94-d3eb0a89482d",
+      "title": "Data Scientist - Music Promotion",
+      "company": "Spotify",
+      "source": "lever",
+      "location": "New York, NY",
+      "postedAt": "2026-09-10",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.lever.co/spotify/5861816e-7ac4-4921-8e90-8e093707e27d",
+      "title": "Director of Engineering - Content Platform (Catalog)",
+      "company": "Spotify",
+      "source": "lever",
+      "location": "London",
+      "postedAt": "2026-09-09",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.lever.co/spotify/9899871a-4307-4367-9f74-039569d7a650",
+      "title": "Full Stack Engineer - Music",
+      "company": "Spotify",
+      "source": "lever",
+      "location": "New York, NY",
+      "postedAt": "2026-10-02",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.lever.co/spotify/25fac63d-d4ba-48b9-80b1-b8e87b55e448",
+      "title": "Global Creative Lead, Reverb",
+      "company": "Spotify",
+      "source": "lever",
+      "location": "New York, NY",
+      "postedAt": "2026-10-09",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.lever.co/spotify/8d54dd6d-d7e0-4298-b051-423bcec4089e",
+      "title": "Legal Counsel, Litigation and Copyright",
+      "company": "Spotify",
+      "source": "lever",
+      "location": "New York, NY",
+      "postedAt": "2026-10-01",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.lever.co/spotify/d06fe312-4b91-4c40-a3da-64985b569075",
+      "title": "Manager, Artists Label & Partnerships",
+      "company": "Spotify",
+      "source": "lever",
+      "location": "Paris",
+      "postedAt": "2026-09-16",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.lever.co/spotify/080868dd-fc8c-4648-b6ab-6780d8ca3d63",
+      "title": "Principal Product Manager - Audio and Media Playback",
+      "company": "Spotify",
+      "source": "lever",
+      "location": "Stockholm",
+      "postedAt": "2026-09-16",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.lever.co/spotify/73a83f73-2f59-4c82-bac3-7dfc5d3355ad",
+      "title": "Principal Product Manager - Core Experience Platform",
+      "company": "Spotify",
+      "source": "lever",
+      "location": "London",
+      "postedAt": "2026-10-05",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.lever.co/spotify/ef3985d1-522e-4950-ba6e-af57dd93c788",
+      "title": "Principal Product Manager - Format Foundations",
+      "company": "Spotify",
+      "source": "lever",
+      "location": "London",
+      "postedAt": "2026-10-05",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.lever.co/spotify/e74bfb24-55de-4d93-b228-ae38b8fdfbea",
+      "title": "Principal Product Manager - Personalization",
+      "company": "Spotify",
+      "source": "lever",
+      "location": "London",
+      "postedAt": "2026-09-08",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.ashbyhq.com/trueshort/9efb1967-efbb-4e73-873b-530ebe8c623a",
+      "title": "Creative Technologist",
+      "company": "TrueShort",
+      "source": "ashby",
+      "location": "United States",
+      "postedAt": "2026-04-21",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.ashbyhq.com/trueshort/71fec8e7-bce5-4141-9762-8241909c7eaf",
+      "title": "Creative Strategist (Ads)",
+      "company": "TrueShort",
+      "source": "ashby",
+      "location": "New York City",
+      "postedAt": "2026-04-20",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.ashbyhq.com/trueshort/86b5b22b-cd4d-4fda-9cd1-6d7a5bae0a6f",
+      "title": "AI Filmmaker",
+      "company": "TrueShort",
+      "source": "ashby",
+      "location": "Los Angeles / Remote",
+      "postedAt": "2026-05-13",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.ashbyhq.com/trueshort/ca880a30-f89c-4258-8496-ac059e851414",
+      "title": "Editor",
+      "company": "TrueShort",
+      "source": "ashby",
+      "location": "Los Angeles / Remote",
+      "postedAt": "2026-05-13",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.ashbyhq.com/trueshort/8a99a521-ca3c-4a82-9388-59ef717d3520",
+      "title": "Writer",
+      "company": "TrueShort",
+      "source": "ashby",
+      "location": "Los Angeles / Remote",
+      "postedAt": "2026-05-13",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.ashbyhq.com/trueshort/b2b2f4a0-2327-48e6-8909-f4ae591cf3bb",
+      "title": "Music Composer & Editor",
+      "company": "TrueShort",
+      "source": "ashby",
+      "location": "Los Angeles / Remote",
+      "postedAt": "2026-06-30",
+      "searchTerm": ""
+    },
+    {
+      "url": "https://jobs.ashbyhq.com/trueshort/4a252f68-9e14-4f6b-8188-834ff1f20479",
+      "title": "Visual Designer",
+      "company": "TrueShort",
+      "source": "ashby",
+      "location": "Los Angeles / Remote",
+      "postedAt": "2026-09-14",
+      "searchTerm": ""
     }
   ],
   "disclaimer": "Independent discovery hints. Verify availability, compensation and employer details on the original job posting."
