@@ -41,7 +41,7 @@ test('Werk is loaded exactly once in each Studio shell and appears first without
   assert.equal((shell.match(/visual-life-jobs\.js\?v=/g)||[]).length,1,name);
   assert(shell.indexOf('module-pages.js?v=')<shell.indexOf('politc-werk-20261114.js?v='),name);
  }
- assert.match(werk,/board\.prepend\(panel\)/);
+ assert.match(werk,/moduleBody\.insertBefore\(panel,moduleBody\.querySelector\('#politcResearchDesk'\)\|\|board\)/);
  assert.match(werk,/document\.addEventListener\('biglwa:module-open'/);
  assert.match(css,/#studioApp #moduleWorkspace\[data-module-key="politc"\] #politcWerk/);
  assert.match(css,/body\.night-mode/);
