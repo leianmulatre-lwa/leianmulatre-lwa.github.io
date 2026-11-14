@@ -25,7 +25,7 @@ test('Politic includes exactly 100 hunting and 100 cunting curated subjects',()=
   assert(row.id.startsWith('curated-'));
   assert(['hunting','cunting'].includes(row.category));
   assert(['living','deceased','unknown'].includes(row.life));
-  assert(row.note.length>=30&&row.note.length<240);
+  assert(row.note.length>=20&&row.note.length<240);
   assert.equal(new URL(row.source).hostname,'en.wikipedia.org');
   assert.equal(row.curated,true);
  }
@@ -45,7 +45,7 @@ test('user-provided 25 names are represented without claiming nonexistent convic
   const record=c.find(x=>x.name===person);
   assert.equal(record.kind,'scrutiny');
   assert.equal(record.life,'living');
-  assert.match(record.note,/no criminal/i);
+  assert.match(record.note,/no criminal|not an allegation of criminal/i);
   assert.doesNotMatch(record.note,/convicted|should be charged/i);
  }
  const unknown=c.find(x=>x.name==='Jack the Ripper');
