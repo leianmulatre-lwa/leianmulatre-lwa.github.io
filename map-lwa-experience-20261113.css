@@ -223,3 +223,59 @@ body.embedded.map-workspace-split #fullscreenMap{margin:0!important}
  body.embedded.map-workspace-split .map-tool-panels{min-height:0;overflow:visible}
  body.embedded.map-workspace-split #map{height:clamp(300px,50vh,540px)!important}
 }
+
+
+/* In-page, user-permissioned route guidance: fits Route panel without
+   stealing the map canvas. Explicit Go / Stop / Voice controls. */
+body.embedded .map-nav-controls{
+ display:flex;flex-direction:column;gap:10px;box-sizing:border-box;
+ min-width:0;margin-top:13px;padding:12px;border:1px solid #dbbdc7;
+ border-radius:12px;background:#fff9f4;color:#3a2932;
+ box-shadow:0 2px 8px #693c4910;
+}
+body.embedded .map-nav-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:5px}
+body.embedded .map-nav-head strong{font:700 19px/1.2 Georgia,serif;color:#6b3044}
+body.embedded .map-nav-head span{font:650 10px/1.3 system-ui,sans-serif;color:#8e6370}
+body.embedded .map-nav-actions{display:flex;gap:6px;flex-wrap:wrap}
+body.embedded .map-nav-actions button{
+ min-height:35px;padding:8px 10px;border:1px solid #ae8393;
+ border-radius:9px;background:#fffdf9;color:#78384d;
+ font:700 11px/1.3 system-ui,sans-serif;cursor:pointer;
+}
+body.embedded #mapNavGo:not([disabled]){background:#74334c;color:#fffaf4;border-color:#74334c}
+body.embedded #mapNavStop{background:#f1dfe4;color:#5e2d3c}
+body.embedded #mapNavGo[disabled]{opacity:.55;cursor:not-allowed}
+body.embedded .map-nav-actions button:focus-visible{outline:3px solid #b55a75;outline-offset:2px}
+body.embedded .map-nav-controls [hidden]{display:none!important}
+body.embedded #mapNavStatus{
+ font:600 11px/1.5 system-ui,sans-serif;color:#694954;
+ margin:0;overflow-wrap:anywhere;
+}
+body.embedded .map-nav-next{
+ display:grid;gap:4px;border-left:4px solid #9c3657;
+ background:#f8e7ec;border-radius:6px;padding:11px 12px;
+}
+body.embedded .map-nav-next .map-nav-distance{
+ font:700 10px/1.3 system-ui,sans-serif;color:#8a405b;
+}
+body.embedded .map-nav-next strong{
+ font:700 clamp(16px,1.7vw,20px)/1.3 Georgia,serif;color:#382a31;
+}
+body.embedded .map-nav-turns{
+ max-height:180px;overflow:auto;overscroll-behavior:contain;
+ border:1px solid #e4cfce;border-radius:9px;background:#fffcf7;
+ margin:0;padding:8px 10px 8px 30px;
+ font:500 12px/1.5 system-ui,sans-serif;
+}
+body.embedded .map-nav-turns li{padding:5px 0;border-bottom:1px solid #f0e3df}
+body.embedded .map-nav-caveat{
+ margin:0!important;font:500 10px/1.55 system-ui,sans-serif!important;
+ color:#84666f!important;
+}
+body.embedded.map-workspace-split #mapPlanPane .map-plan{
+ width:100%;min-width:0;
+}
+@media(max-width:960px){
+ body.embedded .map-nav-actions button{flex:0 1 auto}
+ body.embedded .map-nav-controls{padding:11px}
+}
