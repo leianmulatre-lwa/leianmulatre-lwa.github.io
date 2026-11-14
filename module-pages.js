@@ -1114,13 +1114,21 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   function nominationPanel(cat,nominations,portrait){
     const isPoster=cat.id==='hunting'||cat.id==='cunting';
     const people=nominations.filter(x=>x.category===cat.id);
+    const firstPage=isPoster?24:people.length;
     return '<section class="politc-panel politc-collection-panel'+(isPoster?' politc-vintage-panel':'')+'" data-politc-season="'+cat.id+'">'+
       '<div class="politc-season-head"><div><h3>'+esc(cat.name)+'</h3><p class="politc-sub">'+esc(cat.subtitle)+'</p></div>'+
       '<div class="politc-season-tools"><span class="politc-record-count">'+people.length+' entries</span>'+
       '<button class="politc-nominate-button" type="button" data-politc-nominate="'+cat.id+'" aria-controls="politc-nominate-'+cat.id+'" aria-expanded="false">✦ Nominate</button></div></div>'+
-      '<div class="politc-portraits">'+(people.length?people.map(portrait).join(''):'<p class="politc-note politc-empty">No entries yet. Nominate someone to begin.</p>')+'</div>'+
+      '<div class="politc-portraits">'+(people.length?people.map((person,i)=>{
+        const html=portrait(person);
+        return isPoster&&i>=firstPage?html.replace('<article class="politc-person',
+          '<article hidden data-politc-paged="true" class="politc-person'):html;
+       }).join(''):'<p class="politc-note politc-empty">No entries yet. Nominate someone to begin.</p>')+'</div>'+
+      (isPoster&&people.length>firstPage?'<button type="button" class="politc-poster-load-more" data-politc-show-more="'+cat.id+'">Show 24 more · '+firstPage+' of '+people.length+' shown</button>':'')+
       '<div class="politc-nomination-drawer" id="politc-nominate-'+cat.id+'" hidden>'+
-      '<form class="politc-form" data-politc-form="'+cat.id+'"><label>Nominee<input required name="name" maxlength="70" placeholder="Name"></label><label>Photo (black & white on display)<input name="photo" type="file" accept="image/*"></label><label>Caption / context<textarea name="note" maxlength="280" rows="2" placeholder="'+(isPoster?'Provide grounded context':'Add a caption or context')+'"></textarea></label><label>'+(isPoster?'Evidence':'Source')+' / profile link (optional)<input name="source" type="url" placeholder="https://"></label><button type="submit">Add nomination</button><small>Saved privately on this device. No threats, addresses, personal contact details, or harassment.'+(isPoster?' Distinguish allegations from findings.':'')+'</small></form></div></section>';
+      '<form class="politc-form" data-politc-form="'+cat.id+'"><label>Nominee<input required name="name" maxlength="70" placeholder="Name"></label><label>Photo<input name="photo" type="file" accept="image/*"></label>'+
+      (isPoster?'<label>Portrait style<select name="life"><option value="unknown">Status unknown · neutral</option><option value="living">Living · color</option><option value="deceased">Deceased · black & white</option></select></label>':'')+
+      '<label>Caption / context<textarea name="note" maxlength="280" rows="2" placeholder="'+(isPoster?'Provide grounded context':'Add a caption or context')+'"></textarea></label><label>'+(isPoster?'Evidence':'Source')+' / profile link (optional)<input name="source" type="url" placeholder="https://"></label><button type="submit">Add nomination</button><small>Saved privately on this device. No threats, addresses, personal contact details, or harassment.'+(isPoster?' Distinguish allegations from findings.':'')+'</small></form></div></section>';
   }
   function bindNominationPanels(container,store,refresh){
     container.querySelectorAll('[data-politc-nominate]').forEach(button=>button.addEventListener('click',()=>{
@@ -1147,6 +1155,8 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     }));
     container.querySelectorAll('[data-politc-form]').forEach(form=>form.addEventListener('submit',async(e)=>{
       e.preventDefault();const fd=new FormData(form),name=String(fd.get('name')||'').trim(),note=String(fd.get('note')||'').trim(),source=String(fd.get('source')||'').trim();
+      const selectedLife=String(fd.get('life')||'unknown');
+      const life=['living','deceased','unknown'].includes(selectedLife)?selectedLife:'unknown';
       if(!name)return;
       const file=fd.get('photo');let photo='';
       if(file instanceof File&&file.size){
@@ -1154,7 +1164,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
         photo=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>resolve('');reader.readAsDataURL(file);});
       }
       try{if(!store.ownerUid||store.ownerUid!==nominationOwner())throw Error('Sign in before saving nominations.');
-        writeJSON(store.key,[...store.read(),{id:String(Date.now())+'-'+Math.random().toString(36).slice(2,7),category:form.dataset.politcForm,name,note,source,photo}]);if(form.isConnected)refresh()}
+        writeJSON(store.key,[...store.read(),{id:String(Date.now())+'-'+Math.random().toString(36).slice(2,7),category:form.dataset.politcForm,name,note,source,photo,life}]);if(form.isConnected)refresh()}
       catch(err){alert('This browser could not save the nomination. Try a smaller photo.');}
     }));
   }
@@ -2209,6 +2219,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     // Curated introductory records are examples for browsing, not verdicts on
     // anyone's character or invitations to target them.
     const curated=[{"id":"curated-1","category":"cunting","name":"Zendaya","note":"Actor and producer; screen and fashion figure.","source":"https://www.britannica.com/biography/Zendaya","photo":"","curated":true},{"id":"curated-2","category":"cunting","name":"Beyoncé","note":"Singer, songwriter and cultural innovator.","source":"https://www.britannica.com/biography/Beyonce","photo":"","curated":true},{"id":"curated-3","category":"cunting","name":"Rihanna","note":"Singer, entrepreneur and beauty industry founder.","source":"https://www.britannica.com/biography/Rihanna","photo":"","curated":true},{"id":"curated-4","category":"cunting","name":"Jennifer Lawrence","note":"Academy Award-winning actor.","source":"https://www.britannica.com/biography/Jennifer-Lawrence","photo":"","curated":true},{"id":"curated-5","category":"cunting","name":"Anne Hathaway","note":"Academy Award-winning actor.","source":"https://www.britannica.com/biography/Anne-Hathaway-American-actress","photo":"","curated":true},{"id":"curated-6","category":"cunting","name":"Ida B. Wells","note":"Journalist and anti-lynching civil rights organizer.","source":"https://www.nps.gov/people/ida-b-wells-barnett.htm","photo":"","curated":true},{"id":"curated-7","category":"cunting","name":"Malcolm X","note":"Black liberation leader and human-rights advocate.","source":"https://www.britannica.com/biography/Malcolm-X","photo":"","curated":true},{"id":"curated-8","category":"cunting","name":"Martin Luther King Jr.","note":"Civil rights organizer and Nobel Peace Prize laureate.","source":"https://www.nps.gov/malu/index.htm","photo":"","curated":true},{"id":"curated-9","category":"cunting","name":"Elaine Brown","note":"Former chair of the Black Panther Party.","source":"https://www.britannica.com/biography/Elaine-Brown","photo":"","curated":true},{"id":"curated-10","category":"cunting","name":"Kathleen Cleaver","note":"Black Panther Party leader and legal scholar.","source":"https://en.wikipedia.org/wiki/Kathleen_Cleaver","photo":"","curated":true},{"id":"curated-11","category":"cunting","name":"Ericka Huggins","note":"Black Panther Party organizer and educator.","source":"https://en.wikipedia.org/wiki/Ericka_Huggins","photo":"","curated":true},{"id":"curated-12","category":"cunting","name":"Fred Hampton","note":"Black Panther Party organizer and community leader.","source":"https://en.wikipedia.org/wiki/Fred_Hampton","photo":"","curated":true},{"id":"curated-13","category":"cunting","name":"Bobby Seale","note":"Co-founder of the Black Panther Party.","source":"https://www.britannica.com/biography/Bobby-Seale","photo":"","curated":true},{"id":"curated-14","category":"cunting","name":"Huey P. Newton","note":"Co-founder of the Black Panther Party.","source":"https://www.britannica.com/biography/Huey-P-Newton","photo":"","curated":true},{"id":"curated-15","category":"hunting","name":"Derek Chauvin","note":"Convicted in connection with George Floyd’s murder; public court record.","source":"https://www.justice.gov/opa/pr/former-minneapolis-police-officer-derek-chauvin-sentenced-more-20-years-prison-depriving","photo":"","curated":true},{"id":"curated-16","category":"hunting","name":"Jeffrey Epstein","note":"Convicted sex offender; documented institutional accountability issues.","source":"https://www.justice.gov/epstein","photo":"","curated":true},{"id":"curated-17","category":"hunting","name":"Elon Musk","note":"Billionaire technology executive; examine ownership and public influence.","source":"https://www.britannica.com/money/Elon-Musk","photo":"","curated":true},{"id":"curated-18","category":"hunting","name":"Jeff Bezos","note":"Amazon founder; examine concentrated wealth and corporate power.","source":"https://www.britannica.com/money/Jeff-Bezos","photo":"","curated":true},{"id":"curated-19","category":"hunting","name":"Peter Thiel","note":"Billionaire investor and political donor; examine public influence.","source":"https://www.britannica.com/money/Peter-Thiel","photo":"","curated":true},{"id":"curated-20","category":"hunting","name":"Cornell University · Chi Phi case","note":"2026 civil lawsuit concerning alleged sexual assault in 2024 and Cornell’s response. Investigation reopened; allegations disputed and not established in court.","source":"https://www.nbcchicago.com/news/local/cornell-7-what-happened-with-the-case-what-to-know-as-prosecutor-reopens-investigation/3995362/","photo":"","curated":true},{"id":"curated-21","category":"cunting","name":"Angela Davis","note":"Scholar and organizer for prison abolition, civil rights, and liberation.","source":"https://www.britannica.com/biography/Angela-Davis","photo":"","curated":true},{"id":"curated-22","category":"cunting","name":"Fannie Lou Hamer","note":"Voting-rights organizer and Mississippi Freedom Democratic Party leader.","source":"https://www.nps.gov/people/fannie-lou-hamer.htm","photo":"","curated":true},{"id":"curated-23","category":"cunting","name":"Shirley Chisholm","note":"First Black woman elected to the U.S. Congress.","source":"https://history.house.gov/People/Listing/C/CHISHOLM,-Shirley-Anita-(C000371)/","photo":"","curated":true},{"id":"curated-24","category":"cunting","name":"Audre Lorde","note":"Poet and activist whose writing shaped Black feminist thought.","source":"https://www.poetryfoundation.org/poets/audre-lorde","photo":"","curated":true},{"id":"curated-25","category":"cunting","name":"bell hooks","note":"Feminist theorist and writer on race, love, education, and power.","source":"https://www.britannica.com/biography/bell-hooks","photo":"","curated":true},{"id":"curated-26","category":"cunting","name":"Toni Morrison","note":"Nobel Prize–winning novelist and editor.","source":"https://www.nobelprize.org/prizes/literature/1993/morrison/facts/","photo":"","curated":true},{"id":"curated-27","category":"cunting","name":"Nina Simone","note":"Singer, pianist, and civil-rights voice.","source":"https://www.britannica.com/biography/Nina-Simone","photo":"","curated":true},{"id":"curated-28","category":"cunting","name":"Tarana Burke","note":"Organizer who founded the Me Too movement.","source":"https://metoomvmt.org/get-to-know-us/tarana-burke-founder/","photo":"","curated":true}];
+    // Preserve the original 28 entries and their source URLs, then add the
+    // specifically curated, exact-title historical/icon catalogs. Entries are
+    // editorial public-record references, never a crowd conviction or ranking.
+    const catalog=window.BigLWAPolitcPosterCatalog;
+    if(catalog&&Array.isArray(catalog.hunting)&&Array.isArray(catalog.cunting))
+      curated.push(...catalog.hunting,...catalog.cunting);
     const visibleNominations=[...curated.filter(item=>!curatedHidden.has(item.id)),...nominations];
 
     // Never attach an automatically sourced image by approximate name search.
@@ -2254,15 +2270,41 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const portrait=item=>{
       const monogram=String(item.name||'').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toLocaleUpperCase();
       const record=item.category==='hunting';
-      const wiki=wikiPortraits[item.id]||'';
-      return '<article class="politc-person politc-poster'+(record?' is-record':' is-icon')+'">'+
-        '<div class="politc-poster-eyebrow">'+(record?'PUBLIC RECORD · CASE FILE':'WANTED · FOR ICON STATUS')+'</div>'+
+      const wiki=item.name==='Jack the Ripper'?'':(wikiPortraits[item.id]||item.wiki||'');
+      // Disambiguated, explicitly matched article titles prevent a portrait
+      // being assigned by fuzzy name matching.
+      const life=item.life||({
+        'curated-1':'living','curated-2':'living','curated-3':'living',
+        'curated-4':'living','curated-5':'living','curated-6':'deceased',
+        'curated-7':'deceased','curated-8':'deceased',
+        'curated-9':'living','curated-10':'unknown','curated-11':'living',
+        'curated-12':'deceased','curated-13':'unknown','curated-14':'deceased',
+        'curated-15':'living','curated-16':'deceased',
+        'curated-17':'living','curated-18':'living','curated-19':'living',
+        'curated-21':'living','curated-22':'deceased','curated-23':'deceased',
+        'curated-24':'deceased','curated-25':'deceased','curated-26':'deceased',
+        'curated-27':'deceased','curated-28':'living'
+      })[item.id]||'unknown';
+      const recordLabel={
+        convicted:'COURT CONVICTION',indicted:'INDICTED · NO FINAL VERDICT',
+        historical:'HISTORICAL RECORD',scrutiny:'PUBLIC POLICY SCRUTINY'
+      }[item.kind]||'ACCOUNTABILITY CONTEXT';
+      const iconCaption={
+        arts:'Wanted for stealing the whole scene.',
+        music:'Wanted for having the world on repeat.',
+        writing:'Wanted for rewriting the narrative.',
+        civil:'Wanted for changing what justice looks like.',
+        style:'Wanted for raising the fashion stakes.'
+      }[item.kind]||'Wanted for being too good for us.';
+      return '<article class="politc-person politc-poster'+(record?' is-record':' is-icon')+' is-'+life+'">'+
+        '<div class="politc-poster-eyebrow">'+(record?recordLabel:'WANTED · FOR ICON STATUS')+'</div>'+
         '<div class="politc-poster-photo"'+(wiki?' data-politc-wiki="'+esc(wiki)+'"':'')+(verifiedPosterPhotos[item.id]?' data-politc-verified="'+esc(verifiedPosterPhotos[item.id])+'"':'')+'>'+
          (item.photo?'<img src="'+esc(item.photo)+'" alt="Portrait of '+esc(item.name)+'" loading="lazy" decoding="async">':
           '<span class="politc-poster-monogram" aria-hidden="true">'+esc(monogram)+'</span>')+
         '</div>'+
         '<strong>'+esc(item.name)+'</strong>'+
-        '<details class="politc-poster-context"><summary>Details & source ↗</summary>'+
+        (!record?'<p class="politc-poster-wanted">'+esc(iconCaption)+'</p>':'')+
+        '<details class="politc-poster-context"><summary>'+(record?'What the records document':'Achievements & source')+' ↗</summary>'+
          (item.note?'<p>'+esc(item.note)+'</p>':'')+
          (item.source?'<a href="'+esc(item.source)+'" target="_blank" rel="noopener noreferrer">Read source ↗</a>':'<span>Personal nomination · not verified</span>')+
         '</details>'+
@@ -2377,38 +2419,53 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     refreshPolitc();
     // Wikimedia only supplies images for explicitly named, existing public
     // figures. Empty / blocked results retain the intentional monogram.
+    // Use explicit Wikipedia article identities rather than a person's
+    // search-result name. PageImages supplies free-license thumbnails only.
+    // Fetch only the visible page of posters; additional sets load on demand.
     const portraits=[...body.querySelectorAll('.politc-poster-photo[data-politc-wiki]')];
     const cache=window.__biglwaPolitcWikimediaCache||(window.__biglwaPolitcWikimediaCache=new Map());
-    const pending=portraits.filter(el=>!cache.has(el.dataset.politcWiki));
+    const creditCache=window.__biglwaPolitcImageCredits||(window.__biglwaPolitcImageCredits=new Map());
+    const credit=(host)=>{
+      if(!host?.isConnected||host.querySelector('.politc-poster-credit'))return;
+      const wiki=String(host.dataset.politcWiki||'');
+      const href=creditCache.get(wiki)||'https://en.wikipedia.org/wiki/'+encodeURIComponent(wiki.replaceAll(' ','_'));
+      if(!/^https:\/\/(?:commons\.wikimedia\.org|en\.wikipedia\.org)\//.test(href))return;
+      const link=document.createElement('a');
+      link.className='politc-poster-credit';link.href=href;
+      link.textContent='Photo source ↗';
+      link.setAttribute('aria-label','View image attribution and license for '+wiki);
+      link.target='_blank';link.rel='noopener noreferrer';
+      host.append(link);
+    };
     const hydrateImage=(host,url)=>{
-      if(!host?.isConnected||!url||host.querySelector('img'))return;
+      if(!host?.isConnected||!url||host.querySelector('img')||host.closest('.politc-person[hidden]'))return;
       try{
         const parsed=new URL(url);
         if(parsed.protocol!=='https:'||!/(^|\.)wikimedia\.org$/.test(parsed.hostname))return;
       }catch{return}
-      const image=new Image();
-      image.alt='Portrait of '+host.closest('.politc-person')?.querySelector('strong')?.textContent;
-      // Detached lazy images may never start loading; preload eagerly, then attach.
-      image.loading='eager';image.decoding='async';
       if(host.dataset.politcImageLoading===url)return;
       host.dataset.politcImageLoading=url;
+      const image=new Image();
+      image.alt='Portrait or historical depiction of '+host.closest('.politc-person')?.querySelector('strong')?.textContent;
+      image.loading='lazy';image.decoding='async';
       image.onload=()=>{
         delete host.dataset.politcImageLoading;
-        if(!host.isConnected||host.querySelector('img'))return;
-        host.querySelector('.politc-poster-monogram')?.remove();host.append(image);
+        if(!host.isConnected)return;
+        host.querySelector('.politc-poster-monogram')?.remove();
+        credit(host);
       };
       image.onerror=()=>{
         delete host.dataset.politcImageLoading;
-        // A historical Commons FilePath may have been renamed. Retry only
-        // the explicitly verified title's Wikipedia thumbnail (not a fuzzy search).
+        image.remove();
+        // A missing or blocked photo stays an initials card. No fuzzy
+        // image search, borrowed namesake photos or unrelated thumbnails.
         const fallback=cache.get(host.dataset.politcWiki);
         if(fallback&&fallback!==url)hydrateImage(host,fallback);
       };
+      host.append(image);
       image.src=url;
     };
-    portraits.forEach(el=>{const val=el.dataset.politcVerified||cache.get(el.dataset.politcWiki);if(val)hydrateImage(el,val)});
-    // User-provided photos are optional. A broken upload reverts to initials
-    // rather than a broken-image placeholder or the wrong public portrait.
+    // User-uploaded, locally saved photos preserve their own error fallback.
     body.querySelectorAll('.politc-poster-photo>img').forEach(img=>img.addEventListener('error',()=>{
       const host=img.closest('.politc-poster-photo');if(!host)return;
       const name=host.closest('.politc-person')?.querySelector('strong')?.textContent||'';
@@ -2420,35 +2477,59 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         host.append(initials);
       }
     },{once:true}));
-    if(pending.length){
-      const titles=[...new Set(pending.map(el=>el.dataset.politcWiki))];
-      const uri='https://en.wikipedia.org/w/api.php?'+new URLSearchParams({
-        action:'query',format:'json',redirects:'1',prop:'pageimages',
-        pithumbsize:'480',titles:titles.join('|'),origin:'*'
-      });
-      fetch(uri,{mode:'cors'}).then(r=>{if(!r.ok)throw Error('Wiki thumbnails unavailable');return r.json()})
-      .then(data=>{
-        const pages=Object.values(data?.query?.pages||{});
-        const found=new Map(pages.map(page=>[String(page.title||''),String(page.thumbnail?.source||'')]));
-        const redirects=new Map((data?.query?.redirects||[]).map(row=>[String(row.from||''),String(row.to||'')]));
-        for(const name of titles){const resolved=redirects.get(name)||name;cache.set(name,found.get(resolved)||'');}
-        for(const el of portraits)hydrateImage(el,cache.get(el.dataset.politcWiki)||el.dataset.politcVerified);
-      }).catch(async()=>{
-        // Wikipedia's multi-title endpoint can be denied by browsers or a privacy
-        // extension. Try per-person article summaries as a second source; only
-        // accept actual Wikimedia-hosted portraits, never approximate name matches.
-        await Promise.allSettled(titles.map(async name=>{
-          const url='https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(name.replaceAll(' ','_'));
-          try{
-            const response=await fetch(url,{mode:'cors'});
-            if(!response.ok)throw Error('No article thumbnail');
-            const info=await response.json();
-            cache.set(name,String(info.thumbnail?.source||info.originalimage?.source||''));
-          }catch{cache.set(name,'')}
-        }));
-        for(const el of portraits)hydrateImage(el,cache.get(el.dataset.politcWiki)||el.dataset.politcVerified);
-      });
-    }
+    const requestPortraits=async(hosts)=>{
+      const active=hosts.filter(host=>host?.isConnected&&!host.closest('.politc-person[hidden]'));
+      active.forEach(host=>hydrateImage(host,host.dataset.politcVerified||cache.get(host.dataset.politcWiki)));
+      const missing=[...new Set(active.filter(host=>!cache.has(host.dataset.politcWiki)).map(host=>host.dataset.politcWiki))];
+      if(!missing.length)return;
+      const batches=[];
+      for(let i=0;i<missing.length;i+=15)batches.push(missing.slice(i,i+15));
+      // Limit to small public API batches to avoid overlong title queries.
+      for(const titles of batches){
+        const uri='https://en.wikipedia.org/w/api.php?'+new URLSearchParams({
+          action:'query',format:'json',redirects:'1',prop:'pageimages',
+          piprop:'thumbnail|name',pilicense:'free',pilimit:'15',
+          pithumbsize:'380',titles:titles.join('|'),origin:'*'
+        });
+        try{
+          const response=await fetch(uri,{mode:'cors'});
+          if(!response.ok)throw Error('Wikipedia article thumbnail API unavailable');
+          const data=await response.json();
+          const pages=Object.values(data?.query?.pages||{});
+          const found=new Map(pages.map(page=>[String(page.title||''),page]));
+          const redirects=new Map((data?.query?.redirects||[]).map(row=>[String(row.from||''),String(row.to||'')]));
+          for(const title of titles){
+            const page=found.get(redirects.get(title)||title);
+            const url=String(page?.thumbnail?.source||'');
+            cache.set(title,url);
+            const file=String(page?.pageimage||'');
+            if(file)creditCache.set(title,'https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(file.replaceAll(' ','_')));
+          }
+        }catch{
+          // A blocked API is not an invitation to scrape people by name.
+          titles.forEach(title=>cache.set(title,''));
+        }
+        for(const host of active){
+          if(titles.includes(host.dataset.politcWiki))
+            hydrateImage(host,host.dataset.politcVerified||cache.get(host.dataset.politcWiki));
+        }
+      }
+    };
+    requestPortraits(portraits);
+    body.querySelectorAll('[data-politc-show-more]').forEach(button=>button.addEventListener('click',()=>{
+      const panel=button.closest('.politc-collection-panel');
+      if(!panel)return;
+      const hidden=[...panel.querySelectorAll('.politc-person[hidden][data-politc-paged]')];
+      const revealed=hidden.slice(0,24);
+      revealed.forEach(card=>card.hidden=false);
+      const left=hidden.length-revealed.length;
+      if(!left)button.remove();
+      else{
+        const total=panel.querySelectorAll('.politc-person').length;
+        button.textContent='Show '+Math.min(24,left)+' more · '+(total-left)+' of '+total+' shown';
+      }
+      requestPortraits(revealed.map(card=>card.querySelector('.politc-poster-photo[data-politc-wiki]')).filter(Boolean));
+    }));
     bindNominationPanels(body,store,renderPolitc);
   }
 
