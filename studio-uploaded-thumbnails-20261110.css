@@ -141,11 +141,6 @@
 }
 
 /* Booth uses the same artwork and film aperture geometry in both themes. */
-#studioApp .photobooth-stage.has-intro {
-  aspect-ratio:1446 / 1088!important;
-  background:#080605!important;
-}
-#studioApp .photobooth-stage .photobooth-intro,
 #studioApp #camera .photobooth-reference-preview > img {
   content:url('/assets/biglwa-booth-light-20261110.webp')!important;
   display:block!important;
@@ -159,7 +154,6 @@
   filter:none!important;
   opacity:1!important;
 }
-body.night-mode #studioApp .photobooth-stage .photobooth-intro,
 body.night-mode #studioApp #camera .photobooth-reference-preview > img {
   content:url('/assets/biglwa-booth-dark-20261110.webp')!important;
 }

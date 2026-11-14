@@ -7,8 +7,8 @@
  const config={
   camera:{title:'booth',selector:'.booth-tabs',icon:'bookini'},
   stream:{title:'stream',stream:true},
-  notes:{title:'sqwidz',selector:'.diary-section-nav',icon:'sqwibblR'},
-  projects:{title:'visualizr',selector:'.visualz-tabs',icon:'visualizr'},
+  notes:{title:'sqwibbl/r',selector:'.diary-section-nav',icon:'sqwibblR'},
+  projects:{title:'visualiz/r',selector:'.visualz-tabs',icon:'visualizr'},
   diary:{title:'Journal',journal:true},
   tools:{title:'lwazi',icon:'r-editor'}
  };
@@ -98,7 +98,7 @@
  }
  function renameNavigation(){
   const routes=[
-    ['tools','lwazi'],['projects','visualizr'],['camera','booth'],['notes','sqwidz']
+    ['tools','lwazi'],['projects','visualiz/r'],['camera','booth'],['notes','sqwibbl/r']
   ];
   for(const [route,name]of routes){
     for(const link of document.querySelectorAll('#studioApp [data-shortcut-route="'+route+'"],#studioApp [data-sidebar-route="'+route+'"],#studioApp [data-open="'+route+'"]')){
