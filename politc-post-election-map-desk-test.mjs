@@ -21,9 +21,9 @@ test('both new interactive scripts parse and deployed pages load them',()=>{
    text.indexOf('politc-post-election-results-20261113.js'),
    'Research room must mount before post-election placement');
  }
- assert.match(map,/map-lwa-experience-20261113\.js\?v=20261113-split-desk/);
- assert.match(map,/map-lwa-experience-20261113\.css\?v=20261113-split-desk/);
- assert.match(mod,/20261113-inpage-split-desk-4/);
+ assert.match(map,/map-lwa-experience-20261113\.js\?v=20261113-go-v5/);
+ assert.match(map,/map-lwa-experience-20261113\.css\?v=20261113-go-v5/);
+ assert.match(mod,/20261113-inpage-navigation-go-5/);
 });
 test('post-election desk is compact by default; original form controls are preserved',()=>{
  assert.match(pjs,/Date\.now\(\)<ELECTION_END/);
