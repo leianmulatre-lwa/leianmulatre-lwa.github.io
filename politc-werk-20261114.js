@@ -93,6 +93,11 @@
     const date=document.createElement('small');date.className='politc-werk-job-posted';
     date.textContent='Posted '+posted;card.append(date);
   }
+  const preview=document.createElement('button');
+  preview.type='button';preview.dataset.werkPreviewUrl=url;
+  preview.textContent='Preview in Werk Window';
+  preview.setAttribute('aria-label','Preview '+clean(job.title,100)+' in Werk Window');
+  card.append(preview);
   const apply=makeLink(url,'View original posting ↗');
   apply.className='politc-werk-job-apply';
   card.append(apply);grid.append(card);
@@ -162,7 +167,7 @@
   panel.id='politcWerk';panel.className='politc-panel politc-werk';
   panel.setAttribute('aria-label','Werk job search desk');
   panel.innerHTML='<header class="politc-werk-header"><div><p class="politc-werk-eyebrow">POLITC · WORK DESK</p><h2>werk</h2><p>Work is political. Search JobSpy postings right here, save your searches, and open the original listing when you want to apply.</p></div><span aria-hidden="true">✳</span></header>'+
-   '<form id="politcWerkForm" class="politc-werk-form"><label>Role, field or skill<input name="werkRole" type="search" maxlength="100" placeholder="Policy research, entertainment law, design…" autocomplete="off" required></label><label>Where?<input name="werkLocation" type="search" maxlength="100" value="United States" placeholder="City, state, or remote" autocomplete="off"></label><div class="politc-werk-actions"><button type="submit" class="politc-werk-find">Search jobs</button><button type="button" data-politc-werk-save>Save search</button></div></form>'+
+   '<form id="politcWerkForm" class="politc-werk-form"><label>Role, field or skill<input name="werkRole" type="search" maxlength="100" placeholder="Policy research, entertainment law, design…" autocomplete="off" required></label><label>Where?<input name="werkLocation" type="search" maxlength="100" value="United States" placeholder="City, state, or remote" autocomplete="off"></label><div class="politc-werk-actions"><button type="submit" class="politc-werk-find">Search jobs</button><button type="button" data-politc-werk-save>Save search</button><button type="button" data-werk-window-open>Werk Window</button></div></form>'+
    '<p id="politcWerkStatus" class="politc-werk-status" role="status">Search the latest published JobSpy listings by role and location.</p><div id="politcWerkResults" aria-label="JobSpy job search results"></div>'+
    '<div class="politc-werk-saved"><div><h3>Saved searches</h3><small id="politcWerkPrivacyNote"></small></div><div id="politcWerkSavedList"></div></div>';
   // The Reading Room is mounted as a sibling before .politc-board.
