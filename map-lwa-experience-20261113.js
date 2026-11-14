@@ -203,6 +203,7 @@
     bridge.map.fitBounds(routeLine.getBounds(),{padding:[40,40],maxZoom:14});
   }
   async function plan(){
+    window.dispatchEvent(new Event('biglwa:map-navigation-reset'));
     result.textContent='Finding both places on BIG LWA…';
     clearLine();
     const stamp=Symbol('plan');lastPlan=stamp;
@@ -228,6 +229,19 @@
             result.textContent=travelLabel()+' · '+String(route.distanceLabel||shortDistance)+eta+
               ' · '+String(route.provider||'Connected route provider')+
               (route.trafficAware?' · Traffic-aware':' · No live traffic');
+            // A successful navigable road route (never a straight-line
+            // fallback) unlocks Go. Data remains in page memory only.
+            if(Array.isArray(route.maneuvers)&&route.maneuvers.length){
+              window.dispatchEvent(new CustomEvent('biglwa:map-navigation-route',{
+                detail:{
+                  origin,destination,mode,
+                  points:route.points,maneuvers:route.maneuvers,
+                  distanceLabel:String(route.distanceLabel||shortDistance),
+                  durationMinutes:Number(route.durationMinutes)||null,
+                  provider:String(route.provider||'Road router')
+                }
+              }));
+            }
             return;
           }
         }catch(e){console.info('[Map] Connected router unavailable, using orientation only.',e);}
@@ -246,6 +260,7 @@
   planner.querySelectorAll('[data-map-travel]').forEach(btn=>{
     btn.addEventListener('click',()=>{
       mode=btn.dataset.mapTravel;
+      window.dispatchEvent(new Event('biglwa:map-navigation-reset'));
       planner.querySelectorAll('[data-map-travel]').forEach(b=>
         b.setAttribute('aria-pressed',String(b===btn)));
       if(lastPlan){
@@ -269,6 +284,7 @@
   byId('mapTripSwap').addEventListener('click',()=>{
     const from=byId('mapTripFrom'),to=byId('mapTripTo'),value=from.value;
     from.value=to.value;to.value=value;fromGps=null;
+    window.dispatchEvent(new Event('biglwa:map-navigation-reset'));
     clearLine();result.textContent='Places swapped. Explore trip to recalculate.';
   });
 

@@ -90,15 +90,30 @@
   let data;
   try{data=await response.json();}catch{throw Error('Community router returned an unreadable route.');}
   const legs=data?.trip?.legs||[];
-  const shape=legs.flatMap(leg=>polyline6(leg.shape||''));
+  const shape=[],turns=[];
+  for(const leg of legs){
+   const offset=shape.length,points=polyline6(leg.shape||'');
+   shape.push(...points);
+   for(const maneuver of (leg.maneuvers||[])){
+    const instruction=String(maneuver.instruction||'').trim().slice(0,180);
+    if(!instruction)continue;
+    const idx=Number(maneuver.begin_shape_index);
+    const index=Number.isInteger(idx)&&idx>=0?Math.min(shape.length-1,offset+idx):offset;
+    turns.push({
+     instruction,
+     verbal:String(maneuver.verbal_pre_transition_instruction||
+       maneuver.verbal_transition_instruction||instruction).trim().slice(0,220),
+     shapeIndex:index,
+     type:Number.isInteger(maneuver.type)?maneuver.type:null
+    });
+   }
+  }
   const seconds=Number(data?.trip?.summary?.time),km=Number(data?.trip?.summary?.length);
   if(shape.length<2||!Number.isFinite(km)||km<0)throw Error('Community router returned no street geometry.');
-  const turns=legs.flatMap(leg=>(leg.maneuvers||[])
-   .map(m=>String(m.instruction||'').slice(0,180)).filter(Boolean)).slice(0,20);
   const value={
    points:shape,distanceLabel:(km<10?km.toFixed(1):Math.round(km))+' km',
    durationMinutes:Number.isFinite(seconds)?Math.round(seconds/60):null,
-   provider:'Valhalla · OpenStreetMap',trafficAware:false,maneuvers:turns
+   provider:'Valhalla · OpenStreetMap',trafficAware:false,maneuvers:turns.slice(0,120)
   };
   memo.set(key,{timestamp:Date.now(),value});
   return value;

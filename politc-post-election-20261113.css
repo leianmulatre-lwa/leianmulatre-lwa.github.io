@@ -433,3 +433,141 @@ body.night-mode .politc-result-status{color:#f0c4d0}
   overflow:visible!important;
  }
 }
+
+
+/* POLITIC live data: a compact rail and independently flowing columns.
+   Expanding Election, Results or Reading Room never moves another column. */
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-independent-deck{
+ display:grid!important;grid-template-columns:132px repeat(3,minmax(0,1fr))!important;
+ gap:12px!important;align-items:start!important;min-width:0!important;
+ order:0!important;margin:0 0 12px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-live-rail{
+ position:sticky;top:70px;display:flex;flex-direction:column;align-items:flex-start;
+ gap:10px;min-width:0;padding:9px 5px 6px 0;
+ color:var(--widget-ink,#3f2d32);
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-live-rail h2{
+ margin:0!important;text-transform:lowercase;
+ font:400 clamp(19px,2vw,28px)/1.08 "CS Bergamot Stitched",Georgia,serif!important;
+ overflow-wrap:anywhere;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-live-rail p{
+ font:500 11px/1.45 Georgia,serif;margin:0;max-width:20ch;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-live-arrows{
+ display:flex;flex-wrap:wrap;gap:5px;align-items:center;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-live-arrows button{
+ display:inline-flex;justify-content:center;align-items:center;cursor:pointer;
+ height:34px;min-width:37px;border:1px solid #b78e9b;border-radius:9px;
+ background:#fff5ef;color:#6a3142;font:700 16px system-ui;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-live-arrows button:hover{
+ background:#f5e1e5;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-live-arrows button:focus-visible{
+ outline:3px solid #ad5069;outline-offset:2px;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-live-order{
+ font:650 9px/1.3 system-ui,sans-serif;color:#764c5b;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-refresh{
+ display:block!important;font:700 10px/1.25 system-ui,sans-serif!important;
+ min-height:32px!important;padding:7px!important;white-space:normal!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-independent-deck .politc-deck-lane.politc-three-up{
+ display:flex!important;flex-direction:column!important;gap:12px!important;
+ min-width:0!important;width:100%!important;
+ margin:0!important;align-items:stretch!important;
+ grid-template-columns:minmax(0,1fr)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-lane > section{
+ display:block!important;box-sizing:border-box!important;width:100%!important;
+ margin:0!important;grid-column:auto!important;min-width:0!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-lane > section.politc-card-expanded{
+ grid-column:auto!important;
+}
+/* Shorter yet complete tracker cards: content scrolls inside when needed. */
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-lane > section.politc-deck-tracker{
+ height:305px!important;min-height:0!important;max-height:305px!important;
+ box-sizing:border-box!important;display:flex!important;flex-direction:column!important;
+ overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;
+ scrollbar-width:thin;scrollbar-color:#bc8a98 transparent;
+ padding:14px 15px 13px!important;border-radius:13px!important;
+ border:2px solid #8e9eaf!important;
+ background:linear-gradient(165deg,#e7f0f8,#fafbff)!important;
+ box-shadow:0 3px 0 #6e8aaa,0 6px 14px #1d34472a!important;
+ color:#322c2b!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-lane > section.politc-deck-tracker[data-politc-track="2"]{
+ border-color:#bdb1a7!important;background:linear-gradient(165deg,#fff,#f8f3eb)!important;
+ box-shadow:0 3px 0 #b4a69b,0 6px 14px #40302220!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-lane > section.politc-deck-tracker[data-politc-track="3"]{
+ border-color:#c98d94!important;background:linear-gradient(165deg,#fff0ef,#f8e2e4)!important;
+ box-shadow:0 3px 0 #b96a77,0 6px 14px #69303626!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-tracker h3{
+ font:400 clamp(16px,1.4vw,23px)/1.15 "CS Bergamot Stitched",Georgia,serif!important;
+ border:0!important;text-transform:lowercase!important;letter-spacing:.01em!important;
+ text-align:left!important;margin:0 0 3px!important;padding:0!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-tracker[data-politc-track="1"] h3{color:#254e78!important}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-tracker[data-politc-track="2"] h3{color:#3e3530!important}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-tracker[data-politc-track="3"] h3{color:#842d3e!important}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-tracker :is(p,.politc-sub,.politc-note,small){
+ font:500 10.5px/1.42 Georgia,serif!important;margin:5px 0!important;
+ color:#3b3033!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-tracker .politc-live-chamber{
+ margin:7px 0!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-tracker .politc-live-chamber strong{
+ font-size:12px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-tracker .politc-live-chamber .politc-live-track{
+ height:10px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-tracker .politc-resources{
+ display:grid!important;grid-template-columns:1fr!important;gap:6px!important;margin:8px 0!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-tracker .politc-resources a{
+ min-height:0!important;padding:8px!important;font-size:10px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-tracker .politc-source{
+ padding:7px 8px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-tracker .politc-note{
+ margin-top:auto!important;
+}
+@media(max-width:1320px){
+ #studioApp #moduleWorkspace[data-module-key="politc"] .politc-independent-deck{
+  grid-template-columns:118px repeat(3,minmax(0,1fr))!important;
+ }
+}
+@media(max-width:1030px){
+ #studioApp #moduleWorkspace[data-module-key="politc"] .politc-independent-deck{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ }
+ #studioApp #moduleWorkspace[data-module-key="politc"] .politc-live-rail{
+  position:static!important;grid-column:1/-1!important;
+  flex-direction:row!important;flex-wrap:wrap!important;align-items:center!important;
+  gap:10px!important;
+ }
+ #studioApp #moduleWorkspace[data-module-key="politc"] .politc-live-rail p{max-width:none}
+}
+@media(max-width:790px){
+ #studioApp #moduleWorkspace[data-module-key="politc"] .politc-independent-deck{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+}
+@media(max-width:560px){
+ #studioApp #moduleWorkspace[data-module-key="politc"] .politc-independent-deck{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+ #studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-lane > section.politc-deck-tracker{
+  height:270px!important;max-height:270px!important;
+ }
+}
