@@ -129,7 +129,8 @@
  function mount(){
   const board=$('#studioApp #moduleWorkspace[data-module-key="politc"] .politc-board');
   if(!board)return;
-  let panel=$('#politcWerk',board);
+  const moduleBody=board.parentElement;
+  let panel=$('#politcWerk',moduleBody);
   if(panel){synchronize(panel);return;}
   panel=document.createElement('section');
   panel.id='politcWerk';panel.className='politc-panel politc-werk';
@@ -138,7 +139,10 @@
    '<form id="politcWerkForm" class="politc-werk-form"><label>Role, field or skill<input name="werkRole" type="search" maxlength="100" placeholder="Policy research, entertainment law, design…" autocomplete="off" required></label><label>Where?<input name="werkLocation" type="search" maxlength="100" value="United States" placeholder="City, state, or remote" autocomplete="off"></label><div class="politc-werk-actions"><button type="submit" class="politc-werk-find">Find work ↗</button><button type="button" data-politc-werk-save>Save search</button></div></form>'+
    '<p id="politcWerkStatus" class="politc-werk-status" role="status">Enter a role and location to find jobs at the source.</p><div id="politcWerkResults" aria-label="Job search links and verified feed results"></div>'+
    '<div class="politc-werk-saved"><div><h3>Saved searches</h3><small id="politcWerkPrivacyNote"></small></div><div id="politcWerkSavedList"></div></div>';
-  board.prepend(panel);panel.dataset.werkOwner=owner();renderSaved(panel);
+  // The Reading Room is mounted as a sibling before .politc-board.
+  // Keep Werk ahead of both that desk and the election/tracker sections.
+  moduleBody.insertBefore(panel,moduleBody.querySelector('#politcResearchDesk')||board);
+  panel.dataset.werkOwner=owner();renderSaved(panel);
   $('#politcWerkForm',panel).addEventListener('submit',event=>{event.preventDefault();void search(panel);});
   panel.addEventListener('click',event=>{
    const save=event.target.closest('[data-politc-werk-save]');
