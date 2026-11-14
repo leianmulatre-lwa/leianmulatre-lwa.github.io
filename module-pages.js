@@ -1126,7 +1126,9 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
        }).join(''):'<p class="politc-note politc-empty">No entries yet. Nominate someone to begin.</p>')+'</div>'+
       (isPoster&&people.length>firstPage?'<button type="button" class="politc-poster-load-more" data-politc-show-more="'+cat.id+'">Show 24 more · '+firstPage+' of '+people.length+' shown</button>':'')+
       '<div class="politc-nomination-drawer" id="politc-nominate-'+cat.id+'" hidden>'+
-      '<form class="politc-form" data-politc-form="'+cat.id+'"><label>Nominee<input required name="name" maxlength="70" placeholder="Name"></label><label>Photo (black & white on display)<input name="photo" type="file" accept="image/*"></label><label>Caption / context<textarea name="note" maxlength="280" rows="2" placeholder="'+(isPoster?'Provide grounded context':'Add a caption or context')+'"></textarea></label><label>'+(isPoster?'Evidence':'Source')+' / profile link (optional)<input name="source" type="url" placeholder="https://"></label><button type="submit">Add nomination</button><small>Saved privately on this device. No threats, addresses, personal contact details, or harassment.'+(isPoster?' Distinguish allegations from findings.':'')+'</small></form></div></section>';
+      '<form class="politc-form" data-politc-form="'+cat.id+'"><label>Nominee<input required name="name" maxlength="70" placeholder="Name"></label><label>Photo<input name="photo" type="file" accept="image/*"></label>'+
+      (isPoster?'<label>Portrait style<select name="life"><option value="unknown">Status unknown · neutral</option><option value="living">Living · color</option><option value="deceased">Deceased · black & white</option></select></label>':'')+
+      '<label>Caption / context<textarea name="note" maxlength="280" rows="2" placeholder="'+(isPoster?'Provide grounded context':'Add a caption or context')+'"></textarea></label><label>'+(isPoster?'Evidence':'Source')+' / profile link (optional)<input name="source" type="url" placeholder="https://"></label><button type="submit">Add nomination</button><small>Saved privately on this device. No threats, addresses, personal contact details, or harassment.'+(isPoster?' Distinguish allegations from findings.':'')+'</small></form></div></section>';
   }
   function bindNominationPanels(container,store,refresh){
     container.querySelectorAll('[data-politc-nominate]').forEach(button=>button.addEventListener('click',()=>{
@@ -1153,6 +1155,8 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     }));
     container.querySelectorAll('[data-politc-form]').forEach(form=>form.addEventListener('submit',async(e)=>{
       e.preventDefault();const fd=new FormData(form),name=String(fd.get('name')||'').trim(),note=String(fd.get('note')||'').trim(),source=String(fd.get('source')||'').trim();
+      const selectedLife=String(fd.get('life')||'unknown');
+      const life=['living','deceased','unknown'].includes(selectedLife)?selectedLife:'unknown';
       if(!name)return;
       const file=fd.get('photo');let photo='';
       if(file instanceof File&&file.size){
@@ -1160,7 +1164,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
         photo=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>resolve('');reader.readAsDataURL(file);});
       }
       try{if(!store.ownerUid||store.ownerUid!==nominationOwner())throw Error('Sign in before saving nominations.');
-        writeJSON(store.key,[...store.read(),{id:String(Date.now())+'-'+Math.random().toString(36).slice(2,7),category:form.dataset.politcForm,name,note,source,photo}]);if(form.isConnected)refresh()}
+        writeJSON(store.key,[...store.read(),{id:String(Date.now())+'-'+Math.random().toString(36).slice(2,7),category:form.dataset.politcForm,name,note,source,photo,life}]);if(form.isConnected)refresh()}
       catch(err){alert('This browser could not save the nomination. Try a smaller photo.');}
     }));
   }
