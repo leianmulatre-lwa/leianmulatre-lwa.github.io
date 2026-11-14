@@ -47,7 +47,7 @@ test('Werk is loaded exactly once in each Studio shell and appears first without
  assert.match(css,/body\.night-mode/);
  assert.match(read('module-pages.js'),/board\.insertBefore\(liveZone,grid\)/);
 });
-test('Werk uses real, HTTPS source searches; no impersonated postings or scraping',()=>{
+test('Werk keeps source URLs safe but renders JobSpy postings rather than outbound search portals',()=>{
  const {window}=harness(werk);
  const targets=window.BigLWAPolitcWerk.sourceTargets('policy analyst','Los Angeles');
  assert.equal(targets.length,3);
@@ -60,6 +60,13 @@ test('Werk uses real, HTTPS source searches; no impersonated postings or scrapin
  assert.doesNotMatch(werk,/fetch\('https?:|XMLHttpRequest|scrapeJobs/);
  assert.match(werk,/rel='noopener noreferrer'/);
  assert.match(werk,/api\.searchVerified\(role,location\)/);
+ assert.match(werk,/function appendJobCard\(grid,job\)/,'Inline job cards are the primary results');
+ assert.match(werk,/politc-werk-jobs/,'Werk results grid is a job grid');
+ assert.match(werk,/View original posting/,'Only actual job cards require outbound application links');
+ assert.doesNotMatch(werk,/function appendSources\(/,'External board search cards are not rendered');
+ assert.doesNotMatch(werk,/Search at the source/,'Search is not delegated to external portals');
+ assert.match(werk,/JobSpy listings not available yet/,'Missing source is disclosed rather than fabricated');
+
 });
 test('Saved searches are scoped to current user and hidden from guests or public preview',()=>{
  const env=harness(werk);
@@ -101,6 +108,10 @@ test('Visual-Life only offers in-site job matches after a fresh validated feed i
  assert.equal(results.length,1);
  assert.equal(results[0].url,'https://jobs.example.org/policy');
  assert.equal(api.getStatus(),'connected');
+ assert.equal(api.getFeedInfo().status,'connected');
+ assert.equal(api.getFeedInfo().count,3);
+ assert.equal(api.getFeedInfo().sources.length,0,'Missing source metadata remains empty');
+
  assert.equal(api.searchVerified('Artist','Los Angeles').length,1);
  const stale={...fresh,generated_at:'2025-01-01T00:00:00.000Z'};
  const old=harness(jobs,{feed:stale}).window.BigLWAVisualLife;
