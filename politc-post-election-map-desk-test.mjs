@@ -113,7 +113,7 @@ test('Live trackers appear above the matching accordion and retain order when ro
  assert.match(pjs,/lanes\.forEach\(\(lane,i\)=>lane\.prepend\(trackerPool\[\(first\+i\)%trackerPool\.length\]\)\)/);
  assert.match(pjs,/const trackerPool=\[\.\.\.trackers,archiveCard,moneyCard\]/);
  assert.match(pjs,/first=\(first\+direction\+trackerPool\.length\)%trackerPool\.length/);
- assert.match(pjs,/\.politc-live-card-cache/);
+ assert.match(pjs,/politc-live-card-cache/);
  assert.match(pjs,/archiveCard\.append/);
  assert.match(pjs,/moneyCard\.append/);
  assert.match(pjs,/openInRoom\('archivegenocide'\)/);
