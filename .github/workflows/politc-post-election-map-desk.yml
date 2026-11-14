@@ -1,0 +1,45 @@
+name: Politic post-election and Map split checks
+on:
+  pull_request:
+    paths:
+      - 'politc-post-election-results-20261113.js'
+      - 'politc-post-election-20261113.css'
+      - 'politc-post-election-map-desk-test.mjs'
+      - 'map-lwa-experience-20261113.js'
+      - 'map-lwa-experience-20261113.css'
+      - 'map-app.html'
+      - 'module-pages.js'
+      - 'index.html'
+      - 'studio/index.html'
+      - '404.html'
+      - 'live-studio-shell.html'
+      - '.github/workflows/politc-post-election-map-desk.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'politc-post-election-results-20261113.js'
+      - 'politc-post-election-20261113.css'
+      - 'politc-post-election-map-desk-test.mjs'
+      - 'map-lwa-experience-20261113.js'
+      - 'map-lwa-experience-20261113.css'
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax-check election results and Map scripts
+        run: |
+          node --check politc-post-election-results-20261113.js
+          node --check map-lwa-experience-20261113.js
+          node --check module-pages.js
+          node --check user-search-results.js
+      - name: Run source integrity and desktop Map layout regressions
+        run: |
+          node --test politc-post-election-map-desk-test.mjs map-workspace-regression-test.mjs
+          node --test lwazi/navigation-map-weather.test.mjs
