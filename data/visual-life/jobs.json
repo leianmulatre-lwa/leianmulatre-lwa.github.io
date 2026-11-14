@@ -1,11 +1,271 @@
 {
   "schema": 1,
-  "status": "not_yet_published",
-  "generated_at": null,
+  "status": "published",
+  "generated_at": "2026-11-14T22:41:04.415441Z",
   "source_library": "werk-main / JobSpy 1.4.1 (MIT; Cullen Watson and contributors)",
-  "search_term": null,
-  "location": null,
-  "sources": [],
-  "jobs": [],
-  "disclaimer": "No listings have been retrieved. Search original job platforms or run the reviewed manual feed workflow."
+  "search_term": "Curated BIG LWA searches",
+  "location": "Multiple locations",
+  "sources": [
+    "indeed"
+  ],
+  "searches": [
+    {
+      "term": "creative director",
+      "location": "Los Angeles, CA",
+      "source": "indeed",
+      "limit": 7
+    },
+    {
+      "term": "production coordinator",
+      "location": "Los Angeles, CA",
+      "source": "indeed",
+      "limit": 7
+    },
+    {
+      "term": "policy analyst",
+      "location": "Los Angeles, CA",
+      "source": "indeed",
+      "limit": 7
+    },
+    {
+      "term": "paralegal",
+      "location": "Los Angeles, CA",
+      "source": "indeed",
+      "limit": 7
+    },
+    {
+      "term": "software developer",
+      "location": "Remote",
+      "source": "indeed",
+      "limit": 7
+    }
+  ],
+  "jobs": [
+    {
+      "url": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=c657fecb-eda2-42b3-a456-16fb4622b44a&ccId=19000101_000001&jobId=943108&source=IN&lang=en_US",
+      "title": "Creative Director",
+      "company": "Best Choice Products",
+      "source": "indeed",
+      "location": "Newport Beach, CA, USA",
+      "postedAt": "2026-11-14",
+      "searchTerm": "creative director"
+    },
+    {
+      "url": "https://grnh.se/n0e6jzmb1us",
+      "title": "Design Director",
+      "company": "MobilityWare",
+      "source": "indeed",
+      "location": "Irvine, CA, USA",
+      "postedAt": "2026-11-13",
+      "searchTerm": "creative director"
+    },
+    {
+      "url": "https://apply.workable.com/j/3643A05872",
+      "title": "Art Director",
+      "company": "Milani Cosmetics",
+      "source": "indeed",
+      "location": "Culver City, CA, USA",
+      "postedAt": "2026-11-13",
+      "searchTerm": "creative director"
+    },
+    {
+      "url": "https://zealot.applytojob.com/apply/7Wfvopak0I/Art-Director?source=INDE&~",
+      "title": "Art Director",
+      "company": "Zealot",
+      "source": "indeed",
+      "location": "Los Angeles, CA, USA",
+      "postedAt": "2026-11-13",
+      "searchTerm": "creative director"
+    },
+    {
+      "url": "https://expedia.wd108.myworkdayjobs.com/en-US/search/job/USA---California---West-Hollywood/Creative-Director---Creative-Integration_R-111044",
+      "title": "Creative Director - Creative Integration",
+      "company": "Expedia Group",
+      "source": "indeed",
+      "location": "West Hollywood, CA, USA",
+      "postedAt": "2026-11-12",
+      "searchTerm": "creative director"
+    },
+    {
+      "url": "https://jobs.smartrecruiters.com/NBCUniversal3/744000161121938-director-franchise-creative-multimedia",
+      "title": "Director, Franchise Creative- Multimedia",
+      "company": "NBCUniversal",
+      "source": "indeed",
+      "location": "Universal City, CA, USA",
+      "postedAt": "2026-11-11",
+      "searchTerm": "creative director"
+    },
+    {
+      "url": "https://www.amazon.jobs/jobs/10601994/creative-director-prime-nasc?cmpid=DA_INAD200785B",
+      "title": "Creative Director, Prime, NASC",
+      "company": "Amazon.com",
+      "source": "indeed",
+      "location": "Santa Monica, CA, USA",
+      "postedAt": "2026-11-11",
+      "searchTerm": "creative director"
+    },
+    {
+      "url": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=fc53ca21-f0cc-444a-9b7b-1b7efabf504c&ccId=19000101_000001&jobId=618353&source=IN&lang=en_US",
+      "title": "Production Coordinator",
+      "company": "The Music Center",
+      "source": "indeed",
+      "location": "Los Angeles, CA, USA",
+      "postedAt": "2026-11-14",
+      "searchTerm": "production coordinator"
+    },
+    {
+      "url": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=57a998f9-44c5-4820-97ef-109ad70bca11&ccId=19000101_000001&jobId=526157&source=IN&lang=en_US",
+      "title": "SENIOR PRODUCTION COORDINATOR",
+      "company": "Los Angeles Collective",
+      "source": "indeed",
+      "location": "Los Angeles, CA, USA",
+      "postedAt": "2026-11-13",
+      "searchTerm": "production coordinator"
+    },
+    {
+      "url": "https://grnh.se/tdvm72zu9us",
+      "title": "Production Coordinator",
+      "company": "Castelion",
+      "source": "indeed",
+      "location": "Torrance, CA, USA",
+      "postedAt": "2026-11-13",
+      "searchTerm": "production coordinator"
+    },
+    {
+      "url": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=0b46a173-16a2-461d-ae0b-5d93a3662cbc&ccId=19000101_000001&jobId=592987&source=IN&lang=en_US",
+      "title": "Data Analyst",
+      "company": "JWCH Institute",
+      "source": "indeed",
+      "location": "Los Angeles, CA, USA",
+      "postedAt": "2026-11-13",
+      "searchTerm": "policy analyst"
+    },
+    {
+      "url": "https://careers-primehealthcare.icims.com/jobs/286917/job?utm_source=indeed_integration&iis=Job%20Board&iisn=Indeed&indeed-apply-token=73a2d2b2a8d6d5c0a62696875eaebd669103652d3f0c2cd5445d3e66b1592b0f",
+      "title": "Accounts Payable Analyst",
+      "company": "Prime Healthcare Services",
+      "source": "indeed",
+      "location": "Ontario, CA, USA",
+      "postedAt": "2026-11-13",
+      "searchTerm": "policy analyst"
+    },
+    {
+      "url": "https://www.governmentjobs.com/careers/santamonica/jobs/5528949/information-technology-support-technician",
+      "title": "Information Technology Support Technician",
+      "company": "CITY OF SANTA MONICA",
+      "source": "indeed",
+      "location": "Santa Monica, CA, USA",
+      "postedAt": "2026-11-13",
+      "searchTerm": "policy analyst"
+    },
+    {
+      "url": "https://recruiting.adp.com/srccsh/public/RTI.home?r=5001228024706&c=2214739&d=ExternalCareerSite&rb=INDEED&idUnique=5001228024706",
+      "title": "Shipping & Receiving Clerk",
+      "company": "Ceva Supply Chain",
+      "source": "indeed",
+      "location": "Fontana, CA, USA",
+      "postedAt": "2026-11-12",
+      "searchTerm": "policy analyst"
+    },
+    {
+      "url": "https://jobs.smartrecruiters.com/SGS/744000161160413-lab-analyst-i",
+      "title": "Lab Analyst I",
+      "company": "SGS",
+      "source": "indeed",
+      "location": "Carson, CA, USA",
+      "postedAt": "2026-11-11",
+      "searchTerm": "policy analyst"
+    },
+    {
+      "url": "https://careers-primehealthcare.icims.com/jobs/289723/job?utm_source=indeed_integration&iis=Job%20Board&iisn=Indeed&indeed-apply-token=73a2d2b2a8d6d5c0a62696875eaebd669103652d3f0c2cd5445d3e66b1592b0f",
+      "title": "EOB/Payment Review Analyst",
+      "company": "Prime Healthcare Services",
+      "source": "indeed",
+      "location": "Inglewood, CA, USA",
+      "postedAt": "2026-11-11",
+      "searchTerm": "policy analyst"
+    },
+    {
+      "url": "https://recruiting2.ultipro.com/KAW1000/JobBoard/00993887-92fb-4009-a2c6-e0ed39770f59/OpportunityDetail?opportunityId=de660c7e-306b-49dc-9842-f7f84d2f1e2f&postingId=1416f613-5a4b-4d57-abbf-c8f19bdc56c3",
+      "title": "Quality Assurance Specialist",
+      "company": "Kawasaki",
+      "source": "indeed",
+      "location": "Foothill Ranch, CA, USA",
+      "postedAt": "2026-11-10",
+      "searchTerm": "policy analyst"
+    },
+    {
+      "url": "https://jobs.wizehire.com/job/legal-assistant-in-ontario-ca-us-fd1eb1c7413d393b",
+      "title": "Legal Assistant",
+      "company": "Law Office of Shelly Jean John",
+      "source": "indeed",
+      "location": "Ontario, CA, USA",
+      "postedAt": "2026-11-13",
+      "searchTerm": "paralegal"
+    },
+    {
+      "url": "https://www.teamworkonline.com/football-jobs/footballjobs/new-york-jets/junior-software-developer-2199203?source=Indeed",
+      "title": "Junior Software Developer",
+      "company": "New York Jets",
+      "source": "indeed",
+      "location": "Remote, USA",
+      "postedAt": "2026-11-14",
+      "searchTerm": "software developer"
+    },
+    {
+      "url": "https://secure4.saashr.com/ta/6167768.careers?ShowJob=1074006465",
+      "title": "Software QA Engineer",
+      "company": "Moore, A Series LLC",
+      "source": "indeed",
+      "location": "Remote, USA",
+      "postedAt": "2026-11-14",
+      "searchTerm": "software developer"
+    },
+    {
+      "url": "https://secure4.saashr.com/ta/6167768.careers?ShowJob=1074006466",
+      "title": "Software Engineer",
+      "company": "Moore",
+      "source": "indeed",
+      "location": "Remote, USA",
+      "postedAt": "2026-11-14",
+      "searchTerm": "software developer"
+    },
+    {
+      "url": "https://holmanautogroup.wd1.myworkdayjobs.com/HolmanEnterprisesCareers/job/Remote-NJ-US/Developer-III_R0055355",
+      "title": "Developer III",
+      "company": "Holman",
+      "source": "indeed",
+      "location": "Mount Laurel, NJ, USA",
+      "postedAt": "2026-11-13",
+      "searchTerm": "software developer"
+    },
+    {
+      "url": "https://mind-computing.breezy.hr/p/48cd591eca92-net-developer-remote-opportunity?source=indeed",
+      "title": ".NET Developer (Remote Opportunity)",
+      "company": "Mind Computing",
+      "source": "indeed",
+      "location": "Remote, USA",
+      "postedAt": "2026-11-13",
+      "searchTerm": "software developer"
+    },
+    {
+      "url": "https://app.trinethire.com/companies/143243-nourishedrx/jobs/126477-software-engineer?source=indeed",
+      "title": "Software Engineer",
+      "company": "NourishedRx",
+      "source": "indeed",
+      "location": "Stamford, CT, USA",
+      "postedAt": "2026-11-12",
+      "searchTerm": "software developer"
+    },
+    {
+      "url": "https://recruiting.paylocity.com/Recruiting/Jobs/Details/4661160/Loesung/Software-Developer-Intermediate?source=Indeed_Feed",
+      "title": "Software Developer - Intermediate",
+      "company": "Loesung LLC",
+      "source": "indeed",
+      "location": "Fort Huachuca, AZ, USA",
+      "postedAt": "2026-11-12",
+      "searchTerm": "software developer"
+    }
+  ],
+  "disclaimer": "Independent discovery hints. Verify availability, compensation and employer details on the original job posting."
 }
