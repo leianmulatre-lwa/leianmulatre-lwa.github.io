@@ -53,7 +53,7 @@ test('Switching calendar system changes dates visually, not Google events or sav
  assert.match(pages,/const range=calendarGrid\(\)/);
  assert.match(pages,/orbit\.calendarEvents\(start\.toISOString\(\),end\.toISOString\(\)\)/);
  assert.match(pages,/new Date\(selected\+'T12:00:00'\)/);
- assert.match(pages,/getMonth\(\),month/);
+ assert.match(pages,/view=\{year:d\.getFullYear\(\),month:d\.getMonth\(\)\}/);
  assert.match(pages,/calendarMode==='geez'/);
  assert.match(pages,/const conversionNote=isGeez/);
  assert.doesNotMatch(adapter,/year\s*[-+]\s*[78]|getFullYear\(\)\s*[-+]\s*[78]/,'No guessed 7 or 8 year offset');
