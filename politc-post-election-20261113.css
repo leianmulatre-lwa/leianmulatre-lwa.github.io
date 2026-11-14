@@ -571,3 +571,42 @@ body.night-mode .politc-result-status{color:#f0c4d0}
   height:270px!important;max-height:270px!important;
  }
 }
+
+
+/* Archive accountability entries extend the existing five-source Politic
+   carousel, without implying a funding record proves intent or guilt. */
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-live-card-cache[hidden]{
+ display:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-lane .politc-accountability-card{
+ border-color:#b98999!important;
+ background:linear-gradient(150deg,#fff6f1,#f7e9eb)!important;
+ box-shadow:0 3px 0 #a66b80,0 6px 12px #63384824!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-lane .politc-accountability-card h3{
+ color:#773b52!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-deck-lane .politc-accountability-card .politc-note{
+ font:500 11px/1.5 Georgia,serif!important;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-accountability-action{
+ cursor:pointer;display:block;box-sizing:border-box;width:100%;
+ min-height:35px;margin:8px 0 7px;padding:8px 10px;
+ border:1px solid #9f7685;border-radius:8px;
+ color:#71364b;background:#fff8f6;
+ font:700 11px/1.35 system-ui,sans-serif;
+ text-align:left;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-accountability-action:hover{
+ background:#f1dce4;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-accountability-action:focus-visible{
+ outline:3px solid #a74968;outline-offset:2px;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-accountability-card .politc-results-source{
+ display:inline-block;margin:5px 5px 5px 0;font-size:10px;
+}
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-accountability-card .politc-results-source,
+#studioApp #moduleWorkspace[data-module-key="politc"] .politc-accountability-card .politc-result-source{
+ color:#71354c;
+}
