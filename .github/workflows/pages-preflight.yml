@@ -22,6 +22,10 @@ on:
       - 'policy-card-cohesion.js'
       - 'module-pages.js'
       - 'booth-vanity-preflight-test.mjs'
+      - 'politc-werk-test.mjs'
+      - 'politc-werk-20261114.js'
+      - 'politc-werk-20261114.css'
+      - 'visual-life-jobs.js'
       - 'module-version-header-20261026.js'
       - 'studio-uploaded-thumbnails-20261110.css'
       - 'project-canvas.js'
@@ -54,6 +58,7 @@ jobs:
           node account-storage-regression-test.mjs
           node site-integrity-test.mjs
           node booth-vanity-preflight-test.mjs
+          node --test politc-werk-test.mjs
           node studio-layout-cache-test.mjs
           node profile-music-test.mjs
           node --check profile-music.js
