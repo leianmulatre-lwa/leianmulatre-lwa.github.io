@@ -76,55 +76,81 @@
    location:clean($('[name=werkLocation]',panel)?.value)||'United States'
   };
  }
- function appendSources(panel,role,location){
-  const result=$('#politcWerkResults',panel);
-  if(!result)return;
-  const title=document.createElement('h3');title.textContent='Search at the source';
-  const grid=document.createElement('div');grid.className='politc-werk-source-grid';
-  sourceTargets(role,location).forEach(target=>{
-   const item=document.createElement('article');item.className='politc-werk-source';
-   const name=document.createElement('h4');name.textContent=target.label;
-   const desc=document.createElement('p');desc.textContent=target.description;
-   item.append(name,desc,makeLink(target.url,'Search '+target.label+' ↗'));
-   grid.append(item);
-  });
-  result.append(title,grid);
+ function appendJobCard(grid,job){
+  const url=String(job?.url||'');
+  if(!/^https:\/\//i.test(url))return false;
+  const card=document.createElement('article');card.className='politc-werk-source politc-werk-job';
+  const source=document.createElement('span');source.className='politc-werk-job-source';
+  source.textContent=clean(job.source,65)||'JobSpy source';
+  const title=document.createElement('h4');title.textContent=clean(job.title,160);
+  const employer=document.createElement('p');employer.className='politc-werk-job-employer';
+  employer.textContent=clean(job.company,160);
+  const location=document.createElement('p');location.className='politc-werk-job-location';
+  location.textContent=clean(job.location,120)||'Location not listed';
+  const posted=clean(job.postedAt,35);
+  card.append(source,title,employer,location);
+  if(posted){
+    const date=document.createElement('small');date.className='politc-werk-job-posted';
+    date.textContent='Posted '+posted;card.append(date);
+  }
+  const apply=makeLink(url,'View original posting ↗');
+  apply.className='politc-werk-job-apply';
+  card.append(apply);grid.append(card);
+  return true;
  }
- function showVerified(panel,role,location){
+ function renderResults(panel,role,location){
   const results=$('#politcWerkResults',panel);
   if(!results)return;
+  results.replaceChildren();
   const api=window.BigLWAVisualLife;
-  const matches=typeof api?.searchVerified==='function'?api.searchVerified(role,location):[];
-  const prior=$('#politcWerkVerified',results);prior?.remove();
-  if(!matches.length)return;
-  const section=document.createElement('section');section.id='politcWerkVerified';
-  section.className='politc-werk-verified';
-  const h=document.createElement('h3');h.textContent='Verified feed snapshot';
-  const notice=document.createElement('p');notice.textContent='These source-linked records came from a dated job feed. Confirm each opening is still accepting applications.';
-  const grid=document.createElement('div');grid.className='politc-werk-source-grid';
-  for(const job of matches.slice(0,12)){
-   if(!job||!/^https:\/\//.test(String(job.url||'')))continue;
-   const article=document.createElement('article');article.className='politc-werk-source';
-   const title=document.createElement('h4');title.textContent=clean(job.title,160);
-   const sub=document.createElement('p');sub.textContent=[job.company,job.location,job.source].filter(Boolean).map(x=>clean(x,160)).join(' · ');
-   article.append(title,sub,makeLink(job.url,'Read original posting ↗'));grid.append(article);
+  const info=api?.getFeedInfo?.()||{};
+  if(info.status!=='connected'){
+    const empty=document.createElement('div');empty.className='politc-werk-result-empty';
+    const title=document.createElement('h3');title.textContent='JobSpy listings not available yet';
+    const message=document.createElement('p');
+    message.textContent=info.status==='stale'?
+      'The last JobSpy snapshot has expired. Listings are hidden until the owner runs the reviewed refresh.':
+      'The werk-main / JobSpy scraper is installed, but no published snapshot is available. The site cannot run Python scrapers inside your browser.';
+    empty.append(title,message);results.append(empty);
+    status(panel,'No current JobSpy listings. Try again after the source feed is published.');
+    return;
   }
-  if(!grid.children.length)return;
-  section.append(h,notice,grid);results.prepend(section);
+  const jobs=typeof api.searchVerified==='function'?api.searchVerified(role,location):[];
+  const heading=document.createElement('div');heading.className='politc-werk-result-header';
+  const count=document.createElement('h3');count.textContent=jobs.length+' matching '+(jobs.length===1?'job':'jobs');
+  const details=document.createElement('p');details.className='politc-werk-snapshot-meta';
+  details.textContent='JobSpy snapshot'+(info.generatedAt?' · '+new Date(info.generatedAt).toLocaleDateString():'')+
+    (info.sources?.length?' · '+info.sources.join(', '):'')+' · Not a live vacancy check';
+  heading.append(count,details);results.append(heading);
+  const grid=document.createElement('div');grid.className='politc-werk-source-grid politc-werk-jobs';
+  let displayed=0;
+  for(const job of jobs.slice(0,20))if(appendJobCard(grid,job))displayed++;
+  if(displayed)results.append(grid);
+  else{
+    const empty=document.createElement('p');empty.className='politc-werk-result-empty';
+    empty.textContent='No matching jobs in this published JobSpy snapshot. Try a broader role or location. This does not mean there are no openings elsewhere.';
+    results.append(empty);
+  }
+  status(panel,displayed?displayed+' source-linked postings found in BIG LWA. Verify each opening before applying.':
+    'No matching postings in the current JobSpy snapshot.');
  }
  async function search(panel){
   const {role,location}=readSearch(panel);
   if(!role){status(panel,'Enter a role, industry or skill to begin.');$('[name=werkRole]',panel)?.focus();return;}
   const results=$('#politcWerkResults',panel);
-  results.replaceChildren();appendSources(panel,role,location);
-  status(panel,'Opened three source search options. Only original job sites can confirm current availability.');
-  const seq=String((Number(panel.dataset.werkRequest||0)+1));panel.dataset.werkRequest=seq;
+  results.replaceChildren();
+  status(panel,'Looking through the latest BIG LWA JobSpy source snapshot…');
+  const seq=String(Number(panel.dataset.werkRequest||0)+1);
+  panel.dataset.werkRequest=seq;
   const api=window.BigLWAVisualLife;
-  if(!api?.loadFeed)return;
+  if(!api?.loadFeed){
+    status(panel,'The JobSpy listings adapter is unavailable. Please reload Werk.');
+    return;
+  }
   try{await api.loadFeed();}
-  catch{return;}
+  catch{status(panel,'Unable to read the JobSpy job feed right now.');return;}
   if(!panel.isConnected||panel.dataset.werkRequest!==seq)return;
-  showVerified(panel,role,location);
+  renderResults(panel,role,location);
  }
  function mount(){
   const board=$('#studioApp #moduleWorkspace[data-module-key="politc"] .politc-board');
@@ -135,9 +161,9 @@
   panel=document.createElement('section');
   panel.id='politcWerk';panel.className='politc-panel politc-werk';
   panel.setAttribute('aria-label','Werk job search desk');
-  panel.innerHTML='<header class="politc-werk-header"><div><p class="politc-werk-eyebrow">POLITC · WORK DESK</p><h2>werk</h2><p>Work is political. Find opportunities, keep your search terms, and follow the original listing before applying.</p></div><span aria-hidden="true">✳</span></header>'+
-   '<form id="politcWerkForm" class="politc-werk-form"><label>Role, field or skill<input name="werkRole" type="search" maxlength="100" placeholder="Policy research, entertainment law, design…" autocomplete="off" required></label><label>Where?<input name="werkLocation" type="search" maxlength="100" value="United States" placeholder="City, state, or remote" autocomplete="off"></label><div class="politc-werk-actions"><button type="submit" class="politc-werk-find">Find work ↗</button><button type="button" data-politc-werk-save>Save search</button></div></form>'+
-   '<p id="politcWerkStatus" class="politc-werk-status" role="status">Enter a role and location to find jobs at the source.</p><div id="politcWerkResults" aria-label="Job search links and verified feed results"></div>'+
+  panel.innerHTML='<header class="politc-werk-header"><div><p class="politc-werk-eyebrow">POLITC · WORK DESK</p><h2>werk</h2><p>Work is political. Search JobSpy postings right here, save your searches, and open the original listing when you want to apply.</p></div><span aria-hidden="true">✳</span></header>'+
+   '<form id="politcWerkForm" class="politc-werk-form"><label>Role, field or skill<input name="werkRole" type="search" maxlength="100" placeholder="Policy research, entertainment law, design…" autocomplete="off" required></label><label>Where?<input name="werkLocation" type="search" maxlength="100" value="United States" placeholder="City, state, or remote" autocomplete="off"></label><div class="politc-werk-actions"><button type="submit" class="politc-werk-find">Search jobs</button><button type="button" data-politc-werk-save>Save search</button></div></form>'+
+   '<p id="politcWerkStatus" class="politc-werk-status" role="status">Search the latest published JobSpy listings by role and location.</p><div id="politcWerkResults" aria-label="JobSpy job search results"></div>'+
    '<div class="politc-werk-saved"><div><h3>Saved searches</h3><small id="politcWerkPrivacyNote"></small></div><div id="politcWerkSavedList"></div></div>';
   // The Reading Room is mounted as a sibling before .politc-board.
   // Keep Werk ahead of both that desk and the election/tracker sections.
@@ -181,7 +207,7 @@
   if(role)role.value='';
   if(where)where.value='United States';
   $('#politcWerkResults',panel)?.replaceChildren();
-  status(panel,'Enter a role and location to find jobs at the source.');
+  status(panel,'Search the latest published JobSpy listings by role and location.');
   renderSaved(panel);
  }
  function sync(){const panel=$('#politcWerk');if(panel)synchronize(panel);else mount();}
