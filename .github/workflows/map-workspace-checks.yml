@@ -8,6 +8,8 @@ on:
       - 'map-inpage-route-test.mjs'
       - 'lwazi-navigation-map-weather.css'
       - 'map-lwa-experience-20261113.js'
+      - 'map-lwa-navigate-20261113.js'
+      - 'map-go-navigation-test.mjs'
       - 'map-lwa-experience-20261113.css'
       - 'map-workspace-regression-test.mjs'
       - 'module-pages.js'
@@ -21,6 +23,8 @@ on:
       - 'map-inpage-route-test.mjs'
       - 'lwazi-navigation-map-weather.css'
       - 'map-lwa-experience-20261113.js'
+      - 'map-lwa-navigate-20261113.js'
+      - 'map-go-navigation-test.mjs'
       - 'map-lwa-experience-20261113.css'
       - 'map-workspace-regression-test.mjs'
       - 'module-pages.js'
@@ -41,8 +45,9 @@ jobs:
           node --check module-pages.js
           node --check map-lwa-experience-20261113.js
           node --check map-lwa-router-20261113.js
+          node --check map-lwa-navigate-20261113.js
           node --check lwazi-discovery-extras.js
-          node --test map-workspace-regression-test.mjs map-inpage-route-test.mjs
+          node --test map-workspace-regression-test.mjs map-inpage-route-test.mjs map-go-navigation-test.mjs
       - name: Preserve privacy and Map search contracts
         run: |
           node account-storage-regression-test.mjs
