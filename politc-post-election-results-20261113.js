@@ -6,6 +6,20 @@
  const OFFICIAL_CA='https://electionresults.sos.ca.gov/returns/governor';
  const OFFICIAL_MAP='https://electionresults.sos.ca.gov/maps/';
  const BOUNDARIES='https://raw.githubusercontent.com/plotly/datasets/master/geojson-counties-fips.json';
+ // Sourced, name-verified politician portraits. Never guess a portrait from
+ // an unrelated name or a candidate's party. Additional people require
+ // review of their Commons file identity and reuse/license details.
+ const PORTRAITS=Object.freeze({
+  'XAVIER BECERRA':Object.freeze({
+   file:'HHS Xavier Becerra.jpg',
+   credit:'U.S. Department of Health and Human Services · public domain'
+  }),
+  'STEVE HILTON':Object.freeze({
+   file:'Steve Hilton Madera 2026.jpg',
+   credit:'TaurusEmerald · CC BY-SA 4.0'
+  })
+ });
+ const portraitInfo=name=>PORTRAITS[String(name||'').trim().replace(/\s+/g,' ').toUpperCase()]||null;
  // A clearly dated copy of published LA County returns for fallback ONLY.
  // Never describe these as current, certified, or statewide.
  const SNAPSHOT={Timestamp:'2026-11-10T17:01:24.383',Election:{
@@ -21,6 +35,50 @@
   if(className)el.className=className;
   if(txt!==undefined)el.textContent=String(txt);
   return el;
+ };
+ const portrait=(name)=>{
+  const value=String(name||'').trim();
+  const frame=tag('span','politc-candidate-portrait');
+  const initials=value.split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'?';
+  const fallback=()=>tag('span','politc-candidate-portrait-fallback',initials);
+  const info=portraitInfo(value);
+  if(!info){frame.append(fallback());return frame;}
+  const photo=tag('img','politc-candidate-portrait-img');
+  photo.alt='Photograph of '+value;photo.loading='lazy';photo.decoding='async';
+  photo.referrerPolicy='no-referrer';
+  const file=encodeURIComponent(info.file.replace(/ /g,'_'));
+  photo.src='https://commons.wikimedia.org/wiki/Special:FilePath/'+file+'?width=240';
+  photo.addEventListener('error',()=>{
+   if(photo.isConnected)photo.replaceWith(fallback());
+  },{once:true});
+  frame.append(photo);
+  const credit=tag('a','politc-candidate-portrait-credit','Photo source');
+  credit.href='https://commons.wikimedia.org/wiki/File:'+file;
+  credit.title='Image: '+info.credit+' · Wikimedia Commons';
+  credit.setAttribute('aria-label','View photo source and license for '+value);
+  credit.target='_blank';credit.rel='noopener noreferrer';
+  frame.append(credit);
+  return frame;
+ };
+ const hydrateNominees=body=>{
+  const area=body.querySelector('#politcNominees');
+  if(!area)return;
+  const hydrate=()=>{
+   area.querySelectorAll('.politc-person').forEach(card=>{
+    if(card.querySelector('.politc-candidate-portrait'))return;
+    const name=card.querySelector('strong')?.textContent?.trim();
+    if(!name)return;
+    const image=portrait(name);
+    const old=card.firstElementChild;
+    if(old&&old!==card.querySelector('strong'))old.replaceWith(image);
+    else card.prepend(image);
+   });
+  };
+  hydrate();
+  if(typeof MutationObserver==='function'){
+   const observer=new MutationObserver(hydrate);
+   observer.observe(area,{childList:true});
+  }
  };
  const link=(url,label)=>{
   const a=tag('a','politc-results-source',label+' ↗');a.href=url;a.target='_blank';
@@ -121,7 +179,8 @@
    board.insertBefore(topRow,live);
    topRow.append(election,section,reader);
    reader.classList.remove('politc-after-live');
-   // Expand only the selected card (never every card's internal details).
+   // Accordion cards remain in their own columns. Expanded content grows
+   // vertically below its summary, without promoting a card to a full row.
    const folds=[
     [election,election.querySelector('.politc-post-election-details')],
     [section,section.querySelector('.politc-result-details')],
@@ -167,12 +226,15 @@
      const ranked=[...item.candidates].sort((a,b)=>b.votes-a.votes);
      ranked.slice(0,6).forEach(c=>{
       const row=tag('div','politc-result-vote');
-      const title=tag('span','',c.name+(c.party?' · '+c.party:''));
+      const person=tag('span','politc-result-person');
+      const title=tag('span','politc-result-candidate-name',
+       c.name+(c.party?' · '+c.party:''));
+      person.append(portrait(c.name),title);
       const n=tag('b','',count(c.votes));
       const bar=tag('span','politc-result-vote-bar');
       const fraction=total>0?100*c.votes/total:0;
       const fill=tag('i');fill.style.width=Math.max(0,Math.min(100,fraction))+'%';
-      bar.append(fill);row.append(title,n,bar);card.append(row);
+      bar.append(fill);row.append(person,n,bar);card.append(row);
      });
      card.append(tag('p','politc-result-scope',item.scope||'Los Angeles County contest returns; verify complete district totals where applicable.'));
      grid.append(card);
@@ -306,8 +368,9 @@
  function mount(){
   const body=document.querySelector('#moduleWorkspace[data-module-key="politc"] #moduleWorkspaceBody');
   if(!body)return;
-  compactElection(body);makeResults(body);
+  compactElection(body);makeResults(body);hydrateNominees(body);
  }
- window.BigLWAPolitcPostElection={mount,sourceContests,snapshot:SNAPSHOT};
+ window.BigLWAPolitcPostElection={mount,sourceContests,snapshot:SNAPSHOT,
+  portraitInfo};
  document.addEventListener('biglwa:module-open',ev=>{if(ev.detail?.key==='politc')mount()});
 })();
