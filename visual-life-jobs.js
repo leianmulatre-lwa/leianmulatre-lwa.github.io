@@ -78,6 +78,15 @@ function searchLwazi(query,limit=12){
  return scored.sort((a,b)=>b.matches-a.matches||b.score-a.score)
   .slice(0,Math.max(0,Math.min(20,Number(limit)||12))).map(entry=>({...entry.job}));
 }
+function listVerified(){
+ if(!feedVerified||sourceStatus!=='connected')return [];
+ return jobs.map(job=>({...job}));
+}
+function getJobByUrl(url){
+ if(typeof url!=='string'||!url.startsWith('https://'))return null;
+ const match=listVerified().find(job=>job.url===url);
+ return match||null;
+}
 function getFeedInfo(){
  return {
   status:feedVerified&&sourceStatus==='connected'?'connected':sourceStatus==='stale'?'stale':'pending',
@@ -209,5 +218,5 @@ function install(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
 else install();
 new MutationObserver(install).observe(document.documentElement,{childList:true,subtree:true});
-window.BigLWAVisualLife={open,ensureCard,setJobs,normalizeJobs,searchTargets,searchVerified,searchLwazi,getFeedInfo,loadFeed,getStatus:()=>sourceStatus,getSourceTimestamp:()=>sourceTimestamp,version:'1.4.0'};
+window.BigLWAVisualLife={open,ensureCard,setJobs,normalizeJobs,searchTargets,searchVerified,searchLwazi,listVerified,getJobByUrl,getFeedInfo,loadFeed,getStatus:()=>sourceStatus,getSourceTimestamp:()=>sourceTimestamp,version:'1.4.0'};
 })();
