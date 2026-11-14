@@ -59,7 +59,7 @@ test('Werk uses real, HTTPS source searches; no impersonated postings or scrapin
  assert(new URL(targets[1].url).searchParams.get('location')==='Los Angeles');
  assert.doesNotMatch(werk,/fetch\('https?:|XMLHttpRequest|scrapeJobs/);
  assert.match(werk,/rel='noopener noreferrer'/);
- assert.match(werk,/BigLWAVisualLife\?\.searchVerified/);
+ assert.match(werk,/api\.searchVerified\(role,location\)/);
 });
 test('Saved searches are scoped to current user and hidden from guests or public preview',()=>{
  const env=harness(werk);
