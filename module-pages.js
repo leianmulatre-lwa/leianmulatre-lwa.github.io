@@ -1221,14 +1221,26 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const active=()=>instance===calendarGeneration&&routeName.textContent==='Calendar'&&!workspace.hidden;
     const onDay=(e,key)=>{if(e.start?.date)return key>=e.start.date&&key<(e.end?.date||e.start.date+'x');const s=new Date(e.start?.dateTime),end=new Date(e.end?.dateTime||e.start?.dateTime),day=new Date(key+'T00:00:00'),next=new Date(day);next.setDate(next.getDate()+1);return s<next&&end>=day&&(end>day||s.getTime()===end.getTime())};
     const googleRows=key=>remote.filter(e=>onDay(e,key)).map(e=>({title:e.summary||'Untitled Google event',meta:'Google · '+(e.start?.date?'All day':new Date(e.start.dateTime).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})),google:true,url:e.htmlLink||''}));
+    const calendarGrid=()=>{
+      if(calendarMode==='geez'&&geezSupported){
+        const grid=geez.grid(geezAnchor);
+        if(grid)return {geez:true,grid,dates:grid.dates};
+      }
+      return {geez:false,grid:null,dates:Array.from({length:42},(_,i)=>calendarGridDate(view.year,view.month,i))};
+    };
     const draw=()=>{
       const all=events(),connected=window.__biglwaGoogleOrbit?.state.connected;const unRows=key=>window.BigLWAObservances?.onDay(key)||[];
-      const days=Array.from({length:42},(_,i)=>{
-        const d=calendarGridDate(view.year,view.month,i),key=dayKey(d);
+      const monthGrid=calendarGrid(),isGeez=monthGrid.geez;
+      workspace.dataset.calendarMode=isGeez?'geez':'gregorian';
+      const gMonth=monthGrid.grid?.month;
+      const days=monthGrid.dates.map(d=>{
+        const key=dayKey(d),gPart=isGeez?geez.parts(d):null;
+        const inMonth=isGeez?(gPart?.month===gMonth?.month&&gPart?.year===gMonth?.year):d.getMonth()===view.month;
+        const dateLabel=isGeez?geez.display(d)+' · '+d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});
         const crush=calendarCrushOnDay(key),items=[...all.filter(x=>x.date===key),...googleRows(key),...unRows(key)];
         const limit=crush?2:3;
-        return '<button class="calendar-day '+([0,6].includes(d.getDay())?'weekend ':'')+(d.getMonth()!==view.month?'other ':'')+(selected===key?'selected ':'')+(key===dayKey(new Date())?'today':'')+'" data-cal-date="'+key+'" type="button"'+(crush?' data-calendar-crush="'+crush.id+'"':'')+'>'+
-          '<span class="calendar-day-num">'+d.getDate()+'</span>'+
+        return '<button class="calendar-day '+([0,6].includes(d.getDay())?'weekend ':'')+(!inMonth?'other ':'')+(selected===key?'selected ':'')+(key===dayKey(new Date())?'today':'')+'" data-cal-date="'+key+'" type="button" aria-label="'+esc(dateLabel)+'"'+(crush?' data-calendar-crush="'+crush.id+'"':'')+'>'+
+          '<span class="calendar-day-num">'+(isGeez?gPart.day:d.getDate())+'</span>'+
           (crush?'<span class="calendar-crush-chip" title="'+esc(crush.title)+'" aria-label="'+esc(crush.title)+'">'+crush.short+'</span>':'')+
           items.slice(0,limit).map(e=>'<span class="calendar-event-chip">'+esc(e.google?'G · '+e.title:e.un?'UN · '+e.title:e.title)+'</span>').join('')+
           (items.length>limit?'<small>+'+(items.length-limit)+' more</small>':'')+'</button>';
