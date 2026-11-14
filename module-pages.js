@@ -1212,6 +1212,11 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const storage='biglwaCalendarEvents';
     let view=readJSON('biglwaCalendarView',null);if(!view||!Number.isInteger(view.year)||!Number.isInteger(view.month))view={year:new Date().getFullYear(),month:new Date().getMonth()};
     let selected=localStorage.getItem('biglwaCalendarSelected')||dayKey(new Date()),remote=[],syncMessage='',loaded='',requestId=0;
+    const geez=window.BigLWAGeezCalendar;
+    const geezSupported=Boolean(geez?.supported);
+    let calendarMode=geezSupported&&localStorage.getItem('biglwaCalendarSystemV1')==='geez'?'geez':'gregorian';
+    let geezAnchor=new Date(selected+'T12:00:00');
+    workspace.dataset.calendarMode=calendarMode;
     const events=()=>readJSON(storage,[]);
     const active=()=>instance===calendarGeneration&&routeName.textContent==='Calendar'&&!workspace.hidden;
     const onDay=(e,key)=>{if(e.start?.date)return key>=e.start.date&&key<(e.end?.date||e.start.date+'x');const s=new Date(e.start?.dateTime),end=new Date(e.end?.dateTime||e.start?.dateTime),day=new Date(key+'T00:00:00'),next=new Date(day);next.setDate(next.getDate()+1);return s<next&&end>=day&&(end>day||s.getTime()===end.getTime())};
@@ -4170,8 +4175,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       }catch{}
       return (Array.from(name)[0]||'✦').toLocaleUpperCase();
     };
-    const noteLabel=$('#studioApp #notes .card-head h2');
-    if(noteLabel&&noteLabel.textContent.trim()!=='Sqwidz')noteLabel.textContent='Sqwidz';
+    // The R-series title controller owns Sqwibbl/r markup and font spans.
+    // Never revert it to the old Sqwidz label during writing-preview hydration.
     const journalLabel=$('#studioApp #diary .card-head h2');
     if(journalLabel&&journalLabel.textContent.trim()!=='Journal')journalLabel.textContent='Journal';
     const noteCard=$('#notes'),notePaper=noteCard&&$('.note-paper',noteCard),note=writingPreviewValue('notes');
