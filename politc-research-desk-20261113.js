@@ -188,7 +188,7 @@
      if(!Number.isSafeInteger(Number(record?.id)))continue;
      const card=make('article','politc-research-item');
      const label=String(record.source_archive||'ArchiveGenocide record').slice(0,130);
-     const caption=String(record.caption||'No caption available.').replace(/\\s+/g,' ').slice(0,360);
+     const caption=String(record.caption||'No caption available.').replace(/\s+/g,' ').slice(0,360);
      const posted=Number.isFinite(Date.parse(record.date))?new Date(record.date).toLocaleDateString('en-US'):'Date not supplied';
      card.append(make('h3','',label),make('p','',caption),
       make('p','',posted+' · Posted-date, not necessarily event date'));
