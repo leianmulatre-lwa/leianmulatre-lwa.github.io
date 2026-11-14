@@ -2246,7 +2246,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       });
     }
     selectBooth('photo');
-    const videoTestStatus=$('#videoBoothPanel .video-booth-status',body);
+    const videoTestStatus=$('#boothVideoPanel .video-booth-status',body);
     $('#videoBoothTestCamera',body).onclick=async()=>{
       if(activeVideoTestStream){stopVideoTest();videoTestStatus.textContent='Local camera preview stopped. No footage was sent or saved.';return;}
       const button=$('#videoBoothTestCamera',body);
