@@ -2266,7 +2266,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const portrait=item=>{
       const monogram=String(item.name||'').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toLocaleUpperCase();
       const record=item.category==='hunting';
-      const wiki=wikiPortraits[item.id]||item.wiki||'';
+      const wiki=item.name==='Jack the Ripper'?'':(wikiPortraits[item.id]||item.wiki||'');
       // Disambiguated, explicitly matched article titles prevent a portrait
       // being assigned by fuzzy name matching.
       const life=item.life||({
@@ -2415,38 +2415,53 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     refreshPolitc();
     // Wikimedia only supplies images for explicitly named, existing public
     // figures. Empty / blocked results retain the intentional monogram.
+    // Use explicit Wikipedia article identities rather than a person's
+    // search-result name. PageImages supplies free-license thumbnails only.
+    // Fetch only the visible page of posters; additional sets load on demand.
     const portraits=[...body.querySelectorAll('.politc-poster-photo[data-politc-wiki]')];
     const cache=window.__biglwaPolitcWikimediaCache||(window.__biglwaPolitcWikimediaCache=new Map());
-    const pending=portraits.filter(el=>!cache.has(el.dataset.politcWiki));
+    const creditCache=window.__biglwaPolitcImageCredits||(window.__biglwaPolitcImageCredits=new Map());
+    const credit=(host)=>{
+      if(!host?.isConnected||host.querySelector('.politc-poster-credit'))return;
+      const wiki=String(host.dataset.politcWiki||'');
+      const href=creditCache.get(wiki)||'https://en.wikipedia.org/wiki/'+encodeURIComponent(wiki.replaceAll(' ','_'));
+      if(!/^https:\/\/(?:commons\.wikimedia\.org|en\.wikipedia\.org)\//.test(href))return;
+      const link=document.createElement('a');
+      link.className='politc-poster-credit';link.href=href;
+      link.textContent='Photo source ↗';
+      link.setAttribute('aria-label','View image attribution and license for '+wiki);
+      link.target='_blank';link.rel='noopener noreferrer';
+      host.append(link);
+    };
     const hydrateImage=(host,url)=>{
-      if(!host?.isConnected||!url||host.querySelector('img'))return;
+      if(!host?.isConnected||!url||host.querySelector('img')||host.closest('.politc-person[hidden]'))return;
       try{
         const parsed=new URL(url);
         if(parsed.protocol!=='https:'||!/(^|\.)wikimedia\.org$/.test(parsed.hostname))return;
       }catch{return}
-      const image=new Image();
-      image.alt='Portrait of '+host.closest('.politc-person')?.querySelector('strong')?.textContent;
-      // Detached lazy images may never start loading; preload eagerly, then attach.
-      image.loading='eager';image.decoding='async';
       if(host.dataset.politcImageLoading===url)return;
       host.dataset.politcImageLoading=url;
+      const image=new Image();
+      image.alt='Portrait or historical depiction of '+host.closest('.politc-person')?.querySelector('strong')?.textContent;
+      image.loading='lazy';image.decoding='async';
       image.onload=()=>{
         delete host.dataset.politcImageLoading;
-        if(!host.isConnected||host.querySelector('img'))return;
-        host.querySelector('.politc-poster-monogram')?.remove();host.append(image);
+        if(!host.isConnected)return;
+        host.querySelector('.politc-poster-monogram')?.remove();
+        credit(host);
       };
       image.onerror=()=>{
         delete host.dataset.politcImageLoading;
-        // A historical Commons FilePath may have been renamed. Retry only
-        // the explicitly verified title's Wikipedia thumbnail (not a fuzzy search).
+        image.remove();
+        // A missing or blocked photo stays an initials card. No fuzzy
+        // image search, borrowed namesake photos or unrelated thumbnails.
         const fallback=cache.get(host.dataset.politcWiki);
         if(fallback&&fallback!==url)hydrateImage(host,fallback);
       };
+      host.append(image);
       image.src=url;
     };
-    portraits.forEach(el=>{const val=el.dataset.politcVerified||cache.get(el.dataset.politcWiki);if(val)hydrateImage(el,val)});
-    // User-provided photos are optional. A broken upload reverts to initials
-    // rather than a broken-image placeholder or the wrong public portrait.
+    // User-uploaded, locally saved photos preserve their own error fallback.
     body.querySelectorAll('.politc-poster-photo>img').forEach(img=>img.addEventListener('error',()=>{
       const host=img.closest('.politc-poster-photo');if(!host)return;
       const name=host.closest('.politc-person')?.querySelector('strong')?.textContent||'';
@@ -2458,35 +2473,59 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         host.append(initials);
       }
     },{once:true}));
-    if(pending.length){
-      const titles=[...new Set(pending.map(el=>el.dataset.politcWiki))];
-      const uri='https://en.wikipedia.org/w/api.php?'+new URLSearchParams({
-        action:'query',format:'json',redirects:'1',prop:'pageimages',
-        pithumbsize:'480',titles:titles.join('|'),origin:'*'
-      });
-      fetch(uri,{mode:'cors'}).then(r=>{if(!r.ok)throw Error('Wiki thumbnails unavailable');return r.json()})
-      .then(data=>{
-        const pages=Object.values(data?.query?.pages||{});
-        const found=new Map(pages.map(page=>[String(page.title||''),String(page.thumbnail?.source||'')]));
-        const redirects=new Map((data?.query?.redirects||[]).map(row=>[String(row.from||''),String(row.to||'')]));
-        for(const name of titles){const resolved=redirects.get(name)||name;cache.set(name,found.get(resolved)||'');}
-        for(const el of portraits)hydrateImage(el,cache.get(el.dataset.politcWiki)||el.dataset.politcVerified);
-      }).catch(async()=>{
-        // Wikipedia's multi-title endpoint can be denied by browsers or a privacy
-        // extension. Try per-person article summaries as a second source; only
-        // accept actual Wikimedia-hosted portraits, never approximate name matches.
-        await Promise.allSettled(titles.map(async name=>{
-          const url='https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(name.replaceAll(' ','_'));
-          try{
-            const response=await fetch(url,{mode:'cors'});
-            if(!response.ok)throw Error('No article thumbnail');
-            const info=await response.json();
-            cache.set(name,String(info.thumbnail?.source||info.originalimage?.source||''));
-          }catch{cache.set(name,'')}
-        }));
-        for(const el of portraits)hydrateImage(el,cache.get(el.dataset.politcWiki)||el.dataset.politcVerified);
-      });
-    }
+    const requestPortraits=async(hosts)=>{
+      const active=hosts.filter(host=>host?.isConnected&&!host.closest('.politc-person[hidden]'));
+      active.forEach(host=>hydrateImage(host,host.dataset.politcVerified||cache.get(host.dataset.politcWiki)));
+      const missing=[...new Set(active.filter(host=>!cache.has(host.dataset.politcWiki)).map(host=>host.dataset.politcWiki))];
+      if(!missing.length)return;
+      const batches=[];
+      for(let i=0;i<missing.length;i+=15)batches.push(missing.slice(i,i+15));
+      // Limit to small public API batches to avoid overlong title queries.
+      for(const titles of batches){
+        const uri='https://en.wikipedia.org/w/api.php?'+new URLSearchParams({
+          action:'query',format:'json',redirects:'1',prop:'pageimages',
+          piprop:'thumbnail|name',pilicense:'free',pilimit:'15',
+          pithumbsize:'380',titles:titles.join('|'),origin:'*'
+        });
+        try{
+          const response=await fetch(uri,{mode:'cors'});
+          if(!response.ok)throw Error('Wikipedia article thumbnail API unavailable');
+          const data=await response.json();
+          const pages=Object.values(data?.query?.pages||{});
+          const found=new Map(pages.map(page=>[String(page.title||''),page]));
+          const redirects=new Map((data?.query?.redirects||[]).map(row=>[String(row.from||''),String(row.to||'')]));
+          for(const title of titles){
+            const page=found.get(redirects.get(title)||title);
+            const url=String(page?.thumbnail?.source||'');
+            cache.set(title,url);
+            const file=String(page?.pageimage||'');
+            if(file)creditCache.set(title,'https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(file.replaceAll(' ','_')));
+          }
+        }catch{
+          // A blocked API is not an invitation to scrape people by name.
+          titles.forEach(title=>cache.set(title,''));
+        }
+        for(const host of active){
+          if(titles.includes(host.dataset.politcWiki))
+            hydrateImage(host,host.dataset.politcVerified||cache.get(host.dataset.politcWiki));
+        }
+      }
+    };
+    requestPortraits(portraits);
+    body.querySelectorAll('[data-politc-show-more]').forEach(button=>button.addEventListener('click',()=>{
+      const panel=button.closest('.politc-collection-panel');
+      if(!panel)return;
+      const hidden=[...panel.querySelectorAll('.politc-person[hidden][data-politc-paged]')];
+      const revealed=hidden.slice(0,24);
+      revealed.forEach(card=>card.hidden=false);
+      const left=hidden.length-revealed.length;
+      if(!left)button.remove();
+      else{
+        const total=panel.querySelectorAll('.politc-person').length;
+        button.textContent='Show '+Math.min(24,left)+' more · '+(total-left)+' of '+total+' shown';
+      }
+      requestPortraits(revealed.map(card=>card.querySelector('.politc-poster-photo[data-politc-wiki]')).filter(Boolean));
+    }));
     bindNominationPanels(body,store,renderPolitc);
   }
 
