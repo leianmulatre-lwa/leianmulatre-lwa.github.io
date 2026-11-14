@@ -484,6 +484,7 @@
           '<h3>'+esc(job.title||'Untitled role')+'</h3>'+
           '<p>'+esc(job.company||'Employer')+' · '+esc(job.location||'Location not listed')+'</p>'+
           (job.postedAt?'<p class="bl-search-muted">Posted '+esc(job.postedAt)+'</p>':'')+
+          '<button type="button" data-werk-preview-url="'+esc(original)+'">Preview in Werk Window</button>'+ 
           '<a class="bl-search-go bl-search-primary-action" href="'+esc(original)+'" target="_blank" rel="noopener noreferrer">Original posting ↗</a>'+
           '</div></article>';
       }
