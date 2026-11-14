@@ -15,6 +15,12 @@
   {name:'Guantánamo Files',description:'Historic detention-related records; allegations need independent corroboration.',url:'https://wikileaks.org/gitmo/'},
   {name:'WikiLeaks publications',description:'Catalog of published collections, not an endorsement of claims.',url:'https://wikileaks.org/'}
  ];
+ const ACCOUNTABILITY=[
+  {name:'Who Funded Genocide · U.S. political money',description:'Searchable FEC-derived committees, members, spending and roll calls. The author is a third-party compiler; verify the filing and year.',url:'https://www.whofundedgenocide.com/'},
+  {name:'Methodology, corrections and limitations',description:'Includes aggregation, amendments, source records, exclusions and privacy safeguards. A contribution alone does not prove beliefs, intent or culpability.',url:'https://www.whofundedgenocide.com/methodology.html'},
+  {name:'Global funding and lobbying records',description:'Separate jurisdictions, evidence tiers and currencies. Do not combine unrelated years or currencies.',url:'https://followthemoney.archivegenocide.com/global/'},
+  {name:'Federal Election Commission · original records',description:'Primary filings and transaction IDs are authoritative over third-party summaries.',url:'https://www.fec.gov/data/'}
+ ];
  const OFFICIAL=[
   {name:'U.S. National Archives',description:'Federal records and archival catalogs',url:'https://www.archives.gov/research'},
   {name:'Congress.gov',description:'Bill text, sponsors, actions, and legislative records',url:'https://www.congress.gov/'},
@@ -72,6 +78,8 @@
    ['wikisource','Primary texts · Wikisource'],
    ['wikinews','News archive · Wikinews'],
    ['wikileaks','Leaked archives · WikiLeaks index'],
+   ['archivegenocide','ArchiveGenocide · record search (text only)'],
+   ['whofundedgenocide','WhoFundedGenocide · funding datasets'],
    ['official','Official source directory']
   ].forEach(([value,labelText])=>{const o=make('option','',labelText);o.value=value;select.append(o);});
   picker.append(select);
@@ -160,14 +168,54 @@
     display(source.label+' could not be reached. Search is not cached or fabricated.');
    }finally{submit.disabled=false;}
   }
+  async function archiveSearch(q){
+   const localGen=++generation;
+   resetReader();results.replaceChildren();
+   const caveat=make('p','politc-research-note',
+    'Content warning: original records may contain graphic images, including harm to children. BIG LWA displays text and source links only, never footage or thumbnails. Captions are collected from sources and have not been independently verified.');
+   results.append(caveat);
+   display('Searching ArchiveGenocide’s public, read-only records…');
+   submit.disabled=true;
+   try{
+    const url=new URL('https://api.archivegenocide.com/v1/clips');
+    url.searchParams.set('q',q.slice(0,150));
+    url.searchParams.set('per_page','8');
+    const data=await getJSON(url.href,10500);
+    if(localGen!==generation)return;
+    const rows=Array.isArray(data?.results)?data.results:[];
+    const list=make('div','politc-research-list');
+    for(const record of rows.slice(0,8)){
+     if(!Number.isSafeInteger(Number(record?.id)))continue;
+     const card=make('article','politc-research-item');
+     const label=String(record.source_archive||'ArchiveGenocide record').slice(0,130);
+     const caption=String(record.caption||'No caption available.').replace(/\s+/g,' ').slice(0,360);
+     const posted=Number.isFinite(Date.parse(record.date))?new Date(record.date).toLocaleDateString('en-US'):'Date not supplied';
+     card.append(make('h3','',label),make('p','',caption),
+      make('p','',posted+' · Posted-date, not necessarily event date'));
+     const destination='https://archivegenocide.com/v/'+Number(record.id)+'.html';
+     card.append(sourceLink('View original record (may be graphic)',destination));
+     list.append(card);
+    }
+    results.append(list);
+    display(rows.length?
+     'ArchiveGenocide record text · '+rows.length+' matches on this page · source captions, not verified findings.':
+     'No matches in this archive query. Try a different term.');
+   }catch{
+    if(localGen!==generation)return;
+    display('ArchiveGenocide API unavailable. No results were invented.');
+    results.append(sourceLink('Open archive search and API documentation','https://archivegenocide.com/api-docs/'));
+   }finally{submit.disabled=false;}
+  }
   function directory(kind,q){
    ++generation;resetReader();results.replaceChildren();
-   const pool=kind==='wikileaks'?LEAKS:OFFICIAL;
+   const pool=kind==='wikileaks'?LEAKS:kind==='whofundedgenocide'?ACCOUNTABILITY:OFFICIAL;
    const matches=pool.filter(x=>!q||[x.name,x.description].join(' ').toLowerCase().includes(q.toLowerCase()));
    const chosen=matches.length?matches:pool;
    const note=make('p','politc-research-note',kind==='wikileaks'?
     'WikiLeaks: browse collection names here. Full-text search remains on its original website; this is not an unverified copy or an iframe bypass.':
-    'These verified institutions operate their own catalogs. Choose an official source for original records.');
+    kind==='whofundedgenocide'?
+    'WhoFundedGenocide is a third-party campaign-finance compilation, not a verdict about an individual or a religious group. These are dataset entry points, not invented live API results. Check FEC originals and the corrections policy.':
+    'These official institutions operate their own catalogs. Choose a source for original records.');
    results.append(note);
    const list=make('div','politc-research-list');
    chosen.forEach(entry=>{
@@ -183,13 +231,20 @@
    event.preventDefault();
    const kind=select.value,q=input.value.trim().slice(0,150);
    if(!q)return;
-   if(kind in SOURCES)wikiSearch(kind,q);else directory(kind,q);
+   if(kind in SOURCES)wikiSearch(kind,q);
+   else if(kind==='archivegenocide')archiveSearch(q);
+   else directory(kind,q);
   });
   select.addEventListener('change',()=>{
    resetReader();results.replaceChildren();
-   if(select.value==='wikileaks'||select.value==='official'){
+   if(['wikileaks','official','whofundedgenocide'].includes(select.value)){
     input.required=false;directory(select.value,input.value.trim());}
-   else{input.required=true;display('Search '+SOURCES[select.value]?.label+' and read results directly in this panel.');}
+   else if(select.value==='archivegenocide'){
+    input.required=true;
+    display('ArchiveGenocide: enter search terms to view text metadata only. No images or video load here.');
+   }else{
+    input.required=true;display('Search '+SOURCES[select.value]?.label+' and read results directly in this panel.');
+   }
   });
   // First tab always permits immediately opening a source after navigation.
   return desk;
