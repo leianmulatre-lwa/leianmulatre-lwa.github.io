@@ -1106,9 +1106,11 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   function miniCalendarMarkup(){
     const now=new Date(), start=new Date(now);start.setDate(now.getDate()-now.getDay());
     const dates=Array.from({length:14},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);return d});
-    const end=dates[13],monthLabel=start.getMonth()===end.getMonth()?start.toLocaleString(undefined,{month:'long'}):`${start.toLocaleString(undefined,{month:'short'})} – ${end.toLocaleString(undefined,{month:'short'})}`;
-    const cells=dates.map(d=>`<span class="${[0,6].includes(d.getDay())?'weekend ':''}${dayKey(d)===dayKey(now)?'today':''}" aria-label="${d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}">${d.getDate()}</span>`).join('');
-    return `<div class="calendar-mini" aria-label="Two week calendar preview"><div class="calendar-mini-head"><span>${monthLabel}</span><span>2 weeks</span></div><div class="calendar-mini-weekdays">${['S','M','T','W','T','F','S'].map((day,i)=>`<span class="${i===0||i===6?'weekend':''}">${day}</span>`).join('')}</div><div class="calendar-mini-grid">${cells}</div></div>`;
+    const geez=window.BigLWAGeezCalendar;
+    const alt=geez?.supported&&localStorage.getItem('biglwaCalendarSystemV1')==='geez';
+    const end=dates[13],monthLabel=alt?(geez.parts(start).name===geez.parts(end).name?geez.parts(start).name:geez.parts(start).name+' – '+geez.parts(end).name):start.getMonth()===end.getMonth()?start.toLocaleString(undefined,{month:'long'}):`${start.toLocaleString(undefined,{month:'short'})} – ${end.toLocaleString(undefined,{month:'short'})}`;
+    const cells=dates.map(d=>`<span class="${[0,6].includes(d.getDay())?'weekend ':''}${dayKey(d)===dayKey(now)?'today':''}" aria-label="${alt?geez.display(d)+' · ':''}${d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}">${alt?geez.parts(d).day:d.getDate()}</span>`).join('');
+    return `<div class="calendar-mini" aria-label="Two week ${alt?'Ge’ez':'Gregorian'} calendar preview"><div class="calendar-mini-head"><span>${monthLabel}</span><span>${alt?'Ge’ez · ':''}2 weeks</span></div><div class="calendar-mini-weekdays">${['S','M','T','W','T','F','S'].map((day,i)=>`<span class="${i===0||i===6?'weekend':''}">${day}</span>`).join('')}</div><div class="calendar-mini-grid">${cells}</div></div>`;
   }
 
   let calendarGeneration=0;
