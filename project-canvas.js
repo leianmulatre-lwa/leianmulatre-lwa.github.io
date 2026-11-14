@@ -85,7 +85,7 @@ function render(){
  document.dispatchEvent(new CustomEvent('biglwa:visualz-render'));
 }
 function mount(){
- const body=$('#moduleWorkspaceBody');if(!body||!['visualz','visualizr'].includes($('#moduleRouteName')?.textContent))return;
+ const body=$('#moduleWorkspaceBody');if(!body||!['visualz','visualizr','visualiz/r'].includes($('#moduleRouteName')?.textContent))return;
  load();
  try{zoomLevel=Math.max(.4,Math.min(1.5,Number(localStorage.getItem(zoomKey()))||1))}catch{zoomLevel=1}
  body.innerHTML='<section id="lwaProjects"></section>';
