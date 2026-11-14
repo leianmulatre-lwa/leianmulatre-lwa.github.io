@@ -2062,6 +2062,10 @@ const cunting=[
   "photo": ""
  }
 ];
+cunting.push({id:'curated-c-78',name:'Wangari Maathai',category:'cunting',
+ wiki:'Wangari Maathai',life:'deceased',kind:'civil',
+ note:'Nobel Peace Prize-winning environmental organizer who founded the Green Belt Movement.',
+ source:'https://en.wikipedia.org/wiki/Wangari_Maathai',photo:'',curated:true});
 const all=hunting.concat(cunting);
 if(new Set(all.map(x=>x.id)).size!==all.length)throw Error('Duplicate poster IDs');
 window.BigLWAPolitcPosterCatalog=Object.freeze({hunting,cunting});
