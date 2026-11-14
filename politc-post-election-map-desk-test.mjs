@@ -45,12 +45,38 @@ test('Election, results and Reading Room occupy one responsive row',()=>{
  assert.match(pcss,/max-width:1120px/);
  assert.match(pcss,/max-width:760px/);
  assert.match(pcss,/\.politc-three-up > \.politc-card-expanded/);
+ // Expanding never takes over the three-column grid.
+ assert.doesNotMatch(pcss, /\.politc-three-up > \.politc-card-expanded\{\s*grid-column:1\/-1!important/);
+ assert.match(pcss, /\.politc-three-up > section\.politc-card-expanded\{\s*grid-column:auto!important/);
+ assert.match(pcss, /align-items:start!important/);
+ assert.match(pcss, /\.politc-three-up \.politc-research-form\{\s*grid-template-columns:minmax\(0,1fr\)!important/);
+ assert.match(pcss, /max-height:min\(76vh,840px\)!important/);
  assert.match(research,/politc-research-fold/);
  assert.match(research,/foldSummary\.append\(intro,foldButton\)/);
  assert.match(research,/foldBody\.append\(form,state,results,viewer\)/);
  assert.match(research,/fold\.append\(foldSummary,foldBody\)/);
  assert.match(pjs,/const live=board\?\.querySelector\('\.politc-live-zone'\)/);
 });
+test('politician photos use matched Commons entries and safe placeholders',()=>{
+ const ctx={window:{},document:{addEventListener:()=>{}},
+  Date,URL,AbortController,setTimeout,clearTimeout,fetch:()=>{}};
+ vm.runInNewContext(pjs,ctx);
+ const resolve=ctx.window.BigLWAPolitcPostElection.portraitInfo;
+ const x=resolve('Xavier Becerra'),steve=resolve(' STEVE  HILTON ');
+ assert.equal(x.file,'HHS Xavier Becerra.jpg');
+ assert.match(x.credit,/public domain/);
+ assert.equal(steve.file,'Steve Hilton Madera 2026.jpg');
+ assert.match(steve.credit,/CC BY-SA 4\.0/);
+ assert.equal(resolve('Generic unrelated person'),null);
+ assert.match(pjs,/commons\.wikimedia\.org\/wiki\/Special:FilePath\//);
+ assert.match(pjs,/commons\.wikimedia\.org\/wiki\/File:/);
+ assert.match(pjs,/photo\.addEventListener\('error'/);
+ assert.match(pjs,/frame\.append\(fallback\(\)\)/);
+ assert.match(pjs,/person\.append\(portrait\(c\.name\),title\)/);
+ assert.match(pjs,/hydrateNominees\(body\)/);
+ assert.match(pjs,/observer\.observe\(area,\{childList:true\}\)/);
+});
+
 test('official LA result shape is parsed from real source and never invents a race call',()=>{
  const context={window:{},document:{addEventListener:()=>{}},
   Date,URL,AbortController,setTimeout,clearTimeout,fetch:()=>{}};
