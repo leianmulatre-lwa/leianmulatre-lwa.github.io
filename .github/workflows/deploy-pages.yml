@@ -35,6 +35,8 @@ jobs:
           node --check profile-music.js
           node --check tools-craft.js
           node --check module-pages.js
+          node --check geez-calendar-20261114.js
+          node --test geez-calendar-mode-test.mjs
           node booth-vanity-preflight-test.mjs
           node --check pinterest-orbit.js
           node --check stream-guide.js

@@ -1106,9 +1106,11 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   function miniCalendarMarkup(){
     const now=new Date(), start=new Date(now);start.setDate(now.getDate()-now.getDay());
     const dates=Array.from({length:14},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);return d});
-    const end=dates[13],monthLabel=start.getMonth()===end.getMonth()?start.toLocaleString(undefined,{month:'long'}):`${start.toLocaleString(undefined,{month:'short'})} – ${end.toLocaleString(undefined,{month:'short'})}`;
-    const cells=dates.map(d=>`<span class="${[0,6].includes(d.getDay())?'weekend ':''}${dayKey(d)===dayKey(now)?'today':''}" aria-label="${d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}">${d.getDate()}</span>`).join('');
-    return `<div class="calendar-mini" aria-label="Two week calendar preview"><div class="calendar-mini-head"><span>${monthLabel}</span><span>2 weeks</span></div><div class="calendar-mini-weekdays">${['S','M','T','W','T','F','S'].map((day,i)=>`<span class="${i===0||i===6?'weekend':''}">${day}</span>`).join('')}</div><div class="calendar-mini-grid">${cells}</div></div>`;
+    const geez=window.BigLWAGeezCalendar;
+    const alt=geez?.supported&&localStorage.getItem('biglwaCalendarSystemV1')==='geez';
+    const end=dates[13],monthLabel=alt?(geez.parts(start).name===geez.parts(end).name?geez.parts(start).name:geez.parts(start).name+' – '+geez.parts(end).name):start.getMonth()===end.getMonth()?start.toLocaleString(undefined,{month:'long'}):`${start.toLocaleString(undefined,{month:'short'})} – ${end.toLocaleString(undefined,{month:'short'})}`;
+    const cells=dates.map(d=>`<span class="${[0,6].includes(d.getDay())?'weekend ':''}${dayKey(d)===dayKey(now)?'today':''}" aria-label="${alt?geez.display(d)+' · ':''}${d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}">${alt?geez.parts(d).day:d.getDate()}</span>`).join('');
+    return `<div class="calendar-mini" aria-label="Two week ${alt?'Ge’ez':'Gregorian'} calendar preview"><div class="calendar-mini-head"><span>${monthLabel}</span><span>${alt?'Ge’ez · ':''}2 weeks</span></div><div class="calendar-mini-weekdays">${['S','M','T','W','T','F','S'].map((day,i)=>`<span class="${i===0||i===6?'weekend':''}">${day}</span>`).join('')}</div><div class="calendar-mini-grid">${cells}</div></div>`;
   }
 
   let calendarGeneration=0;
@@ -1212,18 +1214,35 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const storage='biglwaCalendarEvents';
     let view=readJSON('biglwaCalendarView',null);if(!view||!Number.isInteger(view.year)||!Number.isInteger(view.month))view={year:new Date().getFullYear(),month:new Date().getMonth()};
     let selected=localStorage.getItem('biglwaCalendarSelected')||dayKey(new Date()),remote=[],syncMessage='',loaded='',requestId=0;
+    const geez=window.BigLWAGeezCalendar;
+    const geezSupported=Boolean(geez?.supported);
+    let calendarMode=geezSupported&&localStorage.getItem('biglwaCalendarSystemV1')==='geez'?'geez':'gregorian';
+    let geezAnchor=new Date(selected+'T12:00:00');
+    workspace.dataset.calendarMode=calendarMode;
     const events=()=>readJSON(storage,[]);
     const active=()=>instance===calendarGeneration&&routeName.textContent==='Calendar'&&!workspace.hidden;
     const onDay=(e,key)=>{if(e.start?.date)return key>=e.start.date&&key<(e.end?.date||e.start.date+'x');const s=new Date(e.start?.dateTime),end=new Date(e.end?.dateTime||e.start?.dateTime),day=new Date(key+'T00:00:00'),next=new Date(day);next.setDate(next.getDate()+1);return s<next&&end>=day&&(end>day||s.getTime()===end.getTime())};
     const googleRows=key=>remote.filter(e=>onDay(e,key)).map(e=>({title:e.summary||'Untitled Google event',meta:'Google · '+(e.start?.date?'All day':new Date(e.start.dateTime).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})),google:true,url:e.htmlLink||''}));
+    const calendarGrid=()=>{
+      if(calendarMode==='geez'&&geezSupported){
+        const grid=geez.grid(geezAnchor);
+        if(grid)return {geez:true,grid,dates:grid.dates};
+      }
+      return {geez:false,grid:null,dates:Array.from({length:42},(_,i)=>calendarGridDate(view.year,view.month,i))};
+    };
     const draw=()=>{
       const all=events(),connected=window.__biglwaGoogleOrbit?.state.connected;const unRows=key=>window.BigLWAObservances?.onDay(key)||[];
-      const days=Array.from({length:42},(_,i)=>{
-        const d=calendarGridDate(view.year,view.month,i),key=dayKey(d);
+      const monthGrid=calendarGrid(),isGeez=monthGrid.geez;
+      workspace.dataset.calendarMode=isGeez?'geez':'gregorian';
+      const gMonth=monthGrid.grid?.month;
+      const days=monthGrid.dates.map(d=>{
+        const key=dayKey(d),gPart=isGeez?geez.parts(d):null;
+        const inMonth=isGeez?(gPart?.month===gMonth?.month&&gPart?.year===gMonth?.year):d.getMonth()===view.month;
+        const dateLabel=isGeez?geez.display(d)+' · '+d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});
         const crush=calendarCrushOnDay(key),items=[...all.filter(x=>x.date===key),...googleRows(key),...unRows(key)];
         const limit=crush?2:3;
-        return '<button class="calendar-day '+([0,6].includes(d.getDay())?'weekend ':'')+(d.getMonth()!==view.month?'other ':'')+(selected===key?'selected ':'')+(key===dayKey(new Date())?'today':'')+'" data-cal-date="'+key+'" type="button"'+(crush?' data-calendar-crush="'+crush.id+'"':'')+'>'+
-          '<span class="calendar-day-num">'+d.getDate()+'</span>'+
+        return '<button class="calendar-day '+([0,6].includes(d.getDay())?'weekend ':'')+(!inMonth?'other ':'')+(selected===key?'selected ':'')+(key===dayKey(new Date())?'today':'')+'" data-cal-date="'+key+'" type="button" aria-label="'+esc(dateLabel)+'"'+(crush?' data-calendar-crush="'+crush.id+'"':'')+'>'+
+          '<span class="calendar-day-num">'+(isGeez?gPart.day:d.getDate())+'</span>'+
           (crush?'<span class="calendar-crush-chip" title="'+esc(crush.title)+'" aria-label="'+esc(crush.title)+'">'+crush.short+'</span>':'')+
           items.slice(0,limit).map(e=>'<span class="calendar-event-chip">'+esc(e.google?'G · '+e.title:e.un?'UN · '+e.title:e.title)+'</span>').join('')+
           (items.length>limit?'<small>+'+(items.length-limit)+' more</small>':'')+'</button>';
@@ -1231,12 +1250,47 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
       const local=all.filter(x=>x.date===selected),readOnlyRows=[...googleRows(selected),...unRows(selected)];
       const selectedCrush=calendarCrushOnDay(selected);
       const crushAgenda=selectedCrush?'<div class="module-list-item calendar-crush-agenda" data-calendar-crush="'+selectedCrush.id+'"><div><strong>'+esc(selectedCrush.title)+'</strong><small>Weekly · BIG LWA</small></div></div>':'';
-      calendarContent.innerHTML=heading('calendar')+'<p class="module-status" role="status">'+esc(syncMessage||(connected?'Google Calendar connected through Orbit.':'Connect Google Calendar in Orbit to see your events here.'))+'</p><div class="calendar-shell"><section class="calendar-board"><div class="calendar-toolbar"><div class="module-actions"><button class="module-action ghost" id="calPrev" aria-label="Previous month">←</button><button class="module-action ghost" id="calToday">Today</button><button class="module-action ghost" id="calOrbit" type="button">Manage in Orbit</button></div><h2>'+new Date(view.year,view.month,1).toLocaleString(undefined,{month:'long',year:'numeric'})+'</h2><div class="module-actions"><button class="module-action ghost" id="calNext" aria-label="Next month">→</button>'+(connected?'<button class="module-action ghost" id="calRefresh" type="button">Refresh</button>':'')+'</div></div><div class="calendar-weekdays">'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((x,i)=>'<span class="'+(i===0||i===6?'weekend':'')+'">'+x+'</span>').join('')+'</div><div class="calendar-days">'+days+'</div></section><aside class="module-card"><h2>'+new Date(selected+'T12:00:00').toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</h2><p>Google events and UN observances are read-only. New events below are saved in this browser.</p><p><a href="https://www.un.org/en/observances/list-days-weeks" target="_blank" rel="noopener">UN days &amp; weeks ↗</a> · <span id="unCalendarStatus">Loading observances…</span></p><form class="module-form" id="calendarEventForm"><input class="module-input" name="title" placeholder="Event title" required><input class="module-input" type="time" name="time"><button class="module-action" type="submit">Add local event</button></form><div class="module-list" id="calendarSelectedEvents">'+crushAgenda+listHtml(local,'event')+readOnlyRows.map(e=>'<div class="module-list-item"><div><b>'+esc(e.title)+'</b><small>'+esc(e.meta)+'</small></div></div>').join('')+'</div></aside></div>';
+      const monthLabel=isGeez?geez.label(monthGrid.grid.start):new Date(view.year,view.month,1).toLocaleString(undefined,{month:'long',year:'numeric'});
+      const chosenDate=new Date(selected+'T12:00:00');
+      const selectedLabel=isGeez?geez.display(chosenDate):chosenDate.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+      const calendarWeekdays=isGeez?['እሑ','ሰኞ','ማክ','ረቡ','ሐሙ','ዓር','ቅዳ']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const modeTabs='<nav class="calendar-modes" role="tablist" aria-label="Calendar systems">'+
+        '<button type="button" role="tab" data-calendar-mode="gregorian" aria-selected="'+(!isGeez)+'">Gregorian</button>'+
+        '<button type="button" role="tab" data-calendar-mode="geez" aria-selected="'+isGeez+'"'+(geezSupported?'':' disabled title="Ge’ez calendar is not supported in this browser"')+'>Pre-colonial</button></nav>';
+      const conversionNote=isGeez?'<p class="calendar-geez-note">Ge’ez Calendar · 13 months · '+esc(chosenDate.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}))+' Gregorian equivalent. Your events and Google sync keep their original dates.</p>':'';
+      calendarContent.innerHTML=heading('calendar')+modeTabs+'<p class="module-status" role="status">'+esc(syncMessage||(connected?'Google Calendar connected through Orbit.':'Connect Google Calendar in Orbit to see your events here.'))+'</p><div class="calendar-shell"><section class="calendar-board"><div class="calendar-toolbar"><div class="module-actions"><button class="module-action ghost" id="calPrev" aria-label="Previous month">←</button><button class="module-action ghost" id="calToday">Today</button><button class="module-action ghost" id="calOrbit" type="button">Manage in Orbit</button></div><h2>'+esc(monthLabel)+'</h2><div class="module-actions"><button class="module-action ghost" id="calNext" aria-label="Next month">→</button>'+(connected?'<button class="module-action ghost" id="calRefresh" type="button">Refresh</button>':'')+'</div></div><div class="calendar-weekdays">'+calendarWeekdays.map((x,i)=>'<span class="'+(i===0||i===6?'weekend':'')+'">'+x+'</span>').join('')+'</div><div class="calendar-days">'+days+'</div></section><aside class="module-card"><h2>'+esc(selectedLabel)+'</h2>'+conversionNote+'<p>Google events and UN observances are read-only. New events below are saved in this browser.</p><p><a href="https://www.un.org/en/observances/list-days-weeks" target="_blank" rel="noopener">UN days &amp; weeks ↗</a> · <span id="unCalendarStatus">Loading observances…</span></p><form class="module-form" id="calendarEventForm"><input class="module-input" name="title" placeholder="Event title" required><input class="module-input" type="time" name="time"><button class="module-action" type="submit">Add local event</button></form><div class="module-list" id="calendarSelectedEvents">'+crushAgenda+listHtml(local,'event')+readOnlyRows.map(e=>'<div class="module-list-item"><div><b>'+esc(e.title)+'</b><small>'+esc(e.meta)+'</small></div></div>').join('')+'</div></aside></div>';
+      const actualHeading=calendarContent.querySelector('.module-heading h1');
+      if(actualHeading)actualHeading.textContent=isGeez?'Ge’ez Calendar':'Calendar';
+      $$('.calendar-modes [data-calendar-mode]',calendarContent).forEach(button=>{
+        button.onclick=()=>{
+          const requested=button.dataset.calendarMode;
+          if(requested==='geez'&&!geezSupported||requested===calendarMode)return;
+          calendarMode=requested;
+          workspace.dataset.calendarMode=calendarMode;
+          if(calendarMode==='geez')geezAnchor=new Date(selected+'T12:00:00');
+          else{
+            const d=new Date(selected+'T12:00:00');
+            view={year:d.getFullYear(),month:d.getMonth()};
+            writeJSON('biglwaCalendarView',view);
+          }
+          try{localStorage.setItem('biglwaCalendarSystemV1',calendarMode);}catch{}
+          remote=[];loaded='';++requestId;draw();load();
+        };
+      });
       const unStatus=$('#unCalendarStatus',body),unData=window.BigLWAObservances?.data;
       if(unStatus&&unData)unStatus.textContent='Auto-updated daily · last fetched '+new Date(unData.updatedAt).toLocaleDateString()+(unData.retrievedFrom.includes('indonesia.un.org')?' · UN Indonesia mirror':'')+'. Lunar dates require checking the source.';
-      const change=n=>{const d=new Date(view.year,view.month+n,1);view={year:d.getFullYear(),month:d.getMonth()};writeJSON('biglwaCalendarView',view);remote=[];draw();load()};
+      const change=n=>{
+        if(calendarMode==='geez'&&geezSupported){
+          const next=geez.shift(geezAnchor,n);if(!next)return;
+          geezAnchor=next;
+        }else{
+          const d=new Date(view.year,view.month+n,1);view={year:d.getFullYear(),month:d.getMonth()};
+          writeJSON('biglwaCalendarView',view);
+        }
+        remote=[];loaded='';++requestId;draw();load();
+      };
       $('#calPrev',body).onclick=()=>change(-1);$('#calNext',body).onclick=()=>change(1);
-      $('#calToday',body).onclick=()=>{const n=new Date();view={year:n.getFullYear(),month:n.getMonth()};selected=dayKey(n);writeJSON('biglwaCalendarView',view);localStorage.setItem('biglwaCalendarSelected',selected);remote=[];loaded='';draw();load()};
+      $('#calToday',body).onclick=()=>{const n=new Date();view={year:n.getFullYear(),month:n.getMonth()};selected=dayKey(n);geezAnchor=new Date(n.getFullYear(),n.getMonth(),n.getDate(),12);writeJSON('biglwaCalendarView',view);localStorage.setItem('biglwaCalendarSelected',selected);remote=[];loaded='';++requestId;draw();load()};
       $('#calOrbit',body).onclick=()=>openModule('orbit');
       const refresh=$('#calRefresh',body);if(refresh)refresh.onclick=()=>{loaded='';load()};
       $$('.calendar-day',body).forEach(btn=>btn.onclick=()=>{selected=btn.dataset.calDate;localStorage.setItem('biglwaCalendarSelected',selected);draw()});
@@ -1245,9 +1299,14 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     };
     async function load(){
       const orbit=window.__biglwaGoogleOrbit;if(!orbit?.state.connected||!orbit.calendarEvents)return;
-      const key=view.year+'-'+view.month;if(loaded===key)return;loaded=key;const id=++requestId;
+      const range=calendarGrid();
+      const key=calendarMode+':'+dayKey(range.dates[0])+':'+range.dates.length;
+      if(loaded===key)return;loaded=key;const id=++requestId;
       syncMessage='Loading Google events…';draw();
-      try{const start=calendarGridDate(view.year,view.month,0),end=calendarGridDate(view.year,view.month,42);const items=await orbit.calendarEvents(start.toISOString(),end.toISOString());if(id!==requestId||!active())return;remote=items;syncMessage='Google events refreshed from Orbit.'}
+      try{
+        const start=range.dates[0],end=new Date(range.dates[range.dates.length-1]);
+        end.setDate(end.getDate()+1);
+        const items=await orbit.calendarEvents(start.toISOString(),end.toISOString());if(id!==requestId||!active())return;remote=items;syncMessage='Google events refreshed from Orbit.'}
       catch(e){if(id!==requestId||!active())return;remote=[];loaded='';syncMessage=e.message}
       if(active())draw();
     }
@@ -4170,8 +4229,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       }catch{}
       return (Array.from(name)[0]||'✦').toLocaleUpperCase();
     };
-    const noteLabel=$('#studioApp #notes .card-head h2');
-    if(noteLabel&&noteLabel.textContent.trim()!=='Sqwidz')noteLabel.textContent='Sqwidz';
+    // The R-series title controller owns Sqwibbl/r markup and font spans.
+    // Never revert it to the old Sqwidz label during writing-preview hydration.
     const journalLabel=$('#studioApp #diary .card-head h2');
     if(journalLabel&&journalLabel.textContent.trim()!=='Journal')journalLabel.textContent='Journal';
     const noteCard=$('#notes'),notePaper=noteCard&&$('.note-paper',noteCard),note=writingPreviewValue('notes');

@@ -6,6 +6,7 @@
  const $=(s,r=document)=>r?.querySelector(s);
  const config={
   camera:{title:'booth',selector:'.booth-tabs',icon:'bookini'},
+  calendar:{title:'Calendar',selector:'.calendar-modes'},
   stream:{title:'stream',stream:true},
   notes:{title:'sqwibbl/r',selector:'.diary-section-nav',icon:'sqwibblR'},
   projects:{title:'visualize/r',selector:'.visualz-tabs',icon:'visualizr'},
@@ -140,12 +141,13 @@
    :$('#moduleWorkspaceBody > .module-heading',ws)||$('.module-heading',ws);
   if(!heading)return;
   const title=$('h1',heading);if(!title)return;
-  paintMixedTitle(title,key,item.title);
+  const dynamicTitle=key==='calendar'&&ws.dataset.calendarMode==='geez'?'Ge’ez Calendar':item.title;
+  paintMixedTitle(title,key,dynamicTitle);
   const right=rightSlot(heading);
   const controls=item.selector?$(item.selector,ws):null;
   if(controls){
    controls.classList.add('module-heading-versions');
-   controls.setAttribute('aria-label','Choose '+item.title+' version');
+   controls.setAttribute('aria-label',key==='calendar'?'Choose calendar system':'Choose '+item.title+' version');
    if(controls.parentElement!==right)right.prepend(controls);
   }
   if(item.stream)streamVersions(ws,right);
