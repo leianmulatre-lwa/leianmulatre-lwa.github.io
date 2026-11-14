@@ -2152,19 +2152,78 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     $('#shareBiglwaInvite',body).onclick=async()=>{if(!navigator.share){await copy();return}try{await navigator.share({title:'Join BIGLWA',text:'Join me on BIGLWA — a space for creativity, culture, and connection.',url:invite});status.textContent='Invitation shared.'}catch(e){if(e.name!=='AbortError')await copy()}};
   }
 
-  let activeCameraStream=null;
-  function stopCamera(){if(activeCameraStream){activeCameraStream.getTracks().forEach(t=>t.stop());activeCameraStream=null}}
+  let activeCameraStream=null,activeVideoTestStream=null;
+  function stopVideoTest(){
+    if(activeVideoTestStream){activeVideoTestStream.getTracks().forEach(track=>track.stop());activeVideoTestStream=null;}
+    const preview=$('#videoBoothSelfPreview',body);if(preview){preview.pause();preview.srcObject=null;preview.hidden=true;}
+    const button=$('#videoBoothTestCamera',body);if(button)button.textContent='Test camera locally';
+  }
+  function stopCamera(){if(activeCameraStream){activeCameraStream.getTracks().forEach(t=>t.stop());activeCameraStream=null;}stopVideoTest();}
   function renderCamera(){
     stopCamera();
     body.innerHTML=heading('camera')+`<div class="booth-tabs" role="tablist" aria-label="Choose booth mode"><button type="button" class="booth-tab" id="boothPhotoTab" role="tab" aria-selected="true" aria-controls="boothPhotoPanel" tabindex="0">photo·booth</button><button type="button" class="booth-tab" id="boothVideoTab" role="tab" aria-selected="false" aria-controls="boothVideoPanel" tabindex="-1">video·booth <span class="booth-tab-soon">soon</span></button></div><div class="module-grid booth-content"><section class="module-card wide booth-panel" id="boothPhotoPanel" role="tabpanel" aria-labelledby="boothPhotoTab"><h2>photo·booth</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="booth-vanity" id="boothVanity" data-lights="on" style="--vanity-light:.72"><div class="booth-vanity-lights" aria-hidden="true"><span class="light-bar left"></span><span class="light-bar right"></span><span class="light-bar top"></span><span class="light-bar bottom"></span></div><div class="photobooth-stage has-intro" id="photoStage"><div class="booth-avatar-prompt"><img id="boothProfilePhoto" alt="Your profile picture" hidden><span id="boothProfileFallback" aria-hidden="true">◉</span><strong id="boothProfileName">Your profile</strong><small>Look good, feel good, bookini.</small></div></div></div><div class="booth-light-controls"><label for="boothLightLevel">Vanity lighting <output id="boothLightValue" for="boothLightLevel">72%</output></label><input id="boothLightLevel" type="range" min="0" max="100" value="72" step="1" aria-label="Vanity screen light brightness"><button type="button" class="module-action secondary" id="boothLightToggle" aria-pressed="true">Lights on</button></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section>${renderVideoBooth()}</div>`;
     const photoTab=$('#boothPhotoTab',body),videoTab=$('#boothVideoTab',body);
     const photoPanel=$('#boothPhotoPanel',body),videoPanel=$('#boothVideoPanel',body);
+    // UID-scoped owner portrait. Never fall back to an unrelated signed-in account,
+    // a public-profile visitor, or the Studio Booth thumbnail.
+    const ownBoothProfile=()=>{
+      if(document.documentElement.classList.contains('biglwa-preview-mode'))return {name:'Your profile',url:''};
+      const who=window.__biglwaIdentity;
+      const uid=String(who?.uid||'').trim();
+      if(!uid)return {name:'Your profile',url:''};
+      let saved={};
+      try{saved=JSON.parse(localStorage.getItem('biglwaOwnProfileV1:'+uid)||'null')||{}}catch{}
+      const name=String(who.name||saved.name||who.username||'Your profile').slice(0,90);
+      const source=String(who.avatarUrl||saved.profilePhoto?.url||saved.profilePhotoUrl||saved.avatarUrl||'').trim();
+      const url=(source.startsWith('https://')||(source.startsWith('/')&&!source.startsWith('//')))?source:'';
+      return {name,url};
+    };
+    function refreshBoothProfile(){
+      const profile=ownBoothProfile();
+      const avatar=$('#boothProfilePhoto',body),fallback=$('#boothProfileFallback',body),name=$('#boothProfileName',body);
+      if(name)name.textContent=profile.name;
+      if(avatar){
+        avatar.onerror=()=>{avatar.hidden=true;if(fallback)fallback.hidden=false;};
+        if(profile.url){if(avatar.getAttribute('src')!==profile.url)avatar.src=profile.url;avatar.hidden=false;if(fallback)fallback.hidden=true;}
+        else {avatar.removeAttribute('src');avatar.hidden=true;if(fallback)fallback.hidden=false;}
+      }
+      if(fallback)fallback.textContent=profile.name==='Your profile'?'◉':Array.from(profile.name)[0]?.toLocaleUpperCase()||'◉';
+      const videoAvatar=$('#videoBoothOwnPhoto',body),videoName=$('.video-booth-tile.you b',body);
+      if(videoName)videoName.textContent=profile.name;
+      if(videoAvatar){
+        videoAvatar.replaceChildren();
+        if(profile.url){
+          const photo=document.createElement('img');photo.alt='';photo.src=profile.url;
+          photo.addEventListener('error',()=>{photo.remove();videoAvatar.textContent='◉';},{once:true});
+          videoAvatar.append(photo);
+        }else videoAvatar.textContent=profile.name==='Your profile'?'◉':Array.from(profile.name)[0]?.toLocaleUpperCase()||'◉';
+      }
+      const rank=$('#studioApp .real-rank strong')?.textContent?.trim();
+      const rankLine=$('.video-booth-tile.you small',body);
+      if(rankLine&&rank)rankLine.textContent=rank;
+    }
+    const vanity=$('#boothVanity',body),level=$('#boothLightLevel',body),lightValue=$('#boothLightValue',body),lightToggle=$('#boothLightToggle',body);
+    let lightsOn=true;
+    const refreshLights=()=>{
+      const percent=Math.max(0,Math.min(100,Number(level.value)||0));
+      vanity.style.setProperty('--vanity-light',lightsOn?(percent/100).toFixed(2):'0');
+      vanity.dataset.lights=lightsOn?'on':'off';
+      lightValue.textContent=percent+'%';
+      lightToggle.textContent=lightsOn?'Lights on':'Lights off';
+      lightToggle.setAttribute('aria-pressed',String(lightsOn));
+    };
+    level.addEventListener('input',refreshLights);
+    lightToggle.addEventListener('click',()=>{lightsOn=!lightsOn;refreshLights();});
+    refreshLights();refreshBoothProfile();
+    // The account photo may finish hydrating after the module is first painted.
+    setTimeout(()=>{if(photoPanel.isConnected)refreshBoothProfile();},550);
     const selectBooth=mode=>{
       const video=mode==='video';
       photoTab.setAttribute('aria-selected',String(!video));
       videoTab.setAttribute('aria-selected',String(video));
       photoTab.tabIndex=video?-1:0;videoTab.tabIndex=video?0:-1;
       photoPanel.hidden=video;videoPanel.hidden=!video;
+      if(!video)stopVideoTest();
       if(video&&activeCameraStream){
         stopCamera();
         const cameraStage=$('#photoStage',body);
@@ -2187,11 +2246,38 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       });
     }
     selectBooth('photo');
+    const videoTestStatus=$('#videoBoothPanel .video-booth-status',body);
+    $('#videoBoothTestCamera',body).onclick=async()=>{
+      if(activeVideoTestStream){stopVideoTest();videoTestStatus.textContent='Local camera preview stopped. No footage was sent or saved.';return;}
+      const button=$('#videoBoothTestCamera',body);
+      button.disabled=true;
+      try{
+        if(!navigator.mediaDevices?.getUserMedia)throw Error('Camera not available in this browser.');
+        activeVideoTestStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+        if(!videoPanel.isConnected||videoPanel.hidden){stopVideoTest();return;}
+        const preview=$('#videoBoothSelfPreview',body);
+        preview.srcObject=activeVideoTestStream;preview.hidden=false;
+        try{await preview.play();}catch{}
+        button.textContent='Stop local preview';
+        videoTestStatus.textContent='Your local camera preview is on. No matching or video call is active.';
+      }catch(error){stopVideoTest();videoTestStatus.textContent=error?.message||'Camera check failed. Review your browser permissions.';}
+      finally{button.disabled=false;}
+    };
+    $('#videoBoothTestMic',body).onclick=async()=>{
+      const button=$('#videoBoothTestMic',body);button.disabled=true;
+      let testStream=null;
+      try{
+        if(!navigator.mediaDevices?.getUserMedia)throw Error('Microphone not available in this browser.');
+        testStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+        videoTestStatus.textContent='Microphone access works. The test stopped immediately; no audio was saved or shared.';
+      }catch(error){videoTestStatus.textContent=error?.message||'Microphone access was not granted.';}
+      finally{testStream?.getTracks().forEach(track=>track.stop());button.disabled=false;}
+    };
     const stage=$('#photoStage',body),cap=$('#photoCapture',body),flip=$('#photoFlip',body),status=$('#photoStatus',body),strip=$('#photoStrip',body);let facing='user',latestPhotoBlob=null;
     const start=async()=>{try{stopCamera();activeCameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing},audio:false});stage.classList.remove('has-intro');stage.innerHTML='<video id="boothVideo" autoplay playsinline muted></video>';$('#boothVideo',body).srcObject=activeCameraStream;cap.disabled=false;flip.disabled=false;status.textContent='Photobooth ready.';status.classList.add('ok')}catch(err){status.textContent='Camera could not start. Check browser camera permission or use an existing photo.'}};
     $('#photoStart',body).onclick=start; $('#photoFlip',body).onclick=async()=>{facing=facing==='user'?'environment':'user';await start()};
-    cap.onclick=()=>{const v=$('#boothVideo',body);if(!v||!v.videoWidth)return;stage.classList.add('flash');setTimeout(()=>stage.classList.remove('flash'),380);const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0,c.width,c.height);const url=c.toDataURL('image/jpeg',.9);const captureBlob=fetch(url).then(r=>r.blob());window.BigLWABoothPreview?.capture(c);const fig=document.createElement('figure');fig.innerHTML=`<img src="${url}" alt="Photobooth capture"><a href="${url}" download="biglwa-photobooth-${Date.now()}.jpg">save</a><button type="button" class="module-action secondary photo-feed-upload" style="margin-top:5px;width:100%">Upload to Collective Feed</button>`;strip.prepend(fig);status.textContent='Captured. Save it if you want to keep it.';fig.querySelector('.photo-feed-upload').onclick=async()=>{const button=fig.querySelector('.photo-feed-upload');button.disabled=true;status.textContent='Uploading photo draft…';try{await window.__biglwaCollectivePublish?.createStudioDraft({source:'photobooth',title:'Photobooth',caption:'Photobooth capture',blob:await captureBlob});window.BigLWABoothPreview?.refresh();status.textContent='Photo saved to your account as a private feed draft. Open Collective Feed to choose whether to post it.';status.classList.add('ok')}catch(err){console.error(err);status.textContent=err?.message||'Could not upload the photo.';status.classList.remove('ok')}finally{button.disabled=false}}};
-    $('#cameraFile',body).onchange=e=>{const f=e.target.files?.[0];if(!f)return;latestPhotoBlob=f;const url=URL.createObjectURL(f);stage.classList.remove('has-intro');stage.innerHTML=`<img src="${url}" alt="Selected photo">`;cap.disabled=true;status.textContent='Local photo preview — choose Upload to Collective Feed when you want to save it.';let old=$('.photo-feed-upload',body);if(old)old.remove();const button=document.createElement('button');button.type='button';button.className='module-action secondary photo-feed-upload';button.textContent='Upload to Collective Feed';button.style.marginTop='8px';button.onclick=async()=>{button.disabled=true;status.textContent='Uploading photo draft…';try{await window.__biglwaCollectivePublish?.createStudioDraft({source:'photobooth',title:'Photobooth',caption:'Photobooth photo',blob:latestPhotoBlob});window.BigLWABoothPreview?.refresh();status.textContent='Photo saved to your account as a private feed draft. Open Collective Feed to choose whether to post it.';status.classList.add('ok')}catch(err){console.error(err);status.textContent=err?.message||'Could not upload the photo.';status.classList.remove('ok')}finally{button.disabled=false}};status.insertAdjacentElement('afterend',button)};
+    cap.onclick=()=>{const v=$('#boothVideo',body);if(!v||!v.videoWidth)return;stage.classList.add('flash');setTimeout(()=>stage.classList.remove('flash'),380);const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0,c.width,c.height);const url=c.toDataURL('image/jpeg',.9);const captureBlob=new Promise(resolve=>c.toBlob(resolve,'image/jpeg',.9));window.BigLWABoothPreview?.capture(c);const fig=document.createElement('figure');fig.innerHTML=`<img src="${url}" alt="Photobooth capture"><a href="${url}" download="biglwa-photobooth-${Date.now()}.jpg">save</a><button type="button" class="module-action secondary photo-feed-upload" style="margin-top:5px;width:100%">Upload to Collective Feed</button>`;strip.prepend(fig);status.textContent='Captured. Save it if you want to keep it.';fig.querySelector('.photo-feed-upload').onclick=async()=>{const button=fig.querySelector('.photo-feed-upload');button.disabled=true;status.textContent='Uploading photo draft…';try{await window.__biglwaCollectivePublish?.createStudioDraft({source:'photobooth',title:'Photobooth',caption:'Photobooth capture',blob:await captureBlob});window.BigLWABoothPreview?.refresh();status.textContent='Photo saved to your account as a private feed draft. Open Collective Feed to choose whether to post it.';status.classList.add('ok')}catch(err){console.error(err);status.textContent=err?.message||'Could not upload the photo.';status.classList.remove('ok')}finally{button.disabled=false}}};
+    $('#cameraFile',body).onchange=e=>{const f=e.target.files?.[0];if(!f)return;stopCamera();flip.disabled=true;latestPhotoBlob=f;const url=URL.createObjectURL(f);stage.classList.remove('has-intro');stage.innerHTML=`<img src="${url}" alt="Selected photo">`;cap.disabled=true;status.textContent='Local photo preview — choose Upload to Collective Feed when you want to save it.';let old=$('.photo-feed-upload',body);if(old)old.remove();const button=document.createElement('button');button.type='button';button.className='module-action secondary photo-feed-upload';button.textContent='Upload to Collective Feed';button.style.marginTop='8px';button.onclick=async()=>{button.disabled=true;status.textContent='Uploading photo draft…';try{await window.__biglwaCollectivePublish?.createStudioDraft({source:'photobooth',title:'Photobooth',caption:'Photobooth photo',blob:latestPhotoBlob});window.BigLWABoothPreview?.refresh();status.textContent='Photo saved to your account as a private feed draft. Open Collective Feed to choose whether to post it.';status.classList.add('ok')}catch(err){console.error(err);status.textContent=err?.message||'Could not upload the photo.';status.classList.remove('ok')}finally{button.disabled=false}};status.insertAdjacentElement('afterend',button)};
   }
 
   /* Video Booth: a random one-to-1 video chat booth, held back until the safety work
