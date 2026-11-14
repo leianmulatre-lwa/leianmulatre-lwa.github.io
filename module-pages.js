@@ -3773,7 +3773,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     body.innerHTML=heading('map')+`<style>#biglwaMapApp{display:block;width:100%;height:1250px;border:0;border-radius:0;background:transparent;overflow:hidden}#biglwaMapStatus{margin:0 0 9px;font:600 12px/1.45 system-ui;color:#6b5448}#biglwaMapStatus[hidden],#biglwaMapRetry[hidden]{display:none!important}@media(max-width:760px){#biglwaMapApp{height:1550px}}</style>
       <section aria-label="BIG LWA map">
       <p id="biglwaMapStatus" role="status">Loading your map inside Studio…</p>
-      <iframe id="biglwaMapApp" src="/map-app.html?embed=1&v=20261113-inpage-split-desk-4" loading="eager" referrerpolicy="same-origin"
+      <iframe id="biglwaMapApp" src="/map-app.html?embed=1&v=20261113-inpage-navigation-go-5" loading="eager" referrerpolicy="same-origin"
        title="BIG LWA interactive map and saved pins" allow="geolocation 'self'; fullscreen" allowfullscreen></iframe>
       <button type="button" class="module-action ghost" id="biglwaMapRetry">Reload map only</button>
       </section>`;
@@ -3811,7 +3811,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     if(retry)retry.onclick=()=>{
       ready=false;status.hidden=false;retry.hidden=true;
       status.textContent='Reloading the map inside Studio…';
-      frame.src='/map-app.html?embed=1&v=20261113-inpage-split-desk-4';
+      frame.src='/map-app.html?embed=1&v=20261113-inpage-navigation-go-5';
     };
   }
 
@@ -4030,7 +4030,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       mini.id='biglwaStudioMiniMap';
       mini.className='studio-mini-map';
       mini.title='Interactive mini map — pan, zoom, and see saved locations';
-      mini.src='/map-app.html?embed=1&preview=1&v=20261113-inpage-split-desk-4';
+      mini.src='/map-app.html?embed=1&preview=1&v=20261113-inpage-navigation-go-5';
       mini.loading='eager';
       mini.referrerPolicy='same-origin';
       mini.setAttribute('allow','geolocation \'self\'');
