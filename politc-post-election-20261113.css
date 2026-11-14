@@ -1,0 +1,88 @@
+/* Politic 2026 post-election desk: make room for current research. */
+#moduleWorkspace[data-module-key="politc"] .politc-election-zone.politc-election-is-past{
+ margin:0!important;padding:0!important;grid-column:1/-1!important;min-height:0!important;
+ border:1px solid rgba(136,72,74,.4)!important;background:var(--widget-bg,#fff7ed)!important;
+ outline:0!important;border-radius:14px!important;overflow:hidden!important;
+}
+.politc-post-election-summary,.politc-result-summary{
+ display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;
+ padding:12px 17px;list-style:none;cursor:pointer;
+}
+.politc-post-election-summary{background:linear-gradient(110deg,transparent,#b65f6920)}
+.politc-post-election-summary::-webkit-details-marker,.politc-result-summary::-webkit-details-marker{display:none}
+.politc-post-election-lead,.politc-result-summary-label{display:flex;flex-direction:column;gap:4px;min-width:0}
+.politc-post-election-kicker,.politc-result-kicker{
+ letter-spacing:.1em;text-transform:uppercase;font:800 10px/1.3 system-ui,sans-serif;color:#8c4659
+}
+.politc-post-election-lead strong{font:650 clamp(18px,2.1vw,25px)/1.2 Georgia,serif}
+.politc-post-election-lead small,.politc-result-summary-label small{font:550 11px/1.45 system-ui,sans-serif;opacity:.78}
+.politc-post-election-expand,.politc-result-open{
+ border:1px solid #bda3a3;border-radius:9px;padding:9px 12px;
+ font:700 11px/1.25 system-ui,sans-serif;background:#f7e2e3;color:#69313e
+}
+.politc-post-election-details[open] .politc-post-election-expand,
+.politc-result-details[open] .politc-result-open{background:#5a353b;color:white}
+.politc-post-election-content{padding:15px 19px 17px;border-top:1px solid #c9a9a7}
+.politc-post-election-content>div:first-child #politcCountdown{font-size:clamp(19px,2.7vw,30px)!important}
+.politc-post-election-content h3{max-width:100%}
+#moduleWorkspace[data-module-key="politc"] .politc-result-explorer{
+ margin:0 0 5px;border:1px solid #bca99a;border-radius:14px;overflow:hidden;
+ background:linear-gradient(110deg,#f7e8d9,#f2e8e2);color:#332b2c
+}
+.politc-result-summary-label strong{font:700 clamp(18px,2.1vw,24px)/1.25 Georgia,serif}
+.politc-result-panel{padding:15px 17px 19px;border-top:1px solid #d7bdb4}
+.politc-result-note,.politc-result-status{font:550 12px/1.55 system-ui,sans-serif;margin:0 0 12px;max-width:930px}
+.politc-result-status{color:#7c5054}
+.politc-result-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.politc-result-tabs button{
+ border:1px solid #af8588;border-radius:8px;padding:9px 13px;cursor:pointer;
+ background:#fff8f0;color:#68464e;font:700 12px/1.3 system-ui,sans-serif
+}
+.politc-result-tabs button.is-active{background:#593a43;color:#fffaf4}
+.politc-result-feed[hidden],.politc-county-map-wrap[hidden]{display:none!important}
+.politc-result-head{display:flex;justify-content:space-between;align-items:baseline;gap:7px;flex-wrap:wrap}
+.politc-result-head h3,.politc-county-map-heading h3{
+ font:700 clamp(20px,2.7vw,27px)/1.2 Georgia,serif;margin:0 0 7px
+}
+.politc-result-filter-label{display:grid;gap:5px;max-width:510px;font:700 11px/1.3 system-ui,sans-serif;margin:3px 0 14px}
+.politc-result-filter{
+ box-sizing:border-box;padding:10px 12px;border:1px solid #b79f98;border-radius:8px;
+ background:#fffaf3;color:#33282b;font:500 13px/1.3 system-ui,sans-serif;width:100%;min-height:40px
+}
+.politc-result-race-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:11px}
+.politc-result-race{border:1px solid #c4a7a2;border-radius:11px;background:#fffaf2;padding:13px;min-width:0}
+.politc-result-race>small{font:800 9px/1.3 system-ui,sans-serif;color:#8d5960;text-transform:uppercase;letter-spacing:.07em}
+.politc-result-race h4{font:700 18px/1.2 Georgia,serif;margin:4px 0 12px;overflow-wrap:anywhere}
+.politc-result-vote{
+ display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 9px;align-items:center;
+ margin:0 0 9px;font:550 11px/1.4 system-ui,sans-serif
+}
+.politc-result-vote span:first-child{min-width:0;overflow-wrap:anywhere}
+.politc-result-vote b{font:750 12px/1.35 system-ui,sans-serif}
+.politc-result-vote-bar{
+ display:block;grid-column:1/-1;background:#e5d4cd;border-radius:6px;height:5px;overflow:hidden
+}
+.politc-result-vote-bar i{display:block;background:#824b5b;height:100%}
+.politc-result-scope,.politc-result-source-line{font:500 10px/1.5 system-ui,sans-serif;color:#805d60;margin:8px 0 0}
+.politc-result-source-line{margin:12px 0 0}
+.politc-result-footer{display:flex;gap:7px;flex-wrap:wrap;margin-top:15px}
+.politc-results-source{display:inline-flex;align-items:center;border:1px solid #ad9392;padding:7px 9px;
+ border-radius:8px;color:#683948;font:700 11px/1.35 system-ui,sans-serif;text-decoration:none;background:#fff9f2}
+.politc-county-map-grid{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(200px,.6fr);gap:15px;align-items:start}
+.politc-county-svg{display:block;width:100%;max-width:600px;max-height:540px;background:#f8f6ee;border:1px solid #d6c0b9;border-radius:13px}
+.politc-county-svg path{fill:#e9ded1;stroke:#795862;stroke-width:1;cursor:pointer;vector-effect:non-scaling-stroke}
+.politc-county-svg path:hover,.politc-county-svg path:focus-visible{fill:#e5a9b8;outline:none;stroke:#8f3d51;stroke-width:2}
+.politc-county-svg path.is-selected{fill:#b9677d;stroke:#682a42;stroke-width:2.5}
+.politc-county-detail{background:#fff8f1;border:1px solid #cfb1a9;border-radius:11px;padding:13px;
+ font:500 12px/1.5 system-ui,sans-serif}
+.politc-county-detail h4{font:700 22px/1.25 Georgia,serif;margin:0 0 9px}
+.politc-county-detail p{margin:0 0 9px}
+.politc-county-detail .politc-results-source{margin:0 6px 7px 0}
+#moduleWorkspace[data-module-key="politc"] .politc-after-live{margin-top:8px;margin-bottom:18px}
+body.night-mode .politc-result-explorer{background:#362d32!important;color:#faedf0!important;border-color:#715261!important}
+body.night-mode .politc-result-race,body.night-mode .politc-county-detail{background:#44343a;color:#fff6f1;border-color:#775761}
+body.night-mode .politc-result-status{color:#f0c4d0}
+@media(max-width:800px){.politc-county-map-grid{grid-template-columns:1fr}}
+@media(max-width:540px){.politc-post-election-summary,.politc-result-summary{padding:12px}
+ .politc-post-election-expand,.politc-result-open{width:100%;text-align:center}
+ .politc-result-race-grid{grid-template-columns:1fr}}
