@@ -110,10 +110,33 @@
    link(OFFICIAL_MAP,'Official CA election maps'));
   panel.append(sourceNote,controls,results,mapHolder,foot);
   details.append(summary,panel);section.append(details);
-  board.insertBefore(section,live);
-  // Reading Room belongs directly AFTER the existing live trackers.
+  // Three compact sections share the first row. Moving the existing
+  // nodes preserves the election, results and research event listeners.
+  // Expanded panels can span the full width for readable content.
   const reader=body.querySelector('#politcResearchDesk');
-  if(reader){live.insertAdjacentElement('afterend',reader);reader.classList.add('politc-after-live');}
+  const election=board.querySelector('.politc-election-zone');
+  if(reader&&election){
+   const topRow=tag('div','politc-three-up');
+   topRow.setAttribute('aria-label','Election desk, results and political research');
+   board.insertBefore(topRow,live);
+   topRow.append(election,section,reader);
+   reader.classList.remove('politc-after-live');
+   // Expand only the selected card (never every card's internal details).
+   const folds=[
+    [election,election.querySelector('.politc-post-election-details')],
+    [section,section.querySelector('.politc-result-details')],
+    [reader,reader.querySelector('.politc-research-fold')]
+   ];
+   folds.forEach(([card,fold])=>{
+    if(!fold)return;
+    const sync=()=>card.classList.toggle('politc-card-expanded',fold.open);
+    fold.addEventListener('toggle',sync);
+    sync();
+   });
+  }else{
+   board.insertBefore(section,live);
+   if(reader)live.insertAdjacentElement('afterend',reader);
+  }
   const status=tag('p','politc-result-status','LA County · Nov 3, 2026 general election');
   status.setAttribute('role','status');results.append(status);
   let current=SNAPSHOT,liveLoaded=false,loader=null;

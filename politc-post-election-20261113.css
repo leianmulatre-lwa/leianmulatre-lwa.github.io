@@ -86,3 +86,160 @@ body.night-mode .politc-result-status{color:#f0c4d0}
 @media(max-width:540px){.politc-post-election-summary,.politc-result-summary{padding:12px}
  .politc-post-election-expand,.politc-result-open{width:100%;text-align:center}
  .politc-result-race-grid{grid-template-columns:1fr}}
+
+
+/* Compact Politic top deck: Election · Results · Reading Room.
+   All three share one row on desktop. Expanding a card gives it full
+   width without placing source text or election fields into tiny columns. */
+#moduleWorkspace[data-module-key="politc"] .politc-three-up{
+ display:grid!important;
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:13px!important;
+ align-items:stretch!important;
+ margin:0 0 20px!important;
+ min-width:0!important;
+ width:100%!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up > .politc-election-zone,
+#moduleWorkspace[data-module-key="politc"] .politc-three-up > .politc-result-explorer,
+#moduleWorkspace[data-module-key="politc"] .politc-three-up > .politc-research-desk{
+ box-sizing:border-box!important;
+ grid-column:auto!important;
+ min-width:0!important;
+ min-height:0!important;
+ height:auto!important;
+ margin:0!important;
+ width:auto!important;
+ overflow:hidden!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up > .politc-research-desk{
+ padding:0!important;
+ display:block!important;
+ border-radius:14px!important;
+}
+#moduleWorkspace[data-module-key="politc"] .politc-three-up > .politc-card-expanded{
+ grid-column:1/-1!important;
+}
+.politc-three-up > section > details{width:100%;min-width:0}
+.politc-three-up > section > details:not([open]){
+ height:100%;
+}
+.politc-three-up > section > details:not([open]) > summary{
+ display:flex!important;
+ flex-direction:column!important;
+ align-items:stretch!important;
+ justify-content:space-between!important;
+ gap:12px!important;
+ box-sizing:border-box!important;
+ min-height:174px!important;
+ padding:17px 18px!important;
+ cursor:pointer;
+}
+.politc-three-up > section > details:not([open]) > summary > :last-child{
+ align-self:flex-start;
+ margin-top:auto;
+}
+.politc-three-up .politc-post-election-summary,
+.politc-three-up .politc-result-summary,
+.politc-three-up .politc-research-fold-summary{
+ color:inherit!important;
+}
+.politc-three-up .politc-post-election-lead strong,
+.politc-three-up .politc-result-summary-label strong{
+ font:700 clamp(19px,1.65vw,24px)/1.17 Georgia,serif!important;
+ overflow-wrap:anywhere;
+}
+.politc-three-up .politc-post-election-lead small,
+.politc-three-up .politc-result-summary-label small{
+ max-width:48ch!important;
+ font:550 11px/1.45 system-ui,sans-serif!important;
+}
+.politc-three-up .politc-post-election-expand,
+.politc-three-up .politc-result-open,
+.politc-three-up .politc-research-fold-open{
+ display:inline-flex;
+ align-items:center;
+ width:auto!important;
+ max-width:100%;
+ padding:8px 10px!important;
+ border:1px solid #bda3a3;
+ border-radius:8px;
+ font:700 11px/1.3 system-ui,sans-serif!important;
+ background:#f7e2e3;
+ color:#69313e;
+ box-sizing:border-box;
+}
+.politc-three-up .politc-research-fold-summary{
+ display:flex;
+ list-style:none;
+ flex-direction:column;
+ gap:12px;
+}
+.politc-three-up .politc-research-fold-summary::-webkit-details-marker{display:none}
+.politc-three-up .politc-research-head{
+ border:0!important;
+ padding:0!important;
+ min-width:0!important;
+}
+.politc-three-up .politc-research-head h2{
+ font:700 clamp(22px,1.8vw,27px)/1.18 Georgia,serif!important;
+ letter-spacing:0!important;
+ margin:4px 0 7px!important;
+}
+.politc-three-up .politc-research-head p{
+ font:550 11px/1.5 Georgia,serif!important;
+ max-width:42ch!important;
+ margin:0!important;
+}
+.politc-three-up .politc-research-fold[open] > summary{
+ display:flex!important;
+ flex-direction:row!important;
+ align-items:center!important;
+ justify-content:space-between!important;
+ padding:17px 20px!important;
+ border-bottom:1px solid #b9a28a;
+}
+.politc-three-up .politc-research-fold[open] .politc-research-fold-open,
+.politc-three-up .politc-post-election-details[open] .politc-post-election-expand,
+.politc-three-up .politc-result-details[open] .politc-result-open{
+ background:#5a353b!important;
+ color:#fffaf4!important;
+}
+.politc-three-up .politc-research-fold-body{
+ padding:15px 20px 20px!important;
+ min-width:0!important;
+}
+.politc-three-up .politc-research-form{
+ grid-template-columns:minmax(0,1.35fr) minmax(0,1fr) auto!important;
+ align-items:end!important;
+}
+.politc-three-up .politc-research-form label{
+ min-width:0!important;
+}
+.politc-three-up .politc-research-form input,
+.politc-three-up .politc-research-form select{
+ min-width:0!important;
+ width:100%!important;
+ max-width:100%!important;
+}
+@media (max-width:1120px){
+ #moduleWorkspace[data-module-key="politc"] .politc-three-up{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+}
+@media (max-width:760px){
+ #moduleWorkspace[data-module-key="politc"] .politc-three-up{
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:10px!important;
+ }
+ .politc-three-up > section > details:not([open]) > summary{
+  min-height:145px!important;
+ }
+ .politc-three-up .politc-research-form{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+ .politc-three-up .politc-research-fold[open] > summary{
+  flex-direction:column!important;
+  align-items:flex-start!important;
+ }
+}

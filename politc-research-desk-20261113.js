@@ -83,7 +83,16 @@
   results.id='politcResearchResults';
   const viewer=make('article','politc-research-reader');
   viewer.hidden=true;viewer.setAttribute('aria-label','Selected source reader');
-  desk.append(intro,form,state,results,viewer);
+  // Keep the archive in the top row like the completed Election Desk
+  // and Results explorer; open to reveal the full working search and reader.
+  const fold=make('details','politc-research-fold');
+  const foldSummary=make('summary','politc-research-fold-summary');
+  const foldButton=make('span','politc-research-fold-open','Explore archives ▾');
+  foldSummary.append(intro,foldButton);
+  const foldBody=make('div','politc-research-fold-body');
+  foldBody.append(form,state,results,viewer);
+  fold.append(foldSummary,foldBody);
+  desk.append(fold);
   const first=container.querySelector('.politc-board');
   if(first)container.insertBefore(desk,first);
   else container.insertBefore(desk,container.firstChild?.nextSibling||null);
