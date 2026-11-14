@@ -17,7 +17,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parent.parent
 DEST = ROOT / "data" / "visual-life" / "jobs.json"
-MAX_ROWS = 60
+MAX_ROWS = 120
 
 def canonical_url(raw: object) -> str:
     try:
@@ -70,7 +70,7 @@ def normalize_rows(rows: list[dict]) -> list[dict]:
             break
     return result
 
-def write_feed(rows: list[dict], *, sources: list[str], search_term: str, location: str, searches: list[dict] | None = None) -> dict:
+def write_feed(rows: list[dict], *, sources: list[str], search_term: str, location: str, searches: list[dict] | None = None, board_meta: list[dict] | None = None) -> dict:
     jobs = normalize_rows(rows)
     if not jobs:
         raise ValueError("No valid jobs returned; preserving any prior feed.")
@@ -78,11 +78,12 @@ def write_feed(rows: list[dict], *, sources: list[str], search_term: str, locati
         "schema": 1,
         "status": "published",
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        "source_library": "werk-main / JobSpy 1.4.1 (MIT; Cullen Watson and contributors)",
+        "source_library": "werk-main / JobSpy 1.4.1 (MIT) + public Greenhouse, Lever and Ashby read-only job board APIs" if board_meta else "werk-main / JobSpy 1.4.1 (MIT; Cullen Watson and contributors)",
         "search_term": brief(search_term, 100),
         "location": brief(location, 100),
         "sources": sources,
         "searches": searches or [],
+        "ats_boards": board_meta or [],
         "jobs": jobs,
         "disclaimer": "Independent discovery hints. Verify availability, compensation and employer details on the original job posting."
     }
@@ -117,7 +118,7 @@ def scrape(*, term: str, location: str, source: str, limit: int) -> dict:
     return write_feed(frame.to_dict(orient="records"), sources=[source], search_term=term, location=location)
 
 
-def scrape_catalog(catalog_path: Path) -> dict:
+def scrape_catalog(catalog_path: Path, ats_path: Path | None = None) -> dict:
     """Run a deliberately bounded, one-time owner-configured catalog refresh.
 
     Never treat this workflow as an on-demand public API. The output is a dated,
@@ -173,11 +174,17 @@ def scrape_catalog(catalog_path: Path) -> dict:
             successful_queries.append(row)
         except Exception as exc:  # best-effort bounded multi-source run
             print("JobSpy query unavailable for",row["term"],"(",row["source"],"):",type(exc).__name__,file=sys.stderr)
+    board_meta = []
+    if ats_path is not None:
+        from visual_life_ats import collect_ats  # reviewed read-only public ATS boards
+        ats_rows, ats_sources, board_meta = collect_ats(ats_path)
+        collected.extend(ats_rows)
+        success_sources.update(ats_sources)
     if not collected:
-        raise ValueError("No valid JobSpy results; last published feed preserved.")
+        raise ValueError("No valid JobSpy or ATS results; last published feed preserved.")
     return write_feed(
         collected,sources=sorted(success_sources),search_term="Curated BIG LWA searches",
-        location="Multiple locations",searches=successful_queries
+        location="Multiple locations",searches=successful_queries,board_meta=board_meta
     )
 
 if __name__ == "__main__":
@@ -187,6 +194,9 @@ if __name__ == "__main__":
     parser.add_argument("--source", choices=["indeed", "zip_recruiter"], default="indeed")
     parser.add_argument("--limit", type=int, default=10)
     parser.add_argument("--catalog", type=Path, default=None, help="Owner-reviewed bounded searches.json")
+    parser.add_argument("--ats", type=Path, default=None, help="Owner-reviewed public ATS board list (only with --catalog)")
     args = parser.parse_args()
-    result = scrape_catalog(args.catalog) if args.catalog else scrape(term=args.term[:100], location=args.location[:100], source=args.source, limit=args.limit)
+    if args.ats and not args.catalog:
+        parser.error("--ats requires --catalog")
+    result = scrape_catalog(args.catalog, args.ats) if args.catalog else scrape(term=args.term[:100], location=args.location[:100], source=args.source, limit=args.limit)
     print("Visual-Life feed validated:", len(result["jobs"]), "source-linked jobs")
