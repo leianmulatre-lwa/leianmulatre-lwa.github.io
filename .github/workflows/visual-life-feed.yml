@@ -1,6 +1,12 @@
-name: Visual-Life jobs · manual vetted feed
+name: Visual-Life / Werk · reviewed JobSpy snapshot
 
 on:
+  # Runs once when the owner changes this reviewed list on main.
+  # No cron: scraping is not an on-demand public browser capability.
+  push:
+    branches: ["main"]
+    paths:
+      - "data/visual-life/searches.json"
   workflow_dispatch:
     inputs:
       search_term:
@@ -44,12 +50,17 @@ jobs:
         run: python3 -m unittest discover -s scripts -p test_visual_life_feed.py
       - name: Install local vendored MIT library
         run: pip install --disable-pip-version-check ./werk-main
-      - name: Run bounded job search (no proxies or API keys)
+      - name: Run bounded JobSpy searches (no proxies or API keys)
         env:
           JOB_TERM: ${{ inputs.search_term }}
           JOB_LOCATION: ${{ inputs.location }}
           JOB_SOURCE: ${{ inputs.source }}
-        run: python3 scripts/visual_life_feed.py --term "$JOB_TERM" --location "$JOB_LOCATION" --source "$JOB_SOURCE" --limit 10
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            python3 scripts/visual_life_feed.py --catalog data/visual-life/searches.json
+          else
+            python3 scripts/visual_life_feed.py --term "$JOB_TERM" --location "$JOB_LOCATION" --source "$JOB_SOURCE" --limit 10
+          fi
       - name: Validate feed and commit only source records
         run: |
           python3 -m json.tool data/visual-life/jobs.json > /dev/null

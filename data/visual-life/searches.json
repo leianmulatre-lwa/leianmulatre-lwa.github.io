@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "purpose": "One-time, owner-reviewed starter catalog for Werk. No recurring scraping.",
+  "searches": [
+    {
+      "term": "creative director",
+      "location": "Los Angeles, CA",
+      "source": "indeed",
+      "limit": 7
+    },
+    {
+      "term": "casting assistant",
+      "location": "Los Angeles, CA",
+      "source": "zip_recruiter",
+      "limit": 7
+    },
+    {
+      "term": "production coordinator",
+      "location": "Los Angeles, CA",
+      "source": "indeed",
+      "limit": 7
+    },
+    {
+      "term": "policy analyst",
+      "location": "Los Angeles, CA",
+      "source": "indeed",
+      "limit": 7
+    },
+    {
+      "term": "paralegal",
+      "location": "Los Angeles, CA",
+      "source": "indeed",
+      "limit": 7
+    },
+    {
+      "term": "software developer",
+      "location": "Remote",
+      "source": "indeed",
+      "limit": 7
+    }
+  ]
+}
