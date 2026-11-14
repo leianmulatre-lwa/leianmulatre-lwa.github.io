@@ -63,7 +63,7 @@ test('county map shows geographic outlines only with no guessed county-level vot
  assert.match(pjs,/^.*only LA County has an integrated contest feed.*$/im);
  assert.match(pjs,/county outline is not a map of how anyone voted/);
  assert.match(pjs,/role','button'/);
- assert.match(pjs,/event\.key==='Enter'/);
+ assert.match(pjs,/e\.key==='Enter'/);
  assert.match(pcss,/\.politc-county-svg path\.is-selected/);
 });
 test('main Map holds permanent canvas on left and independent right-side tabs',()=>{
