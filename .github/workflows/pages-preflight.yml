@@ -28,6 +28,10 @@ on:
       - 'ui-coherence.js'
       - 'booth-vanity-preflight-test.mjs'
       - 'politc-werk-test.mjs'
+      - 'scripts/visual_life_feed.py'
+      - 'scripts/test_visual_life_feed.py'
+      - 'data/visual-life/searches.json'
+      - '.github/workflows/visual-life-feed.yml'
       - 'politc-werk-20261114.js'
       - 'politc-werk-20261114.css'
       - 'visual-life-jobs.js'
@@ -66,6 +70,7 @@ jobs:
           node --check geez-calendar-20261114.js
           node --test geez-calendar-mode-test.mjs
           node --test politc-werk-test.mjs
+          python3 -m unittest discover -s scripts -p test_visual_life_feed.py
           node studio-layout-cache-test.mjs
           node profile-music-test.mjs
           node --check profile-music.js
