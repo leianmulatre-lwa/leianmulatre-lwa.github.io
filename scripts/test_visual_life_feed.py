@@ -87,7 +87,7 @@ class VisualLifeFeedTest(unittest.TestCase):
                 source.write_text(json.dumps({"schema":1,"searches":[
                     {"term":"producer","location":"Los Angeles, CA","source":"indeed","limit":5}
                 ]}),encoding="utf-8")
-                with self.assertRaisesRegex(ValueError,"No valid JobSpy results"):
+                with self.assertRaisesRegex(ValueError,"No valid JobSpy or ATS results"):
                     feed.scrape_catalog(source)
                 self.assertEqual(json.loads(target.read_text()),{"preserved":True})
                 source.write_text(json.dumps({"schema":1,"searches":[
