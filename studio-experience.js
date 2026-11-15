@@ -119,7 +119,16 @@
       #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(2n){animation-duration:.6s}
       #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(3n){animation-duration:.9s;animation-delay:.12s}
       #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(4n){animation-delay:.24s}
-      @keyframes biglwa-eq-wave{0%,100%{transform:scaleY(.32)}50%{transform:scaleY(1)}}
+      @keyframes biglwa-eq-wave{0%,100%{transform:scaleY(.13)}25%{transform:scaleY(.83)}53%{transform:scaleY(.26)}76%{transform:scaleY(1.08)}}
+      #studioApp .music-card .stereo-eq{height:22px!important;min-height:15px!important;align-items:end!important}
+      #studioApp .music-card .stereo-eq i{height:85%!important;transform:scaleY(.18);will-change:transform}
+      #studioApp .music-card .stereo-eq i:nth-child(3n){height:100%!important}
+      #studioApp .music-card .stereo-eq i:nth-child(4n){height:70%!important}
+      #studioApp .music-card .stereo-time-scale{position:relative;z-index:2;display:flex;align-items:center;gap:6px;width:100%;margin-top:5px;white-space:nowrap}
+      #studioApp .music-card .stereo-time-scale span{color:#81ef87;font:700 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums;text-shadow:0 0 3px #162b1b}
+      #studioApp .music-card .stereo-time-scale .progress{flex:1 1 auto;min-width:12px;width:auto!important;margin:0!important}
+      #studioApp .music-card .stereo-time-scale .progress:focus-visible{outline:2px solid #a4ffac;outline-offset:2px}
+      @media(prefers-reduced-motion:reduce){#studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i{animation:none!important;transform:scaleY(.45)!important}}
       #studioApp .music-card.stereo-music-widget .stereo-eject{
         width:30px!important;height:27px!important;min-width:30px!important;
         display:inline-grid!important;place-items:center!important;padding:0!important;
@@ -638,6 +647,10 @@
     const rightSpeaker=document.createElement('div');rightSpeaker.className='stereo-speaker';rightSpeaker.setAttribute('aria-hidden','true');
     const nowPlaying=document.createElement('div');nowPlaying.className='stereo-now-playing';nowPlaying.textContent='now playing';
     const eq=document.createElement('div');eq.className='stereo-eq';eq.setAttribute('aria-hidden','true');eq.innerHTML='<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>';
+    const timeScale=document.createElement('div');timeScale.className='stereo-time-scale';
+    const elapsed=document.createElement('span');elapsed.className='stereo-time-elapsed';elapsed.textContent='0:00';
+    const durationLabel=document.createElement('span');durationLabel.className='stereo-time-duration';durationLabel.textContent='0:00';
+    timeScale.append(elapsed,progress,durationLabel);
     const deck=document.createElement('div');deck.className='stereo-control-deck';
     const rewind=document.createElement('button');rewind.type='button';rewind.className='stereo-skip-button stereo-rewind';rewind.textContent='◀◀';rewind.title='Back 10 seconds';rewind.setAttribute('aria-label','Rewind 10 seconds');
     const forward=document.createElement('button');forward.type='button';forward.className='stereo-skip-button stereo-forward';forward.textContent='▶▶';forward.title='Forward 10 seconds';forward.setAttribute('aria-label','Forward 10 seconds');
@@ -645,7 +658,7 @@
     eject.textContent='⏏';eject.setAttribute('aria-label','Eject current track and choose a different song');eject.title='Replace track';
     const kicker=$('.card-kicker',card);
     if(kicker)kicker.insertAdjacentElement('afterend',shell);else card.prepend(shell);
-    shell.append(tuner,face,deck);face.append(leftSpeaker,display,rightSpeaker);display.append(nowPlaying,row,eq,progress);deck.append(rewind,play,forward,eject);
+    shell.append(tuner,face,deck);face.append(leftSpeaker,display,rightSpeaker);display.append(nowPlaying,row,eq,timeScale);deck.append(rewind,play,forward,eject);
     art.id='studioAlbumArt';art.innerHTML='<span aria-hidden="true">♪</span><img alt="Album cover" hidden>';
     copy.classList.add('music-copy');const title=$('strong',copy),artist=$('span',copy);if(title)title.id='studioMusicTitle';if(artist)artist.id='studioMusicArtist';
     const audio=document.createElement('audio');audio.id='studioAudio';audio.preload='metadata';card.appendChild(audio);
@@ -654,9 +667,10 @@
     const status=document.createElement('p');status.className='music-status';status.id='studioMusicStatus';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
     progress.insertAdjacentElement('afterend',actions);actions.insertAdjacentElement('afterend',editor);editor.insertAdjacentElement('afterend',status);
     progress.setAttribute('role','slider');progress.tabIndex=0;progress.setAttribute('aria-label','Track position');progress.setAttribute('aria-valuemin','0');progress.setAttribute('aria-valuemax','100');progress.setAttribute('aria-valuenow','0');
-    const sync=()=>{const fraction=audio.duration?audio.currentTime/audio.duration:0;progressBar.style.width=`${fraction*100}%`;progress.setAttribute('aria-valuenow',String(Math.round(fraction*100)));progress.title=`${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`};
+    const timeLabel=value=>{const seconds=Number.isFinite(value)&&value>0?Math.floor(value):0;return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0')};
+    const sync=()=>{const length=Number.isFinite(audio.duration)&&audio.duration>0?audio.duration:0;const current=Number.isFinite(audio.currentTime)?Math.max(0,audio.currentTime):0;const fraction=length?Math.max(0,Math.min(1,current/length)):0;progressBar.style.width=`${fraction*100}%`;progress.setAttribute('aria-valuenow',String(Math.round(fraction*100)));elapsed.textContent=timeLabel(current);durationLabel.textContent=timeLabel(length);progress.setAttribute('aria-valuetext',timeLabel(current)+' of '+timeLabel(length));progress.title=timeLabel(current)+' / '+timeLabel(length)};
     play.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();if(!audio.src){$('#studioTrackInput').click();setMusicStatus('Choose an audio file first.');return}if(audio.paused)audio.play().catch(()=>setMusicStatus('Playback needs another tap.'));else audio.pause()},{capture:true});
-    audio.addEventListener('play',()=>{card.classList.add('is-playing');play.textContent='❚❚';play.setAttribute('aria-label','Pause track')});audio.addEventListener('pause',()=>{card.classList.remove('is-playing');play.textContent='▶';play.setAttribute('aria-label','Play track')});audio.addEventListener('ended',()=>{card.classList.remove('is-playing');play.textContent='▶';sync()});audio.addEventListener('timeupdate',sync);audio.addEventListener('loadedmetadata',sync);
+    audio.addEventListener('play',()=>{card.classList.add('is-playing');play.textContent='❚❚';play.setAttribute('aria-label','Pause track')});audio.addEventListener('pause',()=>{card.classList.remove('is-playing');play.textContent='▶';play.setAttribute('aria-label','Play track')});audio.addEventListener('ended',()=>{card.classList.remove('is-playing');play.textContent='▶';sync()});audio.addEventListener('timeupdate',sync);audio.addEventListener('loadedmetadata',sync);audio.addEventListener('durationchange',sync);audio.addEventListener('emptied',sync);sync();
     const seek=clientX=>{if(!audio.duration)return;const rect=progress.getBoundingClientRect();audio.currentTime=Math.max(0,Math.min(1,(clientX-rect.left)/rect.width))*audio.duration};
     progress.addEventListener('click',event=>seek(event.clientX));progress.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight'].includes(event.key)||!audio.duration)return;event.preventDefault();audio.currentTime=Math.max(0,Math.min(audio.duration,audio.currentTime+(event.key==='ArrowRight'?5:-5)))});
     // The rewind / forward keys were decorative spans. They now seek inside
