@@ -36,6 +36,9 @@ on:
       - 'map-transport-hub-20261114.js'
       - 'map-transport-hub-20261114.css'
       - 'map-transport-hub-20261114.test.mjs'
+      - 'orbit-map-provider-regression-20261115.test.mjs'
+      - 'config/orbit-provider-apps-20261115.json'
+      - 'google-orbit.js'
       - 'stream-guide.js'
       - 'stream-music-ch05-20261115.test.mjs'
       - 'studio-upper-rail-size-contract-20261103.css'
@@ -140,6 +143,8 @@ jobs:
           node --test map-discovery-test.mjs
           node --check map-transport-hub-20261114.js
           node --test map-transport-hub-20261114.test.mjs
+          node --check google-orbit.js
+          node --test orbit-map-provider-regression-20261115.test.mjs
           python3 -m unittest discover -s scripts -p test_visual_life_feed.py
           python3 -m unittest discover -s scripts -p test_visual_life_ats.py
           node studio-layout-cache-test.mjs
