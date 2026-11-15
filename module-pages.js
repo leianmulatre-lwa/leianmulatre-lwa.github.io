@@ -2728,6 +2728,11 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const uid=String(window.__biglwaIdentity?.uid||'').trim();
     const privateMode=!document.documentElement.classList.contains('biglwa-preview-mode')&&!window.__biglwaPublicStorageView;
     const keyBase=uid&&privateMode?uid:'guest';
+    // A direct Room navigation can happen before the profile card/editor mounts.
+    // Trigger the account read independently; the completed read re-renders
+    // the gate through biglwa:community-profile-updated.
+    if(uid&&privateMode&&window.BigLWACommunityProfile?.syncStatus==='loading')
+      window.BigLWACommunityProfile.load();
     const modeKey='biglwaRoomTabV1:'+keyBase;
     let mode=localStorage.getItem(modeKey)==='lounge'?'lounge':'room';
     if(!uid||!privateMode)mode='room';
@@ -4244,6 +4249,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     });if(push){try{history.pushState({biglwaModule:key},'',(key==='map'||key==='politc')?`/studio?panel=${encodeURIComponent(key)}`:(key==='orbit'?'/studio?view=orbit':`/studio/${encodeURIComponent(key==='projects'?'visualz':key)}`))}catch{}}
   }
   window.openBIGLWAModule=openModule;
+  // Authenticated Community Roles hydrate asynchronously from Firestore.
+  // Refresh a Room/Lounge access gate after confirmed account restore/save,
+  // without re-opening the module, changing history or scrolling the page.
+  document.addEventListener('biglwa:community-profile-updated',()=>{
+    if(activeModuleKey==='rooms'&&!workspace.hidden)renderRoom();
+  });
   document.addEventListener('biglwa:google-state',()=>{if(routeName.textContent==='Calendar'&&!workspace.hidden)renderCalendar()});
   window.addEventListener('biglwa:orbit-imported',()=>{
     if(activeModuleKey==='archive') renderArchive();
