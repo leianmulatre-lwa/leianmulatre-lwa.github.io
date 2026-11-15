@@ -49,17 +49,18 @@
   if(!w||!h)return;
   ctx.clearRect(0,0,w,h);
   layer.elapsed+=dt;
-  layer.pointerBurst*=Math.exp(-dt*2.7);
-  // The reference space-warp starts fast and exponentially decelerates to
-  // cruising speed. Repeat a smaller pulse when the pointer enters the widget.
+  // The same 3D-style entry warp is shared by the thumbnail AND full page.
+  // Cursor position steers the camera, NOT the velocity of the stars.
   const launch=Math.pow(.5,layer.elapsed*1.5)*8;
-  const warp=1+launch+layer.pointerBurst*6+layer.cursorMotion*4;
+  const warp=1+launch;
   for(const star of layer.twinkles){
    star.phase+=dt*star.rate;
    const glow=.12+.88*Math.pow((1+Math.sin(star.phase))/2,2.2);
    const alpha=star.bright*glow;
    const tint=star.tone>.83?'255,190,226':star.tone>.55?'208,226,255':'248,249,255';
-   const px=star.x*w,py=star.y*h;
+   const depth=.34+star.bright*.72;
+   const px=star.x*w-layer.cursorX*w*.28*depth;
+   const py=star.y*h-layer.cursorY*h*.28*depth;
    ctx.fillStyle='rgba('+tint+','+(alpha*.18)+')';
    ctx.beginPath();ctx.arc(px,py,star.size*2.6,0,Math.PI*2);ctx.fill();
    ctx.fillStyle='rgba('+tint+','+alpha+')';
@@ -71,16 +72,21 @@
   layer.cursorX+=(layer.cursorTargetX-layer.cursorX)*easing;
   layer.cursorY+=(layer.cursorTargetY-layer.cursorY)*easing;
   layer.cursorMotion*=Math.max(0,1-dt*1.9);
-  const accelerated=layer.hover?1.35+layer.cursorMotion*1.4:1;
-  const speed=dt*(layer.kind==='widget'?.24:.17)*Math.min(warp*accelerated,12);
-  const cx=w*(.50+layer.cursorX*.44),cy=h*(.49+layer.cursorY*.38);
+  layer.target.style?.setProperty('--orbit-cursor-x',layer.cursorX.toFixed(3));
+  layer.target.style?.setProperty('--orbit-cursor-y',layer.cursorY.toFixed(3));
+  const speed=dt*.20*Math.min(warp,12);
+  const cx=w*(.50+layer.cursorX*.28),cy=h*(.49+layer.cursorY*.28);
   for(const star of layer.stars){
    const z=star.z;
    const next=z-speed;
    const zoom=.20+.78/(z+.24);
    const nextZoom=.20+.78/(Math.max(.08,next)+.24);
-   const x=cx+star.x*w*.54*zoom,y=cy+star.y*h*.54*zoom;
-   const nx=cx+star.x*w*.54*nextZoom,ny=cy+star.y*h*.54*nextZoom;
+   // Cursor parallax shifts nearby particles more than distant ones.
+   // This makes the camera turn with the pointer in the small widget too.
+   const parallaxX=-layer.cursorX*w*.22*(1.4-z);
+   const parallaxY=-layer.cursorY*h*.22*(1.4-z);
+   const x=cx+parallaxX+star.x*w*.54*zoom,y=cy+parallaxY+star.y*h*.54*zoom;
+   const nx=cx+parallaxX+star.x*w*.54*nextZoom,ny=cy+parallaxY+star.y*h*.54*nextZoom;
    if(next<.08||Math.abs(nx-cx)>w*.72||Math.abs(ny-cy)>h*.7){
     seed(star,true);continue;
    }
@@ -94,8 +100,14 @@
    ctx.fillStyle='rgba('+shade+','+(alpha*.18)+')';
    ctx.beginPath();ctx.arc(nx,ny,radius*2.6,0,Math.PI*2);ctx.fill();
    ctx.strokeStyle='rgba('+shade+','+(alpha*.84)+')';
+   // Space-warp reference: luminous points STRETCH into radial trails during
+   // launch, then visibly contract to dots as velocity decays.
+   const distance=Math.max(.001,Math.hypot(nx-cx,ny-cy));
+   const length=Math.min(Math.min(w,h)*.18,Math.max(0,launch)*Math.min(w,h)*.021);
+   const tx=nx-(nx-cx)/distance*length;
+   const ty=ny-(ny-cy)/distance*length;
    ctx.lineWidth=(z<.4?1.8:1.15)+(Math.min(8,warp)*.06);
-   ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(nx,ny);ctx.stroke();
+   ctx.beginPath();ctx.moveTo(tx,ty);ctx.lineTo(nx,ny);ctx.stroke();
    ctx.fillStyle='rgba('+shade+','+alpha+')';
    ctx.beginPath();ctx.arc(nx,ny,radius,0,Math.PI*2);ctx.fill();
   }
@@ -148,14 +160,14 @@
   if(!ctx)return;
   target.insertBefore(canvas,target.firstChild);
   const layer={target,canvas,ctx,kind,stars:[],twinkles:seedTwinkle(kind==='widget'?80:130),
-   elapsed:0,pointerBurst:0,width:0,height:0,visible:!visibility,hover:false,
+   elapsed:0,width:0,height:0,visible:!visibility,hover:false,
    cursorX:0,cursorY:0,cursorTargetX:0,cursorTargetY:0,cursorMotion:0};
   for(let i=0;i<count;i++){
    const star={};seed(star);layer.stars.push(star);
   }
   layers.set(target,layer);
   target.addEventListener('pointerenter',()=>{
-   layer.hover=true;layer.pointerBurst=1.1;wake();
+   layer.hover=true;wake();
   },{passive:true});
   target.addEventListener('pointermove',event=>{
    if(event.pointerType==='touch'||reduced?.matches)return;
@@ -165,7 +177,6 @@
    const nextY=Math.max(-.5,Math.min(.5,(event.clientY-bounds.top)/bounds.height-.5));
    const move=Math.hypot(nextX-layer.cursorTargetX,nextY-layer.cursorTargetY);
    layer.cursorMotion=Math.min(1,layer.cursorMotion+move*2.4);
-   if(move>.025)layer.pointerBurst=Math.min(2,layer.pointerBurst+move*.9);
    layer.cursorTargetX=nextX;layer.cursorTargetY=nextY;
    layer.hover=true;
   },{passive:true});
@@ -232,5 +243,5 @@
   }else wake();
  });
  window.addEventListener('resize',()=>{for(const layer of layers.values())size(layer);wake()},{passive:true});
- window.BigLWAOrbitSpace=Object.freeze({version:'20261114-twinkle-warp-widget-4',refresh:schedule,detachPage});
+ window.BigLWAOrbitSpace=Object.freeze({version:'20261114-true-camera-warp-5',refresh:schedule,detachPage});
 })();

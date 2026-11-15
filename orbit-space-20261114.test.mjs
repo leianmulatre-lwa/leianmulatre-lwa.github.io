@@ -102,7 +102,7 @@ test('normal motion animates its own canvases without touching connection handle
 
 test('lavender glass reveals the starfield and keeps status and app text legible',()=>{
  for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html'])
-  assert.match(read(path),/orbit-space-20261114\.css\?v=20261114-twinkle-warp-widget-4/);
+  assert.match(read(path),/orbit-space-20261114\.css\?v=20261114-true-camera-warp-5/);
  assert.match(css,/background:rgba\(35,24,62,\.37\)!important/,'full Orbit pane is translucent instead of ivory');
  assert.match(css,/background:rgba\(90,65,128,\.22\)!important/,'app connection cards reveal space');
  assert.match(css,/\.orbit-quick-link\{\s*background:rgba\(151,123,191,\.19\)!important/);
@@ -160,8 +160,8 @@ test('Orbit canvas disappears before a different module renders, and never reser
  assert.equal(env.page.attached.at(-1).isConnected,false,'Immediate route cleanup works');
  for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html']){
   const html=read(path);
-  assert.match(html,/orbit-space-20261114\.js\?v=20261114-twinkle-warp-widget-4/);
-  assert.match(html,/orbit-space-20261114\.css\?v=20261114-twinkle-warp-widget-4/);
+  assert.match(html,/orbit-space-20261114\.js\?v=20261114-true-camera-warp-5/);
+  assert.match(html,/orbit-space-20261114\.css\?v=20261114-true-camera-warp-5/);
   assert.match(html,/&orbitcleanup=20261114-2/);
  }
 });
@@ -204,4 +204,22 @@ test('Studio Orbit thumbnail paints twinkling stars AND a decelerating launch wa
  env.scheduled.shift()(850);
  assert(ctx.calls.length>count+200,'Hover produces a new rendered star-warp frame');
  assert(ctx.calls.some(color=>/^rgba\(/.test(color)),'Canvas uses visible rgba star colors');
+});
+
+test('both Orbit surfaces use the same cursor-steered camera, not hover speed-up',()=>{
+ assert.match(js,/const speed=dt\*\.20\*Math\.min\(warp,12\)/);
+ assert.match(js,/const parallaxX=-layer\.cursorX\*w\*\.22/);
+ assert.match(js,/const parallaxY=-layer\.cursorY\*h\*\.22/);
+ assert.match(js,/const length=Math\.min\(/,'Warp trails visibly stretch and then decay');
+ assert.match(js,/ctx\.moveTo\(tx,ty\);ctx\.lineTo\(nx,ny\)/);
+ assert.match(css,/var\(--orbit-cursor-x, 0\)/);
+ assert.match(css,/var\(--orbit-cursor-y, 0\)/);
+ assert.doesNotMatch(js,/pointerBurst\*6|const accelerated=layer\.hover/);
+ const env=harness(false);
+ env.scheduled.shift()(10);
+ env.widget.events.pointermove({pointerType:'mouse',clientX:400,clientY:145});
+ env.page.events.pointermove({pointerType:'mouse',clientX:400,clientY:145});
+ env.scheduled.shift()(65);
+ assert.equal(env.widget.attached.length,1);
+ assert.equal(env.page.attached.length,1);
 });

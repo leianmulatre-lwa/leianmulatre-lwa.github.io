@@ -49,6 +49,9 @@ jobs:
           node --check module-pages.js
           node --check orbit-space-20261114.js
           node --test orbit-space-20261114.test.mjs
+          node --check lwazi-link-tools-20261114.js
+          node --test lwazi-link-tools-20261114.test.mjs
+          node --test free-tools-seo-20261114.test.mjs
           node --check geez-calendar-20261114.js
           node --test geez-calendar-mode-test.mjs
           node booth-vanity-preflight-test.mjs

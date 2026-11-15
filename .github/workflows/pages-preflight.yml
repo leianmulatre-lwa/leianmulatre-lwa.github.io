@@ -62,6 +62,14 @@ on:
       - 'orbit-space-20261114.js'
       - 'orbit-space-20261114.css'
       - 'orbit-space-20261114.test.mjs'
+      - 'lwazi-link-tools-20261114.js'
+      - 'lwazi-link-tools-20261114.css'
+      - 'lwazi-link-tools-20261114.test.mjs'
+      - 'free-tools/index.html'
+      - 'free-tools-seo-20261114.test.mjs'
+      - 'lwazi-discovery-extras.js'
+      - 'sitemap.xml'
+      - 'about/index.html'
       - 'mii-webport-test.mjs'
       - 'studio-layout-cache-test.mjs'
       - 'profile-music-test.mjs'
@@ -121,6 +129,9 @@ jobs:
           node orbit-badge-layout-test.mjs
           node --check orbit-space-20261114.js
           node --test orbit-space-20261114.test.mjs
+          node --check lwazi-link-tools-20261114.js
+          node --test lwazi-link-tools-20261114.test.mjs
+          node --test free-tools-seo-20261114.test.mjs
           node active-route-build-regression-test.mjs
           node orbit-inline-links-regression-test.mjs
           node pinterest-owned-feed-regression-test.mjs

@@ -46,6 +46,39 @@ function widgetCards(){
    '<p>'+esc(description)+'</p><button type="button" class="bl-search-go bl-search-primary-action" data-bl-craft-app="'+esc(id)+'">Open R app ↗</button></div></article>'
   ));
 }
+// Route recognizable tool-search intent to REAL first-party destinations.
+ // These are alternatives for specific tasks, not claims of Adobe or Microsoft
+ // compatibility, equivalent feature sets, or unrelated ad landing pages.
+function toolIntentCards(query){
+ const q=String(query||'').toLowerCase().trim();
+ if(!q||q.length>220)return [];
+ const visual=/(?:free\s+adobe|photoshop|illustrator|after\s*effects|photo\s*editor|image\s*editor|vector\s*editor|pdf\s*editor|free\s*design\s*tools?|creative\s*software)/i.test(q);
+ const slides=/(?:powerpoint|power\s*point|google\s*slides?|slides?\s*(?:maker|editor|alternative)|presentation\s*(?:maker|editor|software)|visualslidez)/i.test(q);
+ const games=/(?:free\s+(?:browser\s+|online\s+)?games?|browser\s+games?|arcade\s+games?|2048|play\s+games?)/i.test(q);
+ if(!visual&&!slides&&!games)return [];
+ const result=[];
+ const make=(title,description,type,id)=>{
+  const attribute=type==='app'?'data-bl-craft-app':'data-lwazi-route';
+  return '<article class="bl-search-card bl-widget-result bl-free-tool-result"><div class="bl-search-card-body">'+
+   '<span class="bl-search-kicker">BIG LWA · free creative tools</span>'+
+   '<h3>'+esc(title)+'</h3><p>'+esc(description)+'</p>'+
+   '<button type="button" class="bl-search-go bl-search-primary-action" '+attribute+'="'+esc(id)+'">Open in Studio ↗</button>'+
+   '</div></article>';
+ };
+ if(visual){
+  result.push(make('lightR · image editing','Photos, layers and compositing; not Adobe Photoshop.','app','photocraft'));
+  result.push(make('paintR · vector drawing','Vector paths and editable artwork; not Adobe Illustrator.','app','vectorcraft'));
+  result.push(make('keyframeR · motion','Timeline, effects and simple animation workflows.','app','effectcraft'));
+  result.push(make('fileR · PDF work','Read and edit PDFs in the R workshop.','app','pdfcraft'));
+ }
+ if(slides)result.push(make('visualslidez · presentations','Build and edit slide decks inside visualize/r; PowerPoint import is supported.','route','projects'));
+ if(games)result.push(make('Games · browser arcade','Open BIG LWA’s playable games, including the in-Studio arcade.','route','games'));
+ result.push('<article class="bl-search-card bl-widget-result bl-free-tool-result"><div class="bl-search-card-body">'+
+  '<span class="bl-search-kicker">BIG LWA · guide</span><h3>Free tools & alternatives</h3>'+
+  '<p>What each editor can do, what it cannot, and where to begin.</p>'+
+  '<a class="bl-search-go bl-search-primary-action" href="/free-tools/">Explore free tools ↗</a></div></article>');
+ return result.slice(0,7);
+}
 function allVideos(){
  const guide=window.BigLWAStreamGuide;
  const known=[
@@ -214,5 +247,5 @@ function attach(panel){
   }catch{frame.addEventListener('load',send,{once:true});}
  });
 }
-window.BigLWADiscoveryExtras={widgetCards,videoCards,placeCards,placePromo,attach};
+window.BigLWADiscoveryExtras={widgetCards,videoCards,placeCards,placePromo,toolIntentCards,attach};
 })();

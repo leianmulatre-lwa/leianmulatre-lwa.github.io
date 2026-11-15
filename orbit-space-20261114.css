@@ -41,6 +41,8 @@
    radial-gradient(circle at 33px 37px,rgba(255,205,240,.85) 0 .9px,transparent 1.8px);
  background-size:71px 79px,113px 97px;
  animation:biglwa-orbit-twinkle-a 3.7s ease-in-out infinite alternate;
+ background-position:
+  calc(var(--orbit-cursor-x, 0) * -22px) calc(var(--orbit-cursor-y, 0) * -22px);
 }
 #studioApp #orbit::after,
 #studioApp #moduleWorkspace[data-module-key="orbit"]::after{
@@ -49,6 +51,8 @@
    radial-gradient(circle at 47px 59px,rgba(255,255,255,.9) 0 1px,transparent 1.9px);
  background-size:89px 101px,131px 113px;
  animation:biglwa-orbit-twinkle-b 5.3s ease-in-out -2.4s infinite alternate;
+ background-position:
+  calc(var(--orbit-cursor-x, 0) * -42px) calc(var(--orbit-cursor-y, 0) * -42px);
 }
 @keyframes biglwa-orbit-twinkle-a{
  0%,15%{opacity:.13}48%{opacity:.9}71%{opacity:.32}100%{opacity:.75}

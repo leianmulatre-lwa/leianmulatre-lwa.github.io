@@ -276,7 +276,10 @@
       if(saved&&options.restore){
         lwaziMode=['npc','deep'].includes(saved.mode)?saved.mode:'off';syncLwaziMode();
       }
-      var historyId=saved?.id||history?.add(q,lwaziMode)||null;
+      // A pasted file URL can carry a short-lived signed access token.
+      // Do not quietly persist those URLs in L’wazi's searchable history.
+      var isFileLink=Boolean(window.BigLWALinkTools?.parse(q));
+      var historyId=isFileLink?null:(saved?.id||history?.add(q,lwaziMode)||null);
       activeHistoryId=historyId;
       var storedTurns=!options.modeChange&&saved&&Array.isArray(saved.turns)?saved.turns.slice():[];
       var submitInput=document.getElementById('globalSearch');
@@ -285,6 +288,9 @@
       if(navCommand&&window.BigLWANavigationCommands.navigate(navCommand)){close();return}
       var route=routeCommand(q);if(route){goRoute(route);return}
       mount(q);var current=panel;var clean=String(q).replace(/^@/,'').trim();
+      // Explicit HTTP(S) links receive purpose-specific file controls rather than
+      // being sent to general discovery/AI sources as search keywords.
+      if(window.BigLWALinkTools?.renderForQuery(current,clean))return;
       var mathResult=window.BigLWAMath?.solve(clean)||null;
       panel.innerHTML='<div class="bl-search-head"><article class="bl-lwazi-answer" role="status" aria-live="polite" hidden><div class="bl-lwazi-answer-body">L’wazi is thinking…</div></article><button type="button" class="bl-search-close" aria-label="Close search results">&#10005;</button></div><section class="bl-lwazi-conversation" aria-label="Continue talking with L’wazi" hidden><p class="bl-lwazi-conversation-label">Continue this conversation with L’wazi</p><div class="bl-lwazi-conversation-turns" role="log" aria-live="polite"></div><form class="bl-lwazi-continue-form"><input class="bl-lwazi-continue-input" type="text" maxlength="450" aria-label="Follow up with L’wazi" placeholder="Ask a follow-up…" autocomplete="off"><button class="bl-lwazi-continue-send" type="submit">Send ↗</button></form></section><nav class="bl-search-category-nav" aria-label="Search result categories"><button type="button" data-bl-match="all"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('All')+'</span>All</button><button type="button" data-bl-match="users"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('People')+'</span>People</button><button type="button" data-bl-match="sqwidz"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Sqwidz')+'</span>Sqwidz</button><button type="button" data-bl-match="books"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Books')+'</span>Books</button><button type="button" data-bl-match="songs"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Songs')+'</span>Songs</button><button type="button" data-bl-match="research"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Research')+'</span>Research</button><button type="button" data-bl-match="politics"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Politics')+'</span>Politics</button><button type="button" data-bl-match="stream"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Stream')+'</span>Stream</button></nav><div class="bl-search-loading">Finding people, books, songs and sources…</div>';
       panel.querySelector('.bl-search-close').addEventListener('click',close);
@@ -500,6 +506,8 @@
          var html=firstParty+(hairModels?section('Hair visual models',[hairModels],'hair images research'):'' )+section('Job postings',jobCards.map(sourceJobCard).filter(Boolean),'jobs careers work')+section('BigLWA users',parts[0].map(userCard),'people users images')+section('Public Sqwidz',parts[4],'sqwidz social posts')+section('Books',parts[1],'books images')+section('Songs',parts[5],'songs music videos audio')+(activeCategory==='songs'&&window.BigLWADiscoveryExtras?window.BigLWADiscoveryExtras.placePromo():'')+(activeCategory==='songs'&&!isSocialGreeting&&window.BigLWAMusicDiscovery?section('SoundCloud',[window.BigLWAMusicDiscovery.searchMarkup(clean)],'songs music soundcloud'):'')+section('Politics & public life',politics,'politics history research')+section('Cinema & video',films,'stream videos movies images')+section('Herstory',general,'research herstory places maps people politics images');
         var extras=window.BigLWADiscoveryExtras;
         if(extras){
+          const matchingTools=extras.toolIntentCards?.(clean)||[];
+          if(matchingTools.length)html=section('Free tools & creative alternatives',matchingTools,'all studio widgets games')+html;
           html+=section('Stream videos',extras.videoCards(clean,activeCategory==='stream'),'stream videos images');
           if(activeCategory==='widgets')html+=section('Studio widgets',extras.widgetCards(),'widgets studio');
           if(activeCategory==='places')html+=section('Places & Maps',extras.placeCards(),'places maps');
