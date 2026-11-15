@@ -58,6 +58,6 @@ test('SEO and visual guide explain capability boundaries with system dark mode',
  assert.match(page,/not affiliated with Adobe, Microsoft or Google/);
  assert.match(page,/@media\(prefers-color-scheme:dark\)/);
  assert.match(page,/a:focus-visible,button:focus-visible/);
- assert.match(page,/color:#f7eff7/,'Dark mode text is light');
- assert.match(page,/color:#392b32/,'Light mode text is dark');
+ assert.match(page,/--ink:#f7eff7/,'Dark mode text is light');
+ assert.match(page,/--ink:#392b32/,'Light mode text is dark');
 });
