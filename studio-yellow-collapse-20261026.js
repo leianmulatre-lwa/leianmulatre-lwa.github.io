@@ -65,14 +65,14 @@
   if(!document.getElementById('studioWidgetVisibilityMusicFix')){
    const link=document.createElement('link');
    link.id='studioWidgetVisibilityMusicFix';link.rel='stylesheet';
-   link.href='/studio-widget-visibility-music-20261102.css?v=20261103-height-cascade-4';
+   link.href='/studio-widget-visibility-music-20261102.css?v=20261115-tunes-time-eq-v1';
    document.head.append(link);
   }
   // Last loaded: one authoritative layout, not another fixed-height stereo.
   if(!document.getElementById('studioUpperRailSizeContract')){
    const link=document.createElement('link');
    link.id='studioUpperRailSizeContract';link.rel='stylesheet';
-   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261110-aura-heading-1';
+   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261115-tunes-time-eq-v1';
    document.head.append(link);
   }
  }
