@@ -172,6 +172,6 @@ test('Job and Orbit fixes are cache-busted in each Studio shell',()=>{
  for(const path of shells){
   const html=read(path);
   assert.match(html,/werk-browser-window-20261114\.js\?v=20261114-job-selection-2/);
-  assert.match(html,/orbit-space-20261114\.js\?v=20261114-cursor-scroll-2/);
+  assert.match(html,/orbit-space-20261114\.js\?v=20261114-visible-stars-3/);
  }
 });
