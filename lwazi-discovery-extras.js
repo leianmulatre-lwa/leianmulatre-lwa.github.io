@@ -79,6 +79,33 @@ function toolIntentCards(query){
   '<a class="bl-search-go bl-search-primary-action" href="/free-tools/">Explore free tools ↗</a></div></article>');
  return result.slice(0,7);
 }
+// Search suggestions link genuine public guides to implemented Studio modules.
+// They are not injected indiscriminately into unrelated questions.
+function discoveryIntentCards(query){
+ const q=String(query||'').toLowerCase().trim();
+ if(!q||q.length>180)return [];
+ const matches=[
+  {test:/(?:multiplayer(?:\s+(?:games?|online))?|(?:free|online|browser)\s+games?|arcade\s+games?)/i,
+   name:'Online games & multiplayer discovery',text:'BIG LWA arcade, external multiplayer listings and actual provider limits.',guide:'/online-games/',route:'games'},
+  {test:/(?:fare\s+(?:checker|compare|comparison|estimate)|uber\s+(?:estimate|price|fare)|lyft\s+(?:fare|price)|ride\s+price|rideshare\s+compare|food\s+delivery\s+fees)/i,
+   name:'Routes & fare-checking guide',text:'Map routes and provider choices; live fares require approved connections.',guide:'/fare-checker/',route:'map'},
+  {test:/(?:live\s+(?:shows?|streams?|programming|music)|watch\s+live|streaming\s+shows?)/i,
+   name:'Live shows & Stream',text:'Curated live-source broadcasts and music, with schedules controlled by their creators.',guide:'/live-shows/',route:'stream'},
+  {test:/(?:eat\s+the\s+rich|wealth\s+inequality|political\s+power|income\s+distribution)/i,
+   name:'Wealth, power & public-record research',text:'Examine rhetoric, inequality and policy with identifiable sources.',guide:'/power-and-politics/',route:'politc'},
+  {test:/(?:free\s+(?:encyclop(?:edia|a?edia)|knowledge|research|books?)|open\s+encyclop(?:edia|a?edia)|public\s+domain\s+books?)/i,
+   name:'Free knowledge & encyclopedias',text:'Books, archives, encyclopedias and first-party L’wazi research tools.',guide:'/free-knowledge/',route:'library'},
+  {test:/(?:connect\s+(?:social\s+)?(?:media|accounts?|platforms?)|social\s+body|link\s+instagram|import\s+(?:pinterest|instagram|tiktok))/i,
+   name:'Connect your social platforms with Orbit',text:'Optional provider connections, permission boundaries and supported imports.',guide:'/connect-social-platforms/',route:'orbit'}
+ ];
+ return matches.filter(x=>x.test.test(q)).slice(0,3).map(x=>
+  '<article class="bl-search-card bl-widget-result bl-feature-discovery-result"><div class="bl-search-card-body">'+
+  '<span class="bl-search-kicker">BIG LWA · Explore</span><h3>'+esc(x.name)+'</h3>'+
+  '<p>'+esc(x.text)+'</p><div class="bl-feature-discovery-actions">'+
+  '<button class="bl-search-go bl-search-primary-action" type="button" data-lwazi-route="'+esc(x.route)+'">Open in Studio ↗</button> '+
+  '<a class="bl-search-go" href="'+esc(x.guide)+'">Read feature guide ↗</a></div></div></article>'
+ );
+}
 function allVideos(){
  const guide=window.BigLWAStreamGuide;
  const known=[
@@ -247,5 +274,5 @@ function attach(panel){
   }catch{frame.addEventListener('load',send,{once:true});}
  });
 }
-window.BigLWADiscoveryExtras={widgetCards,videoCards,placeCards,placePromo,toolIntentCards,attach};
+window.BigLWADiscoveryExtras={widgetCards,videoCards,placeCards,placePromo,toolIntentCards,discoveryIntentCards,attach};
 })();
