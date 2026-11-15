@@ -47,7 +47,7 @@ function companyCareers(query){
 }
 function searchTargets(query,where){
  const term=clean(query)||'creative jobs',place=clean(where)||'United States';
- const federal=/\b(government|federal|public sector|civil service)\b/i.test(term);
+ const federal=/\b(government|federal|public sector|civil service|policy)\b/i.test(term);
  const targets=[
   federal
    ?{label:'USAJOBS',description:'Federal and public-sector openings',url:'https://www.usajobs.gov/Search/Results?k='+encodeURIComponent(term)+'&l='+encodeURIComponent(place)}
