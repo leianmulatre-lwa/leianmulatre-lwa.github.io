@@ -1,0 +1,23 @@
+
+.bl-search-section .lwazi-hair-visual-model{border:1px solid #ad918b;border-radius:13px;background:#fffaf4;color:#3d292e;padding:15px;width:100%;box-sizing:border-box}
+.lwazi-hair-visual-model>header{display:flex;gap:7px;flex-wrap:wrap;align-items:baseline;justify-content:space-between}
+.lwazi-hair-visual-model>header strong{font:700 19px/1.2 Georgia,serif}
+.lwazi-hair-visual-model>header span{font:600 11px/1.2 system-ui,sans-serif;color:#8b5a6c}
+.lwazi-hair-visual-model>p{margin:8px 0 12px;font:500 12px/1.55 system-ui,sans-serif}
+.lwazi-hair-visual-model .lwazi-hair-types{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px}
+.lwazi-hair-type{min-width:0;margin:0;padding:7px 4px 9px;border:1px solid #dbcbba;border-radius:8px;text-align:center;background:#fdf6ec}
+.lwazi-hair-type svg{display:block;margin:auto;width:min(100%,80px);height:102px;color:#34262b}
+.lwazi-hair-type figcaption{display:flex;flex-direction:column;gap:3px}
+.lwazi-hair-type figcaption strong{font:800 14px/1.2 system-ui,sans-serif}
+.lwazi-hair-type figcaption span{font:500 10px/1.3 system-ui,sans-serif}
+.lwazi-hair-properties{display:flex;gap:9px;flex-wrap:wrap;margin:13px 0}
+.lwazi-hair-properties>div{border:1px solid #c6a7a3;border-radius:8px;padding:7px 10px;display:grid;gap:3px;background:#f9e9dd}
+.lwazi-hair-properties b{font:700 11px/1.2 system-ui,sans-serif}
+.lwazi-hair-properties span{font:500 11px/1.2 system-ui,sans-serif}
+.lwazi-hair-visual-model>small{font:500 10px/1.4 system-ui,sans-serif;color:#6e5d5b}
+body.night-mode .bl-search-section .lwazi-hair-visual-model{background:#34282e;color:#f6eced;border-color:#80626f}
+body.night-mode .lwazi-hair-type{background:#4a353f;border-color:#755763}
+body.night-mode .lwazi-hair-type svg{color:#f3dfdc}
+body.night-mode .lwazi-hair-properties>div{background:#46323b}
+@media(max-width:720px){.lwazi-hair-visual-model .lwazi-hair-types{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:420px){.lwazi-hair-visual-model .lwazi-hair-types{grid-template-columns:repeat(3,minmax(0,1fr))}}
