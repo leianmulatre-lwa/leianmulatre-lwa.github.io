@@ -1,6 +1,7 @@
 /* BIG LWA community profile · private self-declared age/location, owner role badges.
    Not age verification. Does not geolocate or publish sensitive fields.
-   Account-isolated local preferences until a permissioned cloud profile API exists. */
+   Data is stored in the signed-in account's private Firestore profile;
+   previous UID-scoped browser entries are migration drafts only. */
 (()=>{
  'use strict';
  if(window.BigLWACommunityProfile)return;
