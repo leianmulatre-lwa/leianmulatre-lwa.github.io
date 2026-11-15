@@ -40,6 +40,8 @@ jobs:
           node --check room-discovery-signals-20261114.js
           node --check stream-guide.js
           node --test studio-booth-hair-map-room-stream-test.mjs
+          node --check community-profile-roles-20261114.js
+          node --test community-profile-policy-regression-20261114.test.mjs
           node --check map-lwa-discovery-20261114.js
           node --test map-discovery-test.mjs
           python3 -m unittest discover -s scripts -p test_visual_life_feed.py
