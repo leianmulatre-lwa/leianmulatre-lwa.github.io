@@ -29,6 +29,14 @@
  outline:3px solid #b95882;outline-offset:2px
 }
 .bl-link-variants .bl-link-action{background:rgba(97,148,117,.16)}
+.bl-link-preview[hidden]{display:none!important}
+.bl-link-preview{
+ display:grid;place-items:start;border:1px solid rgba(141,69,102,.3);
+ border-radius:10px;padding:9px;max-width:100%;overflow:hidden
+}
+.bl-link-preview :is(video,audio,img){display:block;width:min(100%,520px);max-height:340px;object-fit:contain}
+.bl-link-preview audio{min-height:45px}
+
 .bl-link-note{margin:0!important;font:500 10px/1.5 system-ui,sans-serif;opacity:.8;color:inherit}
 body.night-mode #bl-studio-search-results .bl-link-inspector,
 body.dark-mode #bl-studio-search-results .bl-link-inspector{
