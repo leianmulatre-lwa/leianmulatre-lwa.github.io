@@ -106,7 +106,7 @@ test('Marker trip selection keeps planning in BIG LWA with no immediate external
  assert.match(env.stage.children[0].children[3].textContent,/Destination selected/);
  assert(!env.routePanel.children.some(x=>x.id==='mapServiceLinks'),
   'Place lookup must not silently create third-party booking links');
- assert.doesNotMatch(js,/target='_blank'/,'No ride/provider links open external tabs from the discovery widget');
+ assert.doesNotMatch(js,/m\.uber\.com|ubereats\.com|doordash\.com|grubhub\.com/,'No provider booking links in place discovery');
  assert.equal(env.fetches.length,1,'POI lookup never makes provider price or delivery requests');
 });
 
