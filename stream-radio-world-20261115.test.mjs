@@ -50,6 +50,9 @@ test('Campus radio lookup only uses matching call letters and geography',()=>{
  assert.equal(radio.pickCollegeMatch([{...base,state:'California'}],station),null);
  assert.equal(radio.pickCollegeMatch([{...base,name:'KXYZ FM'}],station),null);
  assert.equal(radio.pickCollegeMatch([base],station).stream,'https://streams.example.com/kjhk.mp3');
+ const ucla={...base,name:'UCLA Radio',state:'California',url_resolved:'https://streams.example.com/ucla.mp3'};
+ assert.equal(radio.pickCollegeMatch([ucla],{name:'UCLA Radio',state:'California'}).title,'UCLA Radio');
+ assert.equal(radio.pickCollegeMatch([{...ucla,name:'Other College Radio'}],{name:'UCLA Radio',state:'California'}),null);
 });
 test('On-demand college radio fallback checks country and name before playing',async()=>{
  const calls=[];
