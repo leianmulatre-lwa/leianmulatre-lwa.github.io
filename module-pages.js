@@ -1330,8 +1330,8 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
      ['substack','S','Substack','#da521b'],['xbox','XB','Xbox','#a3d65e'],
     ['website','WWW','My website','rgb(var(--aura-rgb,216,95,109))']
   ];
-  const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest','facebook','youtube']);
-  const ORBIT_LIVE=new Set(['instagram','tiktok','pinterest','facebook','youtube']);
+  const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest','facebook','youtube','calendar','drive']);
+  const ORBIT_LIVE=new Set(['instagram','tiktok','pinterest','facebook','youtube','calendar','drive']);
   const ORBIT_APP_NAMES=Object.fromEntries([...ORBIT_APPS,...PLANETARY_APPS].map(([k,,n])=>[k,n]));
   /* Each API's chip wears that API's own colour. They were all one black pill, which read as
      a row of dead black dots with unreadable lettering rather than as a list of services.
@@ -1342,6 +1342,24 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const rows=[];
     for(const id of ['x','snapchat','tumblr']){const item=window.BigLWAOrbitOAuth?.get?.(id);if(item)rows.push(item)}
     try{rows.push(...Object.values(window.__biglwaConnections?.connections?.()||{}).filter(row=>row&&row.id&&row.link))}catch{}
+    // Google Identity Services returns a short-lived in-memory access token;
+    // it is not an account-level token nor a public profile link. Reflect it in
+    // all three Orbit rows only for the signed-in member who authorized it.
+    try{
+      const google=window.__biglwaGoogleOrbit;
+      const uid=String(window.__biglwaIdentity?.uid||window.BigLWAAccountStorage?.uid||'').trim();
+      const active=google?.state?.connected&&google?.state?.uid===uid&&
+        google.hasActiveToken?.()===true&&uid&&
+        !document.documentElement.classList.contains('biglwa-preview-mode');
+      if(active){
+        for(const id of ['youtube','drive','calendar']){
+          rows.push({id,label:id==='calendar'?'Google Calendar':id==='drive'?'Google Drive':'YouTube',
+            name:id==='youtube'?google.state.youtube?.snippet?.title||'YouTube authorized':
+              id==='drive'?'Google Drive authorized':'Google Calendar authorized',
+            verifiedFromProvider:true,googleSession:true,link:''});
+        }
+      }
+    }catch{}
     // The account mirror is asynchronous. If the Pinterest API has actually
     // verified a signed-in user's profile, show that verified connection right
     // away rather than falsely showing NOT CONNECTED until Firestore finishes.
@@ -1627,7 +1645,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
          return;
        }
        if(!ORBIT_LIVE.has(k)){say('This provider is not configured for sign-in yet.');return;}
-       const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.BigLWAFacebookPersonal,youtube:window.__biglwaGoogleOrbit}[k];
+       const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.BigLWAFacebookPersonal,youtube:window.__biglwaGoogleOrbit,calendar:window.__biglwaGoogleOrbit,drive:window.__biglwaGoogleOrbit}[k];
        if(!client?.connect){say('That connection is still loading. Try again in a moment.');return;}
        if(k==='facebook'){
          connect.disabled=true;
@@ -1641,6 +1659,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
        const k=unlink.dataset.orbitUnlink;unlink.disabled=true;say('Unlinking…');
        try{
          if(['x','snapchat','tumblr'].includes(k))await window.BigLWAOrbitOAuth.disconnect(k);
+         else if(['youtube','calendar','drive'].includes(k))await window.__biglwaGoogleOrbit?.disconnect?.();
          else if(k==='facebook'&&window.BigLWAFacebookPersonal?.state?.connected)await window.BigLWAFacebookPersonal.disconnect();
          else if(k==='facebook'&&window.__biglwaFacebookOrbit?.state?.connected)await window.__biglwaFacebookOrbit.disconnect();
          else await window.__biglwaConnections?.forget?.(k);
@@ -4255,7 +4274,11 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   document.addEventListener('biglwa:community-profile-updated',()=>{
     if(activeModuleKey==='rooms'&&!workspace.hidden)renderRoom();
   });
-  document.addEventListener('biglwa:google-state',()=>{if(routeName.textContent==='Calendar'&&!workspace.hidden)renderCalendar()});
+  document.addEventListener('biglwa:google-state',()=>{
+    if(workspace.hidden)return;
+    if(activeModuleKey==='calendar')renderCalendar();
+    if(activeModuleKey==='orbit')renderOrbitPage();
+  });
   window.addEventListener('biglwa:orbit-imported',()=>{
     if(activeModuleKey==='archive') renderArchive();
     if(activeModuleKey==='feed'){
