@@ -98,7 +98,7 @@ test('normal motion animates its own canvases without touching connection handle
 
 test('lavender glass reveals the starfield and keeps status and app text legible',()=>{
  for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html'])
-  assert.match(read(path),/orbit-space-20261114\.css\?v=20261114-starfield-visible-4/);
+  assert.match(read(path),/orbit-space-20261114\.css\?v=20261114-twinkle-warp-widget-4/);
  assert.match(css,/background:rgba\(35,24,62,\.37\)!important/,'full Orbit pane is translucent instead of ivory');
  assert.match(css,/background:rgba\(90,65,128,\.22\)!important/,'app connection cards reveal space');
  assert.match(css,/\.orbit-quick-link\{\s*background:rgba\(151,123,191,\.19\)!important/);
@@ -156,8 +156,8 @@ test('Orbit canvas disappears before a different module renders, and never reser
  assert.equal(env.page.attached.at(-1).isConnected,false,'Immediate route cleanup works');
  for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html']){
   const html=read(path);
-  assert.match(html,/orbit-space-20261114\.js\?v=20261114-visible-stars-3/);
-  assert.match(html,/orbit-space-20261114\.css\?v=20261114-starfield-visible-4/);
+  assert.match(html,/orbit-space-20261114\.js\?v=20261114-twinkle-warp-widget-4/);
+  assert.match(html,/orbit-space-20261114\.css\?v=20261114-twinkle-warp-widget-4/);
   assert.match(html,/&orbitcleanup=20261114-2/);
  }
 });
