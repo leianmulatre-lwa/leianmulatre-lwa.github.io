@@ -52,7 +52,12 @@ function verifiedStation(row,opts={}){
  if(opts.name){
   const sign=callsign(opts.name);
   const hay=(' '+String(row.name||'').toUpperCase()+' ').replace(/[^A-Z0-9]+/g,' ');
-  if(!sign||!new RegExp('(?:^| )'+sign+'(?: |$)').test(hay))return null;
+  // UCLA Radio is an online student station, not a conventional FM callsign.
+  // The only name-only exception is an explicitly matching UCLA Radio label.
+  if(sign){if(!new RegExp('(?:^| )'+sign+'(?: |$)').test(hay))return null;}
+  else if(String(opts.name?.name||'').trim().toLowerCase()==='ucla radio'){
+   if(!/^UCLA RADIO(?:$|\s|[-–—(])/.test(String(row.name||'').toUpperCase()))return null;
+  }else return null;
  }
  return {
   id:text(row.stationuuid,80),title:text(row.name,130),country:text(row.country||'',90),
@@ -100,8 +105,9 @@ function pickCollegeMatch(rows,station){
 }
 async function findCollegeStream(station){
  const call=callsign(station);
- if(!call)return null;
- const params=new URLSearchParams({name:call,countrycode:'US',hidebroken:'true',order:'votes',reverse:'true',limit:'50'});
+ const query=call||(String(station?.name||'').trim().toLowerCase()==='ucla radio'?'UCLA Radio':'');
+ if(!query)return null;
+ const params=new URLSearchParams({name:query,countrycode:'US',hidebroken:'true',order:'votes',reverse:'true',limit:'50'});
  const rows=await apiGet('/json/stations/search?'+params);
  return pickCollegeMatch(rows,station);
 }
