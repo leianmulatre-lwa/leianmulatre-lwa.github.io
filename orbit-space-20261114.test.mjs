@@ -29,10 +29,11 @@ test('scope keeps the original planet grid, connect buttons and dark cosmic page
 
 function fakeTarget(){
  const attached=[],events={},children=[];
+ const rect={width:460,height:310,left:50,right:510,top:120,bottom:430};
  const ctx={setTransform(){},clearRect(){},beginPath(){},moveTo(){},lineTo(){},stroke(){},fill(){},arc(){}};
  return {
   isConnected:true,events,children,dataset:{moduleKey:'orbit'},hidden:false,
-  getBoundingClientRect:()=>({width:460,height:310}),
+  getBoundingClientRect:()=>rect,setRect:patch=>Object.assign(rect,patch),
   getClientRects:()=>[{}],
   addEventListener:(key,cb)=>{events[key]=cb},
   insertBefore:(child)=>{attached.push(child);children.unshift(child)},
@@ -47,9 +48,10 @@ function harness(reducedMotion){
   addEventListener(){}
  };
  const win={
-  devicePixelRatio:1,
+  devicePixelRatio:1,innerHeight:900,innerWidth:1300,
   matchMedia:()=>({matches:reducedMotion,addEventListener(){}}),
-  addEventListener(){}
+  events:{},
+  addEventListener(key,fn){this.events[key]=fn}
  };
  const fakeCanvas=()=>{
   const calls=[];
@@ -102,7 +104,7 @@ test('normal motion animates its own canvases without touching connection handle
 
 test('lavender glass reveals the starfield and keeps status and app text legible',()=>{
  for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html'])
-  assert.match(read(path),/orbit-space-20261114\.css\?v=20261114-true-camera-warp-5/);
+  assert.match(read(path),/orbit-space-20261114\.css\?v=20261114-visible-thumbnail-6/);
  assert.match(css,/background:rgba\(35,24,62,\.37\)!important/,'full Orbit pane is translucent instead of ivory');
  assert.match(css,/background:rgba\(90,65,128,\.22\)!important/,'app connection cards reveal space');
  assert.match(css,/\.orbit-quick-link\{\s*background:rgba\(151,123,191,\.19\)!important/);
@@ -160,8 +162,8 @@ test('Orbit canvas disappears before a different module renders, and never reser
  assert.equal(env.page.attached.at(-1).isConnected,false,'Immediate route cleanup works');
  for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html']){
   const html=read(path);
-  assert.match(html,/orbit-space-20261114\.js\?v=20261114-true-camera-warp-5/);
-  assert.match(html,/orbit-space-20261114\.css\?v=20261114-true-camera-warp-5/);
+  assert.match(html,/orbit-space-20261114\.js\?v=20261114-visible-thumbnail-6/);
+  assert.match(html,/orbit-space-20261114\.css\?v=20261114-visible-thumbnail-6/);
   assert.match(html,/&orbitcleanup=20261114-2/);
  }
 });
@@ -222,4 +224,41 @@ test('both Orbit surfaces use the same cursor-steered camera, not hover speed-up
  env.scheduled.shift()(65);
  assert.equal(env.widget.attached.length,1);
  assert.equal(env.page.attached.length,1);
+});
+
+test('visible Studio Orbit animation outranks decorative dots and keeps planets clickable',()=>{
+ const canvasRule=css.indexOf('#studioApp #orbit>.orbit-space-canvas,');
+ const cssLayer=css.slice(canvasRule,canvasRule+780);
+ assert.match(cssLayer,/z-index:2!important/,'Canvas must not sit underneath decorative stars');
+ assert.match(css,/#studioApp #orbit>:not\(\.orbit-space-canvas\),[\s\S]*?z-index:3/);
+ assert.match(css,/#studioApp article#orbit>\.orbit-space-canvas\{[\s\S]*?pointer-events:none!important/);
+ assert.match(css,/@keyframes biglwa-orbit-twinkle-a\{[\s\S]*?translate3d\(/);
+ const env=harness(false);
+ env.scheduled.shift()(10);
+ const bitmap=env.widget.attached[0].ctx;
+ const count=bitmap.calls.length;
+ env.scheduled.shift()(50);
+ assert(bitmap.calls.length>count,'Visible Studio card paints actual new frame');
+ assert.equal(env.widget.dataset.orbitSpaceMounted,'true');
+ assert.equal(env.widget.attached.length,1,'Canvas remains separate from eight app buttons');
+});
+
+test('Orbit uses actual viewport geometry and wakes when scrolled back',()=>{
+ assert.match(js,/return isInViewport\(layer\.target\)/);
+ assert.match(js,/window\.addEventListener\('scroll',wake/);
+ const env=harness(false);
+ env.scheduled.shift()(10);
+ env.scheduled.shift()(50);
+ env.widget.setRect({top:1200,bottom:1510});
+ env.page.setRect({top:1200,bottom:1510});
+ env.scheduled.shift()(90);
+ assert.equal(env.scheduled.length,0,'Animation stops rendering off-screen cards');
+ env.widget.setRect({top:150,bottom:460});
+ env.page.setRect({top:250,bottom:560});
+ // Trigger the real window scroll listener through the VM harness.
+ env.win.events.scroll?.();
+ assert.equal(env.scheduled.length,1,'Returning card restarts requestAnimationFrame');
+ const before=env.widget.attached[0].ctx.calls.length;
+ env.scheduled.shift()(170);
+ assert(env.widget.attached[0].ctx.calls.length>before);
 });

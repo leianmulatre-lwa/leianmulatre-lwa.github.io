@@ -112,11 +112,22 @@
    ctx.beginPath();ctx.arc(nx,ny,radius,0,Math.PI*2);ctx.fill();
   }
  }
+ function isInViewport(target){
+  // Some Studio masonry/drag transitions deliver a stale IntersectionObserver
+  // result even while the thumbnail is visibly on screen.
+  const rect=target.getBoundingClientRect();
+  const height=window.innerHeight||document.documentElement?.clientHeight||0;
+  const width=window.innerWidth||document.documentElement?.clientWidth||0;
+  if(!height||!width||!Number.isFinite(rect.top)||!Number.isFinite(rect.bottom))return true;
+  return rect.bottom>=-90&&rect.top<=height+90&&rect.right>=-90&&rect.left<=width+90;
+ }
  function active(layer){
-  if(!layer.target.isConnected||!layer.visible)return false;
+  if(!layer.target.isConnected)return false;
   if(layer.kind==='page'&&(layer.target.hidden||layer.target.dataset?.moduleKey!=='orbit'))return false;
   if(!layer.target.getClientRects().length)return false;
-  return true;
+  // Geometry is authoritative for a visible card; IntersectionObserver is a
+  // performance hint only and must never freeze visible Orbit thumbnails.
+  return isInViewport(layer.target);
  }
  function tick(time){
   frame=0;
@@ -159,6 +170,7 @@
   const ctx=canvas.getContext('2d',{alpha:true});
   if(!ctx)return;
   target.insertBefore(canvas,target.firstChild);
+  target.dataset.orbitSpaceMounted='true';
   const layer={target,canvas,ctx,kind,stars:[],twinkles:seedTwinkle(kind==='widget'?80:130),
    elapsed:0,width:0,height:0,visible:!visibility,hover:false,
    cursorX:0,cursorY:0,cursorTargetX:0,cursorTargetY:0,cursorMotion:0};
@@ -193,6 +205,7 @@
  function release(target,layer){
   visibility?.unobserve(target);resizing?.unobserve(target);
   layer.canvas.remove?.();
+  delete target.dataset?.orbitSpaceMounted;
   layers.delete(target);
  }
  function detachPage(){
@@ -243,5 +256,8 @@
   }else wake();
  });
  window.addEventListener('resize',()=>{for(const layer of layers.values())size(layer);wake()},{passive:true});
- window.BigLWAOrbitSpace=Object.freeze({version:'20261114-true-camera-warp-5',refresh:schedule,detachPage});
+ // Wake on scrolling back to the card after a long idle; don't permanently
+ // stop the renderer after an inaccurate offscreen/hidden observer callback.
+ window.addEventListener('scroll',wake,{passive:true,capture:true});
+ window.BigLWAOrbitSpace=Object.freeze({version:'20261114-visible-thumbnail-6',refresh:schedule,detachPage});
 })();
