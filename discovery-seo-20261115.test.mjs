@@ -126,3 +126,16 @@ test('Privacy and data deletion now have accurate open graph previews and schema
   assert.equal(JSON.parse(p.match(/<script type="application\/ld\+json">([^<]+)<\/script>/)?.[1]||'{}')['@type'],'WebPage',slug);
  }
 });
+
+test('Cloudflare Pages dist includes every public guide and never rewrites it into the login SPA',()=>{
+ const builder=read('build-cloudflare-pages.mjs');
+ const dirs=builder.match(/const publishDirs=new Set\(\[([\s\S]*?)\]\);/)?.[1]||'';
+ const required=builder.match(/for\(const required of \[([^\]]+)\]\)/)?.[1]||'';
+ for(const slug of [...topics,'free-tools']){
+  assert(dirs.includes("'"+slug+"'"),slug+' must be in Pages publishDirs');
+  assert(required.includes("'"+slug+"/index.html'"),slug+' must be verified in actual dist');
+ }
+ assert.match(builder,/writeFileSync\(join\(dest,'_redirects'\)/);
+ assert.doesNotMatch(builder,/\/discover \/index\.html 200|\/online-games \/index\.html 200/,'Do not rewrite public guides to the login SPA');
+ assert.match(builder,/if\(existsSync\(join\(dest,hidden\)\)\)/,'Restricted backend code remains excluded');
+});
