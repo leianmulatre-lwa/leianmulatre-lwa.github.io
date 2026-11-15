@@ -56,6 +56,9 @@ on:
       - 'studio-uploaded-thumbnails-20261110.css'
       - 'project-canvas.js'
       - 'orbit-badge-layout-test.mjs'
+      - 'orbit-space-20261114.js'
+      - 'orbit-space-20261114.css'
+      - 'orbit-space-20261114.test.mjs'
       - 'mii-webport-test.mjs'
       - 'studio-layout-cache-test.mjs'
       - 'profile-music-test.mjs'
@@ -111,6 +114,8 @@ jobs:
           node feed-auth-tools-regression-test.mjs
           node feed-mixed-caption-test.mjs
           node orbit-badge-layout-test.mjs
+          node --check orbit-space-20261114.js
+          node --test orbit-space-20261114.test.mjs
           node active-route-build-regression-test.mjs
           node orbit-inline-links-regression-test.mjs
           node pinterest-owned-feed-regression-test.mjs
