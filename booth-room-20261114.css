@@ -174,3 +174,45 @@ body.night-mode #studioApp #moduleWorkspace[data-module-key="rooms"] .room-role-
 #studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity[data-lights="off"] .light-bar{
  background:rgba(255,250,227,0)!important;box-shadow:none!important;
 }
+
+
+/* Room / Lounge switcher belongs in the upper-right title row, not underneath
+ * the header divider. The privacy preference stays in the description row. */
+#studioApp #moduleWorkspace[data-module-key="rooms"] .module-heading:not(.module-heading--with-shadow){
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) auto!important;
+ grid-template-areas:"room-title room-tabs" "room-meta room-meta"!important;
+ column-gap:20px!important;
+ row-gap:7px!important;
+ align-items:center!important;
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .module-heading-copy{
+ grid-area:room-title;min-width:0;
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-heading-tabs{
+ grid-area:room-tabs;
+ justify-self:end;align-self:center;min-width:0;
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-heading-tabs .room-mode-tabs{
+ margin:0!important;
+ flex-wrap:nowrap!important;
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-heading-tabs .room-mode-tabs button{
+ min-width:79px;
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .module-heading-bottom{
+ grid-area:room-meta;min-width:0;
+}
+@media(max-width:690px){
+ #studioApp #moduleWorkspace[data-module-key="rooms"] .module-heading:not(.module-heading--with-shadow){
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-areas:"room-title" "room-tabs" "room-meta"!important;
+  row-gap:10px!important;
+ }
+ #studioApp #moduleWorkspace[data-module-key="rooms"] .room-heading-tabs{
+  justify-self:start;max-width:100%;
+ }
+ #studioApp #moduleWorkspace[data-module-key="rooms"] .room-heading-tabs .room-mode-tabs button{
+  min-width:70px;padding:6px 14px;
+ }
+}
