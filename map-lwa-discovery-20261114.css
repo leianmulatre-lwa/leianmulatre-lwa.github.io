@@ -1,0 +1,89 @@
+/* BIG LWA Map discovery. Overlay has no effect on Leaflet tile geometry,
+ * on private saved pins, or on the compact Studio preview iframe. */
+body:not(.preview) .map-stage{position:relative}
+body:not(.preview) .map-discover{
+ position:absolute;z-index:650;top:12px;left:52px;
+ width:min(325px,calc(100% - 112px));max-height:min(58vh,430px);
+ box-sizing:border-box;overflow:auto;overscroll-behavior:contain;
+ padding:10px 11px;border-radius:12px;
+ border:1px solid rgba(105,62,83,.4);
+ background:rgba(255,249,246,.91);backdrop-filter:blur(11px);
+ color:#3e3036;box-shadow:0 8px 24px rgba(51,31,49,.2);
+ font:500 11px/1.4 system-ui,sans-serif
+}
+.map-discover-heading{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.map-discover-heading strong{font:700 13px/1.25 Georgia,serif;color:#623348}
+.map-discover-heading span{font:700 9px/1 system-ui,sans-serif;color:#876477}
+.map-discover-choices{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.map-discover-chip{
+ flex:0 1 auto;min-height:29px;padding:5px 7px;border:1px solid #cfaebd;
+ border-radius:99px;background:rgba(255,255,255,.93);color:#704254;
+ font:700 10px/1.2 system-ui,sans-serif;cursor:pointer
+}
+.map-discover-chip[aria-pressed="true"]{background:#68324b;color:#fff;border-color:#68324b}
+.map-discover-chip:hover{border-color:#73354d}
+.map-discover-chip:focus-visible,.map-discover-result:focus-visible,
+.map-service-link:focus-visible,.map-discover-popup button:focus-visible{
+ outline:3px solid #bb7089;outline-offset:2px
+}
+.map-discover-help,.map-discover-status{margin:7px 0 0;font:500 10px/1.4 system-ui,sans-serif;color:#715564}
+.map-discover-status{font-weight:700}
+.map-discover-results{display:flex;gap:4px;overflow:auto;max-width:100%;padding-top:6px;scrollbar-width:thin}
+.map-discover-result{
+ flex:0 0 auto;max-width:145px;min-height:30px;padding:5px 8px;
+ border:1px solid #e1c9d4;border-radius:9px;background:#fffcfa;
+ color:#613c50;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font:700 10px/1.1 system-ui,sans-serif;cursor:pointer
+}
+.leaflet-marker-icon.map-discovery-icon{
+ border:0!important;background:transparent!important;
+ overflow:visible!important;pointer-events:auto
+}
+.map-discovery-icon>span{
+ display:grid;place-items:center;width:31px;height:31px;
+ background:rgba(255,251,247,.95);border:1.5px solid #93435e;
+ border-radius:50% 50% 50% 15%;box-shadow:0 2px 7px #2c182858;
+ font:16px/1 "Apple Color Emoji","Segoe UI Emoji",sans-serif;
+}
+.map-discover-popup{font:500 11px/1.4 system-ui,sans-serif}
+.map-discover-popup>strong{display:block;font-size:13px;color:#63374a}
+.map-discover-popup>p{margin:5px 0;color:#634c57}
+.map-discover-popup-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:7px}
+.map-discover-popup-actions>*{
+ padding:6px 7px;border:1px solid #bf8ca1;border-radius:7px;
+ background:#fff7f4;color:#71364e;font:700 10px/1.2 system-ui,sans-serif;
+ text-decoration:none;cursor:pointer
+}
+.map-service-links{
+ display:grid;gap:7px;margin-top:11px;padding:10px;
+ border:1px solid #d4b7bf;border-radius:12px;background:rgba(255,253,251,.78)
+}
+.map-service-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:5px}
+.map-service-head>strong{font:700 14px/1.3 Georgia,serif;color:#603c4a}
+.map-service-head>small{font:600 10px/1.35 system-ui,sans-serif;color:#805d70}
+.map-service-actions{display:flex;gap:6px;flex-wrap:wrap}
+.map-service-link{
+ flex:1 1 auto;padding:8px 9px;border:1px solid #a86782;border-radius:9px;
+ color:#6f354c;background:#fff;font:700 11px/1.3 system-ui,sans-serif;
+ text-decoration:none;text-align:center
+}
+.map-service-link:hover{background:#f5e8eb}
+.map-service-note{margin:0!important;font:500 10px/1.5 system-ui,sans-serif!important;color:#765869!important}
+body.dark-mode .map-discover,body.night-mode .map-discover{
+ background:rgba(41,33,43,.92);color:#fff4fa;border-color:#ac8294
+}
+body.dark-mode .map-discover-heading strong,body.night-mode .map-discover-heading strong{color:#ffe1ec}
+body.dark-mode .map-discover-help,body.dark-mode .map-discover-status,
+body.night-mode .map-discover-help,body.night-mode .map-discover-status{color:#f0d2df}
+@media(max-width:650px){
+ body:not(.preview) .map-discover{
+  top:8px;left:48px;width:calc(100% - 100px);max-height:48vh;padding:8px;
+  backdrop-filter:none
+ }
+ .map-discover-help{display:none}
+ .map-discover-heading strong{font-size:11px}
+ .map-discover-chip{font-size:9px;min-height:26px;padding:4px 6px}
+}
+@media(prefers-reduced-motion:reduce){
+ .map-discover,.map-discover-chip,.map-discovery-icon>span{transition:none!important;animation:none!important}
+}
