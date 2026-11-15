@@ -5,8 +5,8 @@
 (()=>{'use strict';
  if(window.BigLWAOrbitSpace)return;
  const selectors=[
-  ['#studioApp #orbit','widget',68],
-  ['#studioApp #moduleWorkspace[data-module-key="orbit"]','page',115]
+  ['#studioApp #orbit','widget',160],
+  ['#studioApp #moduleWorkspace[data-module-key="orbit"]','page',235]
  ];
  const layers=new Map();
  const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)');
@@ -35,9 +35,15 @@
   const {ctx,width:w,height:h}=layer;
   if(!w||!h)return;
   ctx.clearRect(0,0,w,h);
-  const accelerated=layer.hover?1.8:1;
-  const speed=dt*(layer.kind==='widget'?.09:.075)*accelerated;
-  const cx=w*.52,cy=h*.48;
+  // Smooth cursor position drives the vanishing point and warp velocity.
+  // Only the canvas pixels move; pointer events and DOM/card layout never do.
+  const easing=Math.min(1,dt*5.5);
+  layer.cursorX+=(layer.cursorTargetX-layer.cursorX)*easing;
+  layer.cursorY+=(layer.cursorTargetY-layer.cursorY)*easing;
+  layer.cursorMotion*=Math.max(0,1-dt*1.9);
+  const accelerated=layer.hover?1.3+layer.cursorMotion*.85:1;
+  const speed=dt*(layer.kind==='widget'?.11:.085)*accelerated;
+  const cx=w*(.52+layer.cursorX*.23),cy=h*(.48+layer.cursorY*.22);
   for(const star of layer.stars){
    const z=star.z;
    const next=z-speed;
@@ -61,6 +67,7 @@
  }
  function active(layer){
   if(!layer.target.isConnected||!layer.visible)return false;
+  if(layer.kind==='page'&&(layer.target.hidden||layer.target.dataset?.moduleKey!=='orbit'))return false;
   if(!layer.target.getClientRects().length)return false;
   return true;
  }
@@ -105,13 +112,26 @@
   const ctx=canvas.getContext('2d',{alpha:true});
   if(!ctx)return;
   target.insertBefore(canvas,target.firstChild);
-  const layer={target,canvas,ctx,kind,stars:[],width:0,height:0,visible:!visibility,hover:false};
+  const layer={target,canvas,ctx,kind,stars:[],width:0,height:0,visible:!visibility,hover:false,
+   cursorX:0,cursorY:0,cursorTargetX:0,cursorTargetY:0,cursorMotion:0};
   for(let i=0;i<count;i++){
    const star={};seed(star);layer.stars.push(star);
   }
   layers.set(target,layer);
   target.addEventListener('pointerenter',()=>{layer.hover=true},{passive:true});
-  target.addEventListener('pointerleave',()=>{layer.hover=false},{passive:true});
+  target.addEventListener('pointermove',event=>{
+   if(event.pointerType==='touch'||reduced?.matches)return;
+   const bounds=target.getBoundingClientRect();
+   if(bounds.width<1||bounds.height<1)return;
+   const nextX=Math.max(-.5,Math.min(.5,(event.clientX-bounds.left)/bounds.width-.5));
+   const nextY=Math.max(-.5,Math.min(.5,(event.clientY-bounds.top)/bounds.height-.5));
+   layer.cursorMotion=Math.min(1,layer.cursorMotion+Math.hypot(nextX-layer.cursorTargetX,nextY-layer.cursorTargetY)*2.4);
+   layer.cursorTargetX=nextX;layer.cursorTargetY=nextY;
+   layer.hover=true;
+  },{passive:true});
+  target.addEventListener('pointerleave',()=>{
+   layer.hover=false;layer.cursorTargetX=0;layer.cursorTargetY=0;layer.cursorMotion=0;
+  },{passive:true});
   size(layer);
   // Reduced motion leaves a real, static starfield—not a blank black screen.
   paint(layer,0);
@@ -119,16 +139,27 @@
   resizing?.observe(target);
   wake();
  }
+ function release(target,layer){
+  visibility?.unobserve(target);resizing?.unobserve(target);
+  layer.canvas.remove?.();
+  layers.delete(target);
+ }
+ function detachPage(){
+  // The module workspace is reused for every tool. Remove this canvas
+  // before the Orbit data-module-key changes, or its intrinsic dimensions
+  // become a normal-flow block and push the next widget far down the page.
+  for(const [target,layer] of layers)if(layer.kind==='page')release(target,layer);
+ }
  function sync(){
   queued=false;
+  const desired=selectors.map(([selector,kind,count])=>[document.querySelector(selector),kind,count]);
+  const allowed=new Set(desired.map(([target])=>target).filter(Boolean));
   for(const [target,layer] of layers){
-   if(target.isConnected)continue;
-   visibility?.unobserve(target);resizing?.unobserve(target);
-   layers.delete(target);
+   if(target.isConnected&&allowed.has(target))continue;
+   release(target,layer);
   }
-  for(const [selector,kind,count] of selectors){
-   const node=document.querySelector(selector);
-   if(node)mount(node,kind,count);
+  for(const [node,kind,count] of desired){
+   if(node&&!(kind==='page'&&node.hidden))mount(node,kind,count);
   }
  }
  function schedule(){
@@ -140,7 +171,9 @@
  else schedule();
  // Studio replaces its module workspace on navigation; remount without
  // changing the underlying OAuth and account-link state.
- new MutationObserver(schedule).observe(document.documentElement,{childList:true,subtree:true});
+ new MutationObserver(schedule).observe(document.documentElement,{
+  childList:true,subtree:true,attributes:true,attributeFilter:['data-module-key','hidden']
+ });
  document.addEventListener('biglwa:module-open',schedule);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)wake()});
  reduced?.addEventListener?.('change',()=>{
@@ -150,5 +183,5 @@
   }else wake();
  });
  window.addEventListener('resize',()=>{for(const layer of layers.values())size(layer);wake()},{passive:true});
- window.BigLWAOrbitSpace=Object.freeze({version:'20261114-space-1',refresh:schedule});
+ window.BigLWAOrbitSpace=Object.freeze({version:'20261114-cursor-2',refresh:schedule,detachPage});
 })();
