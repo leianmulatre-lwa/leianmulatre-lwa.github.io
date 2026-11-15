@@ -58,10 +58,10 @@ test('OpenFreeMap preview keeps pan/zoom and now has real same-window private pi
  assert.match(map,/map-preview-pins-updated/);
  assert.match(studio,/map-app\.html\?embed=1&preview=1&v=20261114-inline-pinning-1/);
  assert.match(map,/body\.preview #studioMapPreviewTools/);
- assert.match(map,/body\\.embedded\\.preview #map\\{/,'Embedded Studio thumbnails must override full-page map sizing');
- assert.match(map,/body\\.embedded\\.preview \\.map-stage\\{/,'Preview map stage must fill the iframe');
- assert.match(map,/body\\.embedded\\.preview \\.map-side>\\.toolbar,[\\s\\S]*?display:none!important/,'Full-map toolbar must not cover mini-map controls');
- assert.match(map,/body\\.embedded\\.preview #studioMapPreviewTools\\{/,'Mini-map tools must remain available');
+ assert.match(map,/body\.embedded\.preview #map\{/,'Embedded Studio thumbnails must override full-page map sizing');
+ assert.match(map,/body\.embedded\.preview \.map-stage\{/,'Preview map stage must fill the iframe');
+ assert.match(map,/body\.embedded\.preview \.map-side>\.toolbar,[\s\S]*?display:none!important/,'Full-map toolbar must not cover mini-map controls');
+ assert.match(map,/body\.embedded\.preview #studioMapPreviewTools\{/,'Mini-map tools must remain available');
 });
 test('Room and Lounge replace invented trending and online counts with sourced search routes',async()=>{
  assert.doesNotMatch(studio,/'minecraft','#minecraft','Trending room'/);
