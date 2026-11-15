@@ -1,8 +1,8 @@
-name: Visual-Life / Werk · reviewed JobSpy snapshot
+name: Visual-Life / Werk · reviewed multi-source jobs snapshot
 
 on:
-  # Runs once when the owner changes this reviewed list on main.
-  # No cron: scraping is not an on-demand public browser capability.
+  # Refresh only owner-reviewed employer boards when the list changes on main.
+  # No unattended recurring job scraping; owner also has manual dispatch.
   push:
     branches: ["main"]
     paths:

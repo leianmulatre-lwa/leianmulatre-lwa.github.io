@@ -17,7 +17,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parent.parent
 DEST = ROOT / "data" / "visual-life" / "jobs.json"
-MAX_ROWS = 120
+MAX_ROWS = 240
 
 def canonical_url(raw: object) -> str:
     try:
@@ -78,7 +78,7 @@ def write_feed(rows: list[dict], *, sources: list[str], search_term: str, locati
         "schema": 1,
         "status": "published",
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        "source_library": "werk-main / JobSpy 1.4.1 (MIT) + public Greenhouse, Lever and Ashby read-only job board APIs" if board_meta else "werk-main / JobSpy 1.4.1 (MIT; Cullen Watson and contributors)",
+        "source_library": "werk-main / JobSpy 1.4.1 (MIT) + public Greenhouse, Lever, Ashby and Pinpoint read-only job board feeds" if board_meta else "werk-main / JobSpy 1.4.1 (MIT; Cullen Watson and contributors)",
         "search_term": brief(search_term, 100),
         "location": brief(location, 100),
         "sources": sources,

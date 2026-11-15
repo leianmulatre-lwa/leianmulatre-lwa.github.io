@@ -20,11 +20,12 @@ HOSTS = {
     "greenhouse": "boards-api.greenhouse.io",
     "lever": "api.lever.co",
     "ashby": "api.ashbyhq.com",
+    "pinpoint": "pinpointhq.com",  # publicly documented, keyless postings feed
 }
 TOKEN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,59}$")
-MAX_BOARDS = 10
-MAX_RESULTS_PER_BOARD = 16
-MAX_RESPONSE = 4 * 1024 * 1024
+MAX_BOARDS = 16
+MAX_RESULTS_PER_BOARD = 40
+MAX_RESPONSE = 12 * 1024 * 1024
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -63,6 +64,8 @@ def endpoint(board: dict) -> str:
         return f"https://boards-api.greenhouse.io/v1/boards/{token}/jobs"
     if provider == "lever":
         return f"https://api.lever.co/v0/postings/{token}?mode=json&limit=100"
+    if provider == "pinpoint":
+        return f"https://{token}.pinpointhq.com/postings.json"
     return f"https://api.ashbyhq.com/posting-api/job-board/{token}"
 
 
@@ -82,6 +85,8 @@ def normalize_board_rows(board: dict, payload: object) -> list[dict]:
     provider = board["provider"]
     if provider == "lever":
         entries = payload if isinstance(payload, list) else []
+    elif provider == "pinpoint" and isinstance(payload, dict):
+        entries = payload.get("data", [])
     elif isinstance(payload, dict):
         entries = payload.get("jobs", [])
     else:
@@ -110,6 +115,15 @@ def normalize_board_rows(board: dict, payload: object) -> list[dict]:
             date = (datetime.fromtimestamp(created / 1000, tz=timezone.utc).date().isoformat()
                     if isinstance(created, (int, float)) and created > 0 else "")
             searchable = " ".join([str(title or ""), str(categories.get("team") or "")])
+        elif provider == "pinpoint":
+            title = job.get("title")
+            place = job.get("location") or {}
+            location = place.get("name", "") if isinstance(place, dict) else str(place)
+            url = job.get("url")
+            date = job.get("published_at") or job.get("created_at") or ""
+            department = job.get("department") or {}
+            department_name = department.get("name", "") if isinstance(department, dict) else str(department)
+            searchable = " ".join([str(title or ""), department_name])
         else:
             title = job.get("title")
             location = job.get("location") or ""

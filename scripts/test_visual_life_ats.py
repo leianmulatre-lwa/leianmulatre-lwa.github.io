@@ -32,7 +32,8 @@ class ATSReadOnlyTest(unittest.TestCase):
         for row, expected in [
             ({"provider":"greenhouse","token":"thenewyorktimes"}, "https://boards-api.greenhouse.io/v1/boards/thenewyorktimes/jobs"),
             ({"provider":"lever","token":"spotify"}, "https://api.lever.co/v0/postings/spotify?mode=json&limit=100"),
-            ({"provider":"ashby","token":"trueshort"}, "https://api.ashbyhq.com/posting-api/job-board/trueshort")
+            ({"provider":"ashby","token":"trueshort"}, "https://api.ashbyhq.com/posting-api/job-board/trueshort"),
+            ({"provider":"pinpoint","token":"skims"}, "https://skims.pinpointhq.com/postings.json")
         ]:
             self.assertEqual(ats.endpoint(row), expected)
 
@@ -62,6 +63,28 @@ class ATSReadOnlyTest(unittest.TestCase):
         ]})
         self.assertEqual(len(results),1)
         self.assertEqual(results[0]["job_url"],"https://jobs.ashbyhq.com/trueshort/b")
+
+    def test_pinpoint_public_postings_are_attributed_and_filtered(self):
+        board={"provider":"pinpoint","token":"skims","name":"SKIMS","limit":4,
+               "keywords":["creative","legal"]}
+        payload={"data":[
+            {"id":"1","title":"Creative Production Coordinator",
+             "location":{"name":"Los Angeles HQ"},
+             "department":{"name":"Creative"},"url":"https://skims.pinpointhq.com/postings/job-1"},
+            {"id":"2","title":"Store Supervisor",
+             "location":{"name":"London"},
+             "department":{"name":"Retail"},"url":"https://skims.pinpointhq.com/postings/job-2"},
+            {"id":"3","title":"Legal Counsel",
+             "location":{"name":"Los Angeles HQ"},
+             "department":{"name":"Legal"},"url":"https://skims.pinpointhq.com/postings/job-3"}
+        ]}
+        rows=ats.normalize_board_rows(board,payload)
+        self.assertEqual([row["title"] for row in rows],
+                         ["Creative Production Coordinator","Legal Counsel"])
+        self.assertEqual(rows[0]["company"],"SKIMS")
+        self.assertEqual(rows[0]["site"],"pinpoint")
+        self.assertEqual(rows[0]["location"],"Los Angeles HQ")
+        self.assertEqual(rows[0]["job_url"],"https://skims.pinpointhq.com/postings/job-1")
 
     def test_one_unavailable_board_cannot_invent_or_erase_others(self):
         with tempfile.TemporaryDirectory() as folder:

@@ -39,8 +39,8 @@ test('Werk is loaded exactly once in each Studio shell and appears first without
   assert.equal((shell.match(/politc-werk-20261114\.js\?v=/g)||[]).length,1,name);
   assert.equal((shell.match(/politc-werk-20261114\.css\?v=/g)||[]).length,1,name);
   assert.equal((shell.match(/visual-life-jobs\.js\?v=/g)||[]).length,1,name);
-  assert.match(shell,/politc-werk-20261114\.js\?v=20261114-ats-window-pop-3/,'New Werk script must beat the previous cached external search UI');
-  assert.match(shell,/visual-life-jobs\.js\?v=20261114-ats-lwazi-3/,'Visual-Life must use the same fresh JobSpy adapter');
+  assert.match(shell,/politc-werk-20261114\.js\?v=20261114-werk-brands-1/,'New Werk script must beat the previous cached external search UI');
+  assert.match(shell,/visual-life-jobs\.js\?v=20261114-werk-brands-1/,'Visual-Life must use the same fresh JobSpy adapter');
   assert(shell.indexOf('module-pages.js?v=')<shell.indexOf('politc-werk-20261114.js?v='),name);
  }
  assert.match(werk,/moduleBody\.insertBefore\(panel,moduleBody\.querySelector\('#politcResearchDesk'\)\|\|board\)/);
@@ -120,6 +120,24 @@ test('Visual-Life only offers in-site job matches after a fresh validated feed i
  await old.loadFeed();
  assert.equal(old.searchVerified('Policy Analyst','Los Angeles').length,0,'Expired feed hidden');
  assert.equal(old.getStatus(),'stale');
+});
+
+test('Brand queries match employer names without requiring the word jobs in titles',async()=>{
+ const fresh={
+  schema:1,status:'published',generated_at:new Date().toISOString(),
+  jobs:[
+   {title:'Assistant Store Leader',company:'SKIMS',location:'Los Angeles HQ',source:'pinpoint',url:'https://skims.pinpointhq.com/postings/123'},
+   {title:'Brand Design Lead',company:'Glossier',location:'New York, NY',source:'greenhouse',url:'https://job-boards.greenhouse.io/glossier/jobs/123'}
+  ]
+ };
+ const {window}=harness(jobs,{feed:fresh});
+ const api=window.BigLWAVisualLife;
+ await api.loadFeed();
+ assert.equal(api.searchVerified('SKIMS jobs','United States').length,1);
+ assert.equal(api.searchVerified('jobs at SKIMS','United States').length,1);
+ assert.equal(api.searchVerified('Glossier careers','United States').length,1);
+ assert.equal(api.searchVerified('Chanel jobs','United States').length,0,'Never invent a local listing from a career-site link');
+ assert(api.searchTargets('Chanel jobs','United States').some(item=>item.url==='https://www.chanel.com/us/careers/'));
 });
 
 test('A reviewed JobSpy refresh explicitly dispatches Pages after publishing its feed',()=>{
