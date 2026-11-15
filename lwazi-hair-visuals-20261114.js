@@ -36,7 +36,7 @@
   const q=String(query||'').toLowerCase();
   const aboutHair=/\b(hair|curl|curls|coils|coily|kink|kinky|afro|strand|porosity|density)\b/.test(q);
   const code=/\b[1-4][abc]\b/.test(q)&&/\b(hair|type|curl|pattern|texture|look|compare)\b/.test(q);
-  const visual=/\b(type|typing|texture|pattern|density|strand|straight|wavy|curly|coily|kinky|look like|compare|chart|diagram|visual|identify|show me|my hair)\b/.test(q);
+  const visual=/\b(type|typing|texture|pattern|density|strand|straight|wavy|curly|coily|kinky|look like|compare|chart|diagram|visual|identify|show me)\b/.test(q);
   return code||(aboutHair&&visual);
  }
  function markup(query){
