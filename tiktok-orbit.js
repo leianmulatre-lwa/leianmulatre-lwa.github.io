@@ -422,21 +422,24 @@
         if(connected){badge.textContent='Connected';badge.classList.add('is-on');}
         else if(lastError){badge.textContent='Reconnect';badge.classList.remove('is-on');}
       }
-      const message=lastError||videoLoadError||(connected&&videoPermissionPending?
-        'Profile connected. Automatic video imports need TikTok Display API (video.list) approval.':'');
-      const host=row.querySelector('.orbit-main')||row;
-      let note=host.querySelector('[data-tiktok-sync-note]');
-      if(message&&!note){
-        note=document.createElement('p');
-        note.dataset.tiktokSyncNote='';
-        note.setAttribute('role','status');
-        host.appendChild(note);
-      }
-      if(note){
-        note.hidden=!message;
-        if(message)note.textContent=message;
+      // Orbit cards are intentionally 140px with a 48px preview: a new child
+      // would be clipped and hide the error. Reuse the existing preview/status.
+      if(!connected&&lastError){
+        const preview=row.querySelector('.orbit-not-connected');
+        if(preview)preview.textContent=lastError;
       }
     });
+    const status=document.getElementById('orbitPageStatus');
+    if(status){
+      const message=lastError||videoLoadError||(connected&&videoPermissionPending?
+        'TikTok connected with basic profile access. Automatic videos require approved video.list permission.':'');
+      if(message&&(!status.textContent.trim()||status.dataset.tiktokMessage==='1')){
+        status.dataset.tiktokMessage='1';
+        status.textContent='TikTok: '+message;
+      }else if(!message&&status.dataset.tiktokMessage==='1'){
+        status.textContent='';delete status.dataset.tiktokMessage;
+      }
+    }
   }
   function renderFeedList(list){
     list=list||document.getElementById('feedPageList');
