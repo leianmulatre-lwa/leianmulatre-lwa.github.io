@@ -276,7 +276,10 @@
       if(saved&&options.restore){
         lwaziMode=['npc','deep'].includes(saved.mode)?saved.mode:'off';syncLwaziMode();
       }
-      var historyId=saved?.id||history?.add(q,lwaziMode)||null;
+      // A pasted file URL can carry a short-lived signed access token.
+      // Do not quietly persist those URLs in L’wazi's searchable history.
+      var isFileLink=Boolean(window.BigLWALinkTools?.parse(q));
+      var historyId=isFileLink?null:(saved?.id||history?.add(q,lwaziMode)||null);
       activeHistoryId=historyId;
       var storedTurns=!options.modeChange&&saved&&Array.isArray(saved.turns)?saved.turns.slice():[];
       var submitInput=document.getElementById('globalSearch');
