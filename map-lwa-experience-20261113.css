@@ -279,3 +279,29 @@ body.embedded.map-workspace-split #mapPlanPane .map-plan{
  body.embedded .map-nav-actions button{flex:0 1 auto}
  body.embedded .map-nav-controls{padding:11px}
 }
+
+/* 2026-11-14: full-width right Map desk.
+ * The parent aside inherits align-items:start from legacy grid styling; as a
+ * flex column that shrinks .map-tool-panels to its intrinsic ~650px width and
+ * leaves an empty 80-120px band at right. Stretch each direct panel section. */
+body.embedded.map-workspace-split main > aside > .map-desk-heading,
+body.embedded.map-workspace-split main > aside > .map-action-tabs,
+body.embedded.map-workspace-split main > aside > .map-tool-panels{
+  align-self:stretch!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+body.embedded.map-workspace-split .map-tool-panels > .map-workspace-pane,
+body.embedded.map-workspace-split #mapEditPane #pinForm{
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+/* Do not let wide inputs force the tools panel to overflow on mobile. */
+body.embedded.map-workspace-split #pinForm > label,
+body.embedded.map-workspace-split #pinForm > .row{
+  min-width:0!important;
+}
