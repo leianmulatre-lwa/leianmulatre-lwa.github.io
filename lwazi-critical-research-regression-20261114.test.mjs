@@ -90,7 +90,7 @@ test('all supported shells ship new critical-answer and archive scripts',()=>{
   const source=read(path);
   assert.match(source,/lwazi-critical-context-20261114\.js/);
   assert.match(source,/lwazi-critical-context-20261114\.css/);
-  assert.match(source,/user-search-results\.js\?v=20261113-command-promo-v2/);
+  assert.match(source,/user-search-results\.js\?v=20261115-discovery-intent-v3/);
   assert(source.indexOf('lwazi-critical-context-20261114.js')<
    source.indexOf('user-search-results.js'),path);
   assert.match(source,/politc-post-election-results-20261113\.js\?v=20261114-five-tracks-7/);
