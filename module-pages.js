@@ -4244,6 +4244,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     });if(push){try{history.pushState({biglwaModule:key},'',(key==='map'||key==='politc')?`/studio?panel=${encodeURIComponent(key)}`:(key==='orbit'?'/studio?view=orbit':`/studio/${encodeURIComponent(key==='projects'?'visualz':key)}`))}catch{}}
   }
   window.openBIGLWAModule=openModule;
+  // Authenticated Community Roles hydrate asynchronously from Firestore.
+  // Refresh a Room/Lounge access gate after confirmed account restore/save,
+  // without re-opening the module, changing history or scrolling the page.
+  document.addEventListener('biglwa:community-profile-updated',()=>{
+    if(activeModuleKey==='rooms'&&!workspace.hidden)renderRoom();
+  });
   document.addEventListener('biglwa:google-state',()=>{if(routeName.textContent==='Calendar'&&!workspace.hidden)renderCalendar()});
   window.addEventListener('biglwa:orbit-imported',()=>{
     if(activeModuleKey==='archive') renderArchive();
