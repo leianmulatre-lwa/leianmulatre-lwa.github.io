@@ -202,6 +202,6 @@ test('Wider Map retains interactive canvas and lets right-hand tools scroll the 
  assert.match(split,/overflow:visible!important;overscroll-behavior:auto!important/);
  assert.match(mapcss,/body\.embedded\.map-workspace-split:not\(\.preview\) \.map-tool-panels/);
  assert.match(mapcss,/touch-action:pan-y!important/);
- assert.match(mapcss,/body\.preview \#map/,'Compact Studio preview keeps its own layout');
+ assert.match(mapcss,/body\.preview \.map-plan/,'Compact Studio preview keeps its own layout');
  assert.match(map,/map-lwa-experience-20261113\.css\?v=20261114-wider-map-page-scroll-v7/);
 });
