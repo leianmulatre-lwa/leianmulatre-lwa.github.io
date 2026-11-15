@@ -196,6 +196,35 @@
     }
     function renderThreadReply(node,value){renderAnswer(node,value);var prefix=document.createElement('strong');prefix.className='bl-lwazi-turn-prefix';prefix.textContent='L’wazi · ';node.prepend(prefix)}
 
+    // Photo previews stay within Studio. Genuine review data requires a licensed provider.
+    function renderLwaziPhotoPreview(host,query,items,images){
+      if(!host||!Array.isArray(items)||!images)return;
+      var placeIntent=/\b(?:where|place|places|near|nearby|visit|travel|trip|restaurant|cafe|coffee|hotel|museum|gallery|park|beach|landmark|shop|store|city|neighborhood|directions)\b/i.test(query);
+      var photos=items.filter(function(w){return w&&w.title&&typeof images[w.title]==='string'&&/^https:\/\/upload\.wikimedia\.org\//i.test(images[w.title])}).slice(0,3);
+      if(!photos.length){host.hidden=true;host.replaceChildren();return}
+      var gallery=document.createElement('div');gallery.className='bl-lwazi-photo-grid';
+      photos.forEach(function(w){
+        var article=document.createElement('article');article.className='bl-lwazi-photo-card';
+        var img=document.createElement('img');img.src=images[w.title];img.alt='Image related to '+w.title;img.loading='lazy';img.decoding='async';
+        var details=document.createElement('details');details.className='bl-lwazi-photo-details';
+        var summary=document.createElement('summary');summary.textContent=placeIntent?'Details & review links':'About this image';details.append(summary);
+        var info=document.createElement('p');info.textContent=plainSnippet(w.snippet||'').slice(0,200)||'See the encyclopedia article for background.';details.append(info);
+        var source=document.createElement('a');source.href='https://en.wikipedia.org/wiki/'+encodeURIComponent(w.title.replace(/\s+/g,'_'));source.target='_blank';source.rel='noopener noreferrer';source.textContent='Wikipedia article ↗';details.append(source);
+        if(placeIntent){
+          var note=document.createElement('p');note.textContent='Ratings and reviews are not imported into BIG LWA yet. These are optional source links.';details.append(note);
+          [['Google Maps reviews','https://www.google.com/maps/search/?api=1&query='],['Yelp reviews','https://www.yelp.com/search?find_desc=']].forEach(function(pair){
+            var link=document.createElement('a');link.href=pair[1]+encodeURIComponent(w.title);link.target='_blank';link.rel='noopener noreferrer';link.textContent=pair[0]+' ↗';details.append(link);
+          });
+        }
+        var name=document.createElement('strong');name.textContent=w.title;
+        article.append(img,name,details);gallery.append(article);
+      });
+      var heading=document.createElement('h3');heading.textContent=placeIntent?'Places & photos':'Related photos';
+      var note=document.createElement('p');note.className='bl-lwazi-photo-credit';note.textContent='Image previews via Wikipedia / Wikimedia Commons. Open details here without leaving BIG LWA.';
+      host.replaceChildren(heading,gallery,note);host.hidden=false;
+    }
+
+
 
     // Bounded, first-party conversational responses. Complex questions remain with the model.
     // These do not claim consciousness, racial experience, or verified outside knowledge.
@@ -350,6 +379,7 @@
       var criticalContext=!options.imageOnly?window.BigLWACriticalContext?.lookup(clean):null;
       var answerArea=current.querySelector('.bl-lwazi-answer');
       var answerBody=current.querySelector('.bl-lwazi-answer-body');
+      var photoPreview=document.createElement('section');photoPreview.className='bl-lwazi-inline-preview';photoPreview.setAttribute('aria-label','Related pictures and place details');photoPreview.hidden=true;answerArea.after(photoPreview);
       var threadArea=current.querySelector('.bl-lwazi-conversation');
       var turnArea=current.querySelector('.bl-lwazi-conversation-turns');
       var followForm=current.querySelector('.bl-lwazi-continue-form');
@@ -386,6 +416,7 @@
       function showTurns(){
         if(!turnArea)return;
         turnArea.replaceChildren();
+        if(threaded)threadArea.after(photoPreview);else answerArea.after(photoPreview);
         answerArea.hidden=!aiActive||threaded;
         if(!threaded){
           if(turns.at(-1)?.role==='assistant')renderAnswer(answerBody,turns.at(-1).text);
@@ -508,7 +539,9 @@
       var songPromise=(isSocialGreeting?Promise.resolve([]):searchSongs(clean)).then(function(items){return items.map(songCard)}).catch(function(){return []});
       var bookPromise=(isSocialGreeting?Promise.resolve([]):searchBooks(clean)).then(function(items){return items.map(bookCard)}).catch(function(){return []});
       var wikiDataPromise=(isSocialGreeting?Promise.resolve([]):searchWikipedia(clean)).catch(function(){return []});
-       var wikiPromise=wikiDataPromise.then(function(items){return Promise.all([wikipediaImages(items).catch(function(){return {}}),items])}).then(function(pair){var images=pair[0];return pair[1].map(function(w){return wikiCard(w,images[w.title],/film|movie|cinema|director/i.test(clean+' '+w.title)?'movie':'research')})}).catch(function(){return []});
+       var wikiDetailsPromise=wikiDataPromise.then(function(items){return wikipediaImages(items).then(function(images){return {items:items,images:images}})}).catch(function(){return {items:[],images:{}}});
+       var wikiPromise=wikiDetailsPromise.then(function(data){return data.items.map(function(w){return wikiCard(w,data.images[w.title],/film|movie|cinema|director/i.test(clean+' '+w.title)?'movie':'research')})}).catch(function(){return []});
+       if(aiActive){wikiDetailsPromise.then(function(data){if(panel!==current||!current.isConnected)return;renderLwaziPhotoPreview(photoPreview,clean,data.items,data.images)})}
        // Wikipedia results are fetched once for cards, not twice to block the answer.
       var libraryPromise=isSocialGreeting?Promise.resolve([]):sourceLibraryPromise.then(function(library){return sourceLibraryMatches(library,clean)}).catch(function(){return []});
        var needsResearchSources=lwaziMode!=='off'&&wantsResearchSources(clean);
