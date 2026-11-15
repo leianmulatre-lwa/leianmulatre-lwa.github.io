@@ -70,7 +70,7 @@ test('Discovery loads only on the full Map, not the interactive Studio preview',
  assert.equal(preview.stage.children.length,0);
  assert.equal(preview.fetches.length,0);
  assert.equal(preview.win.BigLWAMapDiscover,undefined);
- assert.match(mapHtml,/map-lwa-discovery-20261114\.js\?v=20261114-public-neighborhood-v1/);
+ assert.match(mapHtml,/map-lwa-discovery-20261114\.js\?v=20261114-inapp-desk-v2/);
  assert.match(mapHtml,/map-lwa-discovery-20261114\.css\?v=20261114-public-neighborhood-v1/);
 });
 
@@ -95,7 +95,7 @@ test('Public POI lookup requires user action and a close neighborhood zoom',asyn
  assert.equal(env.fetches.length,1,'Ten-minute cache avoids repeated requests');
 });
 
-test('Marker trip selection uses existing planner and quote links never invent an ETA',async()=>{
+test('Marker trip selection keeps planning in BIG LWA with no immediate external ride or delivery tabs',async()=>{
  const env=harness();
  await env.win.BigLWAMapDiscover.load('landmarks');
  const marker=env.markers[0],popup=marker.popup;
@@ -104,20 +104,10 @@ test('Marker trip selection uses existing planner and quote links never invent a
  assert.equal(env.to.value,'34.043000, -118.483000');
  assert.equal(env.routeTab.focused,undefined);
  assert.match(env.stage.children[0].children[3].textContent,/Destination selected/);
- const services=env.routePanel.children.find(x=>x.id==='mapServiceLinks');
- assert(services,'Provider handoffs in actual trip-planning panel');
- const links=services.children.find(c=>c.className==='map-service-actions').children;
- assert.equal(links.length,4);
- assert.equal(links[0].href,'https://m.uber.com/');
- assert.match(services.children.at(-1).textContent,/No live fares/);
- env.events['biglwa:map-navigation-route']({
-  detail:{destination:{lat:34.01,lng:-118.4},durationMinutes:12}
- });
- assert.match(links[0].href,/dropoff%5Blatitude%5D=34.01/);
- assert.match(links[0].href,/dropoff%5Blongitude%5D=-118.4/);
- env.events['biglwa:map-navigation-reset']();
- assert.equal(links[0].href,'https://m.uber.com/','Reset removes stale destination');
- assert.equal(env.fetches.length,1,'Ride quotes are not obtained through unapproved APIs');
+ assert(!env.routePanel.children.some(x=>x.id==='mapServiceLinks'),
+  'Place lookup must not silently create third-party booking links');
+ assert.doesNotMatch(js,/m\.uber\.com|ubereats\.com|doordash\.com|grubhub\.com/,'No provider booking links in place discovery');
+ assert.equal(env.fetches.length,1,'POI lookup never makes provider price or delivery requests');
 });
 
 test('Presentation keeps POI layers independent of private pins and prevents map reflow',()=>{

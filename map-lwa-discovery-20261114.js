@@ -48,41 +48,8 @@
  panel.append(help,status,list);
  // Positioned as an overlay, without changing the map or Studio iframe height.
  stage.append(panel);
- const routePanel=document.getElementById('mapTripPlanner');
- if(routePanel){
-  const services=el('section','map-service-links');
-  services.id='mapServiceLinks';services.setAttribute('aria-label','Ride and food delivery options');
-  const heading=el('div','map-service-head');
-  heading.append(el('strong','', 'Rides & delivery'),el('small','', 'Compare live options with each provider'));
-  services.append(heading);
-  const links=el('div','map-service-actions');
-  const external=(label,url)=>{
-   const a=el('a','map-service-link',label);a.href=url;a.target='_blank';
-   a.rel='noopener noreferrer';links.append(a);return a;
-  };
-  const uber=external('🚘 Check Uber fare','https://m.uber.com/');
-  uber.id='mapUberRideQuote';
-  external('🥡 Uber Eats','https://www.ubereats.com/');
-  external('🛵 DoorDash','https://www.doordash.com/');
-  external('🍱 Grubhub','https://www.grubhub.com/');
-  services.append(links);
-  const note=el('p','map-service-note','No live fares, delivery fees, driver availability or courier ETA are available inside BIG LWA. Route duration is a road-model estimate without traffic; check current quotes and availability in each provider.');
-  services.append(note);
-  routePanel.append(services);
-  // The destination is shared with Uber only upon opening the explicit link.
-  window.addEventListener('biglwa:map-navigation-route',event=>{
-   const destination=event.detail?.destination;
-   if(!valid(destination))return;
-   const url=new URL('https://m.uber.com/ul/');
-   url.searchParams.set('action','setPickup');
-   url.searchParams.set('pickup','my_location');
-   url.searchParams.set('dropoff[latitude]',String(Number(destination.lat)));
-   url.searchParams.set('dropoff[longitude]',String(Number(destination.lng)));
-   url.searchParams.set('dropoff[nickname]','Chosen destination');
-   uber.href=url.href;
-  });
-  window.addEventListener('biglwa:map-navigation-reset',()=>{uber.href='https://m.uber.com/';});
- }
+ // Provider comparison and in-page navigation belong to the dedicated
+ // transport hub, not the public-place discovery overlay.
  const setStatus=message=>{status.textContent=message;};
  const setActive=key=>{
   active=key;for(const [name,btn] of Object.entries(buttons))
