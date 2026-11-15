@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "note": "Public application identifiers only. These records do not enable OAuth or ride/music APIs. No client secrets, access tokens, refresh tokens, or API keys belong here.",
+  "backend": "Cloudflare Worker, api.biglwa.com",
+  "callbackState": "planned: endpoints not enabled until server-side OAuth handlers and secrets are installed",
+  "providers": {
+    "uber": {
+      "appId": "PU1pFV9xuCjoYZhnsY0Ec-HSxvdcOCbg",
+      "credentialLabel": "developer app/client ID (confirm in Uber dashboard)",
+      "purpose": "Map > Uber-specific ride handoff and provider-approved Rider APIs",
+      "callback": "https://api.biglwa.com/uber/callback",
+      "requiredCloudflareSecrets": [
+        "UBER_CLIENT_SECRET"
+      ],
+      "runtimeBindings": [
+        "UBER_CLIENT_ID"
+      ],
+      "status": "configured-id-only",
+      "scopeStatus": "Uber approval required for restricted Rider endpoints"
+    },
+    "lyft": {
+      "appId": "gsMJS3mFlGC9",
+      "credentialLabel": "developer identifier provided by owner (verify whether OAuth Client ID)",
+      "purpose": "Map > Lyft handoff; official API permissions to be assessed",
+      "callback": "https://api.biglwa.com/lyft/callback",
+      "requiredCloudflareSecrets": [
+        "LYFT_CLIENT_SECRET"
+      ],
+      "runtimeBindings": [
+        "LYFT_CLIENT_ID"
+      ],
+      "status": "configured-id-only",
+      "scopeStatus": "Endpoint access and callback registration requirements unverified"
+    },
+    "spotify": {
+      "appId": "3c9ff8af3c00432fa3f11d84af9e72df",
+      "credentialLabel": "Spotify Client ID",
+      "purpose": "Tunes and Stream > user-consented playlists and saved tracks",
+      "callback": "https://api.biglwa.com/spotify/callback",
+      "requiredCloudflareSecrets": [
+        "SPOTIFY_CLIENT_SECRET"
+      ],
+      "runtimeBindings": [
+        "SPOTIFY_CLIENT_ID"
+      ],
+      "status": "configured-id-only",
+      "scopeStatus": "OAuth redirect must exactly match dashboard; PKCE + state"
+    },
+    "soundcloud": {
+      "appId": null,
+      "credentialLabel": "SoundCloud Client ID not yet supplied",
+      "purpose": "Tunes and Stream > user-authorized playlists and songs",
+      "callback": "https://api.biglwa.com/soundcloud/callback",
+      "requiredCloudflareSecrets": [
+        "SOUNDCLOUD_CLIENT_SECRET"
+      ],
+      "runtimeBindings": [
+        "SOUNDCLOUD_CLIENT_ID"
+      ],
+      "status": "awaiting-client-id",
+      "scopeStatus": "SoundCloud OAuth 2.1 Authorization Code + PKCE"
+    }
+  }
+}
