@@ -191,7 +191,7 @@
         block.push(line);
       });
       flushBlock();flushBullets();
-      // Remove unmatched double-star formatting artifacts without touching multiplication.
+      // Only recognized Markdown markers become markup; mathematical symbols remain text.
       target.innerHTML=parts.join('')||'<p></p>';
     }
     function renderThreadReply(node,value){renderAnswer(node,value);var prefix=document.createElement('strong');prefix.className='bl-lwazi-turn-prefix';prefix.textContent='L’wazi · ';node.prepend(prefix)}
@@ -471,7 +471,13 @@
           if(panel!==current||turns.at(-1)!==liveTurn)return;
           liveTurn.text=explainModelFailure(e)||'That reply did not come through. Ask me again.';
         }finally{
-          if(panel===current){persistTurns();showTurns();send.disabled=false;input.focus()}
+          if(panel===current){persistTurns();showTurns();send.disabled=false;input.focus();
+             if(/\b(?:where|places?|nearby|visit|travel|museum|gallery|restaurant|cafe|park|hotel|beach|show.*(?:photo|picture|image)|tell me about)\b/i.test(follow)){
+               searchWikipedia(follow).then(function(items){return wikipediaImages(items).then(function(images){return {items:items,images:images}})}).then(function(data){
+                 if(panel===current&&current.isConnected)renderLwaziPhotoPreview(photoPreview,follow,data.items,data.images);
+               }).catch(function(){});
+             }
+           }
         }
       });
       if(options.imageOnly||mathResult){
