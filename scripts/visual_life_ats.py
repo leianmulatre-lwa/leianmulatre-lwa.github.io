@@ -25,7 +25,7 @@ HOSTS = {
 TOKEN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,59}$")
 MAX_BOARDS = 16
 MAX_RESULTS_PER_BOARD = 40
-MAX_RESPONSE = 4 * 1024 * 1024
+MAX_RESPONSE = 12 * 1024 * 1024
 
 
 class NoRedirect(HTTPRedirectHandler):
