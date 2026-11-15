@@ -6,58 +6,178 @@
  if(window.BigLWACommunityProfile)return;
  const ROLES=['Student','Researcher','Creative','Freelancer','Educator','Artist','Organizer','Developer','Music maker','Other'];
  const AGES=['Under 18','18–24','25–34','35–44','45+'];
+ const FIREBASE_CONFIG={apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',
+  authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',
+  appId:'1:83232670555:web:e04927b20458390b3b507e'};
+ const SDK='https://www.gstatic.com/firebasejs/12.18.0/';
+ const empty=()=>({roles:[],age:'',location:'',showRoles:false});
  const uid=()=>String(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'').trim();
  const owner=()=>Boolean(uid())&&!document.documentElement.classList.contains('biglwa-preview-mode')&&!window.__biglwaPublicStorageView;
- const key=()=>uid()?'biglwaCommunityProfileV2:'+uid():'';
- const clean=v=>String(v||'').trim().slice(0,72);
- const parse=v=>{try{return JSON.parse(v||'null')}catch{return null}};
- const get=()=>{
-  if(!owner())return {roles:[],age:'',location:'',showRoles:false};
-  let data=parse(localStorage.getItem(key()));
-  if(!data){
-   const legacy=parse(localStorage.getItem('biglwaRoomRolesV1:'+uid()))||{};
-   data={roles:legacy.roles||[],age:legacy.age||'',location:'',showRoles:true};
+ const clean=value=>String(value||'').trim().slice(0,72);
+ const parse=value=>{try{return JSON.parse(value||'null')}catch{return null}};
+ const normalize=raw=>{
+  const d=raw&&typeof raw==='object'?raw:{};
+  return {roles:Array.isArray(d.roles)?[...new Set(d.roles.filter(role=>ROLES.includes(role)))].slice(0,3):[],
+   age:AGES.includes(d.age)?d.age:'',location:clean(d.location),showRoles:d.showRoles!==false};
+ };
+ // Only an owner-verified, UID-scoped legacy browser draft can be offered for
+ // migration. It never grants Room/Lounge access and is deleted after a verified
+ // cloud save. Unscoped shared-device keys are never read or claimed.
+ const legacyDraftFor=id=>{
+  try{
+   const own=parse(localStorage.getItem('biglwaCommunityProfileV2:'+id));
+   if(own)return normalize(own);
+   const old=parse(localStorage.getItem('biglwaRoomRolesV1:'+id));
+   return old?normalize({...old,location:'',showRoles:true}):null;
+  }catch{return null}
+ };
+ let currentUid='',confirmed=null,draft=null,cloudState='loading',cloudError='';
+ let sdkPromise=null,loadPromise=null,generation=0,saving=false;
+ const syncIdentity=()=>{
+  const id=owner()?uid():'';
+  if(id!==currentUid){
+   currentUid=id;confirmed=null;draft=null;cloudState='loading';
+   cloudError='';loadPromise=null;generation++;
   }
-  return {
-   roles:Array.isArray(data.roles)?[...new Set(data.roles.filter(r=>ROLES.includes(r)))].slice(0,3):[],
-   age:AGES.includes(data.age)?data.age:'',
-   location:clean(data.location),
-   showRoles:data.showRoles!==false
-  };
+  return id;
+ };
+ const get=()=>{
+  const id=syncIdentity();
+  return id?normalize(confirmed||draft):empty();
  };
  const isReady=()=>{
-  const d=get();return owner()&&d.roles.length>0&&AGES.includes(d.age)&&d.location.length>=2;
+  const id=syncIdentity(),d=get();
+  return Boolean(id&&confirmed&&cloudState==='ready'&&d.roles.length&&d.age&&d.location.length>=2);
  };
  const canUseLounge=()=>isReady()&&get().age!=='Under 18';
  const missing=()=>{
-  if(!owner())return 'Sign in to complete your community profile.';
+  if(!syncIdentity())return 'Sign in to complete your community profile.';
+  if(cloudState==='loading')return 'Loading your community profile from your account…';
+  if(cloudState==='error')return 'Account sync unavailable: '+cloudError+'. Retry loading or try saving again.';
   const d=get(),parts=[];
   if(!d.roles.length)parts.push('a community role');
   if(!d.age)parts.push('an age range');
   if(d.location.length<2)parts.push('a broad location');
-  return parts.length?'Add '+parts.join(', ')+'.':'Community profile complete.';
+  if(!confirmed&&draft)return 'Previously saved on this browser only. Review and select Save to account to sync.';
+  return parts.length?'Add '+parts.join(', ')+'.':'Saved to your BIG LWA account.';
  };
  const el=(tag,cls,text)=>{
-  const node=document.createElement(tag);
-  if(cls)node.className=cls;
-  if(text!=null)node.textContent=text;
-  return node;
+  const node=document.createElement(tag);if(cls)node.className=cls;
+  if(text!=null)node.textContent=text;return node;
  };
- const save=(data)=>{
-  if(!owner())return {ok:false,message:'Sign in to update your profile.'};
+ async function firebase(){
+  if(!sdkPromise){
+   sdkPromise=Promise.all([
+    import(SDK+'firebase-app.js'),import(SDK+'firebase-auth.js'),
+    import(SDK+'firebase-firestore.js')
+   ]).then(([appSdk,authSdk,fs])=>{
+    const app=appSdk.getApps()[0]||appSdk.initializeApp(FIREBASE_CONFIG);
+    return {auth:authSdk.getAuth(app),db:fs.getFirestore(app),fs};
+   }).catch(error=>{sdkPromise=null;throw error});
+  }
+  return sdkPromise;
+ }
+ const announce=()=>{
+  renderBadges();syncEditor();
+  document.dispatchEvent(new CustomEvent('biglwa:community-profile-updated',
+   {detail:{ready:isReady(),cloud:cloudState==='ready'}}));
+ };
+ async function load({force=false}={}){
+  const id=syncIdentity();
+  if(!id)return null;
+  if(loadPromise&&!force)return loadPromise;
+  if(confirmed&&cloudState==='ready'&&!force)return get();
+  const token=++generation;cloudState='loading';cloudError='';
+  const task=(async()=>{
+   const {auth,db,fs}=await firebase();
+   await auth.authStateReady();
+   if(auth.currentUser?.uid!==id)throw Error('The signed-in account changed');
+   // Never mistake the local Firestore cache for a successful server restore.
+   const snapshot=await fs.getDocFromServer(fs.doc(db,'users',id));
+   if(token!==generation||syncIdentity()!==id||auth.currentUser?.uid!==id)return null;
+   const raw=snapshot.exists()?snapshot.data()?.communityProfile:null;
+   confirmed=raw&&typeof raw==='object'?normalize(raw):null;
+   draft=confirmed?null:legacyDraftFor(id);
+   cloudState='ready';cloudError='';
+   announce();
+   return get();
+  })().catch(error=>{
+   if(token===generation&&syncIdentity()===id){
+    cloudState='error';cloudError=String(error?.message||'Unable to read Firebase').slice(0,140);
+    announce();
+   }
+   return null;
+  }).finally(()=>{if(token===generation)loadPromise=null});
+  loadPromise=task;
+  return task;
+ }
+ async function save(data){
+  const id=syncIdentity();
+  if(!id)return {ok:false,message:'Sign in to save Community Roles to your account.'};
+  if(saving)return {ok:false,message:'Community profile is already saving.'};
   const roles=Array.isArray(data.roles)?[...new Set(data.roles)]:[];
-  if(roles.length<1||roles.length>3||roles.some(r=>!ROLES.includes(r)))
+  if(roles.length<1||roles.length>3||roles.some(role=>!ROLES.includes(role)))
    return {ok:false,message:'Choose between one and three community roles.'};
   if(!AGES.includes(data.age))return {ok:false,message:'Choose an age range before entering community spaces.'};
   const location=clean(data.location);
   if(location.length<2)return {ok:false,message:'Enter a broad location (city/region or country). Do not share an address.'};
-  try{localStorage.setItem(key(),JSON.stringify({roles,age:data.age,location,
-   showRoles:data.showRoles!==false,updatedAt:Date.now()}));}
-  catch{return {ok:false,message:'Could not save on this browser. Check storage permissions.'}}
-  document.dispatchEvent(new CustomEvent('biglwa:community-profile-updated',{detail:{ready:true}}));
-  renderBadges();
-  return {ok:true,message:'Saved. Roles appear on your own profile banner. Age and location remain private on this browser.'};
- };
+  const payload={roles,age:data.age,location,showRoles:data.showRoles!==false};
+  saving=true;
+  // Invalidate an older account read so it cannot overwrite the new save.
+  const token=++generation;
+  try{
+   const {auth,db,fs}=await firebase();
+   await auth.authStateReady();
+   if(auth.currentUser?.uid!==id||syncIdentity()!==id)throw Error('The signed-in account changed.');
+   const ref=fs.doc(db,'users',id);
+   await fs.setDoc(ref,{communityProfile:{...payload,updatedAt:fs.serverTimestamp()},
+    updatedAt:fs.serverTimestamp()},{merge:true});
+   // Only server-acknowledged content gets the "saved" label. No success on
+   // local cache write, offline queue, or a rejected permission.
+   const snapshot=await fs.getDocFromServer(ref);
+   const actual=snapshot.exists()?normalize(snapshot.data()?.communityProfile):empty();
+   if(actual.roles.join('|')!==payload.roles.join('|')||actual.age!==payload.age||
+       actual.location!==payload.location||actual.showRoles!==payload.showRoles)
+    throw Error('Could not verify your saved settings on the server.');
+   if(token!==generation||auth.currentUser?.uid!==id||syncIdentity()!==id)
+    throw Error('Account changed before save confirmation.');
+   confirmed=actual;draft=null;cloudState='ready';cloudError='';
+   try{
+    localStorage.removeItem('biglwaCommunityProfileV2:'+id);
+    localStorage.removeItem('biglwaRoomRolesV1:'+id);
+   }catch{}
+   announce();
+   return {ok:true,message:'Saved to your BIG LWA account. Roles are on your banner; age and broad location are private.'};
+  }catch(error){
+   if(token===generation&&syncIdentity()===id){
+    cloudState=confirmed?'ready':'error';
+    cloudError=String(error?.message||'Account save failed').slice(0,140);
+   }
+   return {ok:false,message:'Could not save to your account: '+String(error?.message||'Connection unavailable')+'. Your changes have not been confirmed on the server.'};
+  }finally{saving=false}
+ }
+ function syncEditor(){
+  const section=document.getElementById('biglwaCommunityProfileEditor');
+  if(!section||section.dataset.uid!==currentUid)return;
+  const status=section.querySelector('.biglwa-community-status');
+  const retry=section.querySelector('[data-community-retry]');
+  if(retry)retry.hidden=cloudState!=='error';
+  if(section.dataset.dirty==='1'){
+   if(status&&cloudState==='error')status.textContent=missing();
+   return;
+  }
+  const data=get();
+  section.querySelectorAll('input[name="communityRole"]').forEach(input=>{
+   input.checked=data.roles.includes(input.value);
+  });
+  const age=section.querySelector('[name="communityAge"]');
+  const location=section.querySelector('[name="communityLocation"]');
+  const visible=section.querySelector('[name="showRoles"]');
+  if(age)age.value=data.age;
+  if(location)location.value=data.location;
+  if(visible)visible.checked=data.showRoles;
+  if(status)status.textContent=missing();
+ }
  function renderBadges(){
   const card=document.querySelector('#studioApp .profile-card');
   if(!card)return;
@@ -73,7 +193,7 @@
    if(bio)bio.insertAdjacentElement('afterend',row);
    else parent.append(row);
   }
-  const data=get();
+  const data=confirmed&&cloudState==='ready'?get():empty();
   row.replaceChildren();
   if(!data.roles.length||!data.showRoles){
    const help=el('button','biglwa-community-edit-mini','+ Add community roles');
@@ -89,7 +209,7 @@
   const details=document.querySelector('#profileDetailsEditor');
   if(!details)return;
   let section=details.querySelector('#biglwaCommunityProfileEditor');
-  if(section&&section.dataset.uid===uid())return;
+  if(section&&section.dataset.uid===uid()){syncEditor();return;}
   if(section)section.remove();
   section=el('section','biglwa-community-profile-editor');
   section.id='biglwaCommunityProfileEditor';section.dataset.uid=uid();
@@ -125,16 +245,30 @@
   form.append(publicLabel);
   const status=el('p','biglwa-community-status',missing());status.setAttribute('role','status');
   const actions=el('div','biglwa-community-actions');
-  const button=el('button','biglwa-community-save','Save community profile');button.type='submit';
-  actions.append(button);form.append(actions,status);
-  form.addEventListener('submit',event=>{
+  const button=el('button','biglwa-community-save','Save to my account');button.type='submit';
+  const retry=el('button','biglwa-community-edit-mini','Retry loading account data');
+  retry.type='button';retry.dataset.communityRetry='';retry.hidden=true;
+  retry.addEventListener('click',()=>load({force:true}));
+  actions.append(button,retry);form.append(actions,status);
+  const markDirty=()=>{section.dataset.dirty='1'};
+  form.addEventListener('input',markDirty);
+  form.addEventListener('change',markDirty);
+  form.addEventListener('submit',async event=>{
    event.preventDefault();
+   const savingUid=currentUid;
    const selected=[...form.querySelectorAll('input[name="communityRole"]:checked')].map(node=>node.value);
-   const result=save({roles:selected,age:ageSelect.value,location:locationInput.value,showRoles:visible.checked});
+   button.disabled=true;
+   status.textContent='Saving to your BIG LWA account…';
+   status.dataset.state='saving';
+   const result=await save({roles:selected,age:ageSelect.value,location:locationInput.value,showRoles:visible.checked});
+   if(currentUid!==savingUid||!section.isConnected)return;
    status.textContent=result.message;
    status.dataset.state=result.ok?'saved':'error';
+   if(result.ok){section.dataset.dirty='';syncEditor();}
+   button.disabled=false;
   });
   section.append(form);details.append(section);
+  syncEditor();
  }
  function openEditor(){
   if(!owner())return false;
@@ -155,6 +289,7 @@
   scheduled=false;
   if(!owner()){document.getElementById('biglwaCommunityRoleBadges')?.remove();return}
   renderBadges();renderEditor();
+  if(cloudState==='loading'&&!loadPromise)load();
   const flag='biglwaCommunityOnboardV1:'+uid();
   if(sessionStorage.getItem(flag)==='new'){
    const button=document.getElementById('editProfileBtn');
@@ -184,5 +319,8 @@
     node.id==='editProfileBtn'||node.matches?.('.profile-card,#wallpaperPanel')))))schedule();
  });
  observer.observe(document.documentElement,{childList:true,subtree:true});
- window.BigLWACommunityProfile=Object.freeze({get,save,isReady,canUseLounge,missing,openEditor,refresh:schedule});
+ window.BigLWACommunityProfile=Object.freeze({get,save,load,isReady,canUseLounge,missing,openEditor,refresh:schedule,
+  get syncStatus(){return cloudState},get cloudUid(){return currentUid}});
+ window.addEventListener('biglwa:identity-updated',schedule);
+ window.addEventListener('biglwa:user-directory-ready',schedule);
 })();
