@@ -13,13 +13,13 @@
   xls:'document',xlsx:'document',txt:'document',csv:'document',epub:'document',
   zip:'archive',json:'document',webmjson:'document'
  };
- const STREAMING=/^(?:www\.|m\.)?(?:youtube\.com|youtu\.be|tiktok\.com|vimeo\.com|instagram\.com|facebook\.com|soundcloud\.com|spotify\.com)$/i;
+ const STREAMING=/^(?:www\.|m\.|music\.)?(?:youtube\.com|youtu\.be|tiktok\.com|vimeo\.com|instagram\.com|facebook\.com|soundcloud\.com|spotify\.com|twitter\.com|x\.com|dailymotion\.com|twitch\.tv|streamable\.com)$/i;
  const MAX_MANIFEST=8;
  const classify=(url,mime)=>{
   let path=url.pathname;
   try{path=decodeURIComponent(path)}catch{}
   const extension=(path.match(/\.([a-z0-9]{2,8})$/i)||[])[1]?.toLowerCase()||'';
-  if(STREAMING.test(url.hostname))return {kind:'stream',extension};
+  if(STREAMING.test(url.hostname)||['m3u8','mpd'].includes(extension))return {kind:'stream',extension};
   if(/\.media\.json$/i.test(path))return {kind:'manifest',extension:'json'};
   const type=String(mime||'').split(';')[0].toLowerCase();
   const kind=type.startsWith('video/')?'video':type.startsWith('audio/')?'audio':
