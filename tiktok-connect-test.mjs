@@ -59,5 +59,24 @@ check("connection hub can recover TikTok session by Firebase UID",
 
 check("TikTok-only myfeed panel is retired",tiktok.includes("function renderTikTokFeedImporter()")&&!tiktok.includes("Save to myfeed drafts")&&tiktok.includes("forEach(node=>node.remove())"));
 check("TikTok inline videos use the official embedded player",tiktok.includes("data-tiktok-play-video")&&tiktok.includes("https://www.tiktok.com/player/v1/"));
+check("expired browser TikTok sessions are not allowed to mask valid account sessions",
+ tiktok.includes("async function recoverAccountSession(firebaseToken)")&&
+ tiktok.includes("const expired=getSession();")&&
+ tiktok.includes("save('');")&&
+ tiktok.includes("const recovered=await recoverAccountSession(token);")&&
+ tiktok.includes("if(!recovered||recovered===expired)"));
+check("provider OAuth errors survive startup and remain visible in Orbit",
+ tiktok.includes("lastError='';")&&
+ tiktok.includes("status.dataset.tiktokMessage='1'")&&
+ tiktok.includes("status.textContent='TikTok: '+message")&&
+ tiktok.includes("if(!connected&&lastError)"));
+check("user-specific stale TikTok handoffs are cleaned after expiry",
+ tiktok.includes("sessionStorage.removeItem(PENDING_KEY)")&&
+ tiktok.includes("sessionStorage.removeItem('tt_verifier')"));
+for(const shell of ['index.html','studio/index.html','404.html','live-studio-shell.html']){
+ const html=readFileSync(new URL('./'+shell,import.meta.url),'utf8');
+ check(shell+" loads the fixed TikTok recovery code",
+  html.includes("tiktok-orbit.js?v=20261114-session-repair-2"));
+}
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
