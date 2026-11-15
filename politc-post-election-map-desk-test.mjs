@@ -166,3 +166,17 @@ test('main Map holds permanent canvas on left and independent right-side tabs',(
  assert.match(mapcss,/\.map-workspace-pane\[hidden\]\{display:none!important\}/);
  assert.match(mapcss,/max-width: 959px/);
 });
+
+test('Epstein research sources use four compact tiles without a nested scrollbar',()=>{
+ const links=mod.slice(mod.indexOf('id="politcEpsteinObserver"'),mod.indexOf('<p class="politc-note">Epstein Observer',mod.indexOf('id="politcEpsteinObserver"')));
+ assert.equal((links.match(/<a class="politc-source"/g)||[]).length,4);
+ for(const host of ['epstein.observer','justice.gov/epstein','oversight.house.gov','vault.fbi.gov'])
+  assert(links.includes(host),host);
+ assert.match(pcss,/#politcEpsteinObserver \.politc-resources\{\s*display:grid!important;\s*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/);
+ assert.match(pcss,/#politcEpsteinObserver\.politc-deck-tracker\{\s*height:auto!important;\s*min-height:305px!important;\s*max-height:none!important;\s*overflow-y:visible!important/);
+ assert.match(pcss,/#politcEpsteinObserver \.politc-resources > a\.politc-source\{/);
+ assert.match(pcss,/min-height:44px!important/);
+ for(const path of shells){
+  assert.match(read(path),/politc-post-election-20261113\.css\?v=20261114-epstein-compact-1/);
+ }
+});
