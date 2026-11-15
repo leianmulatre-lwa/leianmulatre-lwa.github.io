@@ -125,7 +125,9 @@
   const payload={roles,age:data.age,location,showRoles:data.showRoles!==false};
   saving=true;
   // Invalidate an older account read so it cannot overwrite the new save.
+  // Clear its promise as well, otherwise an old pending load could block retry.
   const token=++generation;
+  loadPromise=null;
   try{
    const {auth,db,fs}=await firebase();
    await auth.authStateReady();
