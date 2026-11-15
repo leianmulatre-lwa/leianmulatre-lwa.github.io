@@ -292,7 +292,7 @@ html.night-mode #studioApp img[src*="/sesa-wo-suban-medium.png"]{
   font-size:6px!important;margin-bottom:2px!important;
 }
 #studioApp .music-card.studio-upper-square .stereo-eq{
-  height:9px!important;margin-top:4px!important;
+  height:16px!important;margin-top:2px!important;
 }
 #studioApp .music-card.studio-upper-square .stereo-control-deck{
   grid-template-columns:repeat(3,minmax(0,1fr)) 25px!important;gap:4px!important;
@@ -618,3 +618,8 @@ html.night-mode #studioApp img[src*="/sesa-wo-suban-medium.png"]{
   border:1px solid #d5a437!important;
   box-shadow:none!important;
 }
+
+/* Tunes playback time now sits alongside the actual seek bar, never over it. */
+#studioApp .music-card.stereo-music-widget .stereo-display .stereo-time-scale{display:flex!important;align-items:center!important;gap:5px!important;margin-top:3px!important;min-width:0!important}
+#studioApp .music-card.stereo-music-widget .stereo-display .stereo-time-scale>.progress{flex:1 1 auto!important;width:auto!important;margin:0!important;min-width:10px!important}
+#studioApp .music-card.stereo-music-widget .stereo-display .stereo-time-scale>span{flex:0 0 auto!important;font-size:8px!important;line-height:1!important;font-variant-numeric:tabular-nums}
