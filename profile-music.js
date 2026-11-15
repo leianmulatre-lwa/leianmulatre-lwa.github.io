@@ -69,7 +69,8 @@ function ensure(){
    '<ul class="music-song-list" id="profileMusicSongList"></ul>'+
    '<div class="music-footer" id="profileMusicOwnerButtons" hidden>'+
    '<button type="button" data-track-action="add">Add another song</button>'+
-   '<button type="button" data-track-action="backup">Back up current device song</button></div>';
+   '<button type="button" data-track-action="backup">Back up current device song</button>'+
+   '<button type="button" data-track-action="check-save">Check save status</button></div>';
   dialog.addEventListener('click',event=>clickDialog(event).catch(error=>status(error.message)));
   document.body.append(dialog);state.dialog=dialog;
  }
@@ -129,8 +130,8 @@ async function upload(file,title,artist){
  status('Uploading private song to your Big LWA account…');
  const params=new URLSearchParams({title:String(title||file.name).slice(0,100),artist:String(artist||'Unknown artist').slice(0,100)});
  await data('?'+params.toString(),{method:'POST',headers:{'Content-Type':file.type||'audio/mpeg'},body:file},true);
- status('Uploaded privately. Press Publish to make this song playable on your profile.');
  await refresh();
+ status('Saved to your account privately. Publishing is a separate, explicit choice.');
 }
 async function play(track){
  const player=window.BigLWAStudioMusic?.playCloudTrack;
@@ -144,6 +145,12 @@ async function clickDialog(event){
  const action=target.dataset.trackAction;
  if(action==='close'){state.dialog.close();return}
  if(action==='add'){$('#studioTrackInput')?.click();return}
+ if(action==='check-save'){
+  const saved=await window.BigLWAStudioMusic?.getLocalRecord?.().catch(()=>null);
+  status((saved?.audioBlob?'Device: saved':'Device: no local audio')+
+    ' · Account: '+state.tracks.length+' private/public track(s). '+ 
+    'SoundCloud links and imported playlists are separate browser-only bookmarks.');return;
+ }
  if(action==='backup'){
   const saved=await window.BigLWAStudioMusic?.getLocalRecord?.();
   if(!saved?.audioBlob){status('No locally saved track found. Choose a file first.');return}
@@ -191,7 +198,8 @@ async function boot(){
 window.addEventListener('biglwa:public-profile-ready',e=>visitor(e.detail).catch(err=>status(err.message)));
 window.addEventListener('biglwa:music-local-upload',e=>{
  const {file,title,artist}=e.detail||{};
- owner().then(()=>upload(file,title,artist)).catch(err=>status(err.message));
+ if(!file)return;
+ owner().then(()=>upload(file,title,artist)).catch(err=>status('Saved on this device, but account backup did not finish: '+String(err?.message||err).slice(0,125)));
 });
 window.addEventListener('biglwa:session-verified',e=>{
  if(!e.detail?.signedIn){state.uid='';state.owner=false;state.tracks=[];state.selected='';render()}
