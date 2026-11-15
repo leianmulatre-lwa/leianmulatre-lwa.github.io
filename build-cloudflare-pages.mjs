@@ -14,6 +14,9 @@ const dest=join(root,'dist');
 const publishDirs=new Set([
   'MiiEditor','about','affidavit','arcade','archive','assets','avatar','leian-mulatre',
   'cedarville-pnkfun1-cursive-font','cuteness-font','data-deletion',
+  // Independently indexable, deliberately public, static feature guides.
+  'discover','online-games','fare-checker','live-shows','free-knowledge',
+  'power-and-politics','connect-social-platforms','free-tools',
   'licenses','logout','privacy','rights','terms','settings','stars-and-stripes-font',
   'third-party','tools','wiimii'
 ]);
@@ -73,7 +76,7 @@ for(const dirent of readdirSync(root,{withFileTypes:true})){
   cpSync(join(root,name),join(dest,name));
   count++;total+=sz;
 }
-for(const required of ['index.html','404.html','assets/login-curtain-film-grain-v2.webp','google0f54272f22b5ea1f.html','leian-mulatre/index.html','affidavit/index.html']){
+for(const required of ['index.html','404.html','assets/login-curtain-film-grain-v2.webp','google0f54272f22b5ea1f.html','leian-mulatre/index.html','affidavit/index.html','free-tools/index.html','discover/index.html','online-games/index.html','fare-checker/index.html','live-shows/index.html','free-knowledge/index.html','power-and-politics/index.html','connect-social-platforms/index.html']){
   if(!existsSync(join(dest,required)))throw Error('Missing required public asset: '+required);
 }
 for(const hidden of ['cloudflare-worker-instagram.js','new-orbit-oauth.js','public-tiktok-snapshot-worker.js','wrangler.toml','firestore.rules','.github']){
