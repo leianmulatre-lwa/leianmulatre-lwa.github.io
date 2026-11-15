@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1';
+        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1';
         document.head.appendChild(script);
       }, 250);
     }
@@ -2771,7 +2771,10 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
        '<section class="module-card wide"><h2>Create a lounge</h2><p>Use a # name for a private local conversation draft.</p>'+
        '<form class="module-form two" id="createRoomForm"><input class="module-input" name="room" placeholder="#new-room" maxlength="32" autocomplete="off" required>'+
        '<button class="module-action" type="submit">Create</button></form><p class="module-status" id="createRoomStatus">Saved locally for now; not discoverable by other members.</p></section></div>';
-    body.innerHTML=heading('rooms')+tabs+(mode==='room'?roomView:loungeView);
+    // Keep both section choices in the page header, beside the title; never as a second toolbar row.
+    const roomHeading=heading('rooms').replace('<div class="module-heading-bottom">',
+      '<div class="room-heading-tabs">'+tabs+'</div><div class="module-heading-bottom">');
+    body.innerHTML=roomHeading+(mode==='room'?roomView:loungeView);
     body.querySelectorAll('[data-room-mode]').forEach(button=>button.addEventListener('click',()=>{
       const target=button.dataset.roomMode;
       if(target===mode)return;
