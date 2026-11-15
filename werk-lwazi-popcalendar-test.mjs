@@ -83,8 +83,8 @@ test('Four Studio shells load Calendar facts before module, and renewed job asse
   assert.equal((c.match(/werk-browser-window-20261114\.js\?v=/g)||[]).length,1,path);
   assert.equal((c.match(/werk-browser-window-20261114\.css\?v=/g)||[]).length,1,path);
   assert(c.indexOf('pop-culture-calendar-20261114.js?v=')<c.indexOf('module-pages.js?v='),path);
-  assert.match(c,/visual-life-jobs\.js\?v=20261114-ats-lwazi-3/);
-  assert.match(c,/politc-werk-20261114\.js\?v=20261114-ats-window-pop-3/);
+  assert.match(c,/visual-life-jobs\.js\?v=20261114-werk-brands-1/);
+  assert.match(c,/politc-werk-20261114\.js\?v=20261114-werk-brands-1/);
   assert.match(c,/user-search-results\.js\?v=[^"<>]*jobs=20261114-1/);
  }
 });
