@@ -82,6 +82,7 @@ on:
       - 'free-tools-seo-20261114.test.mjs'
       - 'discovery-pages-20261115.css'
       - 'discovery-seo-20261115.test.mjs'
+      - 'build-cloudflare-pages.mjs'
       - 'discover/**'
       - 'online-games/**'
       - 'fare-checker/**'
