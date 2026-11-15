@@ -60,12 +60,13 @@
   switchButtons[key]=button;switcher.append(button);
  }
  const tripInfo=el('p','map-transport-trip-note','Set pickup and dropoff, then select Explore trip for a road route. No GPS permission is requested.');
- const services=el('section','map-service-links');
+ // A native disclosure keeps route controls in view until provider details are needed.
+ const services=el('details','map-service-links');
  services.id='mapServiceLinks';
  services.setAttribute('aria-label','In-app ride and delivery comparison');
- const titleBar=el('div','map-service-head');
+ const titleBar=el('summary','map-service-head');
  const title=el('strong','', 'Ride options');
- const sub=el('small','', 'Compare choices without leaving BIG LWA');
+ const sub=el('small','', 'Expand to see providers and booking options');
  titleBar.append(title,sub);services.append(titleBar);
  const providerList=el('div','map-provider-list');
  providerList.setAttribute('role','group');providerList.setAttribute('aria-label','Choose provider');
@@ -195,6 +196,7 @@
  function chooseMode(next){
   if(!SERVICES[next])return;
   mode=next;selected=SERVICES[next][0].id;
+  services.open=true;
   if(next==='rides'){
    const driving=travelButtons.find(button=>button.dataset.mapTravel==='driving');
    if(driving&&driving.getAttribute('aria-pressed')!=='true')driving.click();
