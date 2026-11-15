@@ -22,7 +22,7 @@ test('both new interactive scripts parse and deployed pages load them',()=>{
    'Research room must mount before post-election placement');
  }
  assert.match(map,/map-lwa-experience-20261113\.js\?v=20261113-go-v5/);
- assert.match(map,/map-lwa-experience-20261113\.css\?v=20261114-full-width-right-desk-v6/);
+ assert.match(map,/map-lwa-experience-20261113\.css\?v=20261114-wider-map-page-scroll-v7/);
  assert.match(mod,/20261113-inpage-navigation-go-5/);
  assert.match(mod,/allow="geolocation 'self'; microphone 'self'; fullscreen"/);
 });
@@ -160,9 +160,10 @@ test('main Map holds permanent canvas on left and independent right-side tabs',(
  assert.match(mapjs,/aria-controls/);
  assert.match(mapjs,/bridge\.map\.invalidateSize/);
  assert.match(mapcss,/min-width: 960px/);
- assert.match(mapcss,/grid-template-columns:minmax\(0,1fr\) minmax\(350px,0\.96fr\)/);
+ assert.match(mapcss,/grid-template-columns:minmax\(0,1\.4fr\) minmax\(350px,0\.9fr\)/);
  assert.match(mapcss,/\.map-tool-panels\{/);
- assert.match(mapcss,/overflow:auto;overscroll-behavior:contain/);
+ assert.match(mapcss,/overflow:visible!important;overscroll-behavior:auto!important/);
+ assert.doesNotMatch(mapcss.slice(mapcss.indexOf('body.embedded.map-workspace-split .map-tool-panels{'),mapcss.indexOf('body.embedded.map-workspace-split .map-workspace-pane{')),/overflow:auto;overscroll-behavior:contain/,'No independent scroll trap in right desk; route instruction list may still scroll');
  assert.match(mapcss,/\.map-workspace-pane\[hidden\]\{display:none!important\}/);
  assert.match(mapcss,/max-width: 959px/);
 });
@@ -186,7 +187,21 @@ test('Map right-hand editor stretches to the pane width without shrinking the in
  assert.match(mapcss,/align-self:stretch!important/);
  assert.match(mapcss,/width:100%!important/);
  assert.match(mapcss,/map-workspace-split #mapEditPane #pinForm/);
- assert.match(mapcss,/grid-template-columns:minmax\(0,1fr\) minmax\(350px,0\.96fr\)/);
+ assert.match(mapcss,/grid-template-columns:minmax\(0,1\.4fr\) minmax\(350px,0\.9fr\)/);
  assert.match(mapcss,/\.map-workspace-pane\[hidden\]\{display:none!important\}/);
- assert.match(map,/map-lwa-experience-20261113\.css\?v=20261114-full-width-right-desk-v6/);
+ assert.match(map,/map-lwa-experience-20261113\.css\?v=20261114-wider-map-page-scroll-v7/);
+});
+
+test('Wider Map retains interactive canvas and lets right-hand tools scroll the page naturally',()=>{
+ const split=mapcss.slice(mapcss.indexOf('@media (min-width: 960px)'),
+  mapcss.indexOf('body.embedded.map-workspace-split main>aside{\n background:'));
+ assert.match(split,/grid-template-columns:minmax\(0,1\.4fr\) minmax\(350px,0\.9fr\)/);
+ assert.match(split,/position:sticky!important;top:8px!important/,'Keep map visible while scrolling');
+ assert.match(split,/height:auto!important/,'Right desk must grow with its content');
+ assert.match(split,/max-height:none!important/);
+ assert.match(split,/overflow:visible!important;overscroll-behavior:auto!important/);
+ assert.match(mapcss,/body\.embedded\.map-workspace-split:not\(\.preview\) \.map-tool-panels/);
+ assert.match(mapcss,/touch-action:pan-y!important/);
+ assert.match(mapcss,/body\.preview \.map-plan/,'Compact Studio preview keeps its own layout');
+ assert.match(map,/map-lwa-experience-20261113\.css\?v=20261114-wider-map-page-scroll-v7/);
 });
