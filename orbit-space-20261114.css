@@ -49,16 +49,16 @@
 }
 #studioApp #orbit #orbitGrid>button[data-orbit-app]>.orbit-glyph{
   animation:biglwa-orbit-hover 5.6s ease-in-out infinite;
-  animation-delay:calc(var(--orbit-order,0) * -.73s);
+  animation-delay:-.7s;
   will-change:translate;
 }
-#studioApp #orbit #orbitGrid>button:nth-child(2){--orbit-order:2}
-#studioApp #orbit #orbitGrid>button:nth-child(3){--orbit-order:3}
-#studioApp #orbit #orbitGrid>button:nth-child(4){--orbit-order:4}
-#studioApp #orbit #orbitGrid>button:nth-child(5){--orbit-order:5}
-#studioApp #orbit #orbitGrid>button:nth-child(6){--orbit-order:6}
-#studioApp #orbit #orbitGrid>button:nth-child(7){--orbit-order:7}
-#studioApp #orbit #orbitGrid>button:nth-child(8){--orbit-order:8}
+#studioApp #orbit #orbitGrid>button:nth-child(2)>.orbit-glyph{animation-delay:-1.26s}
+#studioApp #orbit #orbitGrid>button:nth-child(3)>.orbit-glyph{animation-delay:-1.89s}
+#studioApp #orbit #orbitGrid>button:nth-child(4)>.orbit-glyph{animation-delay:-2.52s}
+#studioApp #orbit #orbitGrid>button:nth-child(5)>.orbit-glyph{animation-delay:-3.15s}
+#studioApp #orbit #orbitGrid>button:nth-child(6)>.orbit-glyph{animation-delay:-3.78s}
+#studioApp #orbit #orbitGrid>button:nth-child(7)>.orbit-glyph{animation-delay:-4.41s}
+#studioApp #orbit #orbitGrid>button:nth-child(8)>.orbit-glyph{animation-delay:-5.04s}
 #studioApp #orbit #orbitGrid>button:is(:hover,:focus-visible)>.orbit-glyph{
   scale:1.08;
 }
