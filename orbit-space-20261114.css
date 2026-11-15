@@ -29,7 +29,7 @@
 #studioApp #orbit::after,
 #studioApp #moduleWorkspace[data-module-key="orbit"]::before,
 #studioApp #moduleWorkspace[data-module-key="orbit"]::after{
- content:"";position:absolute;inset:0;z-index:0;
+ content:"";position:absolute;inset:0;z-index:1;
  border-radius:inherit;pointer-events:none!important;
  background-repeat:repeat;
  will-change:opacity;
@@ -55,10 +55,17 @@
   calc(var(--orbit-cursor-x, 0) * -42px) calc(var(--orbit-cursor-y, 0) * -42px);
 }
 @keyframes biglwa-orbit-twinkle-a{
- 0%,15%{opacity:.13}48%{opacity:.9}71%{opacity:.32}100%{opacity:.75}
+ 0%,15%{opacity:.21;transform:translate3d(0,0,0)}
+ 48%{opacity:1;transform:translate3d(7px,-5px,0)}
+ 71%{opacity:.4;transform:translate3d(13px,-9px,0)}
+ 100%{opacity:.82;transform:translate3d(19px,-12px,0)}
 }
 @keyframes biglwa-orbit-twinkle-b{
- 0%{opacity:.83}34%{opacity:.25}57%{opacity:.91}78%{opacity:.19}100%{opacity:.7}
+ 0%{opacity:.9;transform:translate3d(0,0,0)}
+ 34%{opacity:.28;transform:translate3d(-6px,4px,0)}
+ 57%{opacity:1;transform:translate3d(-10px,7px,0)}
+ 78%{opacity:.26;transform:translate3d(-15px,11px,0)}
+ 100%{opacity:.75;transform:translate3d(-19px,13px,0)}
 }
 #studioApp #orbit{border-color:rgba(167,133,198,.4)!important;box-shadow:inset 0 0 0 1px rgba(229,196,255,.06),0 12px 30px rgba(10,6,40,.19)!important}
 #studioApp #moduleWorkspace[data-module-key="orbit"]{border-radius:18px!important;box-shadow:inset 0 0 0 1px rgba(220,204,255,.16)!important}
@@ -77,20 +84,34 @@
 #studioApp #orbit>.orbit-space-canvas,
 #studioApp #moduleWorkspace[data-module-key="orbit"]>.orbit-space-canvas{
   position:absolute;inset:0;width:100%;height:100%;display:block;
-  z-index:0;pointer-events:none!important;user-select:none!important;
+  /* Animated pixels ABOVE the decorative texture, BELOW the real controls.
+     Previous z-index:0 let the CSS star layers hide the live canvas. */
+  z-index:2!important;pointer-events:none!important;user-select:none!important;
   border-radius:inherit;clip-path:inset(0 round 15px);
-  opacity:1!important;
+  opacity:1!important;filter:brightness(1.4);
   mix-blend-mode:screen;
 }
 #studioApp #orbit>:not(.orbit-space-canvas),
 #studioApp #moduleWorkspace[data-module-key="orbit"]>:not(.orbit-space-canvas){
-  position:relative;z-index:1;
+  position:relative;z-index:3;
 }
 #studioApp #orbit :is(.card-title,.widget-title,h2,h3),
 #studioApp #orbit .orbit-note{color:#f5eafd!important}
 #studioApp #orbit .orbit-note{opacity:.86}
 #studioApp #orbit #orbitGrid{
-  position:relative;z-index:1;
+  position:relative;z-index:3;
+}
+
+/* The widget's canvas is a true, clipped space layer: absolutely positioned,
+ * never a grid child, and never a click interception surface. */
+#studioApp article#orbit>.orbit-space-canvas{
+ display:block!important;position:absolute!important;inset:0!important;
+ width:100%!important;height:100%!important;max-width:100%!important;
+ max-height:100%!important;z-index:2!important;pointer-events:none!important;
+ contain:paint;
+}
+#studioApp article#orbit > :is(.card-head,.sub,#orbitGrid,.orbit-note){
+ position:relative!important;z-index:3!important;
 }
 #studioApp #orbit #orbitGrid>button[data-orbit-app]{
   background:rgba(46,32,74,.32)!important;
