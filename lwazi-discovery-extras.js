@@ -95,7 +95,7 @@ function discoveryIntentCards(query){
    name:'Wealth, power & public-record research',text:'Examine rhetoric, inequality and policy with identifiable sources.',guide:'/power-and-politics/',route:'politc'},
   {test:/(?:free\s+(?:encyclop(?:edia|a?edia)|knowledge|research|books?)|open\s+encyclop(?:edia|a?edia)|public\s+domain\s+books?)/i,
    name:'Free knowledge & encyclopedias',text:'Books, archives, encyclopedias and first-party L’wazi research tools.',guide:'/free-knowledge/',route:'library'},
-  {test:/(?:connect\s+(?:social\s+)?(?:media|accounts?|platforms?)|social\s+body|link\s+instagram|import\s+(?:pinterest|instagram|tiktok))/i,
+  {test:/(?:connect\s+(?:(?:my|your|our)\s+)?(?:social\s+)?(?:media|accounts?|platforms?)|social\s+body|link\s+instagram|import\s+(?:pinterest|instagram|tiktok))/i,
    name:'Connect your social platforms with Orbit',text:'Optional provider connections, permission boundaries and supported imports.',guide:'/connect-social-platforms/',route:'orbit'}
  ];
  return matches.filter(x=>x.test.test(q)).slice(0,3).map(x=>
