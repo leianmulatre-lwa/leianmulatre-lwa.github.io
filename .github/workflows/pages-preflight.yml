@@ -41,6 +41,7 @@ on:
       - 'google-orbit.js'
       - 'stream-guide.js'
       - 'stream-music-ch05-20261115.test.mjs'
+      - 'stream-radio-sections-20261115.test.mjs'
       - 'studio-upper-rail-size-contract-20261103.css'
       - 'stream-guide.css'
       - 'booth-room-20261114.css'
@@ -136,6 +137,7 @@ jobs:
           node --check room-discovery-signals-20261114.js
           node --check stream-guide.js
           node --test stream-music-ch05-20261115.test.mjs
+          node --test stream-radio-sections-20261115.test.mjs
           node --test studio-booth-hair-map-room-stream-test.mjs
           node --check community-profile-roles-20261114.js
           node --test community-profile-policy-regression-20261114.test.mjs

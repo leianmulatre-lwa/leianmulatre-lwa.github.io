@@ -14,8 +14,8 @@ test('Stream JS is valid and music is a fifth tab but not a fake programmed stat
  assert.match(guide,/state\.category==='music'/);
  assert.match(guide,/function musicStandby\(/);
  assert.match(guide,/function musicSetupMarkup\(/);
- assert.match(guide,/grid\.hidden=state\.category==='music'/);
- assert.match(guide,/root\.querySelector\('#streamGrid'\)\?\.replaceChildren\(\)/);
+ assert.match(guide,/if\(grid\)grid\.hidden=false/);
+ assert.match(guide,/stream-music-other-channels/);
  assert.match(guide,/data-stream-open-tunes/);
  const setup=guide.slice(guide.indexOf('function musicSetupMarkup(){'),guide.indexOf('function renderCategory(){'));
  assert.doesNotMatch(setup,/fetch\(|XMLHttpRequest|client_secret|access_token/);
@@ -37,7 +37,7 @@ test('Music has a five-column responsive layout with no fake player or links',()
  assert.match(theme,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)!important/);
  assert.match(theme,/stream-music-provider-grid/);
  assert.match(theme,/@media\(max-width:750px\)/);
- assert.match(theme,/\.stream-guide\[hidden\]/);
+ assert.match(theme,/\.stream-music-other-channels/);
 });
 test('Stereo seek bar lives at bottom of CRT without an absolute overlay',()=>{
  assert.match(stereo,/stereo-display>\.stereo-time-scale\{/);
