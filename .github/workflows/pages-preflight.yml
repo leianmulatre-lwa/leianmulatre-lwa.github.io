@@ -20,7 +20,16 @@ on:
       - '404.html'
       - 'brand-policy.css'
       - 'policy-card-cohesion.js'
-      - 'module-pages.js'
+      - 'module-pages.js' 
+      - 'map-app.html'
+      - 'stream-guide.js'
+      - 'stream-guide.css'
+      - 'booth-room-20261114.css'
+      - 'lwazi-hair-visuals-20261114.js'
+      - 'lwazi-hair-visuals-20261114.css'
+      - 'room-discovery-signals-20261114.js'
+      - 'live-studio-payload.html'
+      - 'studio-booth-hair-map-room-stream-test.mjs'
       - 'pop-culture-calendar-20261114.js'
       - 'werk-browser-window-20261114.js'
       - 'werk-browser-window-20261114.css'
@@ -82,6 +91,10 @@ jobs:
           node --check pop-culture-calendar-20261114.js
           node --check werk-browser-window-20261114.js
           node --test werk-lwazi-popcalendar-test.mjs
+          node --check lwazi-hair-visuals-20261114.js
+          node --check room-discovery-signals-20261114.js
+          node --check stream-guide.js
+          node --test studio-booth-hair-map-room-stream-test.mjs
           python3 -m unittest discover -s scripts -p test_visual_life_feed.py
           python3 -m unittest discover -s scripts -p test_visual_life_ats.py
           node studio-layout-cache-test.mjs
