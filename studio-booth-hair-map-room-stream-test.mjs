@@ -83,6 +83,24 @@ test('Room and Lounge replace invented trending and online counts with sourced s
  assert(items.some(item=>item.kind==='United Nations'&&item.links.x.includes('x.com/search')&&item.links.instagram.includes('instagram.com')));
  assert(items.every(item=>!/trending room|global trend/i.test(item.detail)||item.detail.includes('not a global trend')||item.detail.includes('not social-platform')));
 });
+test('Room/Lounge tabs share the title row rather than making a second toolbar',()=>{
+ const begin=studio.indexOf('function renderRoom(){');
+ const end=studio.indexOf('function render',begin+20);
+ const room=studio.slice(begin,end>begin?end:begin+12000);
+ assert.match(room,/const roomHeading=heading\('rooms'\)\.replace/);
+ assert.match(room,/room-heading-tabs/);
+ assert.match(room,/body\.innerHTML=roomHeading\+\(mode==='room'\?roomView:loungeView\)/);
+ assert.doesNotMatch(room,/body\.innerHTML=heading\('rooms'\)\+tabs/);
+ assert.match(boothCss,/grid-template-areas:"room-title room-tabs" "room-meta room-meta"!important/);
+ assert.match(boothCss,/grid-area:room-tabs/);
+ assert.match(boothCss,/max-width:690px/);
+ for(const path of shells){
+  const html=read(path);
+  assert.match(html,/booth-room-20261114\.css\?v=20261114-room-header-right-1/);
+  assert.match(html,/&header=20261114-room-politic-1/);
+ }
+});
+
 test('Four submitted LWA TV streams are explicitly opt-in to publisher-hosted YouTube live chat',()=>{
  for(const id of ['Q0zx1vpTghg','_RdBYV6TLV0','eE1L08hNdW8','DuUUTvBihaU'])
   assert(stream.includes("videoId:'"+id+"'"),id);
