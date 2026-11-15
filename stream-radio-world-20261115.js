@@ -50,7 +50,7 @@ function verifiedStation(row,opts={}){
  if(!stream||!['MP3','AAC','AAC+','OGG','OPUS','FLAC','HLS'].includes(String(row.codec||'MP3').toUpperCase()))return null;
  if(opts.country&&String(row.countrycode||'').toUpperCase()!==opts.country)return null;
  if(opts.name){
-  const sign=callsign(opts);
+  const sign=callsign(opts.name);
   const hay=(' '+String(row.name||'').toUpperCase()+' ').replace(/[^A-Z0-9]+/g,' ');
   if(!sign||!new RegExp('(?:^| )'+sign+'(?: |$)').test(hay))return null;
  }
