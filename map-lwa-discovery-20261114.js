@@ -176,12 +176,13 @@
  async function load(key){
   if(!CATEGORIES[key])return;
   setActive(key);
+  // Invalidate previous requests even when the next category is rate limited.
+  requestId++;controller?.abort();controller=null;
   if(!bridge?.map){setStatus('Map is loading. Try again after it appears.');return;}
   if(bridge.map.getZoom()<12){
    setStatus('Zoom closer (street or neighborhood level) to discover nearby places.');
    removeMarkers();return;
   }
-  controller?.abort();controller=null;
   const center=bridge.map.getCenter();
   const memoKey=key+':'+round(center.lat)+':'+round(center.lng);
   const cached=memo.get(memoKey);
@@ -193,11 +194,12 @@
    setStatus('Give the map a moment before checking another category.');return;
   }
   nextRequestAt=Date.now()+1600;
-  const stamp=++requestId;
-  controller=new AbortController();
-  const signal=controller.signal;
+  const stamp=requestId;
+  const activeController=new AbortController();
+  controller=activeController;
+  const signal=activeController.signal;
   setStatus('Finding mapped '+CATEGORIES[key].label.toLowerCase()+' around this spot…');
-  const timeout=setTimeout(()=>controller?.abort(),14000);
+  const timeout=setTimeout(()=>activeController.abort(),14000);
   try{
    const endpoint='https://overpass-api.de/api/interpreter';
    const response=await fetch(endpoint,{
@@ -220,7 +222,7 @@
    setStatus(error?.message||'Nearby places could not be loaded.');
   }finally{
    clearTimeout(timeout);
-   if(stamp===requestId)controller=null;
+   if(stamp===requestId&&controller===activeController)controller=null;
   }
  }
  function bindMap(){
