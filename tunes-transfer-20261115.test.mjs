@@ -8,7 +8,7 @@ function harness(){
  const values=new Map();
  const dialog={hidden:false};
  const doc={readyState:'loading',head:{append(){}},addEventListener(){},createElement(tag){if(tag==='style')return {id:'',textContent:''};throw Error(tag)},querySelector(q){return q==='#profileMusicOwnerButtons'?dialog:null}};
- const win={__biglwaIdentity:{uid:'verified-test-user'}};
+ const win={__biglwaIdentity:{uid:'verified-test-user'},addEventListener(){}};
  const sandbox={window:win,document:doc,localStorage:{getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value)},URL,console,setTimeout(){}};
  vm.runInNewContext(source,sandbox);
  return {tools:win.BigLWATunesTransfer,values};
