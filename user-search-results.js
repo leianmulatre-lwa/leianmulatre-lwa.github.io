@@ -585,6 +585,8 @@
          var html=firstParty+(hairModels?section('Hair visual models',[hairModels],'hair images research'):'' )+section('Job postings',jobCards.map(sourceJobCard).filter(Boolean),'jobs careers work')+section('BigLWA users',parts[0].map(userCard),'people users images')+section('Public Sqwidz',parts[4],'sqwidz social posts')+section('Books',parts[1],'books images')+section('Songs',parts[5],'songs music videos audio')+(activeCategory==='songs'&&window.BigLWADiscoveryExtras?window.BigLWADiscoveryExtras.placePromo():'')+(activeCategory==='songs'&&!isSocialGreeting&&window.BigLWAMusicDiscovery?section('SoundCloud',[window.BigLWAMusicDiscovery.searchMarkup(clean)],'songs music soundcloud'):'')+section('Politics & public life',politics,'politics history research')+section('Cinema & video',films,'stream videos movies images')+section('Herstory',general,'research herstory places maps people politics images');
         var extras=window.BigLWADiscoveryExtras;
         if(extras){
+          const matchingFeatures=extras.discoveryIntentCards?.(clean)||[];
+          if(matchingFeatures.length)html=section('Explore this in BIG LWA',matchingFeatures,'all studio widgets games stream politics research places maps')+html;
           const matchingTools=extras.toolIntentCards?.(clean)||[];
           if(matchingTools.length)html=section('Free tools & creative alternatives',matchingTools,'all studio widgets games')+html;
           html+=section('Stream videos',extras.videoCards(clean,activeCategory==='stream'),'stream videos images');

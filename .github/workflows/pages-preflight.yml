@@ -80,6 +80,16 @@ on:
       - 'lwazi-link-tools-20261114.test.mjs'
       - 'free-tools/index.html'
       - 'free-tools-seo-20261114.test.mjs'
+      - 'discovery-pages-20261115.css'
+      - 'discovery-seo-20261115.test.mjs'
+      - 'discover/**'
+      - 'online-games/**'
+      - 'fare-checker/**'
+      - 'live-shows/**'
+      - 'free-knowledge/**'
+      - 'power-and-politics/**'
+      - 'connect-social-platforms/**'
+      - 'data-deletion/index.html'
       - 'lwazi-discovery-extras.js'
       - 'sitemap.xml'
       - 'about/index.html'
@@ -152,6 +162,8 @@ jobs:
           node --check lwazi-link-tools-20261114.js
           node --test lwazi-link-tools-20261114.test.mjs
           node --test free-tools-seo-20261114.test.mjs
+          node --check lwazi-discovery-extras.js
+          node --test discovery-seo-20261115.test.mjs
           node active-route-build-regression-test.mjs
           node orbit-inline-links-regression-test.mjs
           node pinterest-owned-feed-regression-test.mjs
