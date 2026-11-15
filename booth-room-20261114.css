@@ -1,0 +1,146 @@
+/* Booth: one avatar, a larger 16:10 camera screen and true exterior vanity LEDs.
+   All brightness is rendered on the page; browsers cannot brighten hardware screens. */
+#studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity{
+ --vanity-energy:.72;--vanity-spill:.518;--vanity-exposure:1.46;--vanity-radius:87px;
+ position:relative!important;
+ width:min(100%,1100px)!important;max-width:1100px!important;
+ min-height:0!important;padding:0 55px!important;
+ margin:22px auto 7px!important;box-sizing:border-box!important;
+ background:transparent!important;border:0!important;border-radius:0!important;
+ box-shadow:none!important;overflow:visible!important;
+}
+#studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity .booth-vanity-lights{
+ position:absolute!important;inset:0!important;overflow:visible!important;
+ z-index:0!important;pointer-events:none!important;border-radius:0!important;
+}
+#studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity .light-bar{
+ display:block!important;
+ position:absolute!important;top:4%!important;bottom:4%!important;
+ width:20px!important;height:auto!important;
+ border-radius:100px!important;
+ background:rgba(255,250,227,calc(.06 + var(--vanity-energy)*.94))!important;
+ box-shadow:
+ 0 0 calc(15px + var(--vanity-radius)*.35) rgba(255,255,235,calc(var(--vanity-spill)*.98)),
+ 0 0 var(--vanity-radius) 16px rgba(255,233,184,calc(var(--vanity-spill)*.92)),
+ 0 0 calc(var(--vanity-radius)*1.75) 31px rgba(255,233,183,calc(var(--vanity-spill)*.65))!important;
+ transition:background .1s,box-shadow .12s!important;
+}
+#studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity .light-bar.left{
+ left:13px!important;right:auto!important
+}
+#studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity .light-bar.right{
+ right:13px!important;left:auto!important
+}
+#studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity .light-bar.top,
+#studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity .light-bar.bottom{
+ display:none!important
+}
+#studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity .photobooth-stage{
+ position:relative!important;z-index:1!important;width:100%!important;
+ max-width:none!important;max-height:none!important;
+ aspect-ratio:16/10!important;min-height:clamp(330px,42vw,635px)!important;
+ margin:0 auto!important;box-sizing:border-box!important;border-radius:20px!important;
+ border:2px solid #69434a!important;
+ overflow:hidden!important;
+ box-shadow:
+ 0 10px 28px rgba(30,15,22,.25),
+ 0 0 calc(var(--vanity-radius)*.72) rgba(255,241,198,calc(var(--vanity-spill)*.6))!important;
+}
+#studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity .photobooth-stage.has-intro{
+ background:radial-gradient(ellipse at center,#513b44 0,#281c26 84%)!important
+}
+#studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity .photobooth-stage::after{
+ content:"";pointer-events:none;position:absolute;inset:0;z-index:3;
+ background:
+ linear-gradient(90deg,rgba(255,248,214,calc(var(--vanity-spill)*.22)),transparent 35%,transparent 65%,rgba(255,248,214,calc(var(--vanity-spill)*.22))),
+ radial-gradient(ellipse at 50% 45%,rgba(255,251,224,calc(var(--vanity-spill)*.13)),transparent 74%);
+ mix-blend-mode:screen;transition:background .1s;
+}
+#studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity #boothVideo,
+#studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity .photobooth-stage>img{
+ filter:brightness(var(--vanity-exposure))!important;transition:filter .13s!important
+}
+#studioApp #moduleWorkspace[data-module-key="camera"] #boothProfilePhoto[hidden],
+#studioApp #moduleWorkspace[data-module-key="camera"] #boothProfileFallback[hidden]{
+ display:none!important
+}
+#studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity .booth-avatar-prompt{
+ z-index:2!important;justify-content:center!important;gap:13px!important
+}
+#studioApp #moduleWorkspace[data-module-key="camera"] #boothLightLevel{
+ width:clamp(185px,33vw,390px)!important;accent-color:#b13e64
+}
+#studioApp #moduleWorkspace[data-module-key="camera"] .booth-light-controls{
+ width:min(100%,980px)!important;gap:14px!important;margin:14px auto 18px!important
+}
+@media(max-width:670px){
+ #studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity{
+  padding:0 23px!important;margin:16px auto 8px!important
+ }
+ #studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity .light-bar{
+  width:11px!important;top:3%!important;bottom:3%!important
+ }
+ #studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity .light-bar.left{left:3px!important}
+ #studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity .light-bar.right{right:3px!important}
+ #studioApp #moduleWorkspace[data-module-key="camera"] #boothVanity .photobooth-stage{
+  min-height:270px!important;aspect-ratio:4/5!important
+ }
+}
+/* Room and Lounge: 8-bit night market-inspired repurposing of existing pixels,
+   built with CSS, no external Asian imagery or decorative cultural clichés. */
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-mode-tabs{
+ display:inline-flex;gap:5px;flex-wrap:wrap;margin:0 0 18px;
+ border:1px solid #765a6e;padding:5px;border-radius:9px;background:#241b33
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-mode-tabs button{
+ border:1px solid transparent;border-radius:7px;background:transparent;color:#ede2ee;
+ min-height:33px;padding:6px 20px;font:700 12px system-ui,sans-serif;cursor:pointer
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-mode-tabs button[aria-selected=true]{
+ border-color:#d594ad;background:#734060;color:white
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-pixel-scene{
+ position:relative;min-height:120px;padding:24px;overflow:hidden;border-radius:8px;
+ border:2px solid #d28e9b;color:#f4efff;
+ background:repeating-linear-gradient(90deg,transparent 0 22px,#1d152750 22px 24px),
+ linear-gradient(120deg,#171527 5%,#4b2a5c 50%,#242d47 100%);
+ image-rendering:pixelated;box-shadow:inset 0 -10px #1c1728;
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-pixel-scene::after{
+ content:"";position:absolute;right:4%;top:14%;width:57px;height:57px;
+ background:repeating-conic-gradient(#e1a6bd 0 25%,#eecb8e 0 50%) 0 0 / 16px 16px;
+ box-shadow:0 0 0 7px #d9a5ba50,0 0 35px #c078d2a0;opacity:.7
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-pixel-scene strong{
+ font:400 clamp(23px,4vw,46px) "CS Bergamot Stitched",Georgia,serif;
+ display:block;position:relative;z-index:1
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-pixel-scene small{
+ display:block;margin-top:9px;position:relative;z-index:1
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-trend-grid{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:9px;margin:10px 0
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-trend-item{
+ display:flex;flex-direction:column;gap:6px;align-items:flex-start;text-align:left;
+ min-height:75px;border:1px solid #bfa7ac;border-radius:9px;background:#fff9ef;
+ padding:10px;color:#4a303a;text-decoration:none
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-trend-item strong{font:700 14px/1.2 Georgia,serif}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-trend-item small{font:500 11px/1.35 system-ui,sans-serif}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-role-choices{
+ display:flex;flex-wrap:wrap;gap:8px;margin:10px 0
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-role-choices label{
+ border:1px solid #9d7486;border-radius:9px;padding:7px 9px;
+ font:600 12px/1.2 system-ui,sans-serif;background:#f8edf0
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-role-choices label:has(input:checked){
+ background:#6a3e64;color:white
+}
+#studioApp #moduleWorkspace[data-module-key="rooms"] .room-role-disclaimer{
+ font:500 11px/1.4 system-ui,sans-serif;color:#725863
+}
+@media(max-width:590px){
+ #studioApp #moduleWorkspace[data-module-key="rooms"] .room-pixel-scene{min-height:100px;padding:17px}
+}
