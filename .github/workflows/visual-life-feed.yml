@@ -1,8 +1,10 @@
-name: Visual-Life / Werk · reviewed JobSpy snapshot
+name: Visual-Life / Werk · reviewed multi-source jobs snapshot
 
 on:
-  # Runs once when the owner changes this reviewed list on main.
-  # No cron: scraping is not an on-demand public browser capability.
+  # Refresh only the pre-reviewed job queries and employer boards.
+  # This is scheduled publication, never an on-demand user-triggered scrape.
+  schedule:
+    - cron: '17 14 * * *'
   push:
     branches: ["main"]
     paths:
@@ -60,7 +62,7 @@ jobs:
           JOB_LOCATION: ${{ inputs.location }}
           JOB_SOURCE: ${{ inputs.source }}
         run: |
-          if [ "${{ github.event_name }}" = "push" ]; then
+          if [ "${{ github.event_name }}" != "workflow_dispatch" ]; then
             python3 scripts/visual_life_feed.py --catalog data/visual-life/searches.json --ats data/visual-life/ats-boards.json
           else
             python3 scripts/visual_life_feed.py --term "$JOB_TERM" --location "$JOB_LOCATION" --source "$JOB_SOURCE" --limit 10
