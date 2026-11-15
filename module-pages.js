@@ -2747,12 +2747,13 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
      '<button type="button" role="tab" aria-selected="'+(mode==='lounge')+'" data-room-mode="lounge">Lounge</button></nav>';
     const roomView='<div class="module-grid room-pixel-mode">'+
        '<section class="module-card wide"><div class="room-pixel-scene" aria-hidden="true"><strong>Room</strong><small>People · ideas · sounds · self</small></div>'+
-       '<h2>Searches moving through the world</h2>'+
-       '<p>Real UN observances and topics in your connected Instagram media. Search X or Instagram directly to explore discussion there; these are <strong>not verified global trending rankings</strong>.</p>'+
+       '<h2>Welcome to the Room</h2>'+
+       '<p>Your shared community entryway. Head to <strong>Lounge</strong> for source-linked trending searches, saved rooms, and conversation drafts. Real-time member chat is not enabled yet.</p></section></div>';
+    const loungeView='<div class="module-grid room-lounge-mode">'+
+       '<section class="module-card wide room-lounge-searches"><h2>Trending searches &amp; topics</h2>'+
+       '<p>Source-linked UN observances and topics from connected Instagram media, with links to search X and Instagram. These are <strong>not verified global trending rankings</strong>.</p>'+
        '<div class="room-trend-grid" id="roomTrendSources" role="list"><p>Looking for source-linked topics…</p></div>'+
        '<p class="module-status" id="roomTrendStatus" role="status">No fabricated hashtags, viewers, or activity counts.</p></section>'+
-       '</div>';
-    const loungeView='<div class="module-grid room-lounge-mode">'+
        '<section class="module-card wide"><h2>Your lounges</h2><p>Your saved room names appear here. Public trending rooms and participant counts are not invented.</p>'+
        '<div class="module-launchers" id="trendingRooms">'+allRooms.map((r,i)=>chip(r,i)).join('')+'</div></section>'+
        '<section class="module-card wide"><div class="room-head"><h2>'+esc(room.name)+'</h2><small>Local conversation draft</small></div>'+
@@ -2789,9 +2790,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       localStorage.setItem(modeKey,target);
       openModule('rooms','',false);
     }));
-    if(mode==='room'){
-      const gen=body;
-      Promise.resolve().then(()=>window.BigLWARoomSignals?.load?.()||[]).then(items=>{
+    // The trending topic feed lives under Lounge, never Room. Gate access
+    // before resolving signals or binding controls on a blocked workspace.
+    if(!profileReady||(mode==='lounge'&&!loungeReady))return;
+    if(mode==='room')return;
+    const gen=body;
+    Promise.resolve().then(()=>window.BigLWARoomSignals?.load?.()||[]).then(items=>{
         const slot=$('#roomTrendSources',gen),note=$('#roomTrendStatus',gen);
         if(!slot||!slot.isConnected)return;
         slot.replaceChildren();
@@ -2816,8 +2820,6 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         });
         if(note)note.textContent=items.length+' source-linked topics shown. X and Instagram links open live searches; they do not imply platform trend ranking.';
       }).catch(()=>{const p=$('#roomTrendStatus',gen);if(p)p.textContent='No verified source topics available right now.';});
-      return;
-    }
     const goTo=index=>{
       const target=allRooms[Number(index)];if(!target)return;
       localStorage.setItem('biglwaActiveRoomV2:'+keyBase,target.slug);openModule('rooms','',false);

@@ -76,6 +76,17 @@ test('Room and Lounge replace invented trending and online counts with sourced s
  assert.match(studio,/biglwaRoomMessagesV2:/,'Account-isolated local room drafts');
  assert.match(boothCss,/room-dark-20261110\.webp/,'Reuse owner-approved Room artwork');
  assert.match(studio,/not verified global trending rankings/);
+ const roomStart=studio.indexOf('function renderRoom(){');
+ const roomEnd=studio.indexOf('function downloadBlob(',roomStart);
+ const renderRoom=studio.slice(roomStart,roomEnd);
+ const pixelSection=renderRoom.slice(renderRoom.indexOf('const roomView='),renderRoom.indexOf('const loungeView='));
+ const loungeSection=renderRoom.slice(renderRoom.indexOf('const loungeView='),renderRoom.indexOf('const roomHeading='));
+ assert.doesNotMatch(pixelSection,/roomTrendSources|roomTrendStatus/,'Room no longer renders trending searches');
+ assert.match(loungeSection,/room-trend-grid" id="roomTrendSources"/,'Lounge owns source-linked searches');
+ assert.match(loungeSection,/Trending searches &amp; topics/);
+ assert.match(renderRoom,/if\(mode==='room'\)return;/,'The Room tab must not resolve trending feeds');
+ assert.match(renderRoom,/if\(!profileReady\|\|\(mode==='lounge'&&!loungeReady\)\)return;/,
+  'Blocked Lounge cannot bind unavailable inputs or fetch source data');
  const today=new Date(),month=today.getMonth()+1,day=today.getDate();
  const un={data:{items:[{month,day,title:'International Test Day',url:'https://www.un.org/en/observances/test-day'}]},
   dateOf(item,year){return new Date(year,item.month-1,item.day)},

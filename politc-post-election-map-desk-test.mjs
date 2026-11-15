@@ -22,7 +22,7 @@ test('both new interactive scripts parse and deployed pages load them',()=>{
    'Research room must mount before post-election placement');
  }
  assert.match(map,/map-lwa-experience-20261113\.js\?v=20261113-go-v5/);
- assert.match(map,/map-lwa-experience-20261113\.css\?v=20261113-go-v5/);
+ assert.match(map,/map-lwa-experience-20261113\.css\?v=20261114-full-width-right-desk-v6/);
  assert.match(mod,/20261113-inpage-navigation-go-5/);
  assert.match(mod,/allow="geolocation 'self'; microphone 'self'; fullscreen"/);
 });
@@ -179,4 +179,14 @@ test('Epstein research sources use four compact tiles without a nested scrollbar
  for(const path of shells){
   assert.match(read(path),/politc-post-election-20261113\.css\?v=20261114-epstein-compact-1/);
  }
+});
+
+test('Map right-hand editor stretches to the pane width without shrinking the interactive map',()=>{
+ assert.match(mapcss,/map-workspace-split main > aside > \.map-tool-panels/);
+ assert.match(mapcss,/align-self:stretch!important/);
+ assert.match(mapcss,/width:100%!important/);
+ assert.match(mapcss,/map-workspace-split #mapEditPane #pinForm/);
+ assert.match(mapcss,/grid-template-columns:minmax\(0,1fr\) minmax\(350px,0\.96fr\)/);
+ assert.match(mapcss,/\.map-workspace-pane\[hidden\]\{display:none!important\}/);
+ assert.match(map,/map-lwa-experience-20261113\.css\?v=20261114-full-width-right-desk-v6/);
 });
