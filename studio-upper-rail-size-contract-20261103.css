@@ -466,3 +466,34 @@ body.night-mode #studioApp #minimizedWidgetDock .sidebar-route-icon img:is([src*
 #studioApp .music-card.stereo-music-widget .stereo-display .stereo-time-scale{display:flex!important;align-items:center!important;gap:5px!important;margin-top:3px!important;min-width:0!important}
 #studioApp .music-card.stereo-music-widget .stereo-display .stereo-time-scale>.progress{flex:1 1 auto!important;width:auto!important;margin:0!important;min-width:10px!important}
 #studioApp .music-card.stereo-music-widget .stereo-display .stereo-time-scale>span{flex:0 0 auto!important;font-size:8px!important;line-height:1!important;font-variant-numeric:tabular-nums}
+
+
+/* 2026-11-15 — Put the actual seek timeline at the foot of the CRT screen,
+   instead of directly under the equalizer. Applies to long and square stereo.
+   No absolute positioning: never overlaps audio metadata or pointer controls. */
+#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display{
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;
+  justify-content:flex-start!important;
+}
+#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display>.stereo-now-playing,
+#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display>.music-row{
+  flex:0 0 auto!important;
+}
+#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display>.stereo-eq{
+  flex:0 1 auto!important;min-height:6px!important;
+  margin-top:3px!important;margin-bottom:0!important;
+}
+#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display>.stereo-time-scale{
+  flex:0 0 auto!important;align-self:stretch!important;
+  margin-top:auto!important;margin-bottom:0!important;
+  padding:1px 0 0!important;min-height:12px!important;
+  width:100%!important;position:relative!important;bottom:auto!important;
+}
+#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display>.stereo-time-scale>.progress{
+  flex:1 1 auto!important;min-width:10px!important;
+  margin:0!important;position:relative!important;
+}
+#studioApp .music-card.stereo-music-widget.studio-upper-square .stereo-shell .stereo-display>.stereo-time-scale,
+#studioApp .music-card.stereo-music-widget.studio-music-square .stereo-shell .stereo-display>.stereo-time-scale{
+  min-height:10px!important;
+}
