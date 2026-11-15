@@ -6,6 +6,8 @@ on:
       - 'stream-guide.js'
       - 'stream-guide.css'
       - 'stream-guide-test.mjs'
+      - 'stream-music-ch05-20261115.test.mjs'
+      - 'studio-upper-rail-size-contract-20261103.css'
       - 'cloudflare-worker-instagram.js'
       - 'module-pages.js'
       - 'index.html'
@@ -16,6 +18,8 @@ on:
       - 'stream-guide.js'
       - 'stream-guide.css'
       - 'stream-guide-test.mjs'
+      - 'stream-music-ch05-20261115.test.mjs'
+      - 'studio-upper-rail-size-contract-20261103.css'
       - 'cloudflare-worker-instagram.js'
       - 'module-pages.js'
       - 'index.html'
@@ -33,6 +37,7 @@ jobs:
       - name: Check Stream and Worker JavaScript syntax
         run: |
           node --check stream-guide.js
+          node --test stream-music-ch05-20261115.test.mjs
           node --check module-pages.js
           node --input-type=module --check < cloudflare-worker-instagram.js
       - name: Exercise programming submissions and moderation
