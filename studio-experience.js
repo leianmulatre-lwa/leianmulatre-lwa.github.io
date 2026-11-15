@@ -29,6 +29,8 @@
   let musicUrl='';
   let coverUrl='';
   let musicRestored=false;
+  let musicRestoredFor='';
+  let musicRestorePending=false;
 
   function ensureStyles(){
     let style=$('#biglwa-studio-experience-style');
@@ -612,7 +614,7 @@
 
   function applyMusicRecord(record){
     const audio=$('#studioAudio'),art=$('#studioAlbumArt'),image=$('img',art),title=$('#studioMusicTitle'),artist=$('#studioMusicArtist');if(!audio||!record)return;
-    audio.pause();revokeMusicUrls();
+    audio.pause();revokeMusicUrls();audio.removeAttribute('src');audio.load();
     if(record.audioBlob){musicUrl=URL.createObjectURL(record.audioBlob);audio.src=musicUrl}
     if(record.coverBlob&&image){coverUrl=URL.createObjectURL(record.coverBlob);image.src=coverUrl;image.hidden=false;art.classList.add('has-cover')}
     else if(image){image.hidden=true;image.removeAttribute('src');art.classList.remove('has-cover')}
@@ -623,16 +625,35 @@
   }
 
   async function restoreMusic(){
-    if(musicRestored)return;musicRestored=true;
     if(document.documentElement.classList.contains('biglwa-preview-mode')||!viewingOwnProfile())return;
-    try{const record=await dbGet(musicKey());if(record)applyMusicRecord(record);else setMusicStatus('Choose a track or replace the cover.')}
-    catch{setMusicStatus('Music storage is unavailable in this browser.')}
+    const uid=verifiedOwner();
+    if(!uid){musicRestored=false;musicRestoredFor='';return;}
+    if((musicRestored&&musicRestoredFor===uid)||musicRestorePending)return;
+    musicRestorePending=true;
+    try{
+      const record=await dbGet('music:'+uid);
+      // A delayed IndexedDB response cannot overwrite a different member's player.
+      if(verifiedOwner()!==uid)return;
+      if(record)applyMusicRecord(record);else setMusicStatus('Choose a track or replace the cover.');
+      musicRestored=true;musicRestoredFor=uid;
+    }catch{setMusicStatus('Music storage is unavailable. Check browser storage and try again.');}
+    finally{musicRestorePending=false;}
   }
 
   async function updateMusic(patch){
-    const id=musicKey();const current=await dbGet(id)||{id};const next={...current,...patch,id,updatedAt:Date.now()};await dbPut(next);applyMusicRecord(next);
-    if(patch.audioBlob)window.dispatchEvent(new CustomEvent('biglwa:music-local-upload',{detail:{file:patch.audioBlob,title:next.title||'Your track',artist:next.artist||'Unknown artist'}}));
-    return next;
+    const owner=verifiedOwner(),id=musicKey();
+    const current=await dbGet(id)||{id},next={...current,...patch,id,updatedAt:Date.now()};
+    await dbPut(next);
+    const saved=await dbGet(id);
+    if(!saved||saved.updatedAt!==next.updatedAt||!saved.id)throw Error('Local song save could not be verified.');
+    if(owner!==verifiedOwner())throw Error('The signed-in account changed during the save.');
+    musicRestored=true;musicRestoredFor=owner;
+    applyMusicRecord(saved);
+    if(patch.audioBlob){
+      setMusicStatus('Saved on this device · checking private account backup…');
+      window.dispatchEvent(new CustomEvent('biglwa:music-local-upload',{detail:{file:patch.audioBlob,title:saved.title||'Your track',artist:saved.artist||'Unknown artist'}}));
+    }else setMusicStatus('Saved track details on this device.');
+    return saved;
   }
 
   function upgradeMusic(){
@@ -696,12 +717,23 @@
     $('#chooseStudioTrack',card).addEventListener('click',()=>$('#studioTrackInput')?.click());$('#chooseStudioCover',card).addEventListener('click',()=>$('#studioCoverInput')?.click());
     $('#editStudioMusicMeta',card).addEventListener('click',()=>{editor.classList.toggle('is-open');$('#studioTrackTitle',editor).value=$('#studioMusicTitle',card).textContent;$('#studioTrackArtist',editor).value=$('#studioMusicArtist',card).textContent});
     $('#saveStudioMusicMeta',editor).addEventListener('click',async()=>{try{await updateMusic({title:$('#studioTrackTitle',editor).value.trim()||'Your track',artist:$('#studioTrackArtist',editor).value.trim()||'Add artist'});editor.classList.remove('is-open')}catch{setMusicStatus('The track details could not be saved.')}});
-    $('#studioTrackInput').addEventListener('change',async event=>{const file=event.target.files?.[0];event.target.value='';if(!file)return;if(!file.type.startsWith('audio/')||file.size>75*1024*1024){setMusicStatus('Choose an audio file under 75 MB.');return}setMusicStatus('Saving track…');try{await updateMusic({audioBlob:file,fileName:String(file.name).slice(0,180),title:file.name.replace(/\.[^.]+$/,'').slice(0,100)})}catch{setMusicStatus('This browser could not save the track.')}});
+    $('#studioTrackInput').addEventListener('change',async event=>{const file=event.target.files?.[0];event.target.value='';if(!file)return;if(!(file.type.startsWith('audio/')||/\.(mp3|m4a|aac|ogg|wav|webm|flac)$/i.test(file.name))||file.size>75*1024*1024){setMusicStatus('Choose an audio file under 75 MB.');return}setMusicStatus('Saving track…');try{await updateMusic({audioBlob:file,fileName:String(file.name).slice(0,180),title:file.name.replace(/\.[^.]+$/,'').slice(0,100)})}catch(error){setMusicStatus(String(error?.message||'This browser could not save the track.').slice(0,160))}});
     $('#studioCoverInput').addEventListener('change',async event=>{const file=event.target.files?.[0];event.target.value='';if(!file)return;if(!/^image\/(jpeg|png|webp|gif)$/.test(file.type)||file.size>15*1024*1024){setMusicStatus('Choose a JPG, PNG, WebP, or GIF cover under 15 MB.');return}setMusicStatus('Reviewing cover on this device…');try{const result=await window.BIGLWAWallpaperSafety?.scan(file,{context:'mixed'});if(result&&['invalid','block','age-restricted'].includes(result.status)){setMusicStatus(result.status==='block'?'That cover cannot be used.':'That cover needs review before it can display.');return}await updateMusic({coverBlob:file,coverReview:result?.status==='local-only'?'pending':'complete'});if(result?.status==='local-only')setMusicStatus('Cover preview active locally · review pending.')}catch{setMusicStatus('The cover could not be saved.')}});
     $('#studioTrackTitle',editor).value=title?.textContent||'Your track';$('#studioTrackArtist',editor).value=artist?.textContent||'Add artist';
     const profileMount=$('#profileSongEditorMount');if(profileMount)profileMount.append(actions,editor,status);
     restoreMusic();
   }
+  window.addEventListener('biglwa:session-verified',event=>{
+    if(event.detail?.signedIn)restoreMusic();
+    else {
+      musicRestored=false;musicRestoredFor='';
+      const audio=$('#studioAudio');if(audio){audio.pause();revokeMusicUrls();audio.removeAttribute('src');audio.load();}
+      const title=$('#studioMusicTitle'),artist=$('#studioMusicArtist');
+      if(title)title.textContent='Choose a track';if(artist)artist.textContent='';
+      const art=$('#studioAlbumArt');if(art){const image=$('img',art);if(image){image.hidden=true;image.removeAttribute('src');}art.classList.remove('has-cover');}
+    }
+  });
+  window.addEventListener('biglwa:account-ready',restoreMusic);
   // Use the same audio element for tracks stored on the account or device.
   window.BigLWAStudioMusic={getLocalRecord:()=>dbGet(musicKey()),playCloudTrack:async function(track,loadPrivate){
     const audio=$('#studioAudio');if(!audio)return;

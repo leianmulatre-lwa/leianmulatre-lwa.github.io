@@ -49,6 +49,8 @@ jobs:
           python3 -m unittest discover -s scripts -p test_visual_life_feed.py
           python3 -m unittest discover -s scripts -p test_visual_life_ats.py
           node --check profile-music.js
+          node --check tunes-transfer-20261115.js
+          node --test tunes-transfer-20261115.test.mjs
           node --check tools-craft.js
           node --check module-pages.js
           node --check orbit-space-20261114.js

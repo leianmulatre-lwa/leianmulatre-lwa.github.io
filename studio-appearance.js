@@ -131,16 +131,21 @@
     const app=$('#studioApp');if(!app)return;
     const values=readAppearance();
     const [r,g,b]=parseHex(values.color,'#faf7f1'),alpha=Math.min(1,Math.max(.20,(Number(values.opacity)||84)/100));
-    const luminance=(.2126*r+.7152*g+.0722*b)/255;
-    app.dataset.widgetInkTone=luminance<.48?'light':'dark';
+    // Account for the actual *translucent* card surface. The old logic read
+    // only the solid swatch, producing white letters on light wallpaper at 35%.
+    const pageBackdrop=document.body.classList.contains('night-mode')?[33,29,38]:[199,183,168];
+    const blended=[r,g,b].map((channel,i)=>channel*alpha+pageBackdrop[i]*(1-alpha));
+    const luminance=(.2126*blended[0]+.7152*blended[1]+.0722*blended[2])/255;
+    const lightInk=luminance<.52;
+    app.dataset.widgetInkTone=lightInk?'light':'dark';
     const [ar,ag,ab]=parseHex(values.aura,'#d85f6d');
     const auraLuminance=(.2126*ar+.7152*ag+.0722*ab)/255;
     const properties={
       '--widget-bg':`rgba(${r},${g},${b},${alpha})`,
       '--widget-radius':`${values.radius}px`,
       '--widget-blur':`${values.blur}px`,
-      '--widget-ink':luminance<.48?'#f8f4ee':'#171717',
-      '--widget-muted':luminance<.48?'#d0c8c0':'#77716b',
+      '--widget-ink':lightInk?'#fff7f0':'#292321',
+      '--widget-muted':lightInk?'#e1d7d0':'#564b47',
       '--aura-rgb':`${ar},${ag},${ab}`,
       '--aura-button-ink':auraLuminance>.62?'#171717':'#ffffff'
     };

@@ -131,6 +131,8 @@ jobs:
           node studio-layout-cache-test.mjs
           node profile-music-test.mjs
           node --check profile-music.js
+          node --check tunes-transfer-20261115.js
+          node --test tunes-transfer-20261115.test.mjs
           node veve-arcade-regression-test.mjs
           node arcade-silhouette-regression-test.mjs
           node games-arcade-test.mjs

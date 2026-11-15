@@ -10,7 +10,7 @@
   const CALLBACK_HANDOFF=(()=>{try{return new URL(location.href).searchParams.get('tiktok_handoff')||''}catch{return''}})();
   const CALLBACK_ERROR=(()=>{try{return new URL(location.href).searchParams.get('tiktok_error')||''}catch{return''}})();
   let connected = false, profile = {}, videos = [], authUid = '', restoreBusy = false;
-  let lastError='',videoPermissionPending=false,videoLoadError='',lastCollectiveSync='';
+  let lastError='',videoPermissionPending=false,videoLoadError='',lastCollectiveSync='',videoAppScopePending=false;
   const scopedKey = () => authUid ? KEY + ':' + authUid : '';
   const getSession = () => { try { return scopedKey() ? localStorage.getItem(scopedKey()) || '' : ''; } catch { return ''; } };
   const save = value => { if (!scopedKey()) return; try { if (value) localStorage.setItem(scopedKey(), value); else localStorage.removeItem(scopedKey()); } catch {} };
@@ -335,7 +335,7 @@
     try{
       const token=await firebaseIdToken();
       if(!token||!authUid){connected=false;profile={};videos=[];videoPermissionPending=false;videoLoadError='';render();statusUpdate();return;}
-      videoLoadError='';lastCollectiveSync='';
+      videoLoadError='';lastCollectiveSync='';videoAppScopePending=false;
       if(!getSession())await recoverAccountSession(token);
       if(!getSession()){connected=false;profile={};videos=[];videoPermissionPending=false;videoLoadError='';render();statusUpdate();return;}
       try{profile=await api('profile');}
@@ -379,6 +379,10 @@
         videoPermissionPending=Boolean(result.videoPermissionPending);
         videoLoadError='';
         if(videoPermissionPending){
+          // Diagnose the product's permission separately from the user's OAuth
+          // grant. Do not claim that reconnecting can supply unapproved scopes.
+          try{const health=await api('health');videoAppScopePending=health.basicProfileOnly===true}
+          catch{videoAppScopePending=false}
           // TikTok's Display API is not the only public-facing display surface.
           // Attempt exact-handle public discovery; never guess absent data.
           try{await syncPublicTikTokPosts(force)}
@@ -412,11 +416,11 @@
     // Keep sync diagnostics available on the card and in account-scoped Logs.
     document.querySelectorAll('.module-orbit-row[data-orbit-row="tiktok"]').forEach(row=>{
       const detail=!connected?(lastError||'Connect TikTok to sync your profile.'):
-        (videoLoadError||lastCollectiveSync||(videoPermissionPending
-          ?'TikTok video.list is not authorized; public post links remain available.'
-          :videos.length+' authorized TikTok video(s) found.'));
+        ([videoAppScopePending?'TikTok app currently uses basic-profile access; video.list requires provider approval.':videoPermissionPending?'TikTok video.list is not authorized for this connection.':'',videoLoadError,lastCollectiveSync].filter(Boolean).join(' · ')||
+          videos.length+' authorized TikTok video(s) found.');
       row.title=detail;
       row.dataset.tiktokSyncState=connected?(videoPermissionPending?'limited':'connected'):'disconnected';
+      row.dataset.tiktokScopeApproval=videoAppScopePending?'pending':'unknown';
       const badge=row.querySelector('.orbit-state');
       if(badge){
         if(connected){badge.textContent='Connected';badge.classList.add('is-on');}
@@ -431,8 +435,10 @@
     });
     const status=document.getElementById('orbitPageStatus');
     if(status){
-      const message=lastError||videoLoadError||(connected&&videoPermissionPending?
-        'TikTok connected with basic profile access. Automatic videos require approved video.list permission.':'');
+      const message=lastError||(connected&&videoAppScopePending?
+        'TikTok basic profile works; this app has not enabled approved video.list access. Request TikTok Display API permission, then reconnect. Manual public-video imports remain available in MyFeed.':
+        videoLoadError||(connected&&videoPermissionPending?
+          'TikTok video.list was not granted. Check TikTok app approval and reconnect with permission.':''));
       if(message&&(!status.textContent.trim()||status.dataset.tiktokMessage==='1')){
         status.dataset.tiktokMessage='1';
         status.textContent='TikTok: '+message;

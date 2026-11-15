@@ -1,0 +1,52 @@
+/* BIG LWA · day-mode text legibility, 2026-11-15.
+   These rules protect reading contrast without recoloring user Aura choices.
+   The calculated --widget-ink is provided by studio-appearance.js. */
+body:not(.night-mode) #studioApp #moduleWorkspace:not([data-module-key="orbit"]) .module-heading :is(h1,h2,p,small),
+body:not(.night-mode) #studioApp #moduleWorkspace:not([data-module-key="orbit"]) .module-heading-bottom :is(p,small,label),
+body:not(.night-mode) #studioApp #moduleWorkspace:not([data-module-key="orbit"]) :is(.module-card,.module-launcher,.module-list-item)>:is(h2,h3,p,small),
+body:not(.night-mode) #studioApp #moduleWorkspace:not([data-module-key="orbit"]) .module-card:not(.module-game-stage) :is(h2,h3,p,small):not(.module-action){
+  color:var(--widget-ink,#302924)!important;
+  -webkit-text-fill-color:var(--widget-ink,#302924)!important;
+}
+/* The book/film shelf uses solid ivory panels; always give them explicit ink.
+   Never inherit white from the Studio's profile banner or widget skin. */
+#studioApp #libraryCatalog,
+#studioApp #libraryCatalog .lib-panel,
+#studioApp #libraryCatalog .lib-panel :is(h2,h3,p,label,small,.lib-muted,.lib-heading,summary){
+  color:#332b27!important;-webkit-text-fill-color:#332b27!important;
+}
+#studioApp #libraryCatalog .lib-panel :is(.lib-muted,small){color:#5e504b!important;-webkit-text-fill-color:#5e504b!important}
+#studioApp #libraryCatalog :is(input,select,textarea){color:#292321!important;-webkit-text-fill-color:#292321!important;background:#fffdf9!important}
+#studioApp #libraryCatalog button:not(:disabled){color:#fffaf5!important;-webkit-text-fill-color:#fffaf5!important;background:#302823!important}
+#studioApp #libraryCatalog :is(.lib-panel a,.lib-panel a:visited){color:#733b54!important;-webkit-text-fill-color:#733b54!important}
+/* Profile editor: unselected tabs and inline labels were pale on pale. */
+body:not(.night-mode) #studioApp #wallpaperPanel [data-profile-editor-tab],
+body:not(.night-mode) #studioApp #wallpaperPanel [data-profile-editor-tab]:not([aria-selected="true"]),
+body:not(.night-mode) #studioApp #wallpaperPanel .profile-editor-tabs button:not([aria-selected="true"]),
+body:not(.night-mode) #studioApp #profileWidgetEditor :is(label,p,small,strong),
+body:not(.night-mode) #studioApp #wallpaperPanel .panel-title :is(strong,h2),
+body:not(.night-mode) #studioApp #wallpaperPanel :is(.widget-opacity-control,.biglwa-color-choices)>:is(label,strong,p){
+  color:#302725!important;-webkit-text-fill-color:#302725!important;
+}
+body:not(.night-mode) #studioApp #wallpaperPanel [data-profile-editor-tab][aria-selected="true"]{
+  color:#4c243e!important;-webkit-text-fill-color:#4c243e!important;
+  border-color:#a5557b!important;
+}
+body:not(.night-mode) #studioApp #wallpaperPanel :is(input,select,textarea):not([type="color"]){
+  color:#302725!important;-webkit-text-fill-color:#302725!important;
+}
+/* Canvas-like wallpaper must not wash out text in floating control chips. */
+body:not(.night-mode) #studioApp[data-widget-ink-tone="dark"] .masonry>.card:not(.manifesto-card) :is(.card-kicker,.widget-title,.sub):not(.studio-widget-scene *),
+body:not(.night-mode) #studioApp[data-widget-ink-tone="dark"] .hero-widget-rail>.card :is(.card-kicker,.widget-title,.sub),
+body:not(.night-mode) #studioApp[data-widget-ink-tone="dark"] .module-workspace .module-card :is(.module-description,.sub){
+  color:var(--widget-ink,#302725)!important;-webkit-text-fill-color:var(--widget-ink,#302725)!important;
+}
+body:not(.night-mode) #studioApp[data-widget-ink-tone="dark"] .masonry>.card:not(.manifesto-card)>p,
+body:not(.night-mode) #studioApp[data-widget-ink-tone="dark"] .masonry>.card:not(.manifesto-card)>small{
+  color:var(--widget-muted,#564b47)!important;-webkit-text-fill-color:var(--widget-muted,#564b47)!important;
+}
+/* Keep intentional button ink and controls, not surrounding text, distinct. */
+#studioApp :is(.module-card,.lib-panel,.profile-card) button:focus-visible,
+#studioApp #wallpaperPanel [data-profile-editor-tab]:focus-visible{
+  outline:2px solid rgb(var(--aura-rgb,183,75,98))!important;outline-offset:2px!important;
+}
