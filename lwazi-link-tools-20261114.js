@@ -16,7 +16,8 @@
  const STREAMING=/^(?:www\.|m\.)?(?:youtube\.com|youtu\.be|tiktok\.com|vimeo\.com|instagram\.com|facebook\.com|soundcloud\.com|spotify\.com)$/i;
  const MAX_MANIFEST=8;
  const classify=(url,mime)=>{
-  const path=decodeURIComponent(url.pathname.replace(/%2F/ig,'/'));
+  let path=url.pathname;
+  try{path=decodeURIComponent(path)}catch{}
   const extension=(path.match(/\.([a-z0-9]{2,8})$/i)||[])[1]?.toLowerCase()||'';
   if(STREAMING.test(url.hostname))return {kind:'stream',extension};
   if(/\.media\.json$/i.test(path))return {kind:'manifest',extension:'json'};
@@ -87,6 +88,7 @@
   verdict.setAttribute('role','status');card.append(verdict);
   const controls=tag('div','bl-link-actions');card.append(controls);
   const variants=tag('div','bl-link-variants');card.append(variants);
+  const preview=tag('div','bl-link-preview');preview.hidden=true;card.append(preview);
   const note=tag('p','bl-link-note');
   note.textContent='Download options depend on actual file access and source permissions. L’wazi does not bypass paywalls, DRM, or platform download restrictions.';
   card.append(note);
@@ -102,6 +104,17 @@
    source:url.href,type:kind,file:filename,checkedAt:new Date().toISOString(),
    note:'No conversion, download rights or unverified quality options implied.'
   },null,2),'application/json');
+  const previewMedia=()=>{
+   const element=document.createElement(kind==='video'?'video':kind==='audio'?'audio':'img');
+   element.src=url.href;
+   if(kind==='image'){
+    element.alt='Image preview from supplied link';element.loading='lazy';
+   }else{
+    element.controls=true;element.preload='metadata';
+    if(kind==='video')element.playsInline=true;
+   }
+   preview.replaceChildren(element);preview.hidden=false;
+  };
   const openCraft=(route,label)=>{
    add(label,()=>{
     if(typeof window.BigLWAOpenCraftApp==='function'&&route!=='projects')window.BigLWAOpenCraftApp(route);
@@ -113,6 +126,7 @@
    controls.append(originalLink(url,kind,filename));
    add('Save link (.txt)',saveReference);
    add('File details (.json)',saveDetails);
+   if(['video','audio','image'].includes(kind))add('Preview '+kind,previewMedia);
    if(kind==='video'){
     add('Check video resolution',()=>checkVideo());
    }else if(kind==='image'){openCraft('photocraft','Open lightR editor');}
