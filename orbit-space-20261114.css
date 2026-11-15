@@ -36,15 +36,15 @@
   position:relative;z-index:1;
 }
 #studioApp #orbit #orbitGrid>button[data-orbit-app]{
-  background:rgba(255,248,244,.91)!important;
-  backdrop-filter:blur(4px);
-  border-color:rgba(224,209,234,.84)!important;
+  background:rgba(46,32,74,.32)!important;
+  backdrop-filter:blur(1.5px);
+  border-color:rgba(232,210,255,.33)!important;
   transition:background-color .22s ease,border-color .22s ease,filter .22s ease!important;
 }
 #studioApp #orbit #orbitGrid>button[data-orbit-app]:hover,
 #studioApp #orbit #orbitGrid>button[data-orbit-app]:focus-visible{
-  background:rgba(255,254,251,.98)!important;
-  border-color:#d3b9e7!important;
+  background:rgba(99,72,142,.48)!important;
+  border-color:rgba(235,210,255,.78)!important;
   filter:brightness(1.04);
 }
 #studioApp #orbit #orbitGrid>button[data-orbit-app]>.orbit-glyph{
@@ -70,21 +70,21 @@
   color:#f1e5f5!important;
 }
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-card.wide{
-  background:rgba(255,249,243,.90)!important;
-  border-color:rgba(211,184,232,.5)!important;
+  background:rgba(35,24,62,.37)!important;
+  border-color:rgba(209,172,251,.34)!important;
   box-shadow:0 9px 30px rgba(6,7,29,.25)!important;
-  color:#3a2c3e!important;
-  backdrop-filter:blur(7px);
+  color:#f3eafc!important;
+  backdrop-filter:blur(2px);
 }
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]{
-  background:rgba(255,255,254,.78)!important;
-  border-color:rgba(131,99,158,.27)!important;
+  background:rgba(90,65,128,.22)!important;
+  border-color:rgba(205,177,237,.33)!important;
   box-shadow:0 3px 11px rgba(26,17,55,.10)!important;
   transition:border-color .2s ease,box-shadow .2s ease,translate .25s ease!important;
 }
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]:hover,
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]:focus-within{
-  border-color:rgba(130,89,171,.72)!important;
+  border-color:rgba(229,200,255,.76)!important;
   box-shadow:0 7px 18px rgba(43,26,90,.19)!important;
   translate:0 -2px;
 }
@@ -93,7 +93,88 @@
 }
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row:nth-child(3n+1) .orbit-platform-badge{animation-delay:-1.8s}
 #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row:nth-child(3n+2) .orbit-platform-badge{animation-delay:-3.4s}
-#studioApp #moduleWorkspace[data-module-key="orbit"] #orbitPageStatus{color:#6d476d}
+#studioApp #moduleWorkspace[data-module-key="orbit"] #orbitPageStatus{color:#f2dfff!important}
+
+/* Frosted-lavender glass: reveal the moving star field through every nested
+ * ivory surface without sacrificing contrast or touching OAuth action colors. */
+#studioApp #orbit #orbitGrid>button[data-orbit-app]{
+  color:#fbf5ff!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10);
+}
+#studioApp #orbit #orbitGrid>button[data-orbit-app]>b{
+  color:#fbf4ff!important;-webkit-text-fill-color:#fbf4ff!important;
+  text-shadow:0 1px 2px rgba(7,3,24,.48);
+}
+#studioApp #orbit #orbitGrid>button[data-orbit-app]>small{
+  color:#e2d1ef!important;-webkit-text-fill-color:#e2d1ef!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-card.wide>h2,
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-card.wide>p{
+  color:#f5eafd!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]:is(:hover,:focus-within){
+  background:rgba(110,82,154,.34)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]>header>b{
+  color:#fcf4ff!important;-webkit-text-fill-color:#fcf4ff!important;
+  text-shadow:0 1px 3px rgba(12,6,32,.32);
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row .orbit-state{
+  color:#493b59!important;
+  background:rgba(239,226,252,.88)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row .orbit-state.is-on{
+  color:#224c34!important;
+  background:rgba(194,243,206,.87)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick{
+  background:rgba(86,62,125,.18)!important;
+  border:1px solid rgba(214,183,246,.28)!important;
+  backdrop-filter:blur(1.5px);
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick h3{
+  color:#fbf3ff!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick p{
+  color:#e4d6f1!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick-link{
+  background:rgba(151,123,191,.19)!important;
+  color:#fcf5ff!important;
+  border-color:rgba(239,224,254,.27)!important;
+  backdrop-filter:blur(1px);
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick-link:is(:hover,:focus-visible){
+  background:rgba(170,142,206,.34)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick-link b{
+  color:#fff7ff!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick-link small{
+  color:#e7d7f3!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main>:is(.orbit-not-connected,.orbit-link-summary){
+  color:#f5eaff!important;
+  background:rgba(179,151,214,.16)!important;
+  border:1px solid rgba(214,185,244,.42)!important;
+  border-left:3px solid rgba(214,167,255,.74)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card{
+  background:rgba(191,164,220,.17)!important;
+  border:1px solid rgba(235,212,255,.19)!important;
+  color:#fcf3ff!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card :is(b,small,span){
+  color:#f9efff!important;-webkit-text-fill-color:#f9efff!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card .orbit-hotlink{
+  background:rgba(255,248,253,.93)!important;
+  color:#803953!important;-webkit-text-fill-color:#803953!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-card.wide .orbit-shadow-legend{
+  background:rgba(231,213,249,.82)!important;
+}
+
 @keyframes biglwa-orbit-hover{
   0%,100%{translate:0 0}
   50%{translate:0 -4px}
