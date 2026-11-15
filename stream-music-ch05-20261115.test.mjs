@@ -17,7 +17,8 @@ test('Stream JS is valid and music is a fifth tab but not a fake programmed stat
  assert.match(guide,/grid\.hidden=state\.category==='music'/);
  assert.match(guide,/root\.querySelector\('#streamGrid'\)\?\.replaceChildren\(\)/);
  assert.match(guide,/data-stream-open-tunes/);
- assert.doesNotMatch(guide,/musicSources\.map\([\s\S]*?fetch\(/);
+ const setup=guide.slice(guide.indexOf('function musicSetupMarkup(){'),guide.indexOf('function renderCategory(){'));
+ assert.doesNotMatch(setup,/fetch\(|XMLHttpRequest|client_secret|access_token/);
  const win={};
  vm.runInNewContext(guide,{window:win,console,URL,Date,document:{readyState:'loading',addEventListener(){}},setTimeout(){}});
  const rows=win.BigLWAStreamGuide.getDailyGuide('2026-11-15');
