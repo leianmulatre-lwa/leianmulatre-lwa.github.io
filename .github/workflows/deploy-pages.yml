@@ -39,6 +39,7 @@ jobs:
           node --check lwazi-hair-visuals-20261114.js
           node --check room-discovery-signals-20261114.js
           node --check stream-guide.js
+          node --test stream-music-ch05-20261115.test.mjs
           node --test studio-booth-hair-map-room-stream-test.mjs
           node --check community-profile-roles-20261114.js
           node --test community-profile-policy-regression-20261114.test.mjs
