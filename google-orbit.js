@@ -133,6 +133,7 @@
               return;
             }
             if(!response.access_token){state.error='Google did not return an access token.';render();return;}
+            if(!currentUid()){state.error='Sign in to BIG LWA first.';render();return;}
             accessToken = response.access_token;
             state.uid=currentUid();
             state.expiresAt=Date.now()+Math.max(60,Math.min(3600,Number(response.expires_in)||3600))*1000;
@@ -226,6 +227,11 @@
 
   function render() {
     try {
+      // A visitor must never inherit the viewer's Google auth badge or data.
+      if(document.documentElement?.classList?.contains('biglwa-preview-mode')){
+        document.body?.classList?.remove('google-orbit-connected');
+        return;
+      }
       // The Studio preview has a fixed, owner-selected set of eight planets.
       // Do not automatically append the old Facebook tile from the Google helper.
       ensurePlanetary();
@@ -275,6 +281,7 @@
     }
     var tile = target.closest('[data-orbit-app="youtube"],[data-orbit-app="drive"],[data-orbit-app="calendar"],[data-google-orbit-connect]');
     if (tile) {
+      if(document.documentElement?.classList?.contains('biglwa-preview-mode'))return;
       event.preventDefault();
       event.stopImmediatePropagation();
       connect();
