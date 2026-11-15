@@ -48,7 +48,7 @@
   }
   function notice(message) {
     lastError=String(message||'');
-    statusUpdate();
+    render();statusUpdate();
     document.getElementById('tiktok-status')?.remove();
     privateTikTokLog(lastError,'TikTok connection');
   }
@@ -62,10 +62,28 @@
     }catch{return ''}
   }
   async function api(path, data) {
-    const response = await fetch(API + '/tiktok/' + path, { method: data ? 'POST' : 'GET', headers: { 'Content-Type':'application/json', Authorization:'Bearer ' + getSession() }, ...(data ? {body:JSON.stringify(data)} : {}) });
-    const body = await response.json();
-    if (!response.ok) throw new Error(body.error || 'TikTok Worker needs to be deployed or configured.');
+    const response = await fetch(API + '/tiktok/' + path, { method: data ? 'POST' : 'GET', cache:'no-store', headers: { 'Content-Type':'application/json', Authorization:'Bearer ' + getSession() }, ...(data ? {body:JSON.stringify(data)} : {}) });
+    const body = await response.json().catch(()=>({}));
+    if (!response.ok) {
+      const error=new Error(body.error || 'TikTok service unavailable ('+response.status+').');
+      error.status=response.status;
+      throw error;
+    }
     return body;
+  }
+  async function recoverAccountSession(firebaseToken) {
+    // Recover the currently signed-in member's session from the Worker, not
+    // another browser's cached TikTok login or an unverified public URL.
+    const response=await fetch(API+'/tiktok/session/account',{
+      headers:{Authorization:'Bearer '+firebaseToken},cache:'no-store'
+    });
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok)throw Error(result.error||'TikTok account recovery is unavailable.');
+    const session=String(result.session||'');
+    if(result.connected&&/^[A-Za-z0-9_-]{43}$/.test(session)){
+      save(session);return session;
+    }
+    return '';
   }
   // TikTok's official oEmbed supplies public post metadata independently of
   // OAuth video.list. This is a user-initiated private import, never a scraper
@@ -317,15 +335,24 @@
     try{
       const token=await firebaseIdToken();
       if(!token||!authUid){connected=false;profile={};videos=[];videoPermissionPending=false;videoLoadError='';render();statusUpdate();return;}
-      videoLoadError='';lastCollectiveSync='';lastError='';
-      if(!getSession()){
-        const response=await fetch(API+'/tiktok/session/account',{headers:{Authorization:'Bearer '+token}});
-        const result=await response.json().catch(()=>({}));
-        if(response.ok&&result.connected&&result.session)save(result.session);
-      }
+      videoLoadError='';lastCollectiveSync='';
+      if(!getSession())await recoverAccountSession(token);
       if(!getSession()){connected=false;profile={};videos=[];videoPermissionPending=false;videoLoadError='';render();statusUpdate();return;}
-      profile=await api('profile');
+      try{profile=await api('profile');}
+      catch(error){
+        const invalid=error?.status===401||/session expired|revoked|reconnect|invalid token/i.test(String(error?.message||''));
+        if(!invalid)throw error;
+        // A stale browser token must not permanently mask a valid account-bound
+        // session. Clear it, recover once, and never loop on the same invalid ID.
+        const expired=getSession();
+        save('');
+        const recovered=await recoverAccountSession(token);
+        if(!recovered||recovered===expired)
+          throw Error('TikTok login expired. Select Connect TikTok again to reauthorize your account.');
+        profile=await api('profile');
+      }
       if(!profile?.open_id)throw new Error('TikTok profile authorization could not be verified.');
+      lastError='';
       // TikTok's authorized @username is the strongest profile identity we have.
       // Preserve a member's manual link when the provider does not supply one;
       // never infer ownership from display_name or an external stats page.
@@ -390,6 +417,25 @@
           :videos.length+' authorized TikTok video(s) found.'));
       row.title=detail;
       row.dataset.tiktokSyncState=connected?(videoPermissionPending?'limited':'connected'):'disconnected';
+      const badge=row.querySelector('.orbit-state');
+      if(badge){
+        if(connected){badge.textContent='Connected';badge.classList.add('is-on');}
+        else if(lastError){badge.textContent='Reconnect';badge.classList.remove('is-on');}
+      }
+      const message=lastError||videoLoadError||(connected&&videoPermissionPending?
+        'Profile connected. Automatic video imports need TikTok Display API (video.list) approval.':'');
+      const host=row.querySelector('.orbit-main')||row;
+      let note=host.querySelector('[data-tiktok-sync-note]');
+      if(message&&!note){
+        note=document.createElement('p');
+        note.dataset.tiktokSyncNote='';
+        note.setAttribute('role','status');
+        host.appendChild(note);
+      }
+      if(note){
+        note.hidden=!message;
+        if(message)note.textContent=message;
+      }
     });
   }
   function renderFeedList(list){
@@ -460,7 +506,13 @@
         sessionStorage.removeItem(START_UID);
       }catch(e){
         notice(e.message);
-        // Keep the short-lived handoff for login restoration; the user can retry.
+        // Keep a recoverable login handoff while signing back in. Expired or
+        // lost verifiers cannot succeed and should not retry on every page load.
+        if(/expired|verification was lost|same browser tab/i.test(String(e?.message||''))){
+          sessionStorage.removeItem(PENDING_KEY);
+          sessionStorage.removeItem('tt_verifier');
+          sessionStorage.removeItem(START_UID);
+        }
       }
     }
     render();await restore();
@@ -606,7 +658,7 @@
   },true);
   // Orbit is mounted after this script on some routes. Recreate the optional
   // importer after page mounts without leaving duplicate controls.
-  document.addEventListener('biglwa:module-open',()=>setTimeout(()=>{renderTikTokLinkImporter();renderTikTokFeedImporter();renderFeedList();},70));
+  document.addEventListener('biglwa:module-open',()=>setTimeout(()=>{render();renderTikTokLinkImporter();renderTikTokFeedImporter();renderFeedList();},70));
   document.addEventListener('biglwa:new-orbit-status',()=>setTimeout(()=>{renderTikTokLinkImporter();renderTikTokFeedImporter();},70));
   window.addEventListener('biglwa:external-stats-updated',renderTikTokAnalytics);
   window.__biglwaTikTokOrbit={connect,restore,disconnect,render,publicVideo,renderTikTokFeedImporter,
