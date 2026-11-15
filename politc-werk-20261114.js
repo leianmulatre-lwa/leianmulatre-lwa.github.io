@@ -18,7 +18,7 @@
   try{
    const url=new URL(raw);
    if(url.protocol!=='https:'||url.username||url.password)return '';
-   if(!['www.usajobs.gov','www.linkedin.com','www.indeed.com'].includes(url.hostname.toLowerCase()))return '';
+   if(!['www.usajobs.gov','www.linkedin.com','www.indeed.com','www.google.com','skims.pinpointhq.com','job-boards.greenhouse.io','careers.pvh.com','www.chanel.com','www.michaelkors.com','corporate.abercrombie.com'].includes(url.hostname.toLowerCase()))return '';
    return url.href;
   }catch{return '';}
  }
@@ -76,6 +76,23 @@
    location:clean($('[name=werkLocation]',panel)?.value)||'United States'
   };
  }
+ function appendSourceHandoffs(results,role,location){
+  const targets=sourceTargets(role,location);
+  if(!targets.length)return;
+  const section=document.createElement('section');section.className='politc-werk-discovery-links';
+  const heading=document.createElement('h3');heading.textContent='Keep searching beyond BIG LWA';
+  const description=document.createElement('p');
+  description.textContent='These links search original employer careers pages or larger job indexes. They are not claimed as jobs found in this snapshot.';
+  section.append(heading,description);
+  const grid=document.createElement('div');grid.className='politc-werk-source-grid';
+  for(const target of targets){
+   const card=document.createElement('article');card.className='politc-werk-source';
+   const link=makeLink(target.url,target.label+' ↗');
+   const about=document.createElement('p');about.textContent=target.description;
+   card.append(link,about);grid.append(card);
+  }
+  section.append(grid);results.append(section);
+ }
  function appendJobCard(grid,job){
   const url=String(job?.url||'');
   if(!/^https:\/\//i.test(url))return false;
@@ -117,7 +134,8 @@
       'The last JobSpy snapshot has expired. Listings are hidden until the owner runs the reviewed refresh.':
       'The werk-main / JobSpy scraper is installed, but no published snapshot is available. The site cannot run Python scrapers inside your browser.';
     empty.append(title,message);results.append(empty);
-    status(panel,'No current JobSpy listings. Try again after the source feed is published.');
+    appendSourceHandoffs(results,role,location);
+    status(panel,'Local listings are unavailable, but you can search original careers pages below.');
     return;
   }
   const jobs=typeof api.searchVerified==='function'?api.searchVerified(role,location):[];
@@ -135,9 +153,10 @@
     const empty=document.createElement('p');empty.className='politc-werk-result-empty';
     empty.textContent='No matching jobs in this published JobSpy snapshot. Try a broader role or location. This does not mean there are no openings elsewhere.';
     results.append(empty);
+    appendSourceHandoffs(results,role,location);
   }
   status(panel,displayed?displayed+' source-linked postings found in BIG LWA. Verify each opening before applying.':
-    'No matching postings in the current JobSpy snapshot.');
+    'No matches in this limited snapshot. Try the employer careers and wider job searches below.');
  }
  async function search(panel){
   const {role,location}=readSearch(panel);
@@ -166,8 +185,8 @@
   panel=document.createElement('section');
   panel.id='politcWerk';panel.className='politc-panel politc-werk';
   panel.setAttribute('aria-label','Werk job search desk');
-  panel.innerHTML='<header class="politc-werk-header"><div><p class="politc-werk-eyebrow">POLITC · WORK DESK</p><h2>werk</h2><p>Work is political. Search JobSpy postings right here, save your searches, and open the original listing when you want to apply.</p></div><span aria-hidden="true">✳</span></header>'+
-   '<form id="politcWerkForm" class="politc-werk-form"><label>Role, field or skill<input name="werkRole" type="search" maxlength="100" placeholder="Policy research, entertainment law, design…" autocomplete="off" required></label><label>Where?<input name="werkLocation" type="search" maxlength="100" value="United States" placeholder="City, state, or remote" autocomplete="off"></label><div class="politc-werk-actions"><button type="submit" class="politc-werk-find">Search jobs</button><button type="button" data-politc-werk-save>Save search</button><button type="button" data-werk-window-open>Werk Window</button></div></form>'+
+  panel.innerHTML='<header class="politc-werk-header"><div><p class="politc-werk-eyebrow">POLITC · WORK DESK</p><h2>werk</h2><p>Work is political. Search employer names or job titles, save searches, and follow original listings. The local index is a limited snapshot, not every opening.</p></div><span aria-hidden="true">✳</span></header>'+
+   '<form id="politcWerkForm" class="politc-werk-form"><label>Role, employer, field or skill<input name="werkRole" type="search" maxlength="100" placeholder="SKIMS, casting, entertainment law, design…" autocomplete="off" required></label><label>Where?<input name="werkLocation" type="search" maxlength="100" value="United States" placeholder="City, state, or remote" autocomplete="off"></label><div class="politc-werk-actions"><button type="submit" class="politc-werk-find">Search jobs</button><button type="button" data-politc-werk-save>Save search</button><button type="button" data-werk-window-open>Werk Window</button></div></form>'+
    '<p id="politcWerkStatus" class="politc-werk-status" role="status">Search the latest published JobSpy listings by role and location.</p><div id="politcWerkResults" aria-label="JobSpy job search results"></div>'+
    '<div class="politc-werk-saved"><div><h3>Saved searches</h3><small id="politcWerkPrivacyNote"></small></div><div id="politcWerkSavedList"></div></div>';
   // The Reading Room is mounted as a sibling before .politc-board.
