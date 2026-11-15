@@ -33,6 +33,9 @@ on:
       - 'map-lwa-discovery-20261114.js'
       - 'map-lwa-discovery-20261114.css'
       - 'map-discovery-test.mjs'
+      - 'map-transport-hub-20261114.js'
+      - 'map-transport-hub-20261114.css'
+      - 'map-transport-hub-20261114.test.mjs'
       - 'stream-guide.js'
       - 'stream-guide.css'
       - 'booth-room-20261114.css'
@@ -121,6 +124,8 @@ jobs:
           node --test community-profile-policy-regression-20261114.test.mjs
           node --check map-lwa-discovery-20261114.js
           node --test map-discovery-test.mjs
+          node --check map-transport-hub-20261114.js
+          node --test map-transport-hub-20261114.test.mjs
           python3 -m unittest discover -s scripts -p test_visual_life_feed.py
           python3 -m unittest discover -s scripts -p test_visual_life_ats.py
           node studio-layout-cache-test.mjs
