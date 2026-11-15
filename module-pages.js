@@ -2728,6 +2728,11 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const uid=String(window.__biglwaIdentity?.uid||'').trim();
     const privateMode=!document.documentElement.classList.contains('biglwa-preview-mode')&&!window.__biglwaPublicStorageView;
     const keyBase=uid&&privateMode?uid:'guest';
+    // A direct Room navigation can happen before the profile card/editor mounts.
+    // Trigger the account read independently; the completed read re-renders
+    // the gate through biglwa:community-profile-updated.
+    if(uid&&privateMode&&window.BigLWACommunityProfile?.syncStatus==='loading')
+      window.BigLWACommunityProfile.load();
     const modeKey='biglwaRoomTabV1:'+keyBase;
     let mode=localStorage.getItem(modeKey)==='lounge'?'lounge':'room';
     if(!uid||!privateMode)mode='room';
