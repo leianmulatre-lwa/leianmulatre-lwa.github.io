@@ -113,6 +113,7 @@ test('same-origin quality manifest exposes only verified available video renditi
 test('search entry intercepts pasted links before general AI/results and preserves query search',()=>{
  const search=read('user-search-results.js');
  assert.match(search,/window\.BigLWALinkTools\?\.renderForQuery\(current,clean\)\)return;/);
+ assert.match(search,/var historyId=isFileLink\?null:/,'Pasted signed links must not enter stored search history');
  assert.match(search,/var mathResult=window\.BigLWAMath\?\.solve\(clean\)\|\|null;/);
  assert.match(css,/body\.night-mode #bl-studio-search-results \.bl-link-inspector/);
  assert.match(css,/body\.dark-mode #bl-studio-search-results \.bl-link-inspector/);
