@@ -91,3 +91,12 @@ body.night-mode #studioApp .biglwa-community-status[data-state=error]{color:#ffb
  #studioApp .biglwa-community-badge{font-size:9px;padding:3px 6px}
  #studioApp .biglwa-room-profile-gate{padding:16px}
 }
+
+/* Confirmed account persistence: disabled only during the Firestore round-trip. */
+#studioApp .biglwa-community-save:disabled{
+ opacity:.58!important;cursor:progress!important;
+}
+#studioApp .biglwa-community-status[data-state=saving]{
+ color:inherit!important;opacity:.85;
+}
+#studioApp [data-community-retry][hidden]{display:none!important}
