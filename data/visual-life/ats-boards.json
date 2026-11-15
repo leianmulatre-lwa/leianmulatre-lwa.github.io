@@ -72,6 +72,20 @@
         "intern",
         "creative"
       ]
+    },
+    {
+      "provider": "pinpoint",
+      "name": "SKIMS",
+      "token": "skims",
+      "limit": 35,
+      "keywords": []
+    },
+    {
+      "provider": "greenhouse",
+      "name": "Glossier",
+      "token": "glossier",
+      "limit": 20,
+      "keywords": []
     }
   ]
 }
