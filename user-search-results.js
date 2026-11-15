@@ -156,7 +156,75 @@
     window.addEventListener('resize',fitSearchPanel);
     new MutationObserver(fitSearchPanel).observe(document.body,{attributes:true,attributeFilter:['class']});
     function section(title,cards,category){if(!cards||!cards.length)return '';var ui=window.__biglwaLwaziSearchUi;var markup=cards.map(function(card,i){return ui&&ui.decorateCard?ui.decorateCard(card,i,title):card});return '<section class="bl-search-section" data-bl-category="'+esc(category||'research')+'" id="'+sectionId(title)+'"><h2><span class="bl-search-section-icon" aria-hidden="true">'+sectionSymbol(title)+'</span>'+esc(title)+'</h2><div class="bl-search-grid">'+markup.join('')+'</div></section>'}
-    function renderAnswer(target,value){if(!target)return;var html=esc(String(value==null?'':typeof value==='object'?(value.answer||value.text||'No answer available.'):value));html=html.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[\s(])\*([^*\n]+)\*(?=\s|[.,;!?)]|$)/g,'$1<em>$2</em>');html=html.replace(/\n\n+/g,'</p><p>').replace(/\n/g,'<br>');target.innerHTML='<p>'+html+'</p>'}
+    // Safe, small Markdown renderer for model answers and chat follow-ups.
+    // Escape source text before introducing our own markup; no raw model HTML is trusted.
+    function lwaziInline(raw){
+      var source=String(raw||''),out='',from=0;
+      var tokens=/\*\*([^*\n]+)\*\*|__([^_\n]+)__|(?<!\*)\*([^*\n]+)\*(?!\*)|(?<!_)_([^_\n]+)_(?!_)|`([^`\n]+)`|\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g;
+      var hit;
+      while((hit=tokens.exec(source))){
+        out+=esc(source.slice(from,hit.index));
+        if(hit[1]!=null||hit[2]!=null)out+='<strong>'+esc(hit[1]||hit[2])+'</strong>';
+        else if(hit[3]!=null||hit[4]!=null)out+='<em>'+esc(hit[3]||hit[4])+'</em>';
+        else if(hit[5]!=null)out+='<code>'+esc(hit[5])+'</code>';
+        else if(hit[6]!=null){
+          var href='';try{var u=new URL(hit[7]);if(/^https?:$/.test(u.protocol))href=u.href}catch(e){}
+          out+=href?'<a href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">'+esc(hit[6])+'</a>':esc(hit[0]);
+        }
+        from=tokens.lastIndex;
+      }
+      return out+esc(source.slice(from));
+    }
+    function renderAnswer(target,value){
+      if(!target)return;
+      var raw=String(value==null?'':typeof value==='object'?(value.answer||value.text||'No answer available.'):value).replace(/\r\n?/g,'\n');
+      var parts=[],block=[],bullets=[];
+      function flushBullets(){if(bullets.length){parts.push('<ul>'+bullets.map(function(line){return '<li>'+lwaziInline(line)+'</li>'}).join('')+'</ul>');bullets=[]}}
+      function flushBlock(){if(block.length){parts.push('<p>'+block.map(lwaziInline).join('<br>')+'</p>');block=[]}}
+      raw.split('\n').forEach(function(line){
+        var item=line.match(/^\s*(?:[-•]|\d+[.)])\s+(.+)$/);
+        if(item){flushBlock();bullets.push(item[1]);return}
+        flushBullets();
+        if(!line.trim()){flushBlock();return}
+        var heading=line.match(/^\s*#{1,3}\s+(.+)$/);
+        if(heading){flushBlock();parts.push('<p><strong>'+lwaziInline(heading[1])+'</strong></p>');return}
+        block.push(line);
+      });
+      flushBlock();flushBullets();
+      // Only recognized Markdown markers become markup; mathematical symbols remain text.
+      target.innerHTML=parts.join('')||'<p></p>';
+    }
+    function renderThreadReply(node,value){renderAnswer(node,value);var prefix=document.createElement('strong');prefix.className='bl-lwazi-turn-prefix';prefix.textContent='L’wazi · ';node.prepend(prefix)}
+
+    // Photo previews stay within Studio. Genuine review data requires a licensed provider.
+    function renderLwaziPhotoPreview(host,query,items,images){
+      if(!host||!Array.isArray(items)||!images)return;
+      var placeIntent=/\b(?:where|place|places|near|nearby|visit|travel|trip|restaurant|cafe|coffee|hotel|museum|gallery|park|beach|landmark|shop|store|city|neighborhood|directions)\b/i.test(query);
+      var photos=items.filter(function(w){return w&&w.title&&typeof images[w.title]==='string'&&/^https:\/\/upload\.wikimedia\.org\//i.test(images[w.title])}).slice(0,3);
+      if(!photos.length){host.hidden=true;host.replaceChildren();return}
+      var gallery=document.createElement('div');gallery.className='bl-lwazi-photo-grid';
+      photos.forEach(function(w){
+        var article=document.createElement('article');article.className='bl-lwazi-photo-card';
+        var img=document.createElement('img');img.src=images[w.title];img.alt='Image related to '+w.title;img.loading='lazy';img.decoding='async';
+        var details=document.createElement('details');details.className='bl-lwazi-photo-details';
+        var summary=document.createElement('summary');summary.textContent=placeIntent?'Details & review links':'About this image';details.append(summary);
+        var info=document.createElement('p');info.textContent=plainSnippet(w.snippet||'').slice(0,200)||'See the encyclopedia article for background.';details.append(info);
+        var source=document.createElement('a');source.href='https://en.wikipedia.org/wiki/'+encodeURIComponent(w.title.replace(/\s+/g,'_'));source.target='_blank';source.rel='noopener noreferrer';source.textContent='Wikipedia article ↗';details.append(source);
+        if(placeIntent){
+          var note=document.createElement('p');note.textContent='Ratings and reviews are not imported into BIG LWA yet. These are optional source links.';details.append(note);
+          [['Google Maps reviews','https://www.google.com/maps/search/?api=1&query='],['Yelp reviews','https://www.yelp.com/search?find_desc=']].forEach(function(pair){
+            var link=document.createElement('a');link.href=pair[1]+encodeURIComponent(w.title);link.target='_blank';link.rel='noopener noreferrer';link.textContent=pair[0]+' ↗';details.append(link);
+          });
+        }
+        var name=document.createElement('strong');name.textContent=w.title;
+        article.append(img,name,details);gallery.append(article);
+      });
+      var heading=document.createElement('h3');heading.textContent=placeIntent?'Places & photos':'Related photos';
+      var note=document.createElement('p');note.className='bl-lwazi-photo-credit';note.textContent='Image previews via Wikipedia / Wikimedia Commons. Open details here without leaving BIG LWA.';
+      host.replaceChildren(heading,gallery,note);host.hidden=false;
+    }
+
+
 
     // Bounded, first-party conversational responses. Complex questions remain with the model.
     // These do not claim consciousness, racial experience, or verified outside knowledge.
@@ -311,6 +379,7 @@
       var criticalContext=!options.imageOnly?window.BigLWACriticalContext?.lookup(clean):null;
       var answerArea=current.querySelector('.bl-lwazi-answer');
       var answerBody=current.querySelector('.bl-lwazi-answer-body');
+      var photoPreview=document.createElement('section');photoPreview.className='bl-lwazi-inline-preview';photoPreview.setAttribute('aria-label','Related pictures and place details');photoPreview.hidden=true;answerArea.after(photoPreview);
       var threadArea=current.querySelector('.bl-lwazi-conversation');
       var turnArea=current.querySelector('.bl-lwazi-conversation-turns');
       var followForm=current.querySelector('.bl-lwazi-continue-form');
@@ -347,6 +416,7 @@
       function showTurns(){
         if(!turnArea)return;
         turnArea.replaceChildren();
+        if(threaded)threadArea.after(photoPreview);else answerArea.after(photoPreview);
         answerArea.hidden=!aiActive||threaded;
         if(!threaded){
           if(turns.at(-1)?.role==='assistant')renderAnswer(answerBody,turns.at(-1).text);
@@ -357,7 +427,8 @@
           card.className='bl-lwazi-turn';
           card.dataset.role=turn.role;
           card.dataset.latest=String(index===turns.length-1&&turn.role==='assistant');
-          card.textContent=(turn.role==='assistant'?'L’wazi · ':'You · ')+turn.text;
+          if(turn.role==='assistant')renderThreadReply(card,turn.text);
+           else card.textContent='You · '+turn.text;
           turnArea.appendChild(card);
         });
         turnArea.scrollTop=turnArea.scrollHeight;
@@ -392,7 +463,7 @@
             if(panel!==current||turns.at(-1)!==liveTurn)return;
             liveTurn.text=String(partial||'').slice(0,1200);
             var last=turnArea.lastElementChild;
-            if(last){last.textContent='L’wazi · '+liveTurn.text;turnArea.scrollTop=turnArea.scrollHeight}
+            if(last){renderThreadReply(last,liveTurn.text);turnArea.scrollTop=turnArea.scrollHeight}
           });
           if(panel!==current||turns.at(-1)!==liveTurn)return;
           liveTurn.text=String(response||'No answer available.').slice(0,1200);
@@ -400,7 +471,13 @@
           if(panel!==current||turns.at(-1)!==liveTurn)return;
           liveTurn.text=explainModelFailure(e)||'That reply did not come through. Ask me again.';
         }finally{
-          if(panel===current){persistTurns();showTurns();send.disabled=false;input.focus()}
+          if(panel===current){persistTurns();showTurns();send.disabled=false;input.focus();
+             if(/\b(?:where|places?|nearby|visit|travel|museum|gallery|restaurant|cafe|park|hotel|beach|show.*(?:photo|picture|image)|tell me about)\b/i.test(follow)){
+               searchWikipedia(follow).then(function(items){return wikipediaImages(items).then(function(images){return {items:items,images:images}})}).then(function(data){
+                 if(panel===current&&current.isConnected)renderLwaziPhotoPreview(photoPreview,follow,data.items,data.images);
+               }).catch(function(){});
+             }
+           }
         }
       });
       if(options.imageOnly||mathResult){
@@ -462,13 +539,15 @@
       var conversation=conversationIntent(clean);
       var isSocialGreeting=lwaziMode!=='off'&&!!(conversation&&(conversation.kind==='greeting'||conversation.kind==='identity'));
       var immediate=lwaziMode==='off'?null:conversation?conversation.reply:fastLwaziResponse(clean);
-      if(immediate){var instantBox=current.querySelector('.bl-lwazi-answer-body');if(instantBox)instantBox.textContent=immediate}
+      if(immediate){var instantBox=current.querySelector('.bl-lwazi-answer-body');if(instantBox)renderAnswer(instantBox,immediate)}
       var userPromise=(isSocialGreeting?Promise.resolve([]):searchUsers(lc)).catch(function(){return []});
       var postPromise=userPromise.then(publicUserPosts).catch(function(){return []});
       var songPromise=(isSocialGreeting?Promise.resolve([]):searchSongs(clean)).then(function(items){return items.map(songCard)}).catch(function(){return []});
       var bookPromise=(isSocialGreeting?Promise.resolve([]):searchBooks(clean)).then(function(items){return items.map(bookCard)}).catch(function(){return []});
       var wikiDataPromise=(isSocialGreeting?Promise.resolve([]):searchWikipedia(clean)).catch(function(){return []});
-       var wikiPromise=wikiDataPromise.then(function(items){return Promise.all([wikipediaImages(items).catch(function(){return {}}),items])}).then(function(pair){var images=pair[0];return pair[1].map(function(w){return wikiCard(w,images[w.title],/film|movie|cinema|director/i.test(clean+' '+w.title)?'movie':'research')})}).catch(function(){return []});
+       var wikiDetailsPromise=wikiDataPromise.then(function(items){return wikipediaImages(items).then(function(images){return {items:items,images:images}})}).catch(function(){return {items:[],images:{}}});
+       var wikiPromise=wikiDetailsPromise.then(function(data){return data.items.map(function(w){return wikiCard(w,data.images[w.title],/film|movie|cinema|director/i.test(clean+' '+w.title)?'movie':'research')})}).catch(function(){return []});
+       if(aiActive){wikiDetailsPromise.then(function(data){if(panel!==current||!current.isConnected)return;renderLwaziPhotoPreview(photoPreview,clean,data.items,data.images)})}
        // Wikipedia results are fetched once for cards, not twice to block the answer.
       var libraryPromise=isSocialGreeting?Promise.resolve([]):sourceLibraryPromise.then(function(library){return sourceLibraryMatches(library,clean)}).catch(function(){return []});
        var needsResearchSources=lwaziMode!=='off'&&wantsResearchSources(clean);
