@@ -122,6 +122,24 @@ test('Visual-Life only offers in-site job matches after a fresh validated feed i
  assert.equal(old.getStatus(),'stale');
 });
 
+test('Brand queries match employer names without requiring the word jobs in titles',async()=>{
+ const fresh={
+  schema:1,status:'published',generated_at:new Date().toISOString(),
+  jobs:[
+   {title:'Assistant Store Leader',company:'SKIMS',location:'Los Angeles HQ',source:'pinpoint',url:'https://skims.pinpointhq.com/postings/123'},
+   {title:'Brand Design Lead',company:'Glossier',location:'New York, NY',source:'greenhouse',url:'https://job-boards.greenhouse.io/glossier/jobs/123'}
+  ]
+ };
+ const {window}=harness(jobs,{feed:fresh});
+ const api=window.BigLWAVisualLife;
+ await api.loadFeed();
+ assert.equal(api.searchVerified('SKIMS jobs','United States').length,1);
+ assert.equal(api.searchVerified('jobs at SKIMS','United States').length,1);
+ assert.equal(api.searchVerified('Glossier careers','United States').length,1);
+ assert.equal(api.searchVerified('Chanel jobs','United States').length,0,'Never invent a local listing from a career-site link');
+ assert(api.searchTargets('Chanel jobs','United States').some(item=>item.url==='https://www.chanel.com/us/careers/'));
+});
+
 test('A reviewed JobSpy refresh explicitly dispatches Pages after publishing its feed',()=>{
  const flow=read('.github/workflows/visual-life-feed.yml');
  assert.match(flow,/actions: write/,'Pages dispatch has a scoped Actions permission');
