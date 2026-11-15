@@ -163,7 +163,7 @@ test('main Map holds permanent canvas on left and independent right-side tabs',(
  assert.match(mapcss,/grid-template-columns:minmax\(0,1\.4fr\) minmax\(350px,0\.9fr\)/);
  assert.match(mapcss,/\.map-tool-panels\{/);
  assert.match(mapcss,/overflow:visible!important;overscroll-behavior:auto!important/);
- assert.doesNotMatch(mapcss,/overflow:auto;overscroll-behavior:contain/,'No independent scroll trap in right desk');
+ assert.doesNotMatch(mapcss.slice(mapcss.indexOf('body.embedded.map-workspace-split .map-tool-panels{'),mapcss.indexOf('body.embedded.map-workspace-split .map-workspace-pane{')),/overflow:auto;overscroll-behavior:contain/,'No independent scroll trap in right desk; route instruction list may still scroll');
  assert.match(mapcss,/\.map-workspace-pane\[hidden\]\{display:none!important\}/);
  assert.match(mapcss,/max-width: 959px/);
 });
