@@ -39,7 +39,7 @@ test('Google token callback exposes active owner-scoped connection without brows
 test('Full Orbit listens to successful Google OAuth and shows all three true token-backed services',()=>{
  assert.match(pages,/new Set\(\['instagram','tiktok','pinterest','facebook','youtube','calendar','drive'\]\)/);
  assert.match(pages,/hasActiveToken\?\.\(\)===true/);
- assert.match(pages,/google\.state\.uid===uid/);
+ assert.match(pages,/google\?\.state\?\.uid===uid/);
  assert.match(pages,/if\(activeModuleKey==='orbit'\)renderOrbitPage\(\)/);
  assert.match(pages,/calendar:window\.__biglwaGoogleOrbit,drive:window\.__biglwaGoogleOrbit/);
  assert.match(pages,/else if\(\['youtube','calendar','drive'\]\.includes\(k\)\)/);
