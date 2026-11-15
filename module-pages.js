@@ -2220,7 +2220,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   function stopCamera(){if(activeCameraStream){activeCameraStream.getTracks().forEach(t=>t.stop());activeCameraStream=null;}stopVideoTest();}
   function renderCamera(){
     stopCamera();
-    body.innerHTML=heading('camera')+`<div class="booth-tabs" role="tablist" aria-label="Choose booth mode"><button type="button" class="booth-tab" id="boothPhotoTab" role="tab" aria-selected="true" aria-controls="boothPhotoPanel" tabindex="0">photo·booth</button><button type="button" class="booth-tab" id="boothVideoTab" role="tab" aria-selected="false" aria-controls="boothVideoPanel" tabindex="-1">video·booth <span class="booth-tab-soon">soon</span></button></div><div class="module-grid booth-content"><section class="module-card wide booth-panel" id="boothPhotoPanel" role="tabpanel" aria-labelledby="boothPhotoTab"><h2>photo·booth</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="booth-vanity" id="boothVanity" data-lights="on" style="--vanity-light:.72"><div class="booth-vanity-lights" aria-hidden="true"><span class="light-bar left"></span><span class="light-bar right"></span><span class="light-bar top"></span><span class="light-bar bottom"></span></div><div class="photobooth-stage has-intro" id="photoStage"><div class="booth-avatar-prompt"><img id="boothProfilePhoto" alt="Your profile picture" hidden><span id="boothProfileFallback" aria-hidden="true">◉</span><strong id="boothProfileName">Your profile</strong><small>Look good, feel good, bookini.</small></div></div></div><div class="booth-light-controls"><label for="boothLightLevel">Vanity lighting <output id="boothLightValue" for="boothLightLevel">72%</output></label><input id="boothLightLevel" type="range" min="0" max="100" value="72" step="1" aria-label="Vanity screen light brightness"><button type="button" class="module-action secondary" id="boothLightToggle" aria-pressed="true">Lights on</button></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section>${renderVideoBooth()}</div>`;
+    body.innerHTML=heading('camera')+`<div class="booth-tabs" role="tablist" aria-label="Choose booth mode"><button type="button" class="booth-tab" id="boothPhotoTab" role="tab" aria-selected="true" aria-controls="boothPhotoPanel" tabindex="0">photo·booth</button><button type="button" class="booth-tab" id="boothVideoTab" role="tab" aria-selected="false" aria-controls="boothVideoPanel" tabindex="-1">video·booth <span class="booth-tab-soon">soon</span></button></div><div class="module-grid booth-content"><section class="module-card wide booth-panel" id="boothPhotoPanel" role="tabpanel" aria-labelledby="boothPhotoTab"><h2>photo·booth</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="booth-vanity" id="boothVanity" data-lights="on" style="--vanity-light:.72;--vanity-energy:.72"><div class="booth-vanity-lights" aria-hidden="true"><span class="light-bar left"></span><span class="light-bar right"></span><span class="light-bar top"></span><span class="light-bar bottom"></span></div><div class="photobooth-stage has-intro" id="photoStage"><div class="booth-avatar-prompt"><img id="boothProfilePhoto" alt="Your profile picture" hidden><span id="boothProfileFallback" aria-hidden="true">◉</span><strong id="boothProfileName">Your profile</strong><small>Look good, feel good, bookini.</small></div></div></div><div class="booth-light-controls"><label for="boothLightLevel">Vanity lighting <output id="boothLightValue" for="boothLightLevel">72%</output></label><input id="boothLightLevel" type="range" min="0" max="100" value="72" step="1" aria-label="Vanity screen light brightness"><button type="button" class="module-action secondary" id="boothLightToggle" aria-pressed="true">Lights on</button></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section>${renderVideoBooth()}</div>`;
     const photoTab=$('#boothPhotoTab',body),videoTab=$('#boothVideoTab',body);
     const photoPanel=$('#boothPhotoPanel',body),videoPanel=$('#boothVideoPanel',body);
     // UID-scoped owner portrait. Never fall back to an unrelated signed-in account,
@@ -2265,7 +2265,14 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     let lightsOn=true;
     const refreshLights=()=>{
       const percent=Math.max(0,Math.min(100,Number(level.value)||0));
-      vanity.style.setProperty('--vanity-light',lightsOn?(percent/100).toFixed(2):'0');
+      const power=lightsOn?percent/100:0;
+      // Drive the exterior LED strips, room spill and preview fill separately.
+      // This adjusts page lighting, not the physical device's display brightness.
+      vanity.style.setProperty('--vanity-light',power.toFixed(2));
+      vanity.style.setProperty('--vanity-energy',power.toFixed(3));
+      vanity.style.setProperty('--vanity-spill',(power*power).toFixed(3));
+      vanity.style.setProperty('--vanity-radius',(12+power*105).toFixed(1)+'px');
+      vanity.style.setProperty('--vanity-exposure',(1+power*.65).toFixed(2));
       vanity.dataset.lights=lightsOn?'on':'off';
       lightValue.textContent=percent+'%';
       lightToggle.textContent=lightsOn?'Lights on':'Lights off';
@@ -2273,6 +2280,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     };
     level.addEventListener('input',refreshLights);
     lightToggle.addEventListener('click',()=>{lightsOn=!lightsOn;refreshLights();});
+    // Slider works immediately with keyboard, touch and pointer input.
+    level.addEventListener('change',refreshLights);
     refreshLights();refreshBoothProfile();
     // The account photo may finish hydrating after the module is first painted.
     setTimeout(()=>{if(photoPanel.isConnected)refreshBoothProfile();},550);
@@ -2376,11 +2385,13 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     </section>`;
   }
 
-  const TRENDING_ROOMS=[['lounge','The Lounge','BIGLWA home room'],['minecraft','#minecraft','Trending room'],['fortnite','#fortnite','Trending room'],['deadbydaylight','#deadbydaylight','Trending room'],['rocketleague','#rocketleague','Trending room'],['biglwa','#biglwa','Trending room'],['arcade','#arcade','Trending room'],['support','#support','Trending room'],['gov','#gov','Trending room'],['substack','#substack','Trending room'],['katseye','#katseye','Trending conversation'],['adela','#adela','Trending conversation']];
-  const roomStorageKey = slug => slug==='lounge' ? 'biglwaRoomMessages' : 'biglwaRoomMessages_'+slug;
+  const TRENDING_ROOMS=[['lounge','The Lounge','Your private browser conversation']];
+  const ownerRoomUid=()=>!document.documentElement.classList.contains('biglwa-preview-mode')&&
+    !window.__biglwaPublicStorageView?String(window.__biglwaIdentity?.uid||'').trim():'';
+  const roomStorageKey=slug=>'biglwaRoomMessagesV2:'+ownerRoomUid()+':'+slug;
   const customRoomSlug = name => 'custom-'+name.toLowerCase().replace(/^#/,'').replace(/[^a-z0-9-]/g,'');
-  const readCustomRooms = () => { const v=readJSON('biglwaCustomRooms',[]); return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x):[]; };
-  const writeCustomRooms = list => writeJSON('biglwaCustomRooms', list);
+  const readCustomRooms = () => { const uid=ownerRoomUid();if(!uid)return [];const v=readJSON('biglwaCustomRoomsV2:'+uid,[]); return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x):[]; };
+  const writeCustomRooms = list => {const uid=ownerRoomUid();if(uid)writeJSON('biglwaCustomRoomsV2:'+uid,list);};
   const roomList = () => TRENDING_ROOMS.map(([slug,name,desc])=>({slug,name,desc})).concat(readCustomRooms().map(name=>({slug:customRoomSlug(name),name:normalizeRoomName(name),desc:'Custom room'})));
   function normalizeRoomName(raw){
     let name=String(raw||'').trim().replace(/\s+/g,'-');
@@ -2714,21 +2725,119 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   }
 
   function renderRoom(){
-    let slug=String(localStorage.getItem('biglwaActiveRoom')||'lounge');
+    const uid=String(window.__biglwaIdentity?.uid||'').trim();
+    const privateMode=!document.documentElement.classList.contains('biglwa-preview-mode')&&!window.__biglwaPublicStorageView;
+    const keyBase=uid&&privateMode?uid:'guest';
+    const modeKey='biglwaRoomTabV1:'+keyBase;
+    const profileKey='biglwaRoomRolesV1:'+keyBase;
+    let mode=localStorage.getItem(modeKey)==='lounge'?'lounge':'room';
+    if(!uid||!privateMode)mode='room';
+    const roles=['Student','Researcher','Creative','Freelancer','Educator','Artist','Organizer','Developer','Music maker','Other'];
+    const ages=['Prefer not to say','Under 18','18–24','25–34','35–44','45+'];
+    const profile=readJSON(profileKey,{roles:[],age:'Prefer not to say'});
+    const chosen=Array.isArray(profile.roles)?profile.roles.filter(v=>roles.includes(v)).slice(0,3):[];
+    const age=ages.includes(profile.age)?profile.age:ages[0];
     const allRooms=roomList();
+    let slug=String(localStorage.getItem('biglwaActiveRoomV2:'+keyBase)||'lounge');
     if(!allRooms.some(r=>r.slug===slug))slug='lounge';
     const room=allRooms.find(r=>r.slug===slug)||allRooms[0],storage=roomStorageKey(room.slug);
-    const messages=readJSON(storage,[{text:'Welcome to '+room.name+'.',mine:false}]);
-    const chip=(r,i)=>`<button class="module-launcher" type="button" data-room="${i}" ${r.slug===slug?'aria-pressed="true"':''}><b>${esc(r.name)}</b><small>${esc(r.desc)}</small></button>`;
-    body.innerHTML=heading('rooms')+`<div class="module-grid">
-      <section class="module-card wide"><h2>Trending rooms</h2><p>Tap a room to drop in — conversation stays local for now.</p><div class="module-launchers" id="trendingRooms">${allRooms.map((r,i)=>chip(r,i)).join('')}</div></section>
-      <section class="module-card wide"><div class="room-head" style="display:flex;align-items:center;gap:10px"><h2>${esc(room.name)}</h2><span style="font-size:11px;padding:2px 8px;border:1px solid rgba(127,127,127,.35);border-radius:999px;color:#999;text-transform:uppercase;letter-spacing:.08em">${esc(room.slug==='lounge'?'home':room.slug.slice(0,7)==='custom-'?'custom':'trending')}</span></div><div class="module-chat" id="roomChat">${messages.map(m=>`<div class="module-bubble ${m.mine?'mine':''}">${esc(m.text)}</div>`).join('')}</div><form class="module-form two" id="roomForm" style="margin-top:8px"><input class="module-input" name="text" placeholder="Say something in ${esc(room.name)}…"><button class="module-action" type="submit">Send</button></form><div class="module-status">Local prototype — real room sync comes with the backend. Messages stay in this browser.</div></section>
-      <section class="module-card wide"><h2>Create a room</h2><p>Names start with <strong>#</strong> and spaces become <strong>-</strong> (e.g. <em>#my hangout</em> → <em>#my-hangout</em>).</p><form class="module-form two" id="createRoomForm" style="margin-top:8px"><input class="module-input" name="room" placeholder="#new-room" maxlength="32" autocomplete="off"><button class="module-action" type="submit">Create room</button></form><div class="module-status" id="createRoomStatus">Created rooms are saved in this browser and appear in the trending list above.</div></section>
-    </div>`;
-    const goTo=k=>{const target=allRooms[Number(k)];if(!target)return;localStorage.setItem('biglwaActiveRoom',target.slug);openModule('rooms','',false)};
+    const messages=readJSON(storage,[]);
+    const chip=(r,i)=>'<button class="module-launcher" type="button" data-room="'+i+'"'+(r.slug===slug?' aria-pressed="true"':'')+'><b>'+esc(r.name)+'</b><small>'+esc(r.desc)+'</small></button>';
+    const tabs='<nav class="room-mode-tabs" role="tablist" aria-label="Room sections">'+
+     '<button type="button" role="tab" aria-selected="'+(mode==='room')+'" data-room-mode="room">Room</button>'+
+     '<button type="button" role="tab" aria-selected="'+(mode==='lounge')+'" data-room-mode="lounge">Lounge</button></nav>';
+    const roleForm='<section class="module-card wide" id="roomRolePanel"><h2>Community roles</h2>'+
+      '<p>Choose up to three roles for yourself, Discord-style. Age range is optional, self-declared, and not proof of age. These preferences stay on this device and are not public profile badges.</p>'+
+      '<form id="roomRoleForm"><div class="room-role-choices">'+roles.map(role=>
+        '<label><input type="checkbox" name="role" value="'+esc(role)+'"'+(chosen.includes(role)?' checked':'')+(uid&&privateMode?'':' disabled')+'> '+esc(role)+'</label>').join('')+'</div>'+
+      '<label>Age range <select name="age" class="module-input"'+(uid&&privateMode?'':' disabled')+'>'+
+       ages.map(item=>'<option value="'+esc(item)+'"'+(item===age?' selected':'')+'>'+esc(item)+'</option>').join('')+
+      '</select></label><div class="module-actions"><button type="submit" class="module-action"'+(uid&&privateMode?'':' disabled')+'>Save my roles</button></div></form>'+
+      '<p role="status" class="room-role-disclaimer" id="roomRoleStatus">'+(uid&&privateMode?'Roles are private, self-selected labels—not verified credentials or access permissions.':'Sign in to set private Room roles.')+'</p></section>';
+    const roomView='<div class="module-grid room-pixel-mode">'+
+       '<section class="module-card wide"><div class="room-pixel-scene" aria-hidden="true"><strong>Room</strong><small>People · ideas · sounds · self</small></div>'+
+       '<h2>Searches moving through the world</h2>'+
+       '<p>Real UN observances and topics in your connected Instagram media. Search X or Instagram directly to explore discussion there; these are <strong>not verified global trending rankings</strong>.</p>'+
+       '<div class="room-trend-grid" id="roomTrendSources" role="list"><p>Looking for source-linked topics…</p></div>'+
+       '<p class="module-status" id="roomTrendStatus" role="status">No fabricated hashtags, viewers, or activity counts.</p></section>'+
+       roleForm+'</div>';
+    const loungeView='<div class="module-grid room-lounge-mode">'+
+       '<section class="module-card wide"><h2>Your lounges</h2><p>Your saved room names appear here. Public trending rooms and participant counts are not invented.</p>'+
+       '<div class="module-launchers" id="trendingRooms">'+allRooms.map((r,i)=>chip(r,i)).join('')+'</div></section>'+
+       '<section class="module-card wide"><div class="room-head"><h2>'+esc(room.name)+'</h2><small>Local conversation draft</small></div>'+
+       '<div class="module-chat" id="roomChat">'+(messages.length?messages.map(m=>'<div class="module-bubble '+(m.mine?'mine':'')+'">'+esc(m.text)+'</div>').join(''):'<p>No messages yet.</p>')+'</div>'+
+       '<form class="module-form two" id="roomForm" style="margin-top:8px"><input class="module-input" name="text" placeholder="Write in '+esc(room.name)+'…" maxlength="1200" required><button class="module-action" type="submit">Send</button></form>'+
+       '<p class="module-status">Local draft only. Messages are not live or shared; real community messaging needs account-level security, moderation, blocking, reporting, and an authenticated chat backend.</p></section>'+
+       '<section class="module-card wide"><h2>Create a lounge</h2><p>Use a # name for a private local conversation draft.</p>'+
+       '<form class="module-form two" id="createRoomForm"><input class="module-input" name="room" placeholder="#new-room" maxlength="32" autocomplete="off" required>'+
+       '<button class="module-action" type="submit">Create</button></form><p class="module-status" id="createRoomStatus">Saved locally for now; not discoverable by other members.</p></section></div>';
+    body.innerHTML=heading('rooms')+tabs+(mode==='room'?roomView:loungeView);
+    body.querySelectorAll('[data-room-mode]').forEach(button=>button.addEventListener('click',()=>{
+      const target=button.dataset.roomMode;
+      if(target===mode)return;
+      if(!uid&&target==='lounge'){button.setAttribute('aria-label','Sign in to access private lounge drafts');return;}
+      localStorage.setItem(modeKey,target);
+      openModule('rooms','',false);
+    }));
+    if(mode==='room'){
+      const form=$('#roomRoleForm',body),status=$('#roomRoleStatus',body);
+      if(form)form.onsubmit=event=>{
+        event.preventDefault();
+        if(!uid||!privateMode){status.textContent='Sign in before saving roles.';return;}
+        const selected=[...form.querySelectorAll('input[name="role"]:checked')].map(i=>i.value).filter(x=>roles.includes(x));
+        if(selected.length>3){status.textContent='Select no more than three roles.';return;}
+        const ageBand=form.elements.age.value;
+        writeJSON(profileKey,{roles:selected,age:ages.includes(ageBand)?ageBand:ages[0]});
+        status.textContent='Saved privately on this device: '+(selected.join(', ')||'No roles selected')+'.';
+      };
+      const gen=body;
+      Promise.resolve().then(()=>window.BigLWARoomSignals?.load?.()||[]).then(items=>{
+        const slot=$('#roomTrendSources',gen),note=$('#roomTrendStatus',gen);
+        if(!slot||!slot.isConnected)return;
+        slot.replaceChildren();
+        if(!items.length){
+          const p=document.createElement('p');p.textContent='No recent verified source signals available. Connect Instagram or check official UN observances.';slot.append(p);
+          if(note)note.textContent='No live ranking feed is connected.';return;
+        }
+        items.forEach(item=>{
+          const card=document.createElement('article');card.className='room-trend-item';card.setAttribute('role','listitem');
+          const name=document.createElement('strong');name.textContent=item.title;
+          const desc=document.createElement('small');desc.textContent=item.kind+' · '+item.detail;
+          const links=document.createElement('div');links.className='room-trend-links';
+          const addLink=(label,url)=>{
+            if(!/^https:\/\/(?:www\.)?(?:un\.org|x\.com|instagram\.com)\//i.test(url||''))return;
+            const a=document.createElement('a');a.textContent=label;a.href=url;
+            a.target='_blank';a.rel='noopener noreferrer';links.append(a);
+          };
+          if(item.kind==='United Nations')addLink('UN source',item.url);
+          addLink('X search',item.links?.x);
+          addLink('Instagram search',item.links?.instagram);
+          card.append(name,desc,links);slot.append(card);
+        });
+        if(note)note.textContent=items.length+' source-linked topics shown. X and Instagram links open live searches; they do not imply platform trend ranking.';
+      }).catch(()=>{const p=$('#roomTrendStatus',gen);if(p)p.textContent='No verified source topics available right now.';});
+      return;
+    }
+    const goTo=index=>{
+      const target=allRooms[Number(index)];if(!target)return;
+      localStorage.setItem('biglwaActiveRoomV2:'+keyBase,target.slug);openModule('rooms','',false);
+    };
     $('#trendingRooms',body).onclick=e=>{const b=e.target.closest('[data-room]');if(b)goTo(b.dataset.room)};
-    $('#createRoomForm',body).onsubmit=e=>{e.preventDefault();const status=$('#createRoomStatus',body);let raw=(new FormData(e.currentTarget).get('room')||'').trim();const name=normalizeRoomName(raw);if(!name){status.textContent='Type a room name first.';return}if(name.length>32){status.textContent='Room names are capped at 32 characters.';return}if(readCustomRooms().some(x=>normalizeRoomName(x).toLowerCase()===name.toLowerCase())){status.textContent='That room already exists in your list.';return}const list=readCustomRooms();list.push(name);writeCustomRooms(list);localStorage.setItem('biglwaActiveRoom',customRoomSlug(name));openModule('rooms','',false)};
-    $('#roomForm',body).onsubmit=e=>{e.preventDefault();const text=(new FormData(e.currentTarget).get('text')||'').trim();if(!text)return;const cur=readJSON(storage,[]);cur.push({text,mine:true});writeJSON(storage,cur);openModule('rooms','',false)};
+    $('#createRoomForm',body).onsubmit=e=>{
+      e.preventDefault();const status=$('#createRoomStatus',body);
+      const raw=new FormData(e.currentTarget).get('room')||'';
+      const name=normalizeRoomName(raw);
+      if(!name||name.length>32){status.textContent='Enter a valid room name, up to 32 characters.';return;}
+      if(readCustomRooms().some(x=>normalizeRoomName(x).toLowerCase()===name.toLowerCase())){status.textContent='This lounge already exists in your list.';return;}
+      const list=readCustomRooms();list.push(name);writeCustomRooms(list);
+      localStorage.setItem('biglwaActiveRoomV2:'+keyBase,customRoomSlug(name));openModule('rooms','',false);
+    };
+    $('#roomForm',body).onsubmit=e=>{
+      e.preventDefault();const text=String(new FormData(e.currentTarget).get('text')||'').trim().slice(0,1200);
+      if(!text)return;
+      const cur=readJSON(storage,[]);cur.push({text,mine:true});
+      writeJSON(storage,cur.slice(-100));openModule('rooms','',false);
+    };
   }
 
   function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},0)}
@@ -4034,7 +4143,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     body.innerHTML=heading('map')+`<style>#biglwaMapApp{display:block;width:100%;height:1250px;border:0;border-radius:0;background:transparent;overflow:hidden}#biglwaMapStatus{margin:0 0 9px;font:600 12px/1.45 system-ui;color:#6b5448}#biglwaMapStatus[hidden],#biglwaMapRetry[hidden]{display:none!important}@media(max-width:760px){#biglwaMapApp{height:1550px}}</style>
       <section aria-label="BIG LWA map">
       <p id="biglwaMapStatus" role="status">Loading your map inside Studio…</p>
-      <iframe id="biglwaMapApp" src="/map-app.html?embed=1&v=20261113-inpage-navigation-go-5" loading="eager" referrerpolicy="same-origin"
+      <iframe id="biglwaMapApp" src="/map-app.html?embed=1&v=20261114-inline-pinning-1" loading="eager" referrerpolicy="same-origin"
        title="BIG LWA interactive map and saved pins" allow="geolocation 'self'; microphone 'self'; fullscreen" allowfullscreen></iframe>
       <button type="button" class="module-action ghost" id="biglwaMapRetry">Reload map only</button>
       </section>`;
@@ -4291,7 +4400,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       mini.id='biglwaStudioMiniMap';
       mini.className='studio-mini-map';
       mini.title='Interactive mini map — pan, zoom, and see saved locations';
-      mini.src='/map-app.html?embed=1&preview=1&v=20261113-inpage-navigation-go-5';
+      mini.src='/map-app.html?embed=1&preview=1&v=20261114-inline-pinning-1';
       mini.loading='eager';
       mini.referrerPolicy='same-origin';
       mini.setAttribute('allow','geolocation \'self\'');

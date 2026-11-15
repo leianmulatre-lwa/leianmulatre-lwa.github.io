@@ -46,6 +46,10 @@
   ["The Candid Candidate (1937)","https://archive.org/download/BettyBoopCartoons/The_Candid_Candidate_1937_512kb.mp4"]
  ];
  const featured=[
+  {id:'community-live-01',category:'lwa-tv',title:'Community live selection 01',creator:'Original YouTube uploader',subtitle:'Submitted live stream · availability determined by YouTube',videoId:'Q0zx1vpTghg',url:'https://www.youtube.com/watch?v=Q0zx1vpTghg',source:'Member-curated YouTube stream',provider:'youtube',chatEligible:true},
+  {id:'courage-live',category:'lwa-tv',title:'Courage the Cowardly Dog · YouTube stream',creator:'Original YouTube uploader',subtitle:'Cartoon stream · availability not guaranteed',videoId:'_RdBYV6TLV0',url:'https://www.youtube.com/watch?v=_RdBYV6TLV0',source:'Member-curated cartoon stream',provider:'youtube',chatEligible:true},
+  {id:'gravity-falls-live',category:'lwa-tv',title:'Gravity Falls · YouTube stream',creator:'Original YouTube uploader',subtitle:'Animation stream · availability not guaranteed',videoId:'eE1L08hNdW8',url:'https://www.youtube.com/watch?v=eE1L08hNdW8',source:'Member-curated cartoon stream',provider:'youtube',chatEligible:true},
+  {id:'community-live-04',category:'lwa-tv',title:'Community live selection 04',creator:'Original YouTube uploader',subtitle:'Submitted live stream · availability determined by YouTube',videoId:'DuUUTvBihaU',url:'https://www.youtube.com/watch?v=DuUUTvBihaU',source:'Member-curated YouTube stream',provider:'youtube',chatEligible:true},
   {id:'owen-dreams',category:'podcast',title:'In Your Dreams with Owen Thiele',creator:'Unwell Network · Owen Thiele',subtitle:"Halsey's Mom Thought She Was Delusional",videoId:'iO9g2KEroiw',url:'https://www.youtube.com/watch?v=iO9g2KEroiw',source:'Podcast episode',provider:'youtube'},
   {id:'nyt-daily',category:'podcast',title:'The Daily',creator:'The New York Times',subtitle:'Daily news podcast · official listing',url:'https://podcasts.apple.com/us/podcast/the-daily/id1200361736',source:'Podcast',provider:'podcast'},
   {id:'soulection-001',category:'podcast',title:'Soulection Radio Mixtape 001',creator:'Soulection',subtitle:'13 Year Anniversary',url:'https://soulection.lnk.to/RadioMixtape001',source:'Mixtape / original release',provider:'mixtape'},
@@ -880,7 +884,12 @@
    const sourceUrl='https://www.youtube-nocookie.com/embed/'+source.videoId;
    const mux=mediaTag('youtube',sourceUrl,title);
    surface.innerHTML='<div class="stream-screen is-program"><div class="stream-player-label">'+caption+original+channelLink+'</div>'+
-    (mux||'<iframe title="'+title+'" src="'+sourceUrl+'?rel=0&autoplay=1&playsinline=1" allow="autoplay; accelerometer; encrypted-media; picture-in-picture; fullscreen; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="eager"></iframe>')+'</div>';
+    (mux||'<iframe title="'+title+'" src="'+sourceUrl+'?rel=0&autoplay=1&playsinline=1" allow="autoplay; accelerometer; encrypted-media; picture-in-picture; fullscreen; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="eager"></iframe>')+
+    (source.chatEligible?
+      '<div class="stream-chat-controls"><button type="button" data-stream-chat-toggle aria-expanded="false">Open YouTube live chat</button>'+
+      '<small>Live chat only when the original uploader enables it. YouTube manages accounts and moderation.</small>'+
+      '<a target="_blank" rel="noopener noreferrer" href="https://www.youtube.com/live_chat?v='+escapeHTML(source.videoId)+'">Chat on YouTube ↗</a></div>'+
+      '<div class="stream-chat-host" hidden></div>':'')+'</div>';
   }else{
    const type=source.provider==='archive'?'cultural archive':source.provider==='youtube'?'creator channel':source.provider==='mixtape'?'mixtape':source.provider==='podcast'?'podcast':source.type||'radio station';
    const cta=source.provider==='archive'?'Explore original archive ↗':source.provider==='youtube'?'Browse original videos ↗':source.provider==='mixtape'?'Play on original release ↗':source.provider==='podcast'?'Listen with publisher ↗':'Listen on station website ↗';
@@ -1123,6 +1132,25 @@
   if(button.matches('[data-stream-return]')){undockStream(true);return;}
   if(button.matches('[data-stream-dock]')){dockStream();return;}
   if(button.matches('[data-stream-no-signal]')){showNoSignal();return;}
+  if(button.matches('[data-stream-chat-toggle]')){
+    const selected=state.selected;
+    const host=mediaPortal?.querySelector('.stream-chat-host');
+    if(!host||!selected?.chatEligible||!/^[A-Za-z0-9_-]{11}$/.test(selected.videoId||''))return;
+    const opening=host.hidden;
+    host.replaceChildren();
+    if(opening){
+      const frame=document.createElement('iframe');
+      const hostname=['biglwa.com','www.biglwa.com','leianmulatre-lwa.github.io'].includes(location.hostname)?location.hostname:'biglwa.com';
+      frame.src='https://www.youtube.com/live_chat?v='+encodeURIComponent(selected.videoId)+'&embed_domain='+encodeURIComponent(hostname);
+      frame.title='YouTube chat for '+selected.title;
+      frame.loading='lazy';frame.referrerPolicy='strict-origin-when-cross-origin';
+      frame.allow='clipboard-write';host.append(frame);
+    }
+    host.hidden=!opening;
+    button.textContent=opening?'Close YouTube live chat':'Open YouTube live chat';
+    button.setAttribute('aria-expanded',String(opening));
+    return;
+  }
   if(button.matches('[data-stream-retry]')){if(state.selected)showSource(state.selected,{silent:true});return;}
   if(button.matches('[data-discovery-prev]')){browseDiscovery(-1);return;}
   if(button.matches('[data-discovery-next]')){browseDiscovery(1);return;}
