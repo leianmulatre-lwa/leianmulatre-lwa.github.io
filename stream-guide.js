@@ -956,16 +956,54 @@
   if(status)status.textContent='Connecting to station…';
   audio.addEventListener('error',()=>{
    button.disabled=false;button.textContent='▶ Play';
-   if(status)status.textContent='This live stream is currently unavailable; try another station.';
+   if(status){
+    status.textContent='This station stream is not playing.';
+    if(Number.isInteger(state.selected?.stationIndex)&&!state.selected?.alternateStream){
+     const retry=document.createElement('button');retry.type='button';
+     retry.className='stream-radio-recovery';retry.dataset.streamRadioRetry=String(state.selected.stationIndex);
+     retry.textContent='Check alternate stream';status.append(' ',retry);
+    }else status.append(' Open the original station site for another listening option.');
+   }
   },{once:true});
   Promise.resolve(audio.play()).then(()=>{
    button.textContent='Ⅱ Pause';button.disabled=false;
    if(status)status.textContent='Playing live · original station stream';
   }).catch(error=>{
    button.textContent='▶ Play';button.disabled=false;
-   if(status)status.textContent='Stream unavailable or blocked. Try Play again.';
+   if(status){
+    status.textContent='The stream is unavailable or your browser blocked playback.';
+    if(Number.isInteger(state.selected?.stationIndex)&&!state.selected?.alternateStream){
+     const retry=document.createElement('button');retry.type='button';
+     retry.className='stream-radio-recovery';retry.dataset.streamRadioRetry=String(state.selected.stationIndex);
+     retry.textContent='Find alternate stream';status.append(' ',retry);
+    }
+   }
    console.warn('Big LWA radio stream unavailable:',error?.name||'playback error');
   });
+ }
+ async function retryCollegeRadio(index){
+  const station=stations[index];const recovery=window.BigLWARadioDirectory?.findCollegeStream;
+  const status=mediaPortal?.querySelector('#streamRadioStatus');
+  if(!station||!recovery){if(status)status.textContent='Alternate stream lookup is unavailable. Use the station website.';return}
+  if(status)status.textContent='Checking the community directory for a working alternative…';
+  try{
+   const match=await recovery({name:station[0],state:station[2]});
+   if(!match){if(status)status.textContent='No recently checked matching HTTPS audio stream found. Use the station website.';return}
+   if(!root?.isConnected)return;
+   showSource({title:station[0],category:'podcast',creator:station[1],
+    subtitle:station[1]+' · '+station[2],source:'Campus radio / alternate directory stream',
+    url:station[3],stationIndex:index,alternateStream:true,
+    audioUrl:match.stream,type:'radio station',provider:'radio'}, {silent:true});
+   const audio=mediaPortal?.querySelector('#streamRadioAudio'),button=mediaPortal?.querySelector('[data-radio-play]');
+   if(audio&&button)playRadio(audio,button);
+  }catch(error){if(status?.isConnected)status.textContent='Alternate source lookup failed. '+String(error?.message||'Try the station website.').slice(0,120)}
+ }
+ function playDirectoryRadio(source){
+  if(!root||!source||source.provider!=='radio'||!/^https:\/\//.test(source.audioUrl||''))return false;
+  state.followGuide=false;showSource(source,{silent:true});
+  const audio=mediaPortal?.querySelector('#streamRadioAudio'),button=mediaPortal?.querySelector('[data-radio-play]');
+  if(audio&&button)playRadio(audio,button);
+  return true;
  }
  function selectStation(index,options={}){
   const station=stations[index];if(!station||!audioStreams[index])return;
@@ -1060,6 +1098,7 @@
    filter.oninput=()=>renderStations(filter.value);
    renderStations('');
    renderRadioExtras();
+   window.BigLWARadioDirectory?.mount?.(root,{play:playDirectoryRadio});
   }else if(state.category==='lwa-tv'){
    detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA TV / READY TO WATCH</span><h3>pick a video, stay here</h3><p>Use the thumbnail and arrows above to browse playable clips and cartoons. Channel-page links without a playable video are not shown as TV programs. Ballroom / CCTV remains within LWA TV.</p></div></div><p class="stream-directory-note">Original publishers control their own embedding permissions; this does not imply a Big LWA partnership.</p>';
   }else if(state.category==='sqwibz'){
@@ -1234,6 +1273,7 @@
    else window.location.assign('/studio');
    return;
   }
+  if(button.matches('[data-stream-radio-retry]')){retryCollegeRadio(Number(button.dataset.streamRadioRetry));return;}
   if(button.matches('[data-stream-retry]')){if(state.selected)showSource(state.selected,{silent:true});return;}
   if(button.matches('[data-discovery-prev]')){browseDiscovery(-1);return;}
   if(button.matches('[data-discovery-next]')){browseDiscovery(1);return;}

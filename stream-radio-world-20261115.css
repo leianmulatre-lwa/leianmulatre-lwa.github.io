@@ -1,0 +1,137 @@
+/* BIG LWA · US College Radio & World Radio country/language explorer */
+#studioApp .biglwa-radio-discovery{
+ margin:25px 0 15px;border:1px solid #b5a18b;border-radius:11px;
+ background:#ede0ce;color:#302720;overflow:hidden;
+}
+#studioApp .biglwa-radio-discovery-head{
+ padding:18px 20px 12px;border-bottom:1px solid rgba(93,68,55,.16);
+}
+#studioApp .biglwa-radio-discovery-head .stream-eyebrow{
+ font:800 10px/1.4 ui-monospace,monospace;color:#9a3932;letter-spacing:.09em;
+}
+#studioApp .biglwa-radio-discovery-head h3{
+ font:400 clamp(25px,3vw,37px)/1.05 "CS Bergamot Stitched",Georgia,serif;
+ margin:5px 0 10px;color:#302321;
+}
+#studioApp .biglwa-radio-discovery-head p{
+ font:500 12px/1.5 system-ui,sans-serif;color:#554037;max-width:730px;margin:0;
+}
+#studioApp .biglwa-radio-switch{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:1px;background:#d1bdaa;padding:5px;
+}
+#studioApp .biglwa-radio-switch button{
+ appearance:none;border:1px solid transparent;border-radius:7px;
+ min-height:43px;padding:9px;cursor:pointer;background:#eadccb;color:#473229;
+ font:800 12px/1.35 system-ui,sans-serif;
+}
+#studioApp .biglwa-radio-switch button[aria-selected="true"]{
+ color:#fff4df;background:#66363f;border-color:#66363f;
+}
+#studioApp .biglwa-radio-switch button:focus-visible,
+#studioApp .biglwa-radio-discovery :is(select,input,button,a):focus-visible{
+ outline:2px solid #bb5049;outline-offset:2px;
+}
+#studioApp .biglwa-radio-discovery [hidden]{display:none!important}
+#studioApp .biglwa-radio-state-area,
+#studioApp .biglwa-radio-world-area{padding:14px 16px 18px}
+#studioApp .biglwa-radio-filters{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:10px;align-items:end;margin:0 0 8px;
+}
+#studioApp .biglwa-radio-world-area .biglwa-radio-filters{
+ grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;
+}
+#studioApp .biglwa-radio-filters label{
+ min-width:0;display:flex;flex-direction:column;gap:5px;
+ font:800 10px/1.25 ui-monospace,monospace;
+ color:#564039;text-transform:uppercase;letter-spacing:.05em;
+}
+#studioApp .biglwa-radio-filters :is(select,input){
+ display:block;width:100%;min-width:0;box-sizing:border-box;
+ border:1px solid #9e8878;border-radius:7px;background:#fffaf2;color:#312520;
+ padding:9px 10px;min-height:39px;font:600 12px/1.3 system-ui,sans-serif;
+}
+#studioApp .biglwa-radio-filters button{
+ background:#653c47;color:#fff7e7;border:1px solid #653c47;border-radius:7px;
+ padding:9px 12px;min-height:39px;font:750 11px/1.3 system-ui;cursor:pointer;
+}
+#studioApp .biglwa-radio-summary{
+ margin:8px 0 14px;font:650 11px/1.5 system-ui,sans-serif;color:#6d5146;
+}
+#studioApp .biglwa-radio-cards{
+ display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,210px),1fr));
+ gap:9px;align-items:stretch;
+}
+#studioApp .biglwa-radio-card{
+ display:flex;flex-direction:column;min-width:0;gap:7px;
+ border:1px solid #bca58c;border-radius:8px;background:#fff8ec;color:#302720;
+ padding:13px;box-shadow:1px 2px 0 rgba(68,52,44,.08);
+}
+#studioApp .biglwa-radio-card .radio-state-tag{
+ color:#943c39;font:800 9px/1.4 ui-monospace,monospace;letter-spacing:.08em;
+ text-transform:uppercase;
+}
+#studioApp .biglwa-radio-card>strong{
+ font:700 16px/1.25 Georgia,serif;color:#32251e;overflow-wrap:anywhere;
+}
+#studioApp .biglwa-radio-card>p{
+ font:500 11px/1.45 system-ui,sans-serif;color:#624d43;margin:0;
+ overflow-wrap:anywhere;
+}
+#studioApp .biglwa-radio-card .radio-directory-count{
+ font:600 10px/1.4 system-ui,sans-serif;color:#6a5146;
+}
+#studioApp .biglwa-radio-actions{
+ display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:auto;padding-top:7px;
+}
+#studioApp .biglwa-radio-actions :is(button,a){
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:32px;padding:6px 9px;
+ background:#fffdf7;color:#633c44;border:1px solid #a38d7e;
+ border-radius:6px;text-decoration:none;cursor:pointer;
+ font:750 10px/1.35 system-ui,sans-serif;overflow-wrap:anywhere;
+}
+#studioApp .biglwa-radio-actions button{
+ background:#623c47;color:#fff9ec;border-color:#623c47;
+}
+#studioApp .biglwa-radio-actions button:disabled{opacity:.65;cursor:progress}
+#studioApp .biglwa-radio-credit{
+ margin:15px 0 0;font:500 10px/1.5 system-ui,sans-serif;color:#685247;
+}
+#studioApp .biglwa-radio-credit a{color:#893c47;text-underline-offset:2px}
+#studioApp .stream-radio-recovery{
+ display:inline-flex;align-items:center;margin-left:4px;
+ padding:5px 8px;min-height:28px;border-radius:6px;
+ background:#f9df9f;color:#3b2929;border:1px solid #e2b96a;
+ font:750 10px/1.3 system-ui,sans-serif;cursor:pointer;
+}
+body.night-mode #studioApp .biglwa-radio-discovery{
+ background:#302931;border-color:#766270;color:#f9e6d7;
+}
+body.night-mode #studioApp .biglwa-radio-discovery :is(.biglwa-radio-discovery-head h3,.biglwa-radio-discovery-head p,.biglwa-radio-summary){
+ color:#f3decf!important;
+}
+body.night-mode #studioApp .biglwa-radio-switch{background:#4b3a43}
+body.night-mode #studioApp .biglwa-radio-switch button:not([aria-selected="true"]){
+ background:#3b3038;color:#f3e3d9;
+}
+body.night-mode #studioApp .biglwa-radio-card{
+ background:#41333d;color:#f6e9dc;border-color:#8c7076;
+}
+body.night-mode #studioApp .biglwa-radio-card :is(strong,p,.radio-directory-count){color:#f6e4d9!important}
+body.night-mode #studioApp .biglwa-radio-filters label{color:#f5e0d0}
+@media(max-width:760px){
+ #studioApp .biglwa-radio-world-area .biglwa-radio-filters{
+  grid-template-columns:repeat(2,minmax(0,1fr))
+ }
+ #studioApp .biglwa-radio-world-area .biglwa-radio-filters button{grid-column:1/-1}
+}
+@media(max-width:500px){
+ #studioApp .biglwa-radio-discovery-head{padding:14px 12px}
+ #studioApp .biglwa-radio-state-area,#studioApp .biglwa-radio-world-area{padding:12px}
+ #studioApp .biglwa-radio-filters{grid-template-columns:1fr}
+ #studioApp .biglwa-radio-world-area .biglwa-radio-filters{grid-template-columns:1fr}
+ #studioApp .biglwa-radio-world-area .biglwa-radio-filters button{grid-column:auto}
+ #studioApp .biglwa-radio-switch button{font-size:11px}
+}
