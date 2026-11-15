@@ -94,3 +94,18 @@ test('normal motion animates its own canvases without touching connection handle
  assert.equal(typeof env.widget.events.pointerleave,'function');
  env.widget.events.pointerenter();env.widget.events.pointerleave();
 });
+
+
+test('lavender glass reveals the starfield and keeps status and app text legible',()=>{
+ for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html'])
+  assert.match(read(path),/orbit-space-20261114\.css\?v=20261114-lavender-glass-2/);
+ assert.match(css,/background:rgba\(35,24,62,\.37\)!important/,'full Orbit pane is translucent instead of ivory');
+ assert.match(css,/background:rgba\(90,65,128,\.22\)!important/,'app connection cards reveal space');
+ assert.match(css,/\.orbit-quick-link\{\s*background:rgba\(151,123,191,\.19\)!important/);
+ assert.match(css,/\.orbit-main>:is\(\.orbit-not-connected,\.orbit-link-summary\)\{/);
+ assert.match(css,/\.orbit-main \.orbit-connected-card\{/);
+ assert.match(css,/\.module-orbit-row\[data-orbit-row\]>header>b\{/);
+ assert.match(css,/\.orbit-state\.is-on\{/);
+ assert.match(css,/\.module-orbit-row \.orbit-platform-badge\{/,'provider planets keep original animated badges');
+ assert.doesNotMatch(css,/background:rgba\(255,249,243,\.90\)/,'no opaque ivory full-page overlay');
+});
