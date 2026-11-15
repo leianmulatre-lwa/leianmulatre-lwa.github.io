@@ -1,0 +1,201 @@
+/* BIG LWA · in-site route and ride/delivery desk.
+   Inspired by a restrained wayfinding UI, not Uber's branding or checkout. */
+body.embedded.map-workspace-split #mapTripPlanner{
+ background:#fffdfa!important;color:#30252c!important;
+ border:1px solid #e2d2d2!important;border-radius:16px!important;
+ padding:clamp(13px,2vw,20px)!important;
+ box-shadow:0 7px 24px rgba(64,42,52,.055)!important;
+}
+body.embedded.map-workspace-split .map-plan .map-plan-head{
+ margin:0 0 8px!important;align-items:center
+}
+body.embedded.map-workspace-split .map-plan .map-plan-head h2{
+ font:700 clamp(22px,2.7vw,29px)/1.12 Georgia,serif!important;
+ letter-spacing:-.018em;color:#32252c!important
+}
+body.embedded.map-workspace-split .map-transport-intro{
+ margin:0 0 12px!important;font:500 11px/1.5 system-ui,sans-serif!important;
+ color:#776470!important
+}
+body.embedded.map-workspace-split .map-transport-switcher{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;
+ margin:0 0 13px!important
+}
+body.embedded.map-workspace-split .map-plan button.map-transport-switch{
+ min-width:0!important;min-height:37px!important;padding:8px 6px!important;
+ border:1px solid #d9c8cd!important;border-radius:11px!important;
+ background:#f5f1f1!important;color:#674855!important;
+ font:750 11px/1.3 system-ui,sans-serif!important
+}
+body.embedded.map-workspace-split .map-plan button.map-transport-switch[aria-pressed=true]{
+ background:#34232e!important;color:#fff!important;border-color:#34232e!important
+}
+body.embedded.map-workspace-split .map-plan .map-trip-fields{
+ display:grid;grid-template-columns:1fr!important;gap:9px!important;
+ align-items:stretch!important
+}
+body.embedded.map-workspace-split .map-plan .map-trip-fields label{
+ min-width:0;position:relative;display:grid;gap:4px;
+ font:750 11px/1.3 system-ui,sans-serif!important;
+ color:#4c3b44!important;
+}
+body.embedded.map-workspace-split .map-plan .map-trip-fields input{
+ min-height:45px!important;width:100%;padding:10px 12px!important;
+ border:1px solid #e1dcdd!important;border-radius:11px!important;
+ background:#f3f1f1!important;color:#261d24!important;
+ box-shadow:none!important;font:600 13px/1.35 system-ui,sans-serif!important
+}
+body.embedded.map-workspace-split .map-plan .map-trip-fields input::placeholder{color:#847980;opacity:1}
+body.embedded.map-workspace-split .map-plan #mapTripPlan{
+ width:100%!important;min-height:44px!important;justify-self:stretch!important;
+ background:#272126!important;color:#fff!important;border-color:#272126!important;
+ border-radius:11px!important;font:800 12px/1.3 system-ui,sans-serif!important;
+}
+body.embedded.map-workspace-split .map-transport-trip-note{
+ padding:9px 11px;margin:10px 0 7px!important;
+ border:1px solid #e3d8da;border-radius:10px;
+ background:#f9f5f4;color:#765d6a!important;
+ font:600 10px/1.5 system-ui,sans-serif!important;
+}
+body.embedded.map-workspace-split .map-service-links{
+ display:grid;gap:11px;margin:16px 0 0!important;padding:13px!important;
+ border:1px solid #e1d0d7!important;border-radius:14px!important;
+ background:#fffaf8!important
+}
+body.embedded.map-workspace-split .map-service-head strong{
+ font:700 20px/1.25 Georgia,serif;color:#453039!important
+}
+body.embedded.map-workspace-split .map-service-head small{
+ color:#7a606c!important;font-size:10px!important
+}
+body.embedded.map-workspace-split .map-provider-list{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px
+}
+body.embedded.map-workspace-split .map-plan button.map-provider-choice{
+ display:flex!important;align-items:center;justify-content:start;min-width:0;
+ min-height:64px!important;padding:10px 11px!important;gap:9px;
+ border-radius:12px!important;border:1px solid #decdd4!important;
+ background:#fff!important;color:#3d2d38!important;text-align:left;
+}
+body.embedded.map-workspace-split .map-plan button.map-provider-choice[aria-pressed=true]{
+ border:2px solid #924766!important;background:#fbf1f4!important;
+ padding:9px 10px!important
+}
+body.embedded.map-workspace-split .map-provider-glyph{
+ display:grid;place-items:center;flex:0 0 33px;width:33px;height:33px;
+ border-radius:10px;background:#f3edef;font:17px/1 "Apple Color Emoji","Segoe UI Emoji",sans-serif
+}
+body.embedded.map-workspace-split .map-provider-copy{
+ display:grid;gap:3px;min-width:0;white-space:normal
+}
+body.embedded.map-workspace-split .map-provider-copy strong{
+ color:inherit!important;font:800 12px/1.25 system-ui,sans-serif
+}
+body.embedded.map-workspace-split .map-provider-copy small{
+ color:#806775!important;font:600 9px/1.35 system-ui,sans-serif
+}
+body.embedded.map-workspace-split .map-provider-info{
+ display:grid;gap:8px;border-top:1px solid #e5d8dc;
+ padding:11px 0 0;margin:0
+}
+body.embedded.map-workspace-split .map-provider-info h3{
+ font:700 17px/1.25 Georgia,serif;margin:0;color:#47313f!important
+}
+body.embedded.map-workspace-split .map-provider-info p{
+ margin:0!important;font:500 11px/1.5 system-ui,sans-serif!important;
+ color:#755967!important
+}
+body.embedded.map-workspace-split .map-provider-info .map-provider-route{
+ font-weight:750!important;color:#513e49!important
+}
+body.embedded.map-workspace-split .map-provider-actions{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;align-items:stretch
+}
+body.embedded.map-workspace-split .map-plan .map-provider-actions button,
+body.embedded.map-workspace-split .map-provider-actions a{
+ display:flex!important;align-items:center;justify-content:center;
+ min-width:0;min-height:39px!important;padding:9px!important;
+ border:1px solid #bda1ad!important;border-radius:10px!important;
+ color:#5d3b4f!important;background:#fff!important;
+ font:750 11px/1.4 system-ui,sans-serif!important;
+ text-align:center!important;text-decoration:none!important;white-space:normal!important;
+ cursor:pointer
+}
+body.embedded.map-workspace-split .map-provider-actions .map-provider-handoff{
+ grid-column:1/-1;background:#34232e!important;border-color:#34232e!important;
+ color:#fff!important;min-height:45px!important
+}
+body.embedded.map-workspace-split .map-provider-actions > [hidden]{display:none!important}
+body.embedded.map-workspace-split .map-plan .map-service-note{
+ font:500 10px/1.55 system-ui,sans-serif!important;
+ color:#705f6a!important;margin:0!important
+}
+body.embedded.map-workspace-split .map-service-links :is(button,a,input,select):focus-visible{
+ outline:3px solid #aa6889!important;outline-offset:2px!important
+}
+body.embedded.map-workspace-split .map-nav-controls{
+ border-radius:12px!important;background:#f8f5f5!important;
+ border-color:#e2d5dc!important;box-shadow:none!important
+}
+body.embedded.map-workspace-split .map-nav-next{
+ border-radius:11px!important;padding:12px!important
+}
+body.night-mode.embedded.map-workspace-split #mapTripPlanner,
+body.dark-mode.embedded.map-workspace-split #mapTripPlanner{
+ background:#241e2a!important;border-color:#6e5367!important;color:#f7eefa!important
+}
+body.night-mode.embedded.map-workspace-split .map-plan .map-plan-head h2,
+body.dark-mode.embedded.map-workspace-split .map-plan .map-plan-head h2,
+body.night-mode.embedded.map-workspace-split .map-provider-info h3,
+body.dark-mode.embedded.map-workspace-split .map-provider-info h3,
+body.night-mode.embedded.map-workspace-split .map-service-head strong,
+body.dark-mode.embedded.map-workspace-split .map-service-head strong{
+ color:#f8effb!important
+}
+body.night-mode.embedded.map-workspace-split .map-service-links,
+body.dark-mode.embedded.map-workspace-split .map-service-links{
+ background:#2d2535!important;border-color:#785e77!important
+}
+body.night-mode.embedded.map-workspace-split .map-plan button.map-provider-choice,
+body.dark-mode.embedded.map-workspace-split .map-plan button.map-provider-choice,
+body.night-mode.embedded.map-workspace-split .map-plan button.map-transport-switch,
+body.dark-mode.embedded.map-workspace-split .map-plan button.map-transport-switch{
+ background:#3b3045!important;color:#f7effb!important;border-color:#8c728e!important
+}
+body.night-mode.embedded.map-workspace-split .map-plan button.map-provider-choice[aria-pressed=true],
+body.dark-mode.embedded.map-workspace-split .map-plan button.map-provider-choice[aria-pressed=true]{
+ background:#59384f!important;border-color:#dda0bb!important
+}
+body.night-mode.embedded.map-workspace-split .map-plan .map-trip-fields input,
+body.dark-mode.embedded.map-workspace-split .map-plan .map-trip-fields input{
+ background:#342c3d!important;color:#fcf3ff!important;border-color:#8b738e!important
+}
+body.night-mode.embedded.map-workspace-split .map-plan .map-trip-fields label,
+body.dark-mode.embedded.map-workspace-split .map-plan .map-trip-fields label,
+body.night-mode.embedded.map-workspace-split .map-provider-info .map-provider-route,
+body.dark-mode.embedded.map-workspace-split .map-provider-info .map-provider-route{
+ color:#f2e4ef!important
+}
+body.night-mode.embedded.map-workspace-split .map-provider-copy small,
+body.dark-mode.embedded.map-workspace-split .map-provider-copy small,
+body.night-mode.embedded.map-workspace-split .map-provider-info p,
+body.dark-mode.embedded.map-workspace-split .map-provider-info p,
+body.night-mode.embedded.map-workspace-split .map-plan .map-service-note,
+body.dark-mode.embedded.map-workspace-split .map-plan .map-service-note,
+body.night-mode.embedded.map-workspace-split .map-service-head small,
+body.dark-mode.embedded.map-workspace-split .map-service-head small{
+ color:#e5cadc!important
+}
+body.night-mode.embedded.map-workspace-split .map-plan button.map-transport-switch[aria-pressed=true],
+body.dark-mode.embedded.map-workspace-split .map-plan button.map-transport-switch[aria-pressed=true]{
+ background:#80526b!important;color:#fff!important
+}
+@media(max-width:640px){
+ body.embedded.map-workspace-split .map-provider-list{grid-template-columns:1fr 1fr}
+ body.embedded.map-workspace-split .map-provider-actions{grid-template-columns:1fr}
+ body.embedded.map-workspace-split .map-provider-actions .map-provider-handoff{grid-column:1}
+ body.embedded.map-workspace-split .map-plan .map-transport-switch{font-size:10px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ body.embedded .map-service-links *{animation:none!important;transition:none!important}
+}
