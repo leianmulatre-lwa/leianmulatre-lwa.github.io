@@ -51,11 +51,15 @@ function harness(reducedMotion){
   matchMedia:()=>({matches:reducedMotion,addEventListener(){}}),
   addEventListener(){}
  };
- const fakeCanvas=()=>({
-  className:'',width:0,height:0,isConnected:true,remove(){this.isConnected=false;},
-  setAttribute(k,v){this[k]=v},
-  getContext:()=>({setTransform(){},clearRect(){},beginPath(){},moveTo(){},lineTo(){},stroke(){},fill(){},arc(){}})
- });
+ const fakeCanvas=()=>{
+  const calls=[];
+  const ctx={calls,fillStyle:'',setTransform(){},clearRect(){},beginPath(){},moveTo(){},
+    lineTo(){},stroke(){},fill(){calls.push(this.fillStyle)},arc(){}};
+  return {
+    className:'',width:0,height:0,isConnected:true,ctx,remove(){this.isConnected=false;},
+    setAttribute(k,v){this[k]=v},getContext:()=>ctx
+  };
+ };
  doc.createElement=tag=>{assert.equal(tag,'canvas');return fakeCanvas()};
  const sandbox={
   document:doc,window:win,
@@ -98,7 +102,7 @@ test('normal motion animates its own canvases without touching connection handle
 
 test('lavender glass reveals the starfield and keeps status and app text legible',()=>{
  for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html'])
-  assert.match(read(path),/orbit-space-20261114\.css\?v=20261114-starfield-visible-4/);
+  assert.match(read(path),/orbit-space-20261114\.css\?v=20261114-twinkle-warp-widget-4/);
  assert.match(css,/background:rgba\(35,24,62,\.37\)!important/,'full Orbit pane is translucent instead of ivory');
  assert.match(css,/background:rgba\(90,65,128,\.22\)!important/,'app connection cards reveal space');
  assert.match(css,/\.orbit-quick-link\{\s*background:rgba\(151,123,191,\.19\)!important/);
@@ -156,8 +160,8 @@ test('Orbit canvas disappears before a different module renders, and never reser
  assert.equal(env.page.attached.at(-1).isConnected,false,'Immediate route cleanup works');
  for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html']){
   const html=read(path);
-  assert.match(html,/orbit-space-20261114\.js\?v=20261114-visible-stars-3/);
-  assert.match(html,/orbit-space-20261114\.css\?v=20261114-starfield-visible-4/);
+  assert.match(html,/orbit-space-20261114\.js\?v=20261114-twinkle-warp-widget-4/);
+  assert.match(html,/orbit-space-20261114\.css\?v=20261114-twinkle-warp-widget-4/);
   assert.match(html,/&orbitcleanup=20261114-2/);
  }
 });
@@ -175,4 +179,29 @@ test('bright Orbit stars survive Studio replacing the same card contents',()=>{
  assert.equal(env.widget.attached.at(-1),canvas,'Reuse the existing 2D canvas');
  assert.equal(env.widget.attached.length,2,'Reattach rather than spawning another star layer');
  assert.equal(canvas.isConnected,false,'Fake DOM models detachment; real insertBefore reconnects it');
+});
+
+test('Studio Orbit thumbnail paints twinkling stars AND a decelerating launch warp',()=>{
+ assert.match(css,/#studioApp #orbit::before,/,'Studio card has an animated fallback sky');
+ assert.match(css,/animation:biglwa-orbit-twinkle-a 3\.7s/);
+ assert.match(css,/animation:biglwa-orbit-twinkle-b 5\.3s/);
+ assert.match(js,/seedTwinkle\(kind==='widget'\?80:130\)/,'Widget gets its own stars, not only page');
+ assert.match(js,/Math\.pow\(\.5,layer\.elapsed\*1\.5\)\*8/,'Space-warp opening burst decelerates');
+ assert.match(js,/star\.phase\+=dt\*star\.rate/,'Independent star phases update every frame');
+ const env=harness(false);
+ env.scheduled.shift()(10);
+ const canvas=env.widget.attached[0];
+ const ctx=canvas.ctx;
+ assert(ctx.calls.length>100,'Widget draws visible particles at mounting');
+ const before=ctx.calls.slice(0,25);
+ env.scheduled.shift()(50);
+ const after=ctx.calls.slice(-ctx.calls.length+before.length,-ctx.calls.length+before.length+25);
+ const count=ctx.calls.length;
+ env.scheduled.shift()(450);
+ assert(ctx.calls.length>count,'Studio thumbnail keeps rendering over time');
+ assert.equal(typeof env.widget.events.pointerenter,'function');
+ env.widget.events.pointerenter();
+ env.scheduled.shift()(850);
+ assert(ctx.calls.length>count+200,'Hover produces a new rendered star-warp frame');
+ assert(ctx.calls.some(color=>/^rgba\(/.test(color)),'Canvas uses visible rgba star colors');
 });
