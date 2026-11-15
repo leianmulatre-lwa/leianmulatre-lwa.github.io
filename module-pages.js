@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1';
+        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2';
         document.head.appendChild(script);
       }, 250);
     }
@@ -4230,7 +4230,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   let activeModuleKey='';
   function openModule(rawKey, context='', push=true){
     stopCamera();let key=(rawKey||'').toLowerCase();if(key==='politic'||key==='politics')key='politc';
-    if(activeModuleKey==='stream'&&key!=='stream')window.BigLWAStreamGuide?.parkInStudio?.();if(key==='room')key='rooms';if(key==='project'||key==='visualz'||key==='visualizr')key='projects';if(key==='lwazi')key='tools';if(key==='didyouknow')key='learn';if(!known.has(key))key='create';activeModuleKey=key;workspace.dataset.moduleKey=key;main.classList.add('module-view');workspace.hidden=false;routeName.textContent=labels[key]||key;
+    if(activeModuleKey==='stream'&&key!=='stream')window.BigLWAStreamGuide?.parkInStudio?.();if(key==='room')key='rooms';if(key==='project'||key==='visualz'||key==='visualizr')key='projects';if(key==='lwazi')key='tools';if(key==='didyouknow')key='learn';if(!known.has(key))key='create';if(activeModuleKey==='orbit'&&key!=='orbit')window.BigLWAOrbitSpace?.detachPage?.();activeModuleKey=key;workspace.dataset.moduleKey=key;main.classList.add('module-view');workspace.hidden=false;routeName.textContent=labels[key]||key;
     if(window.BigLWAProfileModules?.render(key,body))return;
     if(key==='calendar')renderCalendar();else if(key==='orbit')renderOrbitPage();else if(key==='diary'||key==='notes')renderWriting(key);else if(key==='feed')renderFeed();else if(key==='connect')renderConnect();else if(key==='camera')renderCamera();else if(key==='rooms')renderRoom();else if(key==='politc')renderPolitc();else if(key==='tools')renderTools();else if(key==='games')renderGames();else if(key==='learn')renderLearn();else if(key==='closet')renderCloset();else if(key==='archive')renderArchive();else if(key==='trophies')renderTrophies();else if(key==='map')renderMap();else if(key==='reviews')renderReviews();else if(key==='create')renderCreate();else if(key==='veve')renderVeve();else if(key==='library')renderCollection('library',[{name:'title',placeholder:'Resource title'},{name:'detail',placeholder:'URL, author, or collection'}],[]);else if(key==='boards')body.innerHTML=heading('boards');else if(key==='projects')renderCollection('projects',[{name:'title',placeholder:'Project name'},{name:'detail',placeholder:'Status · collaborators · next step'}],[]);else if(key==='stream'){body.innerHTML=heading('stream')+'<div id="biglwaStreamGuide"></div>';if(window.BigLWAStreamGuide?.mount)window.BigLWAStreamGuide.mount($('#biglwaStreamGuide',body));else body.innerHTML=heading('stream')+'<section class="module-card"><h2>Stream is loading</h2><p>Refresh to try again.</p></section>'}document.dispatchEvent(new CustomEvent('biglwa:module-open',{detail:{key}}));
     // The banner remains above, but entering a widget lands at the actual page
@@ -4278,7 +4278,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     if(activeModuleKey)closeModule();
     // Already on Studio home: stay here. This intentionally does not open Orbit or Veve.
   },true);
-  function closeModule(push=true){if(activeModuleKey==='stream')window.BigLWAStreamGuide?.parkInStudio?.();stopCamera();if(activeMap){try{activeMap.remove()}catch{}activeMap=null}activeModuleKey='';delete workspace.dataset.moduleKey;main.classList.remove('module-view');workspace.hidden=true;body.innerHTML='';routeName.textContent='Module';document.dispatchEvent(new CustomEvent('biglwa:module-close'));if(push){try{history.pushState({},'', '/studio')}catch{}}}
+  function closeModule(push=true){if(activeModuleKey==='stream')window.BigLWAStreamGuide?.parkInStudio?.();if(activeModuleKey==='orbit')window.BigLWAOrbitSpace?.detachPage?.();stopCamera();if(activeMap){try{activeMap.remove()}catch{}activeMap=null}activeModuleKey='';delete workspace.dataset.moduleKey;main.classList.remove('module-view');workspace.hidden=true;body.innerHTML='';routeName.textContent='Module';document.dispatchEvent(new CustomEvent('biglwa:module-close'));if(push){try{history.pushState({},'', '/studio')}catch{}}}
   moduleBack.addEventListener('click',()=>closeModule());
   workspace.addEventListener('change',event=>{
     const control=event.target.closest('[data-silent-update]');if(!control)return;
