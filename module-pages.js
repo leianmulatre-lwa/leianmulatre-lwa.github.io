@@ -2729,14 +2729,13 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const privateMode=!document.documentElement.classList.contains('biglwa-preview-mode')&&!window.__biglwaPublicStorageView;
     const keyBase=uid&&privateMode?uid:'guest';
     const modeKey='biglwaRoomTabV1:'+keyBase;
-    const profileKey='biglwaRoomRolesV1:'+keyBase;
     let mode=localStorage.getItem(modeKey)==='lounge'?'lounge':'room';
     if(!uid||!privateMode)mode='room';
-    const roles=['Student','Researcher','Creative','Freelancer','Educator','Artist','Organizer','Developer','Music maker','Other'];
-    const ages=['Prefer not to say','Under 18','18–24','25–34','35–44','45+'];
-    const profile=readJSON(profileKey,{roles:[],age:'Prefer not to say'});
-    const chosen=Array.isArray(profile.roles)?profile.roles.filter(v=>roles.includes(v)).slice(0,3):[];
-    const age=ages.includes(profile.age)?profile.age:ages[0];
+    // Community roles now belong to Edit Profile, not the Room/Lounge page.
+    // Self-declared age and broad region stay private; never trust them as
+    // verified credentials or as authorization for real-time chat.
+    const profileReady=Boolean(uid&&privateMode&&window.BigLWACommunityProfile?.isReady?.());
+    const loungeReady=profileReady&&Boolean(window.BigLWACommunityProfile?.canUseLounge?.());
     const allRooms=roomList();
     let slug=String(localStorage.getItem('biglwaActiveRoomV2:'+keyBase)||'lounge');
     if(!allRooms.some(r=>r.slug===slug))slug='lounge';
@@ -2746,21 +2745,13 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const tabs='<nav class="room-mode-tabs" role="tablist" aria-label="Room sections">'+
      '<button type="button" role="tab" aria-selected="'+(mode==='room')+'" data-room-mode="room">Room</button>'+
      '<button type="button" role="tab" aria-selected="'+(mode==='lounge')+'" data-room-mode="lounge">Lounge</button></nav>';
-    const roleForm='<section class="module-card wide" id="roomRolePanel"><h2>Community roles</h2>'+
-      '<p>Choose up to three roles for yourself, Discord-style. Age range is optional, self-declared, and not proof of age. These preferences stay on this device and are not public profile badges.</p>'+
-      '<form id="roomRoleForm"><div class="room-role-choices">'+roles.map(role=>
-        '<label><input type="checkbox" name="role" value="'+esc(role)+'"'+(chosen.includes(role)?' checked':'')+(uid&&privateMode?'':' disabled')+'> '+esc(role)+'</label>').join('')+'</div>'+
-      '<label>Age range <select name="age" class="module-input"'+(uid&&privateMode?'':' disabled')+'>'+
-       ages.map(item=>'<option value="'+esc(item)+'"'+(item===age?' selected':'')+'>'+esc(item)+'</option>').join('')+
-      '</select></label><div class="module-actions"><button type="submit" class="module-action"'+(uid&&privateMode?'':' disabled')+'>Save my roles</button></div></form>'+
-      '<p role="status" class="room-role-disclaimer" id="roomRoleStatus">'+(uid&&privateMode?'Roles are private, self-selected labels—not verified credentials or access permissions.':'Sign in to set private Room roles.')+'</p></section>';
     const roomView='<div class="module-grid room-pixel-mode">'+
        '<section class="module-card wide"><div class="room-pixel-scene" aria-hidden="true"><strong>Room</strong><small>People · ideas · sounds · self</small></div>'+
        '<h2>Searches moving through the world</h2>'+
        '<p>Real UN observances and topics in your connected Instagram media. Search X or Instagram directly to explore discussion there; these are <strong>not verified global trending rankings</strong>.</p>'+
        '<div class="room-trend-grid" id="roomTrendSources" role="list"><p>Looking for source-linked topics…</p></div>'+
        '<p class="module-status" id="roomTrendStatus" role="status">No fabricated hashtags, viewers, or activity counts.</p></section>'+
-       roleForm+'</div>';
+       '</div>';
     const loungeView='<div class="module-grid room-lounge-mode">'+
        '<section class="module-card wide"><h2>Your lounges</h2><p>Your saved room names appear here. Public trending rooms and participant counts are not invented.</p>'+
        '<div class="module-launchers" id="trendingRooms">'+allRooms.map((r,i)=>chip(r,i)).join('')+'</div></section>'+
@@ -2774,25 +2765,31 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     // Keep both section choices in the page header, beside the title; never as a second toolbar row.
     const roomHeading=heading('rooms').replace('<div class="module-heading-bottom">',
       '<div class="room-heading-tabs">'+tabs+'</div><div class="module-heading-bottom">');
-    body.innerHTML=roomHeading+(mode==='room'?roomView:loungeView);
+    const gateTitle=!uid||!privateMode?'Sign in for community spaces':
+      profileReady?'Community safety setting':'Complete your community profile';
+    const gateCopy=profileReady?
+      'Lounge drafts are limited to adults until moderated, age-appropriate community access is available. Self-reported age is not verification.':
+      (window.BigLWACommunityProfile?.missing?.()||'Add your roles, age range and broad location from Edit Profile first.');
+    const gateView='<section class="biglwa-room-profile-gate" role="status"><h2>'+esc(gateTitle)+'</h2>'+
+      '<p>'+esc(gateCopy)+'</p>'+
+      (uid&&privateMode?'<button type="button" data-open-community-profile>Edit roles in my profile</button>':'')+
+      '</section>';
+    body.innerHTML=roomHeading+(profileReady&&(mode==='room'||loungeReady)?
+      (mode==='room'?roomView:loungeView):gateView);
+    body.querySelector('[data-open-community-profile]')?.addEventListener('click',()=>{
+      window.BigLWACommunityProfile?.openEditor?.();
+    });
     body.querySelectorAll('[data-room-mode]').forEach(button=>button.addEventListener('click',()=>{
       const target=button.dataset.roomMode;
       if(target===mode)return;
-      if(!uid&&target==='lounge'){button.setAttribute('aria-label','Sign in to access private lounge drafts');return;}
+      if(target==='lounge'&&!loungeReady){
+        button.setAttribute('aria-label','Complete your adult community profile before entering the Lounge');
+        window.BigLWACommunityProfile?.openEditor?.();return;
+      }
       localStorage.setItem(modeKey,target);
       openModule('rooms','',false);
     }));
     if(mode==='room'){
-      const form=$('#roomRoleForm',body),status=$('#roomRoleStatus',body);
-      if(form)form.onsubmit=event=>{
-        event.preventDefault();
-        if(!uid||!privateMode){status.textContent='Sign in before saving roles.';return;}
-        const selected=[...form.querySelectorAll('input[name="role"]:checked')].map(i=>i.value).filter(x=>roles.includes(x));
-        if(selected.length>3){status.textContent='Select no more than three roles.';return;}
-        const ageBand=form.elements.age.value;
-        writeJSON(profileKey,{roles:selected,age:ages.includes(ageBand)?ageBand:ages[0]});
-        status.textContent='Saved privately on this device: '+(selected.join(', ')||'No roles selected')+'.';
-      };
       const gen=body;
       Promise.resolve().then(()=>window.BigLWARoomSignals?.load?.()||[]).then(items=>{
         const slot=$('#roomTrendSources',gen),note=$('#roomTrendStatus',gen);

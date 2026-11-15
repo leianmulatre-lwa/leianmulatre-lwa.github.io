@@ -70,9 +70,9 @@ test('Room and Lounge replace invented trending and online counts with sourced s
  assert.match(studio,/data-room-mode="room"/);
  assert.match(studio,/data-room-mode="lounge"/);
  assert.match(studio,/room-pixel-scene/);
- assert.match(studio,/Student','Researcher','Creative','Freelancer'/);
- assert.match(studio,/Under 18','18–24','25–34'/);
- assert.match(studio,/biglwaRoomRolesV1:/);
+ assert.doesNotMatch(studio,/id="roomRolePanel"/,'Roles editor moved off Room/Lounge');
+ assert.match(studio,/BigLWACommunityProfile\?\.isReady/);
+ assert.match(studio,/data-open-community-profile/);
  assert.match(studio,/biglwaRoomMessagesV2:/,'Account-isolated local room drafts');
  assert.match(boothCss,/room-dark-20261110\.webp/,'Reuse owner-approved Room artwork');
  assert.match(studio,/not verified global trending rankings/);
@@ -93,7 +93,7 @@ test('Room/Lounge tabs share the title row rather than making a second toolbar',
  const room=studio.slice(begin,end>begin?end:begin+12000);
  assert.match(room,/const roomHeading=heading\('rooms'\)\.replace/);
  assert.match(room,/room-heading-tabs/);
- assert.match(room,/body\.innerHTML=roomHeading\+\(mode==='room'\?roomView:loungeView\)/);
+ assert.match(room,/body\.innerHTML=roomHeading\+\(profileReady&&\(mode==='room'\|\|loungeReady\)/);
  assert.doesNotMatch(room,/body\.innerHTML=heading\('rooms'\)\+tabs/);
  assert.match(boothCss,/grid-template-areas:"room-title room-tabs" "room-meta room-meta"!important/);
  assert.match(boothCss,/grid-area:room-tabs/);
