@@ -129,7 +129,7 @@ function mount(root,options={}){
  '<div class="biglwa-radio-cards" data-radio-world-list></div>'+
  '<p class="biglwa-radio-credit">Station data: <a href="https://www.radio-browser.info/" target="_blank" rel="noopener noreferrer">Radio Browser</a>, a community-maintained directory. Your search contacts its public API; catalog entries and stream availability may change.</p></section>';
  target.append(section);
- const record={root,section,play:typeof options.play==='function'?options.play:null,us:[],req:0};
+ const record={root,section,play:typeof options.play==='function'?options.play:null,us:[],req:0,worldOptionsRequested:false};
  mounts.set(section,record);
  section.addEventListener('click',event=>onClick(event,record));
  section.addEventListener('input',event=>{if(event.target.matches('[data-radio-state-search]'))renderUSA(record)});
@@ -153,6 +153,33 @@ function setupWorldSelectors(record){
  for(const [code,label] of LANGUAGE_START){const o=create('option','',label);o.value=code;lang.append(o)}
  // Do not silently trigger loads or track listeners; refresh options once
  // when the member actively enters World Radio.
+}
+async function enrichWorldSelectors(record){
+ if(record.worldOptionsRequested)return;
+ record.worldOptionsRequested=true;
+ const country=$('[data-radio-country]',record.section),lang=$('[data-radio-language]',record.section);
+ const result=await Promise.allSettled([
+  apiGet('/json/countrycodes?order=stationcount&reverse=true'),
+  apiGet('/json/languages?order=stationcount&reverse=true')
+ ]);
+ if(!record.section.isConnected)return;
+ if(result[0].status==='fulfilled'){
+  const seen=new Set([...country.options].map(o=>o.value));
+  for(const row of result[0].value){
+   const code=String(row.iso_3166_1||'').toUpperCase();
+   if(!/^[A-Z]{2}$/.test(code)||seen.has(code))continue;
+   const option=create('option','',text(row.name||code,70));
+   option.value=code;country.append(option);seen.add(code);
+  }
+ }
+ if(result[1].status==='fulfilled'){
+  const seen=new Set([...lang.options].map(o=>o.value));
+  for(const row of result[1].value.slice(0,500)){
+   const name=text(row.name,50).toLowerCase();
+   if(!name||seen.has(name)||!/^[\p{L}\s'-]+$/u.test(name))continue;
+   const option=create('option','',name);option.value=name;lang.append(option);seen.add(name);
+  }
+ }
 }
 function renderUSA(record){
  const section=record.section,select=$('[data-radio-state]',section);
@@ -237,6 +264,7 @@ function onClick(event,record){
   $('[data-radio-world]',record.section).hidden=!world;
   record.section.querySelectorAll('[data-radio-directory-tab]').forEach(el=>el.setAttribute('aria-selected',String(el===button)));
   record.section.querySelectorAll('[data-radio-directory-tab]').forEach(el=>el.classList.toggle('is-active',el===button));
+  if(world)enrichWorldSelectors(record).catch(()=>{});
   return;
  }
  if(button.dataset.radioFind){findAndPlay(record,button);return}
