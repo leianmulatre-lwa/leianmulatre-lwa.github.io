@@ -34,7 +34,16 @@
   7:'https://kzsu-streams.stanford.edu/kzsu-1-128.mp3',
   11:'https://floyd.wcbn.org:8443/wcbn-hi.mp3'
  };
- const categories=[['podcast','lwa radio','CH 01'],['lwa-tv','lwa tv','CH 02'],['live','live','CH 03'],['sqwibz','sqwidz','CH 04']];
+ const categories=[['podcast','lwa radio','CH 01'],['lwa-tv','lwa tv','CH 02'],['live','live','CH 03'],['sqwibz','sqwidz','CH 04'],['music','music','CH 05']];
+ const programmedCategories=()=>categories.filter(([id])=>id!=='music');
+ // These are integration destinations, not connected OAuth sessions.
+ // Keep playlist scopes and credentials server-side when providers approve them.
+ const musicSources=[
+  {id:'spotify',label:'Spotify',about:'Saved tracks and playlists',scope:'Playlist read / library access'},
+  {id:'apple',label:'Apple Music',about:'Library and playlist sync',scope:'MusicKit user authorization'},
+  {id:'soundcloud',label:'SoundCloud',about:'Artist sounds and saved links',scope:'Authorized user access'},
+  {id:'youtube',label:'YouTube Music',about:'Playlist discovery and linking',scope:'Google/YouTube permissions to verify'}
+ ];
  // Each destination is an actual publisher/creator channel or a specifically
  // identified release. We do NOT invent YouTube video IDs or live statuses.
  // The same five existing Internet Archive video files used by the login page.
@@ -366,7 +375,7 @@
   else syncYouTubeOrbitButton();
   state.day=localDay();
   root.innerHTML=[
-   '<nav class="stream-nav" aria-label="Stream channel selector"><div class="stream-nav-meta"><span class="stream-eyebrow">BIG LWA / FOUR-CHANNEL GUIDE</span><span id="streamGuideClock" class="stream-nav-clock"></span>', 
+   '<nav class="stream-nav" aria-label="Stream channel selector"><div class="stream-nav-meta"><span class="stream-eyebrow">BIG LWA / FIVE-CHANNEL GUIDE</span><span id="streamGuideClock" class="stream-nav-clock"></span>', 
    '<div class="stream-nav-actions"><form id="streamMediaLinkForm" class="stream-media-link-form" aria-label="Play a creator-hosted video or audio"><label for="streamMediaLink">Tune a link</label><div><input id="streamMediaLink" type="url" inputmode="url" placeholder="YouTube, TikTok or Spotify URL" aria-describedby="streamMediaLinkStatus"><button type="submit">▶ Tune</button></div><small id="streamMediaLinkStatus" role="status" aria-live="polite">Play a public creator-hosted track or video inside Stream.</small></form><button class="stream-youtube-orbit" type="button" data-google-orbit-connect aria-label="Connect YouTube through Orbit" title="Connect YouTube through Orbit"><img src="/assets/orbit-icons/youtube.svg" alt="" width="19" height="19"><span data-stream-youtube-status>YouTube Orbit · Connect</span></button></div></div>',
    '<div class="stream-channels" role="tablist" aria-label="Stream category">',
    categories.map(c=>'<button class="stream-tab" role="tab" id="stream-tab-'+c[0]+'" data-stream-tab="'+c[0]+'" aria-controls="stream-category-content" aria-selected="false"><small>'+c[2]+'</small><b>'+c[1]+'</b></button>').join(''),
@@ -436,6 +445,12 @@
   if(node)scroller.scrollTo({left:Math.max(0,node.offsetLeft-180),behavior:'smooth'});
  }
  function paintCategories(){
+  // Music is an integration workbench, not a fabricated 24-hour broadcast.
+  root.dataset.streamCategory=state.category;
+  const grid=root.querySelector('.stream-guide');
+  if(grid)grid.hidden=state.category==='music';
+  const dock=root.querySelector('.stream-dock-options');
+  if(dock)dock.hidden=state.category==='music';
   root.querySelectorAll('[data-stream-tab]').forEach(button=>{
    const current=button.dataset.streamTab===state.category;
    button.classList.toggle('is-active',current);
@@ -629,6 +644,11 @@
  }
  function renderGrid(){
   if(!root)return;
+  if(state.category==='music'){
+   // No calendar slots until an authorized source actually supplies them.
+   root.querySelector('#streamGrid')?.replaceChildren();
+   return;
+  }
   const items=state.programs;
   const first='<div class="stream-grid-corner">BIG LWA<br>24 HRS</div>';
   const hourOrder=Array.from({length:24},(_,i)=>(i+(state.day===localDay()?new Date().getHours():0))%24);
@@ -961,7 +981,7 @@
   showSource(source,options);
  }
  function tuneCurrent(){
-  if(!root||state.category==='sqwibz')return;
+  if(!root||state.category==='sqwibz'||state.category==='music')return;
   const hour=new Date().getHours();
   const selected=state.programs.find(item=>item.category===state.category&&item.scheduledAt&&localDay(new Date(item.scheduledAt))===state.day&&new Date(item.scheduledAt).getHours()===hour);
   if(selected)selectProgram(selected.id,{silent:true});
@@ -973,6 +993,38 @@
    else if(pick.kind==='twitch')selectTwitch(pick.id,{silent:true});
   }
   state.followGuide=true;
+ }
+ function musicStandby(){
+  if(!root||state.category!=='music')return;
+  setPlaying(false);
+  state.selected=null;
+  const surface=ensureMediaPortal();
+  surface.innerHTML='<div class="stream-screen stream-music-standby">'+
+   '<span class="stream-monitor-kicker">CH 05 / MUSIC CONNECTIONS</span>'+
+   '<div class="stream-screen-center"><span aria-hidden="true">♫</span>'+
+   '<strong>your music, your orbit</strong>'+
+   '<small>Music APIs are being prepared. No playlists or account data are syncing yet.</small>'+
+   '<button type="button" class="stream-music-tunes-btn" data-stream-open-tunes>♫ Open Tunes</button></div>'+
+   '<span class="stream-screen-bottom">BIG LWA · connect with consent · no scraped tracks</span></div>';
+ }
+ function musicSetupMarkup(){
+  const linked=window.BigLWAOrbitAccountLinks?.get?.()||{};
+  return '<div class="stream-music-setup"><div class="stream-section-head">'+
+    '<div><span class="stream-eyebrow">SOUNDS / SOURCE CONNECTIONS</span>'+
+    '<h3>music services</h3><p>Prepare your music sources here. Profile links are not playlist permissions, and none of these cards claims an active music API sync.</p></div>'+
+    '</div><div class="stream-music-provider-grid">'+
+    musicSources.map(provider=>{
+      const hasLink=provider.id!=='apple'&&Boolean(linked[provider.id]);
+      const label=hasLink?'Profile linked · API not connected':'Awaiting API authorization';
+      return '<article class="stream-music-provider" data-music-source="'+provider.id+'">'+
+        '<span class="stream-eyebrow">MUSIC API / '+provider.id.toUpperCase()+'</span>'+
+        '<h4>'+provider.label+'</h4><p>'+provider.about+'</p>'+
+        '<small>'+provider.scope+'</small>'+
+        '<strong class="stream-music-provider-status">'+label+'</strong>'+
+        '<a class="stream-music-setup-link" href="/studio/orbit" aria-label="Open Orbit to prepare '+provider.label+' connection">Open Orbit ↗</a>'+
+        '</article>';
+     }).join('')+'</div>'+
+    '<div class="stream-music-coming"><b>Next stage</b><p>Provider OAuth on Cloudflare, approved scopes, private account-scoped tokens, playlist matching and opt-in importing. The existing Tunes CSV / JSON transfer and private music uploads stay separate.</p></div></div>';
  }
  function renderCategory(){
   if(!root)return;
@@ -987,11 +1039,17 @@
     'Watch YouTube music, ASMR and frequency recordings alongside Twitch channels. Current live availability is not guaranteed.'],
    sqwibz:['CH 04 / THE TIMELINE','sqwidz',
     'Short thoughts, long reads, photos and clips from the community. Float a post, reply and keep the conversation moving.'],
+   music:['CH 05 / THE MUSIC ROOM','music',
+    'Connect the sounds you love. Bring playlists and libraries into Stream once authorized music services are ready.'],
   }[state.category];
   copy.innerHTML='<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p>'+
    '<div id="streamDiscoveryPicker" class="stream-discovery-picker" aria-label="Daily Discovery playable choices"></div>';
   if(state.category==='sqwibz')sqRight(sqCurrent(),null);
-  if(state.category==='podcast'){
+  if(state.category==='music'){
+   detail.innerHTML=musicSetupMarkup();
+   root.querySelector('#streamDiscoveryPicker')?.replaceChildren();
+   musicStandby();
+  }else if(state.category==='podcast'){
    detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA RADIO / COLLEGE DIAL</span><h3>all 16 campus stations</h3><p>Press Play to listen directly in Big LWA. The complete campus directory is kept below; stations still missing an in-site audio source are marked pending rather than removed.</p></div><label>Find a station <input id="streamStationSearch" type="search" placeholder="School or call letters" autocomplete="off"></label></div><div class="stream-stations" id="streamStations"></div><p class="stream-directory-note">Audio streams remain hosted by their original broadcasters or listed stream relays. No partnership is implied.</p>';
    const filter=detail.querySelector('#streamStationSearch');
    filter.oninput=()=>renderStations(filter.value);
@@ -1151,6 +1209,13 @@
     button.setAttribute('aria-expanded',String(opening));
     return;
   }
+  if(button.matches('[data-stream-open-tunes]')){
+   // Show the existing account-owned Tunes dialog; no new storage or fake login.
+   const tunes=document.querySelector('#profileMusicOpen');
+   if(tunes)tunes.click();
+   else window.location.assign('/studio');
+   return;
+  }
   if(button.matches('[data-stream-retry]')){if(state.selected)showSource(state.selected,{silent:true});return;}
   if(button.matches('[data-discovery-prev]')){browseDiscovery(-1);return;}
   if(button.matches('[data-discovery-next]')){browseDiscovery(1);return;}
@@ -1170,7 +1235,7 @@
   if(button.matches('[data-stream-twitch]')){state.followGuide=false;selectTwitch(button.dataset.streamTwitch);return}
   if(button.matches('[data-stream-program]')){state.followGuide=false;selectProgram(button.dataset.streamProgram);return}
  }
- window.BigLWAStreamGuide={mount,parkInStudio,dock:dockStream,undock:undockStream,showNoSignal,prefillRequest,get lastWatchedTitle(){return state.selected?.title||''},get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return featured.map(f=>({...f}))},get ballroom(){return ballroomChannels.map(item=>({...item}))},get guideSlots(){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour))}))},get twitch(){return twitchChannels.map(x=>({...x}))},get playlist(){return categories.map(([category])=>({category,slots:dailyPlaylist(category).map(x=>({...x}))}))},getDailyGuide(day,offset=0){return categories.map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour,day,offset))}))}};
+ window.BigLWAStreamGuide={mount,parkInStudio,dock:dockStream,undock:undockStream,showNoSignal,prefillRequest,get lastWatchedTitle(){return state.selected?.title||''},get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return featured.map(f=>({...f}))},get ballroom(){return ballroomChannels.map(item=>({...item}))},get guideSlots(){return programmedCategories().map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour))}))},get twitch(){return twitchChannels.map(x=>({...x}))},get playlist(){return programmedCategories().map(([category])=>({category,slots:dailyPlaylist(category).map(x=>({...x}))}))},getDailyGuide(day,offset=0){return programmedCategories().map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour,day,offset))}))}};
 })();
 
 /* The approved illustration is reserved for the movable Dock.
