@@ -5,8 +5,8 @@
 (()=>{'use strict';
  if(window.BigLWAOrbitSpace)return;
  const selectors=[
-  ['#studioApp #orbit','widget',160],
-  ['#studioApp #moduleWorkspace[data-module-key="orbit"]','page',235]
+  ['#studioApp #orbit','widget',260],
+  ['#studioApp #moduleWorkspace[data-module-key="orbit"]','page',500]
  ];
  const layers=new Map();
  const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)');
@@ -15,8 +15,10 @@
  function seed(star,far=false){
   const angle=rand()*Math.PI*2,radial=Math.sqrt(rand());
   star.x=Math.cos(angle)*radial;star.y=Math.sin(angle)*radial;
-  star.z=far?1.15:.15+rand();
-  star.alpha=.3+rand()*.65;
+  star.z=far?1.15:.13+rand();
+  star.alpha=.68+rand()*.32;
+  star.size=.8+rand()*1.1;
+  star.phase=rand()*Math.PI*2;
   star.tint=rand();
  }
  function size(layer){
@@ -41,28 +43,33 @@
   layer.cursorX+=(layer.cursorTargetX-layer.cursorX)*easing;
   layer.cursorY+=(layer.cursorTargetY-layer.cursorY)*easing;
   layer.cursorMotion*=Math.max(0,1-dt*1.9);
-  const accelerated=layer.hover?1.3+layer.cursorMotion*.85:1;
-  const speed=dt*(layer.kind==='widget'?.11:.085)*accelerated;
-  const cx=w*(.52+layer.cursorX*.23),cy=h*(.48+layer.cursorY*.22);
+  const accelerated=layer.hover?1.7+layer.cursorMotion*1.5:1;
+  const speed=dt*(layer.kind==='widget'?.24:.17)*accelerated;
+  const cx=w*(.50+layer.cursorX*.44),cy=h*(.49+layer.cursorY*.38);
   for(const star of layer.stars){
    const z=star.z;
    const next=z-speed;
-   const zoom=.13+.68/(z+.2);
-   const nextZoom=.13+.68/(Math.max(.08,next)+.2);
+   const zoom=.20+.78/(z+.24);
+   const nextZoom=.20+.78/(Math.max(.08,next)+.24);
    const x=cx+star.x*w*.54*zoom,y=cy+star.y*h*.54*zoom;
    const nx=cx+star.x*w*.54*nextZoom,ny=cy+star.y*h*.54*nextZoom;
    if(next<.08||Math.abs(nx-cx)>w*.72||Math.abs(ny-cy)>h*.7){
     seed(star,true);continue;
    }
    star.z=next;
-   const alpha=Math.min(.8,(1.15-z)*.67*star.alpha);
-   if(alpha<=0)continue;
-   const shade=star.tint>.82?'255,176,211':star.tint>.53?'192,199,255':'237,238,255';
-   ctx.strokeStyle='rgba('+shade+','+(alpha*.76)+')';
-   ctx.lineWidth=z<.35?1.4:.8;
+   star.phase+=dt*(.7+star.tint);
+   const twinkle=.85+.15*Math.sin(star.phase);
+   const alpha=Math.min(.98,(.36+(1.15-z)*.60)*star.alpha*twinkle);
+   const shade=star.tint>.82?'255,190,222':star.tint>.53?'209,220,255':'246,247,255';
+   const radius=star.size*(z<.42?1.35:1);
+   // Bright individual points remain visible on first paint and at rest.
+   ctx.fillStyle='rgba('+shade+','+(alpha*.18)+')';
+   ctx.beginPath();ctx.arc(nx,ny,radius*2.6,0,Math.PI*2);ctx.fill();
+   ctx.strokeStyle='rgba('+shade+','+(alpha*.84)+')';
+   ctx.lineWidth=z<.4?1.8:1.15;
    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(nx,ny);ctx.stroke();
    ctx.fillStyle='rgba('+shade+','+alpha+')';
-   ctx.beginPath();ctx.arc(nx,ny,z<.4?1.15:.68,0,Math.PI*2);ctx.fill();
+   ctx.beginPath();ctx.arc(nx,ny,radius,0,Math.PI*2);ctx.fill();
   }
  }
  function active(layer){
@@ -159,7 +166,16 @@
    release(target,layer);
   }
   for(const [node,kind,count] of desired){
-   if(node&&!(kind==='page'&&node.hidden))mount(node,kind,count);
+   if(!node||(kind==='page'&&node.hidden))continue;
+   const layer=layers.get(node);
+   if(layer){
+    // Studio may replace an Orbit card's children without replacing the card.
+    // Restore the existing bitmap instead of leaving an invisible, orphaned layer.
+    if(!layer.canvas.isConnected || (layer.canvas.parentElement&&layer.canvas.parentElement!==node)){
+     node.insertBefore(layer.canvas,node.firstChild);
+     size(layer);paint(layer,0);wake();
+    }
+   }else mount(node,kind,count);
   }
  }
  function schedule(){
@@ -183,5 +199,5 @@
   }else wake();
  });
  window.addEventListener('resize',()=>{for(const layer of layers.values())size(layer);wake()},{passive:true});
- window.BigLWAOrbitSpace=Object.freeze({version:'20261114-cursor-2',refresh:schedule,detachPage});
+ window.BigLWAOrbitSpace=Object.freeze({version:'20261114-visible-stars-3',refresh:schedule,detachPage});
 })();
