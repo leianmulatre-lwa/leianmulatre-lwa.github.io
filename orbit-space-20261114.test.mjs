@@ -31,7 +31,7 @@ function fakeTarget(){
  const attached=[],events={},children=[];
  const ctx={setTransform(){},clearRect(){},beginPath(){},moveTo(){},lineTo(){},stroke(){},fill(){},arc(){}};
  return {
-  isConnected:true,events,children,
+  isConnected:true,events,children,dataset:{moduleKey:'orbit'},hidden:false,
   getBoundingClientRect:()=>({width:460,height:310}),
   getClientRects:()=>[{}],
   addEventListener:(key,cb)=>{events[key]=cb},
@@ -43,7 +43,7 @@ function harness(reducedMotion){
  const widget=fakeTarget(),page=fakeTarget(),scheduled=[];
  const doc={
   readyState:'complete',hidden:false,documentElement:{},
-  querySelector:q=>q.includes('moduleWorkspace')?page:q.includes('#orbit')?widget:null,
+  querySelector:q=>q.includes('moduleWorkspace')?(q.includes('data-module-key')&&page.dataset.moduleKey!=='orbit'?null:page):q.includes('#orbit')?widget:null,
   addEventListener(){}
  };
  const win={
@@ -52,7 +52,7 @@ function harness(reducedMotion){
   addEventListener(){}
  };
  const fakeCanvas=()=>({
-  className:'',width:0,height:0,
+  className:'',width:0,height:0,isConnected:true,remove(){this.isConnected=false;},
   setAttribute(k,v){this[k]=v},
   getContext:()=>({setTransform(){},clearRect(){},beginPath(){},moveTo(){},lineTo(){},stroke(){},fill(){},arc(){}})
  });
@@ -98,7 +98,7 @@ test('normal motion animates its own canvases without touching connection handle
 
 test('lavender glass reveals the starfield and keeps status and app text legible',()=>{
  for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html'])
-  assert.match(read(path),/orbit-space-20261114\.css\?v=20261114-lavender-glass-2/);
+  assert.match(read(path),/orbit-space-20261114\.css\?v=20261114-canvas-layout-3/);
  assert.match(css,/background:rgba\(35,24,62,\.37\)!important/,'full Orbit pane is translucent instead of ivory');
  assert.match(css,/background:rgba\(90,65,128,\.22\)!important/,'app connection cards reveal space');
  assert.match(css,/\.orbit-quick-link\{\s*background:rgba\(151,123,191,\.19\)!important/);
@@ -108,4 +108,56 @@ test('lavender glass reveals the starfield and keeps status and app text legible
  assert.match(css,/\.orbit-state\.is-on\{/);
  assert.match(css,/\.module-orbit-row \.orbit-platform-badge\{/,'provider planets keep original animated badges');
  assert.doesNotMatch(css,/background:rgba\(255,249,243,\.90\)/,'no opaque ivory full-page overlay');
+});
+
+
+test('Star density and mouse position affect only the canvas (not the buttons)',()=>{
+ assert.match(js,/\['#studioApp #orbit','widget',160\]/);
+ assert.match(js,/\['#studioApp #moduleWorkspace\[data-module-key="orbit"\]','page',235\]/);
+ assert.match(js,/cursorTargetX/);
+ assert.match(js,/cursorTargetY/);
+ assert.match(js,/layer\.cursorMotion/);
+ const env=harness(false);
+ env.scheduled.shift()(10);
+ assert.equal(typeof env.widget.events.pointermove,'function');
+ assert.equal(typeof env.widget.events.pointerleave,'function');
+ env.widget.events.pointermove({pointerType:'mouse',clientX:400,clientY:145});
+ env.scheduled.shift()(60);
+ assert.equal(env.widget.attached.length,1,'Pointer effects never add another DOM layer');
+ env.widget.events.pointerleave();
+ env.scheduled.shift()(100);
+ assert.equal(env.widget.attached.length,1);
+});
+test('Orbit canvas disappears before a different module renders, and never reserves document height',()=>{
+ assert.match(css,/#studioApp #moduleWorkspace>\.orbit-space-canvas\{/);
+ assert.match(css,/position:absolute!important;inset:0!important/);
+ assert.match(css,/display:none!important;width:100%!important;height:100%!important/);
+ assert.match(css,/#studioApp #moduleWorkspace\[data-module-key="orbit"\]:not\(\[hidden\]\)>\.orbit-space-canvas/);
+ assert.match(js,/function detachPage\(\)/);
+ assert.match(js,/attributes:true,attributeFilter:\['data-module-key','hidden'\]/);
+ const pages=read('module-pages.js');
+ assert.match(pages,/if\(activeModuleKey==='orbit'&&key!=='orbit'\)window\.BigLWAOrbitSpace\?\.detachPage\?\.\(\)/);
+ assert.match(pages,/if\(activeModuleKey==='orbit'\)window\.BigLWAOrbitSpace\?\.detachPage\?\.\(\)/);
+ const env=harness(true);
+ env.scheduled.shift()(10);
+ const oldCanvas=env.page.attached[0];
+ assert.equal(oldCanvas.isConnected,true);
+ // The real Studio changes data-module-key on one reusable workspace.
+ env.page.dataset.moduleKey='games';
+ env.win.BigLWAOrbitSpace.refresh();
+ env.scheduled.shift()(60);
+ assert.equal(oldCanvas.isConnected,false,'Old Orbit backing bitmap removed');
+ assert.equal(env.page.attached.length,1,'No new canvas mounted on the Games page');
+ env.page.dataset.moduleKey='orbit';
+ env.win.BigLWAOrbitSpace.refresh();
+ env.scheduled.shift()(90);
+ assert.equal(env.page.attached.length,2,'Returning to Orbit re-creates a fresh canvas');
+ env.win.BigLWAOrbitSpace.detachPage();
+ assert.equal(env.page.attached.at(-1).isConnected,false,'Immediate route cleanup works');
+ for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html']){
+  const html=read(path);
+  assert.match(html,/orbit-space-20261114\.js\?v=20261114-cursor-scroll-2/);
+  assert.match(html,/orbit-space-20261114\.css\?v=20261114-canvas-layout-3/);
+  assert.match(html,/&orbitcleanup=20261114-2/);
+ }
 });

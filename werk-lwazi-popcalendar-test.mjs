@@ -88,3 +88,90 @@ test('Four Studio shells load Calendar facts before module, and renewed job asse
   assert.match(c,/user-search-results\.js\?v=[^"<>]*jobs=20261114-1/);
  }
 });
+
+
+function werkWindowHarness(adapterApi){
+ const handlers={};
+ const element=tag=>({
+  tag,children:[],dataset:{},attributes:{},listeners:{},textContent:'',isConnected:false,open:false,
+  append(...nodes){this.children.push(...nodes);},
+  replaceChildren(...nodes){this.children=[...nodes];},
+  setAttribute(name,value){this.attributes[name]=String(value);},
+  addEventListener(event,handler){this.listeners[event]=handler;},
+  focus(){this.focused=true;},
+  showModal(){this.open=true;},
+  close(){this.open=false;}
+ });
+ const dialog=element('dialog');
+ const controls=Object.fromEntries([
+  '.werk-window-close','.werk-window-query','.werk-window-list',
+  '.werk-window-status','.werk-window-details'
+ ].map(selector=>[selector,element(selector)]));
+ dialog.querySelector=selector=>controls[selector]||null;
+ const document={
+  createElement:tag=>tag==='dialog'?dialog:element(tag),
+  body:{append(node){node.isConnected=true;}},
+  addEventListener:(name,cb)=>{handlers[name]=cb;}
+ };
+ const window={BigLWAVisualLife:adapterApi};
+ vm.runInNewContext(windowCode,{window,document,URL,console},{timeout:1500});
+ return {window,dialog,controls,handlers};
+}
+test('Werk Window opens the exact posting even when it is beyond the first 45 jobs',async()=>{
+ const posts=Array.from({length:72},(_,i)=>({
+  url:'https://careers.example.org/jobs/'+i,
+  title:'Creative role '+i,company:'Studio '+i,location:'Los Angeles',
+  source:'greenhouse',postedAt:'2026-11-14',searchTerm:'creative'
+ }));
+ const api={
+  getFeedInfo:()=>({status:'connected'}),listVerified:()=>posts,
+  getJobByUrl:url=>posts.find(p=>p.url===url)||null
+ };
+ const env=werkWindowHarness(api),chosen=posts[68];
+ await env.window.BigLWAJobWindow.open({url:chosen.url});
+ assert.equal(env.dialog.open,true);
+ assert.equal(env.controls['.werk-window-list'].children[0].dataset.jobUrl,chosen.url);
+ assert.equal(env.controls['.werk-window-list'].children[0].attributes['aria-pressed'],'true');
+ assert.equal(env.controls['.werk-window-details'].children[1].textContent,chosen.title);
+ assert.equal(env.controls['.werk-window-details'].children.at(-1).href,chosen.url);
+ assert.match(env.controls['.werk-window-status'].textContent,/Showing 45 of 72/);
+});
+test('Werk Window waits for the published feed before resolving a clicked source job',async()=>{
+ const chosen={url:'https://jobs.example.org/posting/987',title:'Assistant Casting Coordinator',
+  company:'Casting Studio',location:'Los Angeles',source:'ashby'};
+ let loaded=false,finish;
+ const pending=new Promise(resolve=>{finish=resolve});
+ const api={
+  getFeedInfo:()=>({status:loaded?'connected':'pending'}),
+  listVerified:()=>loaded?[chosen]:[],
+  getJobByUrl:url=>loaded&&url===chosen.url?chosen:null,
+  async loadFeed(){await pending;loaded=true;}
+ };
+ const env=werkWindowHarness(api);
+ const opening=env.window.BigLWAJobWindow.open({url:chosen.url});
+ assert.match(env.controls['.werk-window-status'].textContent,/Finding this posting/);
+ finish();
+ await opening;
+ assert.equal(env.controls['.werk-window-details'].children[1].textContent,chosen.title);
+ assert.equal(env.controls['.werk-window-list'].children[0].dataset.jobUrl,chosen.url);
+});
+test('Werk Window never fabricates a posting when clicked URL is missing from the latest feed',async()=>{
+ const source='https://jobs.example.org/posting/no-longer-present';
+ const env=werkWindowHarness({
+  getFeedInfo:()=>({status:'connected'}),
+  listVerified:()=>[],
+  getJobByUrl:()=>null
+ });
+ await env.window.BigLWAJobWindow.open({url:source});
+ const detail=env.controls['.werk-window-details'].children;
+ assert.equal(detail[0].textContent,'Listing unavailable in Werk');
+ assert.equal(detail.at(-1).href,source);
+ assert.match(env.controls['.werk-window-status'].textContent,/not available/);
+});
+test('Job and Orbit fixes are cache-busted in each Studio shell',()=>{
+ for(const path of shells){
+  const html=read(path);
+  assert.match(html,/werk-browser-window-20261114\.js\?v=20261114-job-selection-2/);
+  assert.match(html,/orbit-space-20261114\.js\?v=20261114-cursor-scroll-2/);
+ }
+});

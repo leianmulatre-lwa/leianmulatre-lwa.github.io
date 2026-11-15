@@ -6,7 +6,7 @@
  if(window.BigLWAJobWindow)return;
  const $=(q,r=document)=>r.querySelector(q);
  const clean=v=>String(v==null?'':v).trim().slice(0,180);
- let modal=null,selected='',query='';
+ let modal=null,selected='',query='',openGeneration=0;
  function trusted(url){
   try{
    const u=new URL(url);return u.protocol==='https:'&&!u.username&&!u.password&&!/^(?:localhost|127\.|10\.|192\.168\.)/i.test(u.hostname);
@@ -55,8 +55,15 @@
   }
   const normalized=query.toLowerCase().trim();
   const terms=normalized.split(/\s+/).filter(Boolean);
-  const matched=all.filter(job=>terms.every(t=>[job.title,job.company,job.location,job.source,job.searchTerm].join(' ').toLowerCase().includes(t))).slice(0,45);
-  status.textContent=matched.length+' matching postings · '+all.length+' source-linked jobs in the latest snapshot';
+  const eligible=all.filter(job=>terms.every(t=>[job.title,job.company,job.location,job.source,job.searchTerm].join(' ').toLowerCase().includes(t)));
+  let matched=eligible.slice(0,45);
+  // Direct-open URLs are more important than the first 45 rows.
+  // Keep the selected verified posting visible even if it is row 46–240.
+  if(selected&&!matched.some(job=>job.url===selected)){
+   const wanted=eligible.find(job=>job.url===selected);
+   if(wanted)matched=[wanted,...matched.slice(0,44)];
+  }
+  status.textContent='Showing '+matched.length+' of '+eligible.length+' matching postings · '+all.length+' source-linked jobs in the latest snapshot';
   if(!matched.length){source.append(make('p','werk-window-empty','No matching records in this snapshot. Try a broader search.'));detail(null);return;}
   if(!matched.some(job=>job.url===selected))selected=matched[0].url;
   for(const job of matched){
@@ -77,7 +84,7 @@
   '<p class="werk-window-status" role="status"></p><div class="werk-window-content"><div class="werk-window-list" aria-label="Found postings"></div><section class="werk-window-details" aria-label="Selected job details"></section></div>';
   document.body.append(modal);
   $('.werk-window-close',modal).addEventListener('click',()=>modal.close());
-  $('.werk-window-query',modal).addEventListener('input',e=>{query=e.target.value;selected='';render()});
+  $('.werk-window-query',modal).addEventListener('input',e=>{openGeneration++;query=e.target.value;selected='';render()});
   $('.werk-window-list',modal).addEventListener('click',e=>{
    const item=e.target.closest('button[data-job-url]');if(!item)return;
    selected=item.dataset.jobUrl;render();
@@ -85,17 +92,37 @@
   modal.addEventListener('click',e=>{if(e.target===modal)modal.close()});
   return modal;
  }
- function open({url='',search=''}={}){
-  const box=ensure();
+ async function open({url='',search=''}={}){
+  const box=ensure(),generation=++openGeneration;
   query=clean(search);
-  const api=window.BigLWAVisualLife;
-  const match=url&&api?.getJobByUrl?.(url);
-  selected=match?.url||'';
+  selected='';
+  const requested=trusted(url)?String(url):'';
   const input=$('.werk-window-query',box);
   input.value=query;
-  render();
   if(!box.open)box.showModal();
   input.focus({preventScroll:true});
+  const api=window.BigLWAVisualLife;
+  // L’wazi and Politic may render a sourced card before Werk Window has
+  // loaded its own local feed. Wait for that same vetted snapshot.
+  if(requested&&api?.getFeedInfo?.().status!=='connected'&&typeof api?.loadFeed==='function'){
+   $('.werk-window-list',box).replaceChildren();
+   $('.werk-window-details',box).replaceChildren();
+   $('.werk-window-status',box).textContent='Finding this posting in the published Werk index…';
+   try{await api.loadFeed()}catch{/* the status below explains unavailable source data */}
+   if(generation!==openGeneration||!box.open)return;
+  }
+  const match=requested&&api?.getJobByUrl?.(requested);
+  selected=match?.url||'';
+  render();
+  if(requested&&!match){
+   const status=$('.werk-window-status',box),details=$('.werk-window-details',box);
+   status.textContent='This listing is not available in the current published Werk snapshot.';
+   details.replaceChildren(
+    make('h3','','Listing unavailable in Werk'),
+    make('p','','The source feed is missing, expired, or no longer contains this posting. Verify the original before applying.'),
+    link(requested,'Open original posting ↗')
+   );
+  }
  }
  document.addEventListener('click',event=>{
   const item=event.target.closest?.('[data-werk-preview-url]');
@@ -103,5 +130,5 @@
   const browse=event.target.closest?.('[data-werk-window-open]');
   if(browse){event.preventDefault();open({search:browse.dataset.werkWindowSearch||''});}
  });
- window.BigLWAJobWindow=Object.freeze({open,version:'1.0.0'});
+ window.BigLWAJobWindow=Object.freeze({open,version:'1.1.0'});
 })();
