@@ -149,3 +149,28 @@ body.night-mode #studioApp .bl-lwazi-history-popover{
 #lwaziHistorySettings .lwazi-history-month time{
  white-space:nowrap;font-size:11px;color:var(--muted,#706767);
 }
+
+
+/* L'wazi rich-answer formatting and photo context: inside Studio, never an external popup. */
+#bl-studio-search-results .bl-lwazi-turn[data-role="assistant"]{white-space:normal}
+#bl-studio-search-results .bl-lwazi-turn-prefix{display:inline-block;color:rgb(var(--aura-rgb,151,62,84));font-weight:750;margin-right:5px}
+#bl-studio-search-results .bl-lwazi-turn p{margin:0 0 5px;white-space:pre-wrap}
+#bl-studio-search-results .bl-lwazi-turn p:last-child{margin-bottom:0}
+#bl-studio-search-results :is(.bl-lwazi-answer-body,.bl-lwazi-turn) :is(ul,ol){margin:4px 0 7px;padding-left:20px}
+#bl-studio-search-results :is(.bl-lwazi-answer-body,.bl-lwazi-turn) li{margin:2px 0}
+#bl-studio-search-results :is(.bl-lwazi-answer-body,.bl-lwazi-turn) code{font:600 .92em/1.4 ui-monospace,monospace;background:rgba(105,92,85,.10);border-radius:3px;padding:1px 3px}
+#bl-studio-search-results :is(.bl-lwazi-answer-body,.bl-lwazi-turn) a{color:inherit;text-underline-offset:2px}
+#bl-studio-search-results .bl-lwazi-inline-preview[hidden]{display:none!important}
+#bl-studio-search-results .bl-lwazi-inline-preview{order:0;max-width:min(100%,1080px);margin:8px 0 15px!important;padding:0!important}
+#bl-studio-search-results .bl-lwazi-inline-preview>h3{font:750 11px/1.3 system-ui,sans-serif;letter-spacing:.035em;margin:0 0 8px!important;color:rgb(var(--aura-rgb,151,62,84))}
+#bl-studio-search-results .bl-lwazi-photo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,185px),1fr));gap:9px}
+#bl-studio-search-results .bl-lwazi-photo-card{min-width:0;overflow:hidden;border:1px solid rgba(145,115,106,.22);background:rgba(255,252,247,.76);border-radius:10px;padding:6px;display:flex;flex-direction:column;gap:6px}
+#bl-studio-search-results .bl-lwazi-photo-card>img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:6px;background:#e5e0dc}
+#bl-studio-search-results .bl-lwazi-photo-card>strong{font:750 12px/1.3 system-ui,sans-serif;overflow-wrap:anywhere}
+#bl-studio-search-results .bl-lwazi-photo-details{font:500 11px/1.45 system-ui,sans-serif;overflow-wrap:anywhere}
+#bl-studio-search-results .bl-lwazi-photo-details>summary{display:list-item;cursor:pointer;font-weight:700;color:rgb(var(--aura-rgb,151,62,84));margin:0 0 3px}
+#bl-studio-search-results .bl-lwazi-photo-details>p{margin:5px 0!important}
+#bl-studio-search-results .bl-lwazi-photo-details>a{display:inline-block;margin:3px 9px 0 0;color:rgb(var(--aura-rgb,151,62,84));font-weight:650;text-decoration:underline;text-underline-offset:2px}
+#bl-studio-search-results .bl-lwazi-photo-credit{color:inherit;opacity:.65;font:500 10px/1.5 system-ui,sans-serif;margin:7px 0 0!important}
+body.night-mode #bl-studio-search-results .bl-lwazi-photo-card{background:rgba(70,58,56,.85);border-color:rgba(235,219,207,.25)}
+@media(max-width:540px){#bl-studio-search-results .bl-lwazi-photo-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}}
