@@ -11,7 +11,19 @@
   var tokenClient = null;
   var accessToken = '';
   var loadingPromise = null;
-  var state = { connected: false, drive: [], calendar: [], youtube: null, error: '' };
+  var expiryTimer = null;
+  var state = { connected: false, uid: '', expiresAt: 0, drive: [], calendar: [], youtube: null, error: '' };
+  function currentUid(){return String(window.__biglwaIdentity?.uid||window.BigLWAAccountStorage?.uid||'').trim();}
+  function hasActiveToken(){return Boolean(accessToken&&state.connected&&state.uid&&
+    state.uid===currentUid()&&state.expiresAt>Date.now()+1500);}
+  function expireGoogleSession(message){
+    if(expiryTimer){window.clearTimeout(expiryTimer);expiryTimer=null;}
+    accessToken='';state.connected=false;state.uid='';state.expiresAt=0;
+    state.drive=[];state.calendar=[];state.youtube=null;
+    state.error=message||'';
+    render();
+    document.dispatchEvent(new CustomEvent('biglwa:google-state'));
+  }
 
   function one(selector, root) { return (root || document).querySelector(selector); }
   function all(selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); }
@@ -58,8 +70,12 @@
   }
 
   function googleApi(url) {
-    return fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } }).then(function (response) {
+    if(!hasActiveToken())return Promise.reject(new Error('Google session unavailable. Reconnect in Orbit.'));
+    var token=accessToken;
+    return fetch(url, { headers: { Authorization: 'Bearer ' + token } }).then(function (response) {
+      if(token!==accessToken)throw new Error('Google account changed.');
       if (response.ok) { return response.json(); }
+      if(response.status===401)expireGoogleSession('Google authorization expired. Reconnect in Orbit.');
       return response.text().then(function (body) { throw new Error('Google API ' + response.status + ': ' + body.slice(0, 180)); });
     });
   }
@@ -74,6 +90,9 @@
       if (results[0].status === 'fulfilled') { state.drive = results[0].value.files || []; }
       if (results[1].status === 'fulfilled') { state.calendar = results[1].value.items || []; }
       if (results[2].status === 'fulfilled') { state.youtube = (results[2].value.items || [])[0] || null; }
+      if(!hasActiveToken())throw new Error('Google authorization expired. Reconnect in Orbit.');
+      if(results.every(function(r){return r.status==='rejected'}))
+        throw new Error('Google granted access, but no Google services responded. Check API permissions and reconnect.');
       render();
       // YouTube subscriberCount can arrive after the initial OAuth event.
       // Refresh audience observations only after channel stats actually load.
@@ -83,7 +102,7 @@
 
 
   async function calendarEvents(start, end) {
-    if (!accessToken || !state.connected) throw new Error('Connect Google Calendar in Orbit.');
+    if (!hasActiveToken()) throw new Error('Connect Google Calendar in Orbit.');
     var token = accessToken, events = [], pageToken = '';
     do {
       var url = new URL('https://www.googleapis.com/calendar/v3/calendars/primary/events');
@@ -91,7 +110,7 @@
       var response = await fetch(url.href, {headers:{Authorization:'Bearer '+token}});
       if (token !== accessToken || !state.connected) throw new Error('Google account changed. Reopen Calendar.');
       if (!response.ok) {
-        if (response.status === 401) { accessToken='';state.connected=false;state.calendar=[];render();document.dispatchEvent(new CustomEvent('biglwa:google-state')); }
+        if (response.status === 401) expireGoogleSession('Google Calendar access expired. Reconnect in Orbit.');
         throw new Error(response.status===401?'Google session expired. Reconnect in Orbit.':'Google Calendar could not load. Check Calendar access in Orbit and try again.');
       }
       var data=await response.json();events.push(...(data.items||[]));pageToken=data.nextPageToken||'';
@@ -100,6 +119,7 @@
   }
 
   function connect() {
+    if(!currentUid()){showStatus('Sign in to BIG LWA first, then connect Google from Orbit.');return;}
     loadGoogleIdentity().then(function () {
       if (!tokenClient) {
         tokenClient = window.google.accounts.oauth2.initTokenClient({
@@ -112,13 +132,21 @@
               render();
               return;
             }
+            if(!response.access_token){state.error='Google did not return an access token.';render();return;}
             accessToken = response.access_token;
-            state.connected = true;
+            state.uid=currentUid();
+            state.expiresAt=Date.now()+Math.max(60,Math.min(3600,Number(response.expires_in)||3600))*1000;
+            state.connected=true;
+            if(expiryTimer)window.clearTimeout(expiryTimer);
+            expiryTimer=window.setTimeout(function(){
+              if(Date.now()>=state.expiresAt-1500)expireGoogleSession('Google session expired. Reconnect to continue using Calendar, Drive and YouTube.');
+            },Math.max(1000,state.expiresAt-Date.now()-1000));
+            render();
             document.dispatchEvent(new CustomEvent('biglwa:google-state'));
             state.error = '';
             showStatus('Google Orbit connected. Loading Calendar, Drive, and YouTube...');
             loadData().then(function () {
-              showStatus('Google Calendar, Drive, and YouTube are connected.');
+              if(hasActiveToken())showStatus('Google authorized. Calendar, Drive, and YouTube status updated in Orbit.');
             }).catch(function (error) {
               state.error = error.message;
               showStatus(error.message);
@@ -137,13 +165,7 @@
 
   function disconnect() {
     function done() {
-      accessToken = '';
-      state.connected = false;
-      state.drive = [];
-      state.calendar = [];
-      state.youtube = null;
-      document.dispatchEvent(new CustomEvent('biglwa:google-state'));
-      render();
+      expireGoogleSession('');
       showStatus('Google Orbit disconnected.');
     }
     if (accessToken && window.google && window.google.accounts && window.google.accounts.oauth2) {
@@ -263,7 +285,11 @@
   }, true);
 
   document.addEventListener('biglwa:module-open', render);
-  window.__biglwaGoogleOrbit = { connect: connect, disconnect: disconnect, state: state, render: render, calendarEvents: calendarEvents };
+  document.addEventListener('biglwa:session-verified',function(){
+    if(state.uid&&state.uid!==currentUid())expireGoogleSession('Google is disconnected from the previous BIG LWA account.');
+  });
+  window.__biglwaGoogleOrbit = { connect: connect, disconnect: disconnect, state: state,
+    hasActiveToken:hasActiveToken, render: render, calendarEvents: calendarEvents };
   if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', render, { once: true }); }
   else { render(); }
 }());
