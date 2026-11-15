@@ -8,12 +8,18 @@
   position:relative!important;
   isolation:isolate;
   background-color:#080d22!important;
+  /* Two always-visible star grids provide fallback even before the canvas
+     mounts. Nonharmonic spacing avoids a conspicuous tiled constellation. */
   background-image:
+    radial-gradient(circle at 3px 4px,rgba(255,246,255,.92) 0 1.15px,transparent 1.8px),
+    radial-gradient(circle at 16px 21px,rgba(206,217,255,.74) 0 1px,transparent 1.7px),
+    radial-gradient(circle at 54px 24px,rgba(255,192,222,.55) 0 .75px,transparent 1.35px),
     radial-gradient(ellipse at 18% 12%,rgba(113,56,159,.41) 0,transparent 48%),
     radial-gradient(ellipse at 83% 74%,rgba(39,85,155,.39) 0,transparent 49%),
     radial-gradient(ellipse at 66% 9%,rgba(168,57,98,.18) 0,transparent 35%),
     linear-gradient(158deg,#070a19 0%,#17132d 50%,#060d20 100%)!important;
-  background-repeat:no-repeat!important;
+  background-size:59px 67px,97px 83px,131px 113px,100% 100%,100% 100%,100% 100%,100% 100%!important;
+  background-repeat:repeat,repeat,repeat,no-repeat,no-repeat,no-repeat,no-repeat!important;
   color:#f4edfb!important;
 }
 #studioApp #orbit{border-color:rgba(167,133,198,.4)!important;box-shadow:inset 0 0 0 1px rgba(229,196,255,.06),0 12px 30px rgba(10,6,40,.19)!important}
@@ -35,7 +41,7 @@
   position:absolute;inset:0;width:100%;height:100%;display:block;
   z-index:0;pointer-events:none!important;user-select:none!important;
   border-radius:inherit;clip-path:inset(0 round 15px);
-  opacity:.95;
+  opacity:1;
 }
 #studioApp #orbit>:not(.orbit-space-canvas),
 #studioApp #moduleWorkspace[data-module-key="orbit"]>:not(.orbit-space-canvas){

@@ -98,7 +98,7 @@ test('normal motion animates its own canvases without touching connection handle
 
 test('lavender glass reveals the starfield and keeps status and app text legible',()=>{
  for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html'])
-  assert.match(read(path),/orbit-space-20261114\.css\?v=20261114-canvas-layout-3/);
+  assert.match(read(path),/orbit-space-20261114\.css\?v=20261114-starfield-visible-4/);
  assert.match(css,/background:rgba\(35,24,62,\.37\)!important/,'full Orbit pane is translucent instead of ivory');
  assert.match(css,/background:rgba\(90,65,128,\.22\)!important/,'app connection cards reveal space');
  assert.match(css,/\.orbit-quick-link\{\s*background:rgba\(151,123,191,\.19\)!important/);
@@ -112,8 +112,8 @@ test('lavender glass reveals the starfield and keeps status and app text legible
 
 
 test('Star density and mouse position affect only the canvas (not the buttons)',()=>{
- assert.match(js,/\['#studioApp #orbit','widget',160\]/);
- assert.match(js,/\['#studioApp #moduleWorkspace\[data-module-key="orbit"\]','page',235\]/);
+ assert.match(js,/\['#studioApp #orbit','widget',260\]/);
+ assert.match(js,/\['#studioApp #moduleWorkspace\[data-module-key="orbit"\]','page',500\]/);
  assert.match(js,/cursorTargetX/);
  assert.match(js,/cursorTargetY/);
  assert.match(js,/layer\.cursorMotion/);
@@ -156,8 +156,23 @@ test('Orbit canvas disappears before a different module renders, and never reser
  assert.equal(env.page.attached.at(-1).isConnected,false,'Immediate route cleanup works');
  for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html']){
   const html=read(path);
-  assert.match(html,/orbit-space-20261114\.js\?v=20261114-cursor-scroll-2/);
-  assert.match(html,/orbit-space-20261114\.css\?v=20261114-canvas-layout-3/);
+  assert.match(html,/orbit-space-20261114\.js\?v=20261114-visible-stars-3/);
+  assert.match(html,/orbit-space-20261114\.css\?v=20261114-starfield-visible-4/);
   assert.match(html,/&orbitcleanup=20261114-2/);
  }
+});
+
+test('bright Orbit stars survive Studio replacing the same card contents',()=>{
+ assert.match(css,/background-size:59px 67px,97px 83px,131px 113px/);
+ assert.match(js,/star\.alpha=\.68\+rand\(\)\*\.32/);
+ assert.match(js,/ctx\.arc\(nx,ny,radius\*2\.6/);
+ const env=harness(true);
+ env.scheduled.shift()(10);
+ const canvas=env.widget.attached[0];
+ canvas.isConnected=false; // Studio kept #orbit but replaced its children.
+ env.win.BigLWAOrbitSpace.refresh();
+ env.scheduled.shift()(40);
+ assert.equal(env.widget.attached.at(-1),canvas,'Reuse the existing 2D canvas');
+ assert.equal(env.widget.attached.length,2,'Reattach rather than spawning another star layer');
+ assert.equal(canvas.isConnected,false,'Fake DOM models detachment; real insertBefore reconnects it');
 });
