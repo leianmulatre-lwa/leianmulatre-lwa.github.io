@@ -22,6 +22,8 @@
     const feed=mark('/assets/feed-symbol-generated.png','myfeed');
     const politic=mark('/assets/politc-nyame-baatanpa.svg?v=20261014-1','politic');
     const projects=mark('/assets/projects-symbol.svg?v=20260924-projects-symbol-1','projects');
+    const lwazi=mark('/assets/tools-hand-eye.svg','lwazi');
+    const archive='<svg class="login-mini-symbol" viewBox="0 0 26 34" fill="none" aria-hidden="true"><g stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="5" height="25" rx="1.5"/><rect x="11" y="6" width="5" height="24" rx="1.5"/><rect x="19" y="3" width="4" height="26" rx="1.4"/></g></svg>';
     const windowDots='<span class="login-mini-window-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
     const miniHead=(symbol,label)=>'<header><span class="login-mini-heading">'+symbol+'<b>'+label+'</b></span>'+windowDots+'</header>';
     desktop.innerHTML=
@@ -31,12 +33,12 @@
       '<main class="login-mini-main">'+
       '<section class="login-mini-profile"><div class="login-mini-profile-pic">L</div><div class="login-mini-profile-info"><strong>your studio, your rules.</strong><small>a bigger you, on your terms.</small><div class="login-mini-metrics"><span>your audience</span><span>your connections</span><span>your reach</span></div><div class="login-mini-stories"><i></i><i></i><i></i><i></i><i></i><i>+</i></div></div></section>'+
       '<div class="login-mini-upper">'+
-      '<article class="login-mini-card login-mini-journal">'+miniHead('▦','journal')+'<div class="login-mini-journal-paper"><span>WHO WUZ HERE? · NOTE</span><em></em><em></em><em></em><em></em></div></article>'+
+      '<article class="login-mini-card login-mini-journal">'+miniHead('▱','journal')+'<div class="login-mini-journal-paper"><span>WHO WUZ HERE? · NOTE</span><em></em><em></em><em></em><em></em></div></article>'+
       '<article class="login-mini-card login-mini-aura">'+miniHead(aura,'aura')+'<div class="login-mini-aura-art"><span class="login-mini-sun"></span>Focused</div></article>'+
       '<article class="login-mini-card login-mini-avatar">'+miniHead(avatar,'avatar')+'<div class="login-mini-avatar-stage"><div class="login-mini-avatar-person">◉<span>▰</span>╱╲</div><small>360sona</small></div></article>'+
       '<article class="login-mini-card login-mini-tunes">'+miniHead('♫','tunes')+'<div class="login-mini-tuner">FM　88 · 92 · 96 · 100 · 104</div><div class="login-mini-song"><small>NOW PLAYING</small><b>♪ LWA RADIO</b><span>campus & world</span><div class="login-mini-eq">▂▅▇▃▆▂▅▇</div></div></article>'+
       '</div>'+
-      '<nav class="login-mini-shortcuts" aria-label="Studio preview shortcuts"><span>▦ calendar</span><span>◌ stream</span><span>'+politic+' politic</span><span>▤ archive</span><span class="selected">✺ veve</span><span>☞ lwazi</span><span>'+tips+' studio</span><span>'+feed+' myfeed</span><span>◎ orbit</span></nav>'+
+      '<nav class="login-mini-shortcuts" aria-label="Studio preview shortcuts"><span>▦ calendar</span><span>◌ stream</span><span>'+politic+' politic</span><span>'+archive+' archive</span><span class="selected">✺ veve</span><span>'+lwazi+' lwazi</span><span>'+tips+' studio</span><span>'+feed+' myfeed</span><span>◎ orbit</span></nav>'+
       '<div class="login-mini-lower">'+
       '<article class="login-mini-card login-mini-map">'+miniHead('⌖','map')+'<div class="login-mini-landscape"><span>↗ plan · pin · explore</span></div></article>'+
       '<article class="login-mini-card login-mini-feed">'+miniHead(feed,'myfeed')+'<div class="login-mini-film"><i></i><i></i><i></i><i></i></div><p>your published pictures</p></article>'+
