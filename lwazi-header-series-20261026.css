@@ -209,7 +209,9 @@
 #studioApp #moduleWorkspace[data-module-key="stream"] .stream-heading-versions button[aria-selected="true"]{
  background:#71374f!important;color:#fffaf7!important;box-shadow:0 1px 3px #20081033!important
 }
-#studioApp #moduleWorkspace[data-module-key="stream"] .biglwa-stream .stream-nav{
+/* The header only hides native Stream controls AFTER its version selector
+   has been populated. A fifth channel (Music) must never blank the navigation. */
+#studioApp #moduleWorkspace[data-module-key="stream"].stream-versions-in-header .biglwa-stream .stream-nav{
  display:none!important
 }
 #studioApp #moduleWorkspace[data-module-key="stream"] .biglwa-stream{padding-top:0!important}
@@ -218,7 +220,7 @@
  #studioApp #moduleWorkspace[data-module-key="stream"] .stream-heading-versions button{min-width:51px!important;padding:5px 7px!important;font-size:10px!important}
 }
 
-/* Four native Stream channel controls remain on the title line. */
+/* Current Stream channels (including Music) share the title line. */
 #studioApp #moduleWorkspace[data-module-key="stream"] .module-heading--with-versions>.module-heading-right{max-width:min(72vw,600px)!important}
 #studioApp #moduleWorkspace[data-module-key="stream"] .stream-heading-versions{max-width:100%!important;overflow-x:auto!important}
 
