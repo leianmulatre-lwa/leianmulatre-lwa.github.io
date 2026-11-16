@@ -18,9 +18,9 @@ function nav(){
     openBIGLWAModule:route=>clicked.push('widget:'+route),
     addEventListener(){}
   };
-  const document={readyState:'loading',addEventListener(){},
+  const document={readyState:'loading',addEventListener(){},querySelectorAll:()=>[],
     querySelector:sel=>sel==='#studioApp'?{querySelector:()=>({click:()=>clicked.push('skeleton'),classList:{contains:()=>false}}),classList:{contains:()=>false}}:null};
-  vm.runInNewContext(source,{window,document,setTimeout,console});
+  vm.runInNewContext(source,{window,document,setTimeout:()=>0,console});
   return {api:window.BigLWANavigationCommands,navigated,clicked};
 }
 test('natural language commands reach real destinations and do not capture ordinary questions',()=>{
@@ -46,9 +46,9 @@ test('actions open the correct Studio page, widgets and categories with real han
  assert(api.navigate(api.resolve('open journal')));
  assert.deepEqual(navigated,['/studio','/settings/']);
  assert.deepEqual(clicked,['skeleton','widgets','widget:diary']);
- assert.match(source,/aria-label','Show L’wazi navigation commands/);
- assert.match(source,/menu\.append\(b\)/);
- assert.match(source,/trigger\.addEventListener\('click'/);
+ assert.doesNotMatch(source,/Show L’wazi navigation commands/,'Old search hint removed intentionally');
+ assert.match(source,/document\.querySelectorAll\('#studioApp \.bl-nav-hints'\)/);
+ assert.doesNotMatch(source,/menu\.append\(b\)/,'No duplicated hint menu');
 });
 test('Lwazi resolves navigation before fetching ordinary public search results',()=>{
  assert.match(search,/var navCommand=window\.BigLWANavigationCommands\?\.resolve\(q\)/);
