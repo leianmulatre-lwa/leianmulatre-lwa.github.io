@@ -84,6 +84,8 @@ on:
       - 'visual-life-jobs.js'
       - 'module-version-header-20261026.js'
       - 'studio-uploaded-thumbnails-20261110.css'
+      - 'studio-booth-preview.js'
+      - 'booth-thumbnail-board-samples-20261116.test.mjs'
       - 'project-canvas.js'
       - 'orbit-badge-layout-test.mjs'
       - 'orbit-space-20261114.js'
@@ -151,6 +153,8 @@ jobs:
           node --check stream-radio-world-20261115.js
           node --test stream-radio-world-20261115.test.mjs
           node --test studio-booth-hair-map-room-stream-test.mjs
+          node --check studio-booth-preview.js
+          node --test booth-thumbnail-board-samples-20261116.test.mjs
           node --check community-profile-roles-20261114.js
           node --test community-profile-policy-regression-20261114.test.mjs
           node --check map-lwa-discovery-20261114.js
