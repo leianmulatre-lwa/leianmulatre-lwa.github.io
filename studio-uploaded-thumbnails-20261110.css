@@ -236,7 +236,23 @@ body.night-mode #studioApp #camera .photobooth-reference-preview > img {
   transform:none!important;
 }
 /* Never reveal the signed-in member's private Booth strip in profile preview. */
-html.biglwa-preview-mode #studioApp #camera .booth-recent-film {display:none!important}
+/* In public previews, samples are safe but member photos are not. */
+html.biglwa-preview-mode #studioApp #camera .booth-recent-film:not([data-samples-only="true"]) {display:none!important}
+html.biglwa-preview-mode #studioApp #camera .booth-recent-film[data-samples-only="true"] {display:grid!important}
+/* Only the temporary Boards-derived photography receives a Booth-style B/W
+   treatment. Actual member photos retain their original preview styling. */
+#studioApp #camera .contact-sheet .booth-recent-frame.booth-temporary-frame img.booth-temporary-photo {
+  display:block!important;
+  width:100%!important;height:100%!important;
+  object-fit:cover!important;object-position:center!important;
+  filter:grayscale(1) contrast(1.07)!important;
+  opacity:.97!important;
+  animation:biglwa-booth-sample-reveal .45s ease-out both;
+}
+@keyframes biglwa-booth-sample-reveal {from{opacity:.08}to{opacity:.97}}
+@media(prefers-reduced-motion:reduce){
+  #studioApp #camera .booth-temporary-photo{animation:none!important}
+}
 
 @media(prefers-reduced-motion:reduce){
   #studioApp #feed #biglwaFeedHero *{transition:none!important}
