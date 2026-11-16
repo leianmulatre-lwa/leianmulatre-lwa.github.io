@@ -28,6 +28,7 @@
  const symbolKey=[
   {label:'Studio',key:'studio',detail:'Return to your Studio home',fallbackAsset:'/assets/studio-tipi-symbol.svg?v=20261026-1'},
   {label:'Visualizr',key:'projects',detail:'Your creative work',fallbackAsset:'/assets/projects-symbol.svg?v=20260924-projects-symbol-1'},
+  {label:'Trophies',key:'trophies',detail:'Your real rank, earned achievements and trophy case',fallback:'♛'},
   {label:'Politic',key:'politc',detail:'Civic life and global context',fallbackAsset:'/assets/politc-nyame-baatanpa.svg?v=20261014-1'},
   {label:'Arcade',key:'games',detail:'Games and puzzles',fallback:'♟'},
   {label:'Journal',key:'diary',detail:'Entries and writing',fallback:'▱'},
@@ -408,6 +409,8 @@
     border:2px solid #fff5ea!important;border-radius:50%!important;
     background:#51a96b!important;box-sizing:content-box!important;pointer-events:none!important
    }
+   #studioApp .biglwa-skeleton-hub .skeleton-quick-actions {display:flex;align-items:center;justify-content:flex-start;margin:0 0 3px}
+   #studioApp .biglwa-skeleton-hub .skeleton-quick-actions .skeleton-settings {display:inline-flex!important;align-items:center;min-height:29px;padding:6px 12px;border-radius:8px;background:#fff5eabb;color:#513542;font:700 11px/1.2 system-ui,sans-serif;text-decoration:underline;text-underline-offset:2px}
    #studioApp .biglwa-skeleton-title .skeleton-title-copy{
     display:flex!important;flex-direction:column!important;align-items:flex-start!important;
     gap:9px!important;min-width:0!important
@@ -668,7 +671,7 @@
   if(hub)return hub;
   hub=document.createElement('section');hub.id='biglwaSkeletonHub';hub.className='biglwa-skeleton-hub';hub.hidden=true;
   hub.setAttribute('aria-label','Skeleton Key for the individual');
-  hub.innerHTML='<div class="biglwa-skeleton-title"><span class="skeleton-title-mark" aria-hidden="true"><img src="/assets/skeleton-keys-ankh.svg" alt=""></span><div class="skeleton-title-copy"><h2>Skeleton Key</h2><a class="skeleton-settings" href="/settings">Settings</a></div></div>'+
+  hub.innerHTML='<div class="biglwa-skeleton-title"><span class="skeleton-title-mark" aria-hidden="true"><img src="/assets/skeleton-keys-ankh.svg" alt=""></span><div class="skeleton-title-copy"><h2>Skeleton Key</h2></div></div><div class="skeleton-quick-actions"><a class="skeleton-settings" href="/settings">Settings</a></div>'+
    '<details class="skeleton-analytics-details"><summary>Account analytics · monthly</summary><section id="skeletonAnalytics" aria-label="Account analytics"></section></details>'+
    '<details class="skeleton-body-legend"><summary>Body shadow key</summary><div class="skeleton-body-models">'+
    '<figure style="--model-shadow:#d9c6ee"><div class="skeleton-model-widget"><i></i><span></span></div><figcaption>Individual</figcaption></figure>'+
