@@ -45,20 +45,25 @@ const final=list.filter(f=>{
  return !isMirror(f.path)||mirrors.some(m=>f.path.startsWith(m)&&retained.has(m));
 });
 const included=new Set(final.map(f=>f.path));
+const originallyPresent=new Set(list.map(f=>f.path));
 const essential=['index.html','studio/index.html','404.html','CNAME','robots.txt','sitemap.xml',
  'legal/index.html','about/index.html','privacy/index.html','terms/index.html',
  'rights/index.html','affidavit/index.html','map-app.html',
  'assets/studio-defaults/map-bikini-bottom-fallback.webp'];
 const missingEssential=essential.filter(p=>!included.has(p));
 const missingRefs=[];
+const preexistingMissingRefs=[];
 const pathRe=/(?:src|href)\s*=\s*["'](\/[^"'<>\s]+?\.(?:js|css|html))(?:\?[^"']*)?["']/gi;
 for(const f of final){
  if(!/\.(?:html|js)$/i.test(f.path))continue;
  const src=read(f.path);let match;
  while((match=pathRe.exec(src))){
   const dep=match[1].replace(/^\/+/,'');
-  if(!included.has(dep)&&!included.has(dep.replace(/\/$/,'')+'/index.html'))
-   missingRefs.push({from:f.path,dependency:dep});
+  if(!included.has(dep)&&!included.has(dep.replace(/\/$/,'')+'/index.html')){
+   const issue={from:f.path,dependency:dep};
+   if(originallyPresent.has(dep)||originallyPresent.has(dep.replace(/\/$/,'')+'/index.html'))missingRefs.push(issue);
+   else preexistingMissingRefs.push(issue);
+  }
  }
 }
 const excluded=list.filter(f=>!included.has(f.path));
@@ -67,6 +72,7 @@ const report={
  includedFiles:final.length,includedBytes:final.reduce((sum,f)=>sum+f.size,0),
  excludedFiles:excluded.length,excludedBytes:excluded.reduce((sum,f)=>sum+f.size,0),
  mirrorReferences,missingEssential,missingRefs:missingRefs.slice(0,50),
+ preexistingMissingRefs:preexistingMissingRefs.slice(0,30),
  restoredEditorsIncluded:included.has('bigapps/manifest.json'),
  warning:'Static references are not a complete runtime dependency graph. Signed-in browser testing is required before production.'
 };
