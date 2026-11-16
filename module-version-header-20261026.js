@@ -60,9 +60,15 @@
   // forwards clicks to the ORIGINAL (hidden) buttons without breaking that
   // delegation or losing the selection/data-loading logic.
   const native=$('.biglwa-stream .stream-channels',ws);
-  if(!native)return;
-  const options=[...native.querySelectorAll('[data-stream-tab]')];
-  if(options.length!==4)return;
+  const options=native?[...native.querySelectorAll('[data-stream-tab]')]:[];
+  // Channel count is dynamic: Radio, TV, Live, Sqwidz, Music (and future
+  // additions). Never hide the original tabs unless the heading has actually
+  // received its functioning proxies.
+  if(!options.length){
+    ws.classList.remove('stream-versions-in-header');
+    $('.module-heading-versions[data-version-stream]',right)?.remove();
+    return;
+  }
   let row=$('.module-heading-versions[data-version-stream]',right);
   if(!row){
    row=document.createElement('div');
@@ -71,6 +77,11 @@
    row.setAttribute('role','tablist');
    row.setAttribute('aria-label','Stream channels');
    right.prepend(row);
+  }
+  const modes=new Set(options.map(source=>source.dataset.streamTab));
+  // On module remount, discard old proxies that no longer exist in Stream.
+  for(const stale of [...row.children]){
+    if(!modes.has(stale.dataset.streamHeadingTab))stale.remove();
   }
   for(const source of options){
    const mode=source.dataset.streamTab;
@@ -93,7 +104,11 @@
    button.classList.toggle('is-active',active);
    button.tabIndex=active?0:-1;
   }
-  ws.classList.add('stream-versions-in-header');
+  // Hide native controls only after all current tabs are accessible in the
+  // heading. Native buttons remain mounted as delegated event targets.
+  if(row.querySelectorAll('[data-stream-heading-tab]').length===options.length)
+    ws.classList.add('stream-versions-in-header');
+  else ws.classList.remove('stream-versions-in-header');
  }
  function journalVersions(ws,right){
   let nav=$('nav.module-heading-versions[data-version-journal]',right);
