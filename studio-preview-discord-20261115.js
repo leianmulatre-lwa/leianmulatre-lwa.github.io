@@ -32,6 +32,7 @@
     #studioApp .biglwa-skeleton-hub .biglwa-discord-invite {margin:3px 0 7px;justify-self:start}
     #studioApp #moduleWorkspace[data-module-key="rooms"] .biglwa-discord-invite {margin:12px 0 16px}
     #studioApp .biglwa-discord-invite {display:flex;align-items:center;gap:9px;max-width:100%;width:fit-content;margin:12px 0;padding:9px 13px;border:1px solid #916a7b;border-radius:10px;background:#fbecdd;color:#602b43;font:700 12px/1.3 system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 0 #68334821}
+    #studioApp .biglwa-discord-invite[hidden] {display:none!important}
     #studioApp .biglwa-discord-invite:hover {background:#f6ded7;text-decoration:underline}
     #studioApp .biglwa-discord-invite:focus-visible {outline:3px solid #b35670;outline-offset:3px}
     #studioApp .biglwa-discord-invite small {font:500 11px/1.3 system-ui,sans-serif;opacity:.8}
@@ -74,7 +75,7 @@
         const activeRoom = workspace.querySelector('[data-room-mode="room"][aria-selected="true"],[data-room-mode="room"].active,[data-room-mode="room"].is-active');
         const mode = workspace.dataset.roomMode || workspace.querySelector('[data-room-mode-panel]:not([hidden])')?.dataset.roomModePanel;
         const loungeActive = !!selected || mode === 'lounge' || (!activeRoom && !mode && !tabs);
-        link.hidden = !loungeActive;
+        if (link.hidden === loungeActive) link.hidden = !loungeActive;
       }
     }
   }
