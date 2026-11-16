@@ -33,6 +33,16 @@ jobs:
         run: node scripts/performance/audit.mjs --check
       - name: Print read-only source audit
         run: node scripts/performance/audit.mjs --json > "${RUNNER_TEMP}/biglwa-performance-source-audit.json"
+      - name: Inventory release packaging (review-only, no deletion)
+        run: |
+          node --check scripts/performance/release-scope.mjs
+          node scripts/performance/release-scope.mjs --json > "${RUNNER_TEMP}/biglwa-pages-release-scope.json"
+      - name: Upload release scope inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: review-only-pages-release-scope
+          path: ${{ runner.temp }}/biglwa-pages-release-scope.json
+          retention-days: 21
       - name: Upload source audit (no member data)
         uses: actions/upload-artifact@v4
         with:
