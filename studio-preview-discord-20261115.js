@@ -21,9 +21,16 @@
     #loginPage .login-mini-dock {background:#f7e8da;padding:.7% 2.4%}
     #loginPage .login-mini-explore-toggle {min-width:0;flex:1;max-width:56%;text-align:left;border:1px solid #d8a9a2;border-radius:30px;background:#efe3d8;color:#682638;padding:1% 2.2%;font:700 clamp(6px,.77vw,12px)/1.1 system-ui,sans-serif}
     #loginPage .login-mini-top>small {margin-right:2%}
+    #loginPage .login-mini-top>b {letter-spacing:-.035em}
+    #loginPage .login-mini-card header small {display:inline-flex;align-items:center;gap:2px;font-size:0;letter-spacing:0}
+    #loginPage .login-mini-card header small::after {content:'● ● ●';font:700 clamp(5px,.55vw,8px)/1 monospace;letter-spacing:0;background:linear-gradient(90deg,#58a679 0 35%,#e1b74f 35% 67%,#de5b60 67%);background-clip:text;-webkit-background-clip:text;color:transparent}
+    #loginPage .login-mini-film i {border-width:2px;border-radius:3px;box-shadow:inset 0 0 9px #26141b44}
+    #loginPage .login-mini-aura-art {text-shadow:0 1px 5px #430b20aa}
     #loginPage .login-mini-radio {position:relative}
     #loginPage .login-mini-radio::before {content:'FM • NOW PLAYING';position:absolute;top:12%;left:6%;font:700 clamp(4px,.48vw,7px)/1 monospace;color:#72c989;letter-spacing:.09em}
     #loginPage .login-mini-radio::after {content:'◀    ▶    ▶▶';position:absolute;bottom:9%;left:28%;right:28%;border:1px solid #40654b;border-radius:3px;text-align:center;color:#8cde9c;background:#192b21;font:700 clamp(5px,.6vw,9px)/1.4 monospace}
+    #studioApp .biglwa-skeleton-hub .biglwa-discord-invite {margin:3px 0 7px;justify-self:start}
+    #studioApp #moduleWorkspace[data-module-key="rooms"] .biglwa-discord-invite {margin:12px 0 16px}
     #studioApp .biglwa-discord-invite {display:flex;align-items:center;gap:9px;max-width:100%;width:fit-content;margin:12px 0;padding:9px 13px;border:1px solid #916a7b;border-radius:10px;background:#fbecdd;color:#602b43;font:700 12px/1.3 system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 0 #68334821}
     #studioApp .biglwa-discord-invite:hover {background:#f6ded7;text-decoration:underline}
     #studioApp .biglwa-discord-invite:focus-visible {outline:3px solid #b35670;outline-offset:3px}
@@ -44,26 +51,31 @@
   function mount() {
     const studio = document.getElementById('studioApp');
     if (!studio) return;
-    const lounge = studio.querySelector('#moduleWorkspace[data-module-key="rooms"]');
-    if (lounge && !lounge.querySelector('[data-discord-location="lounge"]')) {
-      const scene = lounge.querySelector('.room-pixel-scene');
-      const anchor = scene || lounge.querySelector('.room-mode-tabs');
-      const link = makeLink('lounge');
-      if (anchor) anchor.insertAdjacentElement('afterend', link);
-      else lounge.append(link);
-    }
-    // The Skeleton Key may be re-rendered as Studio changes widgets.
-    const headings = studio.querySelectorAll('h1,h2,h3,.card-kicker,.widget-title');
-    for (const heading of headings) {
-      if (heading.textContent.trim().toLowerCase() !== 'skeleton key') continue;
-      const card = heading.closest('[data-widget-id],.studio-widget,.widget-card,.widget,article');
-      if (!card || card === studio || card.querySelector('[data-discord-location="skeleton"]')) continue;
+    // Target the actual Skeleton Key component, not a guessed widget heading.
+    const hub = studio.querySelector('.biglwa-skeleton-hub');
+    if (hub && !hub.querySelector('[data-discord-location="skeleton"]')) {
       const link = makeLink('skeleton');
-      link.style.margin = '10px 0';
-      const settings = [...card.querySelectorAll('a,button')].find(el=>el.textContent.trim().toLowerCase()==='settings');
-      if (settings) settings.insertAdjacentElement('afterend',link);
-      else heading.insertAdjacentElement('afterend',link);
-      break;
+      const title = hub.querySelector('.biglwa-skeleton-title');
+      if (title) title.insertAdjacentElement('afterend', link);
+      else hub.prepend(link);
+    }
+    // Lounge invitation stays in the Lounge view, not the private Room.
+    const workspace = studio.querySelector('#moduleWorkspace[data-module-key="rooms"]');
+    if (workspace) {
+      let link = workspace.querySelector('[data-discord-location="lounge"]');
+      const scene = workspace.querySelector('.room-pixel-scene');
+      const tabs = workspace.querySelector('.room-mode-tabs');
+      if (!link && (scene || tabs)) {
+        link = makeLink('lounge');
+        (scene || tabs).insertAdjacentElement('afterend', link);
+      }
+      if (link) {
+        const selected = workspace.querySelector('[data-room-mode="lounge"][aria-selected="true"],[data-room-mode="lounge"].active,[data-room-mode="lounge"].is-active');
+        const activeRoom = workspace.querySelector('[data-room-mode="room"][aria-selected="true"],[data-room-mode="room"].active,[data-room-mode="room"].is-active');
+        const mode = workspace.dataset.roomMode || workspace.querySelector('[data-room-mode-panel]:not([hidden])')?.dataset.roomModePanel;
+        const loungeActive = !!selected || mode === 'lounge' || (!activeRoom && !mode && !tabs);
+        link.hidden = !loungeActive;
+      }
     }
   }
   let queued = false;
@@ -73,7 +85,10 @@
     requestAnimationFrame(() => { queued = false; mount(); });
   }
   const observer = new MutationObserver(schedule);
-  observer.observe(document.documentElement,{childList:true,subtree:true});
+  observer.observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['aria-selected','class','data-room-mode','hidden']});
+  document.addEventListener('click', event => {
+    if (event.target?.closest?.('[data-room-mode]')) schedule();
+  });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded',mount,{once:true});
   else mount();
 })();
