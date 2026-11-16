@@ -72,7 +72,7 @@ test('Public home links to unique crawlable guides rather than only authenticati
  assert.match(home,/login-explore-intro/);
  assert.match(home,/Discover the platform/);
  for(const p of ['discover','online-games','fare-checker','live-shows','free-knowledge','free-tools']){
-  assert(home.includes('href=\\"/'+p+'/'),p+' link must be visible in homepage markup');
+  assert(home.includes('href="/'+p+'/'),p+' link must be visible in homepage markup');
   assert(sitemap.includes('https://biglwa.com/'+p+'/'),p+' indexed guide');
  }
  assert.match(home,/<link rel="canonical" href="https:\/\/biglwa.com\/">/);
