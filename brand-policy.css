@@ -1248,3 +1248,178 @@ body.about-site {
   #loginPage .login-public-footer nav,
   .policy-page .policy-public-footer nav{gap:10px 18px!important}
 }
+
+
+/* Login laptop: actual Studio-inspired public preview under Betty Boop. */
+#loginPage .login-screen-video{isolation:isolate}
+#loginPage .login-screen-video .login-studio-desktop{
+ position:absolute;inset:0;z-index:0;box-sizing:border-box;overflow:hidden;
+ display:flex;flex-direction:column;
+ background:#dbc5ae;color:#2f2827;opacity:1;pointer-events:none;
+ font:600 clamp(6px,.64vw,10px)/1.25 system-ui,sans-serif;
+}
+#loginPage .login-screen-video video{z-index:1!important;transition:opacity .22s ease,visibility .22s ease!important}
+#loginPage .login-laptop.is-studio-preview .login-screen-video video{
+ opacity:0!important;visibility:hidden!important;pointer-events:none!important
+}
+#loginPage .login-laptop.is-studio-preview .login-screen-video::after{
+ opacity:0!important;visibility:hidden!important;
+}
+#loginPage .login-laptop.is-studio-preview .login-laptop-copy,
+#loginPage .login-laptop.is-studio-preview .login-archive-credit,
+#loginPage .login-laptop.is-studio-preview .login-volume-toggle{
+ opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+}
+#loginPage .login-laptop.is-studio-preview .login-screen-video .login-studio-desktop{
+ pointer-events:auto!important
+}
+#loginPage .login-screen-video .login-mini-top{
+ display:flex;justify-content:space-between;align-items:center;
+ flex:0 0 auto;padding:1.5% 2.4%;gap:3%;
+ background:rgba(255,250,242,.85);border-bottom:1px solid rgba(114,78,74,.2);
+}
+#loginPage .login-mini-top>b{
+ font:400 clamp(10px,1.32vw,19px)/1 "CS Bergamot Stitched",Georgia,serif;
+ color:#581b2a;
+}
+#loginPage .login-mini-top>span{
+ flex:1;max-width:58%;background:#eee3d8;border:1px solid rgba(104,71,71,.18);
+ color:#76606b;padding:1% 2.2%;border-radius:20px;
+}
+#loginPage .login-mini-top>small{
+ color:#793b47;letter-spacing:.12em;font:850 clamp(5px,.56vw,8px)/1 monospace;
+}
+#loginPage .login-mini-content{
+ display:grid;grid-template-columns:14% minmax(0,1fr);flex:1;min-height:0;
+}
+#loginPage .login-mini-key{
+ display:flex;flex-direction:column;gap:9%;align-items:center;
+ padding:14% 5%;background:rgba(116,55,67,.25);
+ border-right:1px solid rgba(109,75,74,.23);
+ color:#442831;
+}
+#loginPage .login-mini-key>b{font-size:clamp(12px,2vw,27px)}
+#loginPage .login-mini-key span{font-size:clamp(5px,.56vw,9px)}
+#loginPage .login-mini-widgets{
+ display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ grid-template-rows:repeat(2,minmax(0,1fr));gap:2.1%;padding:2%;
+ min-width:0;min-height:0;
+}
+#loginPage .login-mini-card{
+ display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden;
+ border:1px solid rgba(88,61,56,.25);border-radius:6px;
+ background:rgba(255,248,239,.65);box-shadow:1px 2px 0 rgba(82,54,54,.08);
+}
+#loginPage .login-mini-card header{
+ display:flex;align-items:center;justify-content:space-between;
+ padding:4% 6%;background:rgba(117,65,69,.09);
+ font:400 clamp(9px,1.15vw,17px)/1 "CS Bergamot Stitched",Georgia,serif;
+ white-space:nowrap;
+}
+#loginPage .login-mini-card header small{
+ font:750 clamp(4px,.53vw,7px)/1 monospace;letter-spacing:-.12em;
+ color:#5c914f;
+}
+#loginPage .login-mini-aura-art{
+ display:grid;place-items:center;flex:1;
+ background:repeating-linear-gradient(92deg,rgba(44,0,14,.24) 0 7%,transparent 7% 15%),
+ linear-gradient(125deg,#7b071e,#cd5868 50%,#590d27);
+ color:#ffecdc;font:400 clamp(8px,.95vw,15px)/1 "CS Bergamot Stitched",Georgia,serif;
+}
+#loginPage .login-mini-feed .login-mini-film{
+ display:flex;flex:1;align-items:center;gap:3%;padding:5%;
+ background:linear-gradient(115deg,#34010e,#b80f32,#51010c);
+}
+#loginPage .login-mini-film i{
+ display:block;flex:1;height:72%;border:2px solid #30201e;border-radius:2px;
+ background:linear-gradient(35deg,#487085,#bfacc3 55%,#684440);
+}
+#loginPage .login-mini-feed p{
+ margin:0;padding:3%;color:#491d2c;text-align:center;
+ font:650 clamp(5px,.52vw,8px)/1.1 system-ui,sans-serif;
+}
+#loginPage .login-mini-screen{
+ display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;
+ gap:3%;background:radial-gradient(ellipse at center,#612432,#161019 75%);
+ color:#f5d2a3;font:600 clamp(9px,1.2vw,16px)/1 monospace;
+}
+#loginPage .login-mini-screen b{font:800 clamp(7px,.8vw,11px)/1 monospace}
+#loginPage .login-mini-screen span{font:600 clamp(5px,.52vw,8px)/1.2 monospace}
+#loginPage .login-mini-landscape{
+ flex:1;display:flex;justify-content:center;align-items:end;padding-bottom:8%;
+ background:linear-gradient(#7db4da 0 50%,#e9f5ee 50% 56%,#60a339 56% 78%,#317d37 78%);
+ color:#1c3e24;font:700 clamp(5px,.55vw,9px)/1 sans-serif;
+}
+#loginPage .login-mini-orbits{
+ flex:1;display:grid;place-items:center;letter-spacing:.04em;
+ background:radial-gradient(circle at 25% 35%,#d6abef,transparent 45%),
+ linear-gradient(140deg,#302150,#906298,#142d5d);
+ color:#fff1d0;font-size:clamp(10px,1.5vw,22px);
+}
+#loginPage .login-mini-radio{
+ flex:1;display:grid;place-items:center;padding:3%;
+ background:repeating-linear-gradient(0deg,#06150e 0 3px,#12201a 3px 5px);
+ color:#8bff9e;font:750 clamp(5px,.6vw,10px)/1.1 ui-monospace,monospace;
+}
+#loginPage .login-mini-dock{
+ display:flex;align-items:center;justify-content:space-between;
+ gap:8px;flex:0 0 auto;padding:.8% 2.5%;
+ background:rgba(255,249,238,.85);border-top:1px solid rgba(88,54,65,.2);
+ font-size:clamp(5px,.57vw,9px);
+}
+#loginPage .login-mini-cartoon-restore{
+ display:none;min-height:19px;padding:3px 8px;cursor:pointer;
+ border:1px solid #663a4e;border-radius:5px;background:#6d3c50;
+ color:#fff8ef;font:750 clamp(6px,.6vw,10px)/1.1 system-ui,sans-serif;
+ pointer-events:auto!important;
+}
+#loginPage .login-laptop.is-studio-preview .login-mini-cartoon-restore{
+ display:inline-flex;align-items:center;
+}
+#loginPage .login-cartoon-controls{
+ position:absolute;right:1.7%;top:1.8%;z-index:7;
+ display:flex;align-items:center;gap:4px;padding:3px 5px;
+ color:#f9e8dd;background:rgba(27,13,23,.72);
+ border:1px solid rgba(255,235,227,.28);border-radius:6px;
+ font:700 clamp(5px,.57vw,9px)/1.1 system-ui,sans-serif;
+ pointer-events:auto!important;
+}
+#loginPage .login-cartoon-controls[hidden],
+#loginPage .login-laptop.is-studio-preview .login-cartoon-controls{
+ display:none!important;
+}
+#loginPage .login-cartoon-controls>button{
+ display:grid;place-items:center;width:clamp(15px,1.45vw,23px);
+ height:clamp(15px,1.45vw,23px);
+ padding:0;border:1px solid rgba(255,255,255,.3);border-radius:50%;
+ cursor:pointer;color:#291522;
+ font:900 clamp(10px,1vw,16px)/1 sans-serif;
+ pointer-events:auto!important;
+}
+#loginPage .login-cartoon-minimize{background:#e9c84c}
+#loginPage .login-cartoon-close{background:#e76a6a}
+#loginPage .login-cartoon-controls button:focus-visible,
+#loginPage .login-mini-cartoon-restore:focus-visible{
+ outline:2px solid #ffecbe;outline-offset:2px;
+}
+#loginPage .login-laptop.is-preparing .login-cartoon-controls{opacity:0;pointer-events:none!important}
+@media(max-width:560px){
+ #loginPage .login-cartoon-controls>span{display:none}
+ #loginPage .login-cartoon-controls{gap:2px;top:1%;padding:2px}
+ #loginPage .login-mini-key{gap:6%}
+ #loginPage .login-mini-widgets{gap:2%}
+ #loginPage .login-mini-card{border-radius:3px}
+ #loginPage .login-mini-cartoon-restore{min-height:14px;padding:2px 5px;font-size:6px}
+}
+
+/* Public discovery remains visible even when the cartoon is dismissed. */
+#loginPage .login-explore-links .login-explore-intro{
+ flex:0 0 100%;display:block;margin:4px auto 6px;
+ color:#ffebdf;text-align:center;
+ font:700 clamp(11px,.95vw,14px)/1.35 system-ui,sans-serif;
+ letter-spacing:.025em;text-shadow:0 2px 9px rgba(20,0,8,.85);
+}
+#loginPage .login-explore-links a:first-of-type{
+ background:rgba(255,230,216,.13);border:1px solid rgba(255,237,228,.5);
+ border-radius:6px;padding:6px 10px;
+}

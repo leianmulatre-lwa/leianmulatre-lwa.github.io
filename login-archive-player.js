@@ -4,6 +4,57 @@
 
   const laptop = video.closest('.login-laptop');
   const loginPage = document.getElementById('loginPage');
+  const screen=video.closest('.login-screen-video');
+  // Public, simulated Studio desktop beneath the optional cartoon.
+  // No auth state, personal images, account data or interactive private widgets.
+  let setCartoonWindow=()=>{};
+  if(screen&&laptop){
+    const desktop=document.createElement('section');
+    desktop.className='login-studio-desktop';
+    desktop.setAttribute('aria-label','BIG LWA Studio interface preview');
+    desktop.setAttribute('aria-hidden','true');
+    desktop.innerHTML=
+      '<div class="login-mini-top"><b>✳ BIG LWA</b><span>⌕ explore people, ideas, sounds, self</span><small>STUDIO</small></div>'+
+      '<div class="login-mini-content">'+
+      '<aside class="login-mini-key"><b>⌑</b><span>studio</span><span>veve</span><span>stream</span><span>map</span><span>orbit</span></aside>'+
+      '<div class="login-mini-widgets">'+
+      '<article class="login-mini-card login-mini-aura"><header>✺ aura <small>● ● ●</small></header><div class="login-mini-aura-art">a bigger you.</div></article>'+
+      '<article class="login-mini-card login-mini-feed"><header>◉ myfeed <small>● ● ●</small></header><div class="login-mini-film"><i></i><i></i><i></i><i></i></div><p>your published pictures</p></article>'+
+      '<article class="login-mini-card login-mini-stream"><header>◎ stream <small>● ● ●</small></header><div class="login-mini-screen">♫ <b>LWA RADIO</b><span>on air · campus & world</span></div></article>'+
+      '<article class="login-mini-card login-mini-map"><header>⌖ map <small>● ● ●</small></header><div class="login-mini-landscape"><span>↗ plan · pin · explore</span></div></article>'+
+      '<article class="login-mini-card login-mini-orbit"><header>✧ orbit <small>● ● ●</small></header><div class="login-mini-orbits">✹　✦　✧　✷</div></article>'+
+      '<article class="login-mini-card login-mini-tunes"><header>♫ tunes <small>● ● ●</small></header><div class="login-mini-radio">88　·　92　·　96　·　100　·　104</div></article>'+
+      '</div></div>'+
+      '<div class="login-mini-dock"><span>people · ideas · sounds · self</span>'+
+      '<button type="button" class="login-mini-cartoon-restore" data-login-cartoon-restore>▶ Watch Betty Boop</button></div>';
+    screen.insertBefore(desktop,video);
+    const controls=document.createElement('div');
+    controls.className='login-cartoon-controls';
+    controls.setAttribute('role','group');
+    controls.setAttribute('aria-label','Cartoon video window controls');
+    controls.innerHTML=
+      '<span aria-hidden="true">Betty Boop · LWA TV</span>'+
+      '<button type="button" class="login-cartoon-minimize" aria-label="Minimize Betty Boop to see Studio preview" title="Minimize video">−</button>'+
+      '<button type="button" class="login-cartoon-close" aria-label="Close Betty Boop and see Studio preview" title="Close video">×</button>';
+    screen.append(controls);
+    laptop.dataset.cartoonWindow='open';
+    setCartoonWindow=state=>{
+      const showing=state==='open';
+      laptop.dataset.cartoonWindow=state;
+      laptop.classList.toggle('is-studio-preview',!showing);
+      desktop.setAttribute('aria-hidden',String(showing));
+      controls.hidden=!showing;
+      if(!showing){video.pause();}
+      else if(previewStarted){
+        const playing=video.play();
+        playing?.catch?.(()=>{});
+      }
+    };
+    controls.querySelector('.login-cartoon-minimize')?.addEventListener('click',()=>setCartoonWindow('minimized'));
+    controls.querySelector('.login-cartoon-close')?.addEventListener('click',()=>setCartoonWindow('closed'));
+    desktop.querySelector('[data-login-cartoon-restore]')?.addEventListener('click',()=>setCartoonWindow('open'));
+  }
+
   // The preview has a real introductory screen, not a second app-wide loader.
   // Delay requesting video until a signed-out visitor can actually see it.
   const INTRO_MS = 2600;
@@ -68,7 +119,7 @@
   };
 
   const play = () => {
-    if(!previewStarted)return;
+    if(!previewStarted||laptop?.dataset.cartoonWindow!=='open')return;
     const playback = video.play();
     if (playback && typeof playback.catch === 'function') playback.catch(() => {});
   };
@@ -90,12 +141,14 @@
   };
 
   video.addEventListener('ended', () => {
+    if(laptop?.dataset.cartoonWindow!=='open')return;
     failedAttempts = 0;
     loadEpisode(chooseEpisode(episodeIndex));
   });
 
   video.addEventListener('error', () => {
-    if (failedAttempts >= episodes.length - 1) return;
+    if (laptop?.dataset.cartoonWindow !== 'open') return;
+    if (failedAttempts >= episodes.length - 1) { setCartoonWindow('closed'); return; }
     failedAttempts += 1;
     loadEpisode((episodeIndex + 1) % episodes.length);
   });
