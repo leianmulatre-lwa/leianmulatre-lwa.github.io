@@ -41,14 +41,14 @@ function fixture(preview=false){
 }
 test('Map modes use existing route, place and saved-pin interfaces',()=>{
  const f=fixture();assert(f.rail,'Map purpose rail mounts');
- assert.deepEqual(f.controls.map(x=>x.dataset.mapPurpose),['routes','places','saved','music','connections']);
- f.controls[1].click();f.controls[2].click();f.controls[0].click();
+ assert.deepEqual(f.controls.map(x=>x.dataset.mapPurpose),['routes','places','culture','saved','music','connections']);
+ for(const id of ['places','saved','routes'])f.controls.find(x=>x.dataset.mapPurpose===id).click();
  assert.deepEqual(f.events,['nearby','saved','plan']);
  assert.equal(f.controls[0].getAttribute('aria-pressed'),'true');
  assert.equal(f.content.hidden,true);
 });
 test('Spotify Uber Lyft buttons show accurate readiness and working Studio links',()=>{
- const f=fixture();f.controls[4].click();
+ const f=fixture();f.controls.find(x=>x.dataset.mapPurpose==='connections').click();
  assert.equal(f.content.hidden,false);
  assert.match(f.content.textContent,/Uber/);
  assert.match(f.content.textContent,/Lyft/);
@@ -57,7 +57,7 @@ test('Spotify Uber Lyft buttons show accurate readiness and working Studio links
  const links=f.all().filter(n=>n.tagName==='A');
  assert.equal(links.filter(n=>n.href==='/studio/orbit').length,3);
  assert(links.filter(n=>n.href.startsWith('https://')).every(n=>n.rel==='noopener noreferrer'));
- f.controls[3].click();
+ f.controls.find(x=>x.dataset.mapPurpose==='music').click();
  assert.match(f.content.textContent,/college radio by state/);
  assert(f.all().some(n=>n.tagName==='A'&&n.href==='/studio/stream'));
  assert(!/access_token|client_secret/.test(f.content.textContent));
