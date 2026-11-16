@@ -1351,5 +1351,8 @@ window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,saveVe
    return out;
   },
   get state(){return {connected,uid:authUid,profile:connected?{...profile}:{}}},diagnostics:()=>({connected,boards:boards.length,pins:pins.length,originalPins:createdPins.length,hasMoreOriginals:Boolean(createdNext),selectedBoard:boardId,recentBoardIds:[...recentBoardIds],hasSession:Boolean(session()),busy,importError,diagnostic})};
+// Pack natural-height photos in the next open column; keep source records intact.
+import('/pinterest-masonry-20261116.js?v=20261116-pack-1')
+ .catch(error=>console.warn('[BIG LWA] Masonry layout unavailable:',error));
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 }());
