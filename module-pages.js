@@ -89,6 +89,8 @@
 
 
     #studioApp #map .studio-map-preview-slot{width:100%;min-width:0;overflow:hidden;padding:0;display:block}
+    #studioApp #map .studio-map-preview-slot .studio-map-still{display:block;width:100%;height:205px;max-height:205px;object-fit:cover;object-position:center;border:1px solid #a4b8ac;border-radius:14px;box-shadow:2px 3px 0 #9faf9d;pointer-events:none;user-select:none}
+
     #studioApp #map .studio-mini-map{display:block;width:100%;height:205px!important;min-height:205px;border:1px solid #a2b7ac;border-radius:14px;background:#d9e8dc;box-shadow:2px 3px 0 #9fae9b;overflow:hidden}
     #studioApp #map .studio-mini-map-caption{font:650 11px/1.4 system-ui,sans-serif;padding:5px 2px 1px;color:#6d736b}
     #studioApp #map .studio-mini-map-caption .studio-mini-map-open{display:inline-flex;padding:2px 5px;border:0;border-radius:5px;background:transparent;color:#8b3642;font:750 11px/1.3 system-ui,sans-serif;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
@@ -4422,42 +4424,28 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     if(!slot){
       slot=document.createElement('div');
       slot.className='studio-map-preview-slot';
-      slot.setAttribute('aria-label','Interactive street map preview with saved pins');
+      slot.setAttribute('aria-label','Map thumbnail. Open Map for interactive navigation.');
       const oldVisual=$('.studio-map-visual',mapCard),cta=$('.card-cta',mapCard);
       if(oldVisual)oldVisual.replaceWith(slot);
       else if(cta)cta.before(slot);else mapCard.appendChild(slot);
     }
-    // Real Leaflet map, as used by the full Map page. Do not redraw or reload
-    // the iframe on focus/scroll: doing so makes tile layers flicker or reset.
-    let mini=$('#biglwaStudioMiniMap',slot);
-    if(!mini){
-      slot.replaceChildren();
-      mini=document.createElement('iframe');
-      mini.id='biglwaStudioMiniMap';
-      mini.className='studio-mini-map';
-      mini.title='Interactive mini map — pan, zoom, and see saved locations';
-      mini.src='/map-app.html?embed=1&preview=1&v=20261114-inline-pinning-1';
-      mini.loading='eager';
-      mini.referrerPolicy='same-origin';
-      mini.setAttribute('allow','geolocation \'self\'');
-      slot.appendChild(mini);
-      const status=document.createElement('p');
-      status.className='studio-mini-map-caption';
-      status.textContent='Drag to explore · +/- to zoom';
-      slot.appendChild(status);
+    // Studio gets a stable decorative poster; the full Map page owns live
+    // Leaflet, location permissions and zoom. Never mount a nested map here.
+    const old=slot.querySelector('#biglwaStudioMiniMap');
+    if(old)old.remove();
+    slot.querySelectorAll('.biglwa-map-error-fallback,.studio-mini-map-caption').forEach(node=>node.remove());
+    let image=slot.querySelector('.studio-map-still');
+    if(!image){
+      image=document.createElement('img');
+      image.className='studio-map-still';
+      image.src='/assets/studio-defaults/map-bikini-bottom-fallback.webp';
+      image.alt='Illustrated tropical island map preview';
+      image.decoding='async';image.loading='lazy';
+      image.draggable=false;
+      slot.appendChild(image);
     }
-    const pins=readMapPreviewPins();
-    const caption=$('.studio-mini-map-caption',slot);
-    if(caption){
-      const message=pins.length
-        ?pins.length+' saved spot'+(pins.length===1?'':'s')+' · drag to explore'
-        :'Interactive map · drag to explore and zoom';
-      caption.innerHTML='<span>'+message+'</span> · <button type="button" class="studio-mini-map-open" data-open="map">Open full map ↗</button>';
-    }
-    if(mini.dataset.pinCount!==String(pins.length)){
-      mini.dataset.pinCount=String(pins.length);
-      if(mini.contentWindow)mini.contentWindow.postMessage({type:'biglwa:map-preview-refresh'},location.origin);
-    }
+    slot.setAttribute('aria-label','Decorative map preview. Open Map below for interactive navigation.');
+    mapCard.querySelectorAll('.studio-mini-map-open').forEach(el=>el.remove());
   }
 
   function enhanceStudioCards(){
