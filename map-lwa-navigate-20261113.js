@@ -50,6 +50,8 @@
   '<p id="mapNavStatus" role="status">Explore a real road route first to enable Go. No GPS tracking until you press Go.</p>'+
   '<div class="map-nav-next" hidden><span class="map-nav-distance" id="mapNavDistance"></span>'+
    '<strong id="mapNavNextText"></strong></div>'+
+  '<label class="map-nav-street-toggle"><input type="checkbox" id="mapNavLearnStreets"> Learn street names as I navigate</label>'+
+  '<p id="mapNavStreetGuide" class="map-nav-street-guide" hidden></p>'+
   '<ol class="map-nav-turns" id="mapNavTurns" hidden></ol>'+
   '<p class="map-nav-caveat">Navigation only runs while this page stays open. Check signs, closures and surroundings; never rely on the screen while cycling or driving.</p>';
  planner.append(controls);
@@ -58,6 +60,7 @@
  const speakInput=get('mapNavSpeakDestination'),replan=get('mapNavReplan');
  const status=get('mapNavStatus'),nextBox=controls.querySelector('.map-nav-next');
  const nextText=get('mapNavNextText'),distanceLabel=get('mapNavDistance'),list=get('mapNavTurns');
+ const learnStreets=get('mapNavLearnStreets'),streetGuide=get('mapNavStreetGuide');
  let planned=null,watchId=null,locMarker=null,voiceEnabled=false,offCount=0,lastFix=null;
  let announced=new Set(),navigationToken=0;
  const showStatus=text=>{status.textContent=text;};
@@ -85,6 +88,7 @@
   go.hidden=false;stopButton.hidden=true;go.disabled=!planned;replan.hidden=true;
   if(!silent)showStatus('Navigation stopped. Location tracking is off.');
   nextBox.hidden=true;
+  if(streetGuide)streetGuide.hidden=true;
   offCount=0;announced=new Set();
  }
  function routeReady(event){
@@ -167,6 +171,15 @@
   const meters=Math.round(metersBetween(where,target));
   const instruction=String(turn.instruction||'Continue along the route.');
   nextBox.hidden=false;nextText.textContent=instruction;
+  if(streetGuide){
+   const named=instruction.match(/(?:onto|along|towards?|via|on)\s+([A-Za-z0-9À-ÿ][\wÀ-ÿ .'-]{2,65})/i);
+   const road=named?.[1]?.replace(/\s+(?:in|after|before|for)\s+.*$/i,'').trim();
+   streetGuide.hidden=!learnStreets?.checked;
+   if(learnStreets?.checked)streetGuide.textContent=road?
+    'Street to recognize: '+road+'. Read the posted sign before the turn.':
+    'Read the next street sign; route instructions may differ from local signs.';
+  }
+
   distanceLabel.textContent=meters>1000?(meters/1000).toFixed(1)+' km to next instruction':
    Math.max(0,meters)+' m to next instruction';
   const id=planned.maneuvers.indexOf(turn);
@@ -198,6 +211,10 @@
   }catch{
    stop(true);showStatus('Could not start GPS. Check your device/browser permissions.');
   }
+ });
+ learnStreets?.addEventListener('change',()=>{
+  streetGuide.hidden=!learnStreets.checked;
+  if(learnStreets.checked)streetGuide.textContent='Street names come from the route instructions; confirm against road signs.';
  });
  stopButton.addEventListener('click',()=>stop());
  voiceButton.addEventListener('click',()=>{
