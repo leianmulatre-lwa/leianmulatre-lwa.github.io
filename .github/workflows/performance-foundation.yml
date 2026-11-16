@@ -37,6 +37,24 @@ jobs:
         run: |
           node --check scripts/performance/release-scope.mjs
           node scripts/performance/release-scope.mjs --json > "${RUNNER_TEMP}/biglwa-pages-release-scope.json"
+      - name: Stage public-only release (no deploy)
+        run: |
+          node --check scripts/performance/build-public-site.mjs
+          node scripts/performance/build-public-site.mjs --dry-run > "${RUNNER_TEMP}/biglwa-public-release-dry-run.json"
+          node scripts/performance/build-public-site.mjs --build > "${RUNNER_TEMP}/biglwa-public-release-build.json"
+          test -f dist/public/index.html
+          test -f dist/public/studio/index.html
+          test -f dist/public/map-app.html
+          test -f dist/public/legal/index.html
+          test ! -e dist/public/third_party
+          test ! -e dist/public/docs
+          test ! -e dist/public/.github
+      - name: Upload release manifest only (not site or private files)
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-release-build-report
+          path: ${{ runner.temp }}/biglwa-public-release-build.json
+          retention-days: 21
       - name: Upload release scope inventory
         uses: actions/upload-artifact@v4
         with:
