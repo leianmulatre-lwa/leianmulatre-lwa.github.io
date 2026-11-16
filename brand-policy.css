@@ -1411,3 +1411,15 @@ body.about-site {
  #loginPage .login-mini-card{border-radius:3px}
  #loginPage .login-mini-cartoon-restore{min-height:14px;padding:2px 5px;font-size:6px}
 }
+
+/* Public discovery remains visible even when the cartoon is dismissed. */
+#loginPage .login-explore-links .login-explore-intro{
+ flex:0 0 100%;display:block;margin:4px auto 6px;
+ color:#ffebdf;text-align:center;
+ font:700 clamp(11px,.95vw,14px)/1.35 system-ui,sans-serif;
+ letter-spacing:.025em;text-shadow:0 2px 9px rgba(20,0,8,.85);
+}
+#loginPage .login-explore-links a:first-of-type{
+ background:rgba(255,230,216,.13);border:1px solid rgba(255,237,228,.5);
+ border-radius:6px;padding:6px 10px;
+}
