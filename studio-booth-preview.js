@@ -10,7 +10,7 @@
  let sampleOffset=0,rotationTimer=null;
  const failedSamples=new Set();
  const privateView=()=>!document.documentElement.classList.contains('biglwa-preview-mode')&&!window.__biglwaPublicStorageView;
- const uid=()=>String(auth?.currentUser?.uid||window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'');
+ const uid=()=>String(auth?(auth.currentUser?.uid||''):(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||''));
  function boundary(){
   const next=uid();
   if(next!==owner){owner=next;captures=[];saved=[];}
