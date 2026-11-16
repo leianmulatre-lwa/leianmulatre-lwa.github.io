@@ -25,7 +25,6 @@ const byArea={};
 for(const file of files){
  const ext=path.extname(file.name).toLowerCase()||'(no extension)';
  const area=file.name.includes('/')?file.name.split('/')[0]:'(root files)';
- const next=map=>{map[file]=map[file]||{count:0,bytes:0};map[file].count++;map[file].bytes+=file.bytes;};
  byExtension[ext]??={count:0,bytes:0};byExtension[ext].count++;byExtension[ext].bytes+=file.bytes;
  byArea[area]??={count:0,bytes:0};byArea[area].count++;byArea[area].bytes+=file.bytes;
 }
