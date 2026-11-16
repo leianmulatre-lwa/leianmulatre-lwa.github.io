@@ -78,7 +78,7 @@
       {key:'saved',name:'▣ Saved pins',pane:savedPane},
       {key:'nearby',name:'◉ Nearby',pane:publicPane}
     ];
-    let activeTab='pin';
+    let activeTab='plan';
     const controls=tabs.map((item,i)=>{
       const button=document.createElement('button');button.type='button';
       button.className='map-action-tab';button.id='mapTab'+item.key;
