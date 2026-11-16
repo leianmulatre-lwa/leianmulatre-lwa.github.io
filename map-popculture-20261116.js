@@ -12,7 +12,7 @@
   {id:'warner',group:'Film & TV',emoji:'📺',name:'Warner Bros. Studio Tour',address:'3400 Warner Blvd, Burbank, CA 91505, USA',note:'The backlots, screen history and TV sets.',source:'https://www.wbstudiotour.com/tour/studio/'},
   {id:'apollo',group:'Culture',emoji:'🎤',name:'Apollo Historic Theater',address:'253 W 125th St, New York, NY 10027, USA',note:'Harlem landmark for Black performance and music history.',source:'https://www.apollotheater.org/contact-us'},
   {id:'motown',group:'Music',emoji:'🎙',name:'Motown Museum',address:'2648 W Grand Blvd, Detroit, MI 48208, USA',note:'Hitsville U.S.A.: soul music history and Studio A.',source:'https://www.motownmuseum.org/visit/'},
-  {id:'stax',group:'Music',emoji:'🎷',name:'Stax Museum',address:'926 E McLemore Ave, Memphis, TN 38106, USA',note:'The Stax Records legacy and American soul music.',source:'https://staxmuseum.com/visit/memphis/'},
+  {id:'stax',group:'Music',emoji:'🎷',name:'Stax Museum',address:'926 E McLemore Ave, Memphis, TN 38106, USA',note:'The Stax Records legacy and American soul music.',source:'https://staxmuseum.org/'},
   {id:'firstavenue',group:'Music',emoji:'🎸',name:'First Avenue',address:'701 N 1st Ave, Minneapolis, MN 55403, USA',note:'Independent music landmark in Minneapolis.',source:'https://first-avenue.com/venue/first-avenue/'},
   {id:'paisley',group:'Music',emoji:'💜',name:'Paisley Park',address:'7801 Audubon Rd, Chanhassen, MN 55317, USA',note:'Prince’s home, studio and creative world.',source:'https://www.paisleypark.com/'}
  ];
