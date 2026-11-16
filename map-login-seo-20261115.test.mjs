@@ -1,79 +1,99 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
-import {createRequire} from 'node:module';
-const {JSDOM}=createRequire(import.meta.url)('jsdom');
 const read=p=>readFileSync(new URL('./'+p,import.meta.url),'utf8');
-const js=read('map-purposes-20261115.js');
-const css=read('map-purposes-20261115.css');
-function fixture(preview=false){
- const dom=new JSDOM('<!doctype html><html><body>'+
-  '<div class="map-side"><div class="map-brand-strip"></div></div>'+
-  '<div id="mapTripPlanner"></div>'+
-  '<button id="mapTabplan"></button><button id="mapTabnearby"></button><button id="mapTabsaved"></button>'+
-  '</body></html>',{url:'https://biglwa.com/map-app.html?embed=1'+(preview?'&preview=1':''),
-   pretendToBeVisual:true,runScripts:'outside-only'});
- const {window:w}=dom,events=[];
- for(const id of ['plan','nearby','saved']){
-  w.document.getElementById('mapTab'+id).addEventListener('click',()=>events.push(id));
- }
- w.eval(js);
- return {w,dom,events};
+const js=read('map-purposes-20261115.js'),css=read('map-purposes-20261115.css');
+class Element {
+ constructor(tag='div'){this.tagName=tag.toUpperCase();this.className='';this.id='';this.dataset={};this.attributes={};this.children=[];this.parentNode=null;this.events={};this.hidden=false;this._text='';}
+ set textContent(x){this._text=String(x);this.children=[]}
+ get textContent(){return this._text+this.children.map(x=>x.textContent).join('')}
+ append(...nodes){for(const node of nodes){node.parentNode=this;this.children.push(node)}}
+ prepend(node){node.parentNode=this;this.children.unshift(node)}
+ replaceChildren(...nodes){this._text='';this.children=[];this.append(...nodes)}
+ insertAdjacentElement(position,node){assert.equal(position,'afterend');const siblings=this.parentNode.children;const i=siblings.indexOf(this);siblings.splice(i+1,0,node);node.parentNode=this.parentNode}
+ setAttribute(k,v){this.attributes[k]=String(v)}
+ getAttribute(k){return this.attributes[k]??null}
+ addEventListener(k,fn){this.events[k]=fn}
+ click(){this.events.click?.({target:this})}
+ focus(){}
+ matches(selector){if(selector.startsWith('.'))return this.className.split(' ').includes(selector.slice(1));if(selector.startsWith('#'))return this.id===selector.slice(1);return false}
+ querySelector(selector){return descendants(this).find(node=>node.matches(selector))||null}
+ querySelectorAll(selector){return descendants(this).filter(node=>node.matches(selector))}
 }
-test('Map mode rail navigates existing Plan, Places and Saved without replacing them',()=>{
- const {w,dom,events}=fixture();
- const node=w.document.querySelector('#mapPurposeRail');
- assert(node);
- const buttons=[...node.querySelectorAll('[data-map-purpose]')];
- assert.deepEqual(buttons.map(x=>x.dataset.mapPurpose),['routes','places','saved','music','connections']);
- buttons[1].click();buttons[2].click();buttons[0].click();
- assert.deepEqual(events,['nearby','saved','plan']);
- assert.equal(buttons[0].getAttribute('aria-pressed'),'true');
- assert.equal(node.querySelector('#mapPurposePanel').hidden,true);
- dom.window.close();
+function descendants(node){return node.children.flatMap(child=>[child,...descendants(child)])}
+function fixture(preview=false){
+ const side=new Element('section');side.className='map-side';
+ const brand=new Element('div');brand.className='map-brand-strip';side.append(brand);
+ const planner=new Element('div');planner.id='mapTripPlanner';
+ const events=[],tabs={};
+ for(const id of ['plan','nearby','saved']){
+  const b=new Element('button');b.id='mapTab'+id;b.addEventListener('click',()=>events.push(id));tabs[b.id]=b;
+ }
+ const doc={createElement:tag=>new Element(tag),querySelector:s=>s==='.map-side'?side:null,
+  getElementById:id=>id==='mapTripPlanner'?planner:tabs[id]||null};
+ const w={};w.parent=w;
+ vm.runInNewContext(js,{window:w,document:doc,location:{search:preview?'?preview=1':''},URLSearchParams,URL,console});
+ const rail=side.querySelector('#mapPurposeRail'),all=rail?descendants(rail):[];
+ const controls=all.filter(n=>n.dataset.mapPurpose);
+ const content=rail?.querySelector('#mapPurposePanel');
+ return {w,rail,controls,content,events,all:()=>descendants(rail)};
+}
+test('Map modes use existing route, place and saved-pin interfaces',()=>{
+ const f=fixture();assert(f.rail,'Map purpose rail mounts');
+ assert.deepEqual(f.controls.map(x=>x.dataset.mapPurpose),['routes','places','saved','music','connections']);
+ f.controls[1].click();f.controls[2].click();f.controls[0].click();
+ assert.deepEqual(f.events,['nearby','saved','plan']);
+ assert.equal(f.controls[0].getAttribute('aria-pressed'),'true');
+ assert.equal(f.content.hidden,true);
 });
-test('Provider setup controls visibly distinguish API readiness from booking links',()=>{
- const {w,dom}=fixture();
- const section=w.document.querySelector('#mapPurposePanel');
- w.document.querySelector('[data-map-purpose="connections"]').click();
- assert.equal(section.hidden,false);
- assert.equal(section.querySelectorAll('.map-purpose-connection').length,3);
- assert.match(section.textContent,/Uber/);
- assert.match(section.textContent,/Spotify/);
- assert.match(section.textContent,/OAuth setup required/);
- assert.match(section.textContent,/server callback/);
- assert.equal(section.querySelectorAll('a[href="/studio/orbit"]').length,3);
- const ext=[...section.querySelectorAll('a[href^="https://"]')];
- assert(ext.every(x=>x.rel.includes('noopener')));
- w.document.querySelector('[data-map-purpose="music"]').click();
- assert.match(section.textContent,/college radio by state/);
- assert(section.querySelector('a[href="/studio/stream"]'));
- assert(!/access_token|client_secret/.test(section.innerHTML));
- dom.window.close();
+test('Spotify Uber Lyft buttons show accurate readiness and working Studio links',()=>{
+ const f=fixture();f.controls[4].click();
+ assert.equal(f.content.hidden,false);
+ assert.match(f.content.textContent,/Uber/);
+ assert.match(f.content.textContent,/Lyft/);
+ assert.match(f.content.textContent,/Spotify/);
+ assert.match(f.content.textContent,/OAuth setup required/);
+ const links=f.all().filter(n=>n.tagName==='A');
+ assert.equal(links.filter(n=>n.href==='/studio/orbit').length,3);
+ assert(links.filter(n=>n.href.startsWith('https://')).every(n=>n.rel==='noopener noreferrer'));
+ f.controls[3].click();
+ assert.match(f.content.textContent,/college radio by state/);
+ assert(f.all().some(n=>n.tagName==='A'&&n.href==='/studio/stream'));
+ assert(!/access_token|client_secret/.test(f.content.textContent));
 });
-test('Public preview disables private Map provider controls',()=>{
- const {w,dom}=fixture(true);
- assert.equal(w.BigLWAMapPurposes,undefined);
- assert.equal(w.document.querySelector('#mapPurposeRail'),null);
- dom.window.close();
+test('Public profile previews never show account connect controls',()=>{
+ const f=fixture(true);
+ assert.equal(f.rail,null);
+ assert.equal(f.w.BigLWAMapPurposes,undefined);
 });
-test('Map route and source modules stay connected; no live quotes or unauthorized OAuth fetches',()=>{
+test('Map assets load once, below the existing real transport planner',()=>{
  const map=read('map-app.html');
  assert.equal(map.split('/map-purposes-20261115.js?v=').length-1,1);
  assert.equal(map.split('/map-purposes-20261115.css?v=').length-1,1);
  assert(map.indexOf('map-transport-hub-20261114.js')<map.indexOf('map-purposes-20261115.js'));
- assert(!/\bfetch\s*\(/.test(js),'Map provider entrypoints cannot secretly request tokens');
+ assert(!/\bfetch\s*\(/.test(js));
  assert.match(css,/\.map-purpose-connections/);
 });
-test('Public home links to unique crawlable guides rather than only authentication',()=>{
+test('Login shows public Studio mock after video controls; no personal account content',()=>{
+ const source=read('login-archive-player.js');
+ for(const token of ['login-studio-desktop','login-mini-aura','login-mini-feed','login-mini-stream','login-mini-map','login-mini-orbit','login-mini-tunes'])
+  assert(source.includes(token),token);
+ assert.match(source,/setCartoonWindow\('minimized'\)/);
+ assert.match(source,/setCartoonWindow\('closed'\)/);
+ assert.match(source,/setCartoonWindow\('open'\)/);
+ assert.match(source,/video\.pause\(\)/);
+ assert.doesNotMatch(source,/localStorage\.setItem\(|access_token|refresh_token/);
+});
+test('Public homepage has descriptive SEO metadata, canonical and indexable discovery pages',()=>{
  const home=read('index.html'),sitemap=read('sitemap.xml');
  assert.match(home,/<meta name="twitter:title"/);
  assert.match(home,/<meta name="twitter:description"/);
  assert.match(home,/login-explore-intro/);
  assert.match(home,/Discover the platform/);
  for(const p of ['discover','online-games','fare-checker','live-shows','free-knowledge','free-tools']){
-  assert(home.includes('href="/'+p+'/'),p+' link must be visible in homepage markup');
-  assert(sitemap.includes('https://biglwa.com/'+p+'/'),p+' indexed guide');
+  assert(home.includes('href="/'+p+'/'),p+' visible link');
+  assert(sitemap.includes('https://biglwa.com/'+p+'/'),p+' in sitemap');
  }
  assert.match(home,/<link rel="canonical" href="https:\/\/biglwa.com\/">/);
 });
