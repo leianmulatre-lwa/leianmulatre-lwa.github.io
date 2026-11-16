@@ -81,7 +81,7 @@ test('Login shows public Studio mock after video controls; no personal account c
   assert(source.includes(token),token);
  assert.match(source,/setCartoonWindow\('minimized'\)/);
  assert.match(source,/setCartoonWindow\('closed'\)/);
- assert.match(source,/setCartoonWindow\('open'\)/);
+ assert.match(source,/setCartoonWindow\(laptop\.dataset\.cartoonWindow==='open'\?'minimized':'open'\)/);
  assert.match(source,/video\.pause\(\)/);
  assert.doesNotMatch(source,/localStorage\.setItem\(|access_token|refresh_token/);
 });

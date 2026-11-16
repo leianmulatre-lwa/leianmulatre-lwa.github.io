@@ -1367,49 +1367,116 @@ body.about-site {
  background:rgba(255,249,238,.85);border-top:1px solid rgba(88,54,65,.2);
  font-size:clamp(5px,.57vw,9px);
 }
-#loginPage .login-mini-cartoon-restore{
- display:none;min-height:19px;padding:3px 8px;cursor:pointer;
- border:1px solid #663a4e;border-radius:5px;background:#6d3c50;
- color:#fff8ef;font:750 clamp(6px,.6vw,10px)/1.1 system-ui,sans-serif;
+/* The laptop already has three window dots. Make those same dots interactive
+   instead of layering a second cartoon toolbar over the opposite corner. */
+#loginPage .login-laptop .login-laptop-lights{
+ left:auto!important;right:15.6%!important;top:11.4%!important;
+ z-index:9!important;gap:clamp(2px,.3vw,5px)!important;
  pointer-events:auto!important;
 }
-#loginPage .login-laptop.is-studio-preview .login-mini-cartoon-restore{
- display:inline-flex;align-items:center;
+#loginPage .login-laptop .login-laptop-lights>button{
+ appearance:none;-webkit-appearance:none;
+ display:grid;place-items:center;flex:none;
+ width:clamp(18px,1.9vw,25px);height:clamp(18px,1.9vw,25px);
+ margin:0;padding:0;border:0;border-radius:50%;
+ background:transparent!important;box-shadow:none!important;
+ cursor:pointer;touch-action:manipulation;pointer-events:auto!important;
 }
-#loginPage .login-cartoon-controls{
- position:absolute;right:1.7%;top:1.8%;z-index:7;
- display:flex;align-items:center;gap:4px;padding:3px 5px;
- color:#f9e8dd;background:rgba(27,13,23,.72);
- border:1px solid rgba(255,235,227,.28);border-radius:6px;
- font:700 clamp(5px,.57vw,9px)/1.1 system-ui,sans-serif;
+#loginPage .login-laptop-lights>button::before{
+ content:"";display:block;width:clamp(9px,.92vw,13px);height:clamp(9px,.92vw,13px);
+ border:1px solid rgba(255,255,255,.43);border-radius:50%;
+ box-shadow:0 2px 5px rgba(0,0,0,.5);
+}
+#loginPage .login-laptop-lights>button.red::before{background:#e75b63}
+#loginPage .login-laptop-lights>button.yellow::before{background:#ecc349}
+#loginPage .login-laptop-lights>button.green::before{background:#59a56e}
+#loginPage .login-laptop-lights>button:hover::before{filter:brightness(1.13)}
+#loginPage .login-laptop-lights>button:focus-visible{
+ outline:2px solid #fff2d9!important;outline-offset:0;
+}
+#loginPage .login-laptop.is-preparing .login-laptop-lights{
+ pointer-events:none!important;
+}
+
+/* Search-intent links are discoverable HTML anchors, not a second strip under
+   the laptop. They appear in a curtain-and-card panel within Studio preview. */
+#loginPage .login-explore-links{display:none!important}
+#loginPage .login-screen-video .login-studio-desktop .login-explore-links.is-open{
+ position:absolute;inset:13% 4% 6% 17%;z-index:10;
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));
+ grid-auto-rows:minmax(0,auto);align-content:center;
+ gap:clamp(4px,.65vw,9px);width:auto!important;max-width:none!important;
+ margin:0!important;padding:clamp(8px,1.45vw,22px)!important;
+ box-sizing:border-box;overflow:auto;overscroll-behavior:contain;
+ border:1px solid rgba(255,234,220,.76);border-radius:9px;
+ background:linear-gradient(100deg,rgba(54,3,14,.87),rgba(87,7,23,.79)),
+  url("/assets/login-curtain-film-grain-v2.webp") center/cover no-repeat;
+ box-shadow:0 7px 21px rgba(13,0,4,.45),inset 0 0 0 2px rgba(255,245,225,.09);
  pointer-events:auto!important;
 }
-#loginPage .login-cartoon-controls[hidden],
-#loginPage .login-laptop.is-studio-preview .login-cartoon-controls{
- display:none!important;
+#loginPage .login-studio-desktop .login-explore-links .login-explore-intro{
+ grid-column:1/-1;flex:none;display:block;margin:0 0 2px!important;
+ color:#fff3e7!important;text-align:center;text-shadow:0 1px 4px #21020a;
+ font:400 clamp(9px,1.25vw,19px)/1.08 "CS Bergamot Stitched",Georgia,serif!important;
+ letter-spacing:.01em!important;
 }
-#loginPage .login-cartoon-controls>button{
- display:grid;place-items:center;width:clamp(15px,1.45vw,23px);
- height:clamp(15px,1.45vw,23px);
- padding:0;border:1px solid rgba(255,255,255,.3);border-radius:50%;
- cursor:pointer;color:#291522;
- font:900 clamp(10px,1vw,16px)/1 sans-serif;
- pointer-events:auto!important;
+#loginPage .login-studio-desktop .login-explore-links a,
+#loginPage .login-studio-desktop .login-explore-links a:first-of-type{
+ display:grid!important;place-items:center;min-width:0;
+ min-height:clamp(22px,2.8vw,37px);
+ padding:clamp(3px,.6vw,8px)!important;box-sizing:border-box;
+ border:1px solid rgba(155,67,77,.42)!important;border-radius:6px!important;
+ background:#f6eee4!important;box-shadow:2px 2px 0 rgba(22,0,8,.3);
+ color:#64182b!important;font:700 clamp(7px,.95vw,13px)/1.12 Georgia,serif!important;
+ letter-spacing:0!important;text-align:center;text-decoration:none!important;text-shadow:none!important;
 }
-#loginPage .login-cartoon-minimize{background:#e9c84c}
-#loginPage .login-cartoon-close{background:#e76a6a}
-#loginPage .login-cartoon-controls button:focus-visible,
-#loginPage .login-mini-cartoon-restore:focus-visible{
- outline:2px solid #ffecbe;outline-offset:2px;
+#loginPage .login-studio-desktop .login-explore-links a:hover,
+#loginPage .login-studio-desktop .login-explore-links a:focus-visible{
+ background:#ffe0d8!important;color:#4d0619!important;
+ outline:2px solid #fff2d9!important;outline-offset:0;
 }
-#loginPage .login-laptop.is-preparing .login-cartoon-controls{opacity:0;pointer-events:none!important}
+
+/* Use the existing search-like region in the mini Studio header to open
+   the tucked-away links; no extra landing-page navigation row. */
+#loginPage .login-mini-top>button.login-mini-explore-toggle{
+ flex:1;max-width:58%;min-width:0;box-sizing:border-box;
+ background:#f1e6db;border:1px solid rgba(129,33,51,.28);
+ color:#6d2433;padding:1% 2.2%;border-radius:20px;
+ font:650 clamp(7px,.71vw,11px)/1.15 system-ui,sans-serif;
+ text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ cursor:pointer;pointer-events:auto!important;
+}
+#loginPage .login-mini-top>button.login-mini-explore-toggle:hover,
+#loginPage .login-mini-top>button.login-mini-explore-toggle[aria-expanded="true"]{
+ background:#f9ded5;border-color:#a43d4d;
+}
+#loginPage .login-mini-top>button.login-mini-explore-toggle:focus-visible{
+ outline:2px solid #b12d48;outline-offset:1px;
+}
+#loginPage .login-screen-video .login-studio-desktop{background:#e8d6c4;color:#362126}
+#loginPage .login-mini-key{background:rgba(146,36,53,.19);color:#59182b}
+#loginPage .login-mini-dock{background:#f7e9dc;color:#5e2735}
 @media(max-width:560px){
- #loginPage .login-cartoon-controls>span{display:none}
- #loginPage .login-cartoon-controls{gap:2px;top:1%;padding:2px}
+ #loginPage .login-laptop .login-laptop-lights{
+  left:auto!important;right:15.1%!important;top:10.6%!important;gap:1px!important;
+ }
+ #loginPage .login-laptop .login-laptop-lights>button{
+  width:17px;height:17px;min-width:17px;min-height:17px;
+ }
+ #loginPage .login-laptop-lights>button::before{width:8px;height:8px}
  #loginPage .login-mini-key{gap:6%}
  #loginPage .login-mini-widgets{gap:2%}
  #loginPage .login-mini-card{border-radius:3px}
- #loginPage .login-mini-cartoon-restore{min-height:14px;padding:2px 5px;font-size:6px}
+ #loginPage .login-screen-video .login-studio-desktop .login-explore-links.is-open{
+  inset:12% 2% 4% 15%;padding:5px!important;gap:3px;
+  border-radius:4px;
+ }
+ #loginPage .login-studio-desktop .login-explore-links .login-explore-intro{
+  font-size:clamp(7px,2vw,10px)!important;
+ }
+ #loginPage .login-studio-desktop .login-explore-links a{
+  font-size:clamp(6px,1.55vw,8px)!important;min-height:19px;padding:2px!important;
+ }
 }
 
 /* Public discovery remains visible even when the cartoon is dismissed. */
