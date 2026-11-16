@@ -84,6 +84,7 @@ on:
       - 'visual-life-jobs.js'
       - 'module-version-header-20261026.js'
       - 'studio-uploaded-thumbnails-20261110.css'
+      - 'boards temp thumbnail/**'
       - 'studio-booth-preview.js'
       - 'booth-thumbnail-board-samples-20261116.test.mjs'
       - 'project-canvas.js'

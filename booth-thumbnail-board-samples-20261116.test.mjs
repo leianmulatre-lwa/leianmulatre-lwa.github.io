@@ -150,6 +150,16 @@ test('Reduced motion and hidden document pause rotation; failed samples are repl
  assert.match(css,/biglwa-booth-dark-20261110\.webp/);
 });
 
+
+test('Cloudflare release publishes every Boards/Booth placeholder photo, not only the scripts',()=>{
+ const builder=read('build-cloudflare-pages.mjs');
+ assert.match(builder,/'boards temp thumbnail'/,'Public image folder must be explicitly allowed in dist');
+ for(const src of sourceSamples){
+  const relative=src.replace('/boards%20temp%20thumbnail/','boards temp thumbnail/');
+  assert(builder.includes("'"+relative+"'"),'Builder must verify '+relative);
+ }
+});
+
 test('Both live Studio loaders cache-bust the revised artwork and Booth rotation script',()=>{
  for(const path of ['index.html','studio/index.html']){
   const s=read(path);
