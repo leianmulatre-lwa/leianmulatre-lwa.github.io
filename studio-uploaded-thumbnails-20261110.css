@@ -241,3 +241,26 @@ html.biglwa-preview-mode #studioApp #camera .booth-recent-film {display:none!imp
 @media(prefers-reduced-motion:reduce){
   #studioApp #feed #biglwaFeedHero *{transition:none!important}
 }
+/* 2026-11-16 · prioritize full portrait visibility inside the four fixed
+   film apertures. Frame positions and original curtain illustration stay put. */
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-hero-preview{
+ background:#1d1013!important;
+}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-hero-preview img {
+ object-fit:contain!important;
+ object-position:center center!important;
+ background:radial-gradient(ellipse at center,#46303b,#13090b)!important;
+}
+/* Journal initials sit on the front face, not beneath the cover art. */
+#studioApp #diary .diary-page{isolation:isolate!important}
+#studioApp #diary .diary-page .studio-journal-initial{
+ z-index:60!important;left:50%!important;top:33%!important;opacity:1!important;
+ mix-blend-mode:normal!important;pointer-events:none!important
+}
+/* LWA & ORDER art occupies its available Studio tile with no invented frame. */
+#studioApp #politc>.biglwa-politc-title-art{
+ display:block!important;width:min(99%,420px)!important;max-width:99%!important;
+ height:auto!important;max-height:none!important;object-fit:contain!important;
+ object-position:center!important;margin:5px auto 8px!important;
+ border:0!important;background:transparent!important;box-shadow:none!important
+}
