@@ -128,7 +128,7 @@ test('Public profile and account switches reveal only samples, never private cap
  assert(ui.preview().every(x=>sourceSamples.includes(x)));
  assert.equal(ui.strip().dataset.samplesOnly,'true');
  ui.setPublic(false);ui.setMember('person-b');await ui.refresh();
- assert(ui.preview().every(x=>sourceSamples.includes(x)),'Old member's photographs are gone');
+ assert(ui.preview().every(x=>sourceSamples.includes(x)),"Old member's photographs are gone");
  assert.match(css,/booth-recent-film:not\(\[data-samples-only="true"\]\)/);
  assert.match(css,/booth-recent-film\[data-samples-only="true"\]\s*\{display:grid!important\}/);
 });
