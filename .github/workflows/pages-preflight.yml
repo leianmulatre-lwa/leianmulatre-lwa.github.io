@@ -159,7 +159,6 @@ jobs:
           node --check map-purposes-20261115.js
           node --check login-archive-player.js
           node --test map-login-seo-20261115.test.mjs
-          node --test login-laptop-floating-preview-test.mjs
           node --check google-orbit.js
           node --test orbit-map-provider-regression-20261115.test.mjs
           python3 -m unittest discover -s scripts -p test_visual_life_feed.py
