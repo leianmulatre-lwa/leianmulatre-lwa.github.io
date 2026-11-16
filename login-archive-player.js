@@ -14,7 +14,7 @@
     desktop.setAttribute('aria-label','BIG LWA Studio interface preview');
     desktop.setAttribute('aria-hidden','true');
     desktop.innerHTML=
-      '<div class="login-mini-top"><b>✳ BIG LWA</b><span>⌕ explore people, ideas, sounds, self</span><small>STUDIO</small></div>'+
+      '<div class="login-mini-top"><b>✳ BIG LWA</b><button type="button" class="login-mini-explore-toggle" aria-controls="loginScreenExploreLinks" aria-expanded="false">⌕ explore BIG LWA</button><small>STUDIO</small></div>'+
       '<div class="login-mini-content">'+
       '<aside class="login-mini-key"><b>⌑</b><span>studio</span><span>veve</span><span>stream</span><span>map</span><span>orbit</span></aside>'+
       '<div class="login-mini-widgets">'+
@@ -25,34 +25,84 @@
       '<article class="login-mini-card login-mini-orbit"><header>✧ orbit <small>● ● ●</small></header><div class="login-mini-orbits">✹　✦　✧　✷</div></article>'+
       '<article class="login-mini-card login-mini-tunes"><header>♫ tunes <small>● ● ●</small></header><div class="login-mini-radio">88　·　92　·　96　·　100　·　104</div></article>'+
       '</div></div>'+
-      '<div class="login-mini-dock"><span>people · ideas · sounds · self</span>'+
-      '<button type="button" class="login-mini-cartoon-restore" data-login-cartoon-restore>▶ Watch Betty Boop</button></div>';
+      '<div class="login-mini-dock"><span>people · ideas · sounds · self</span><span>green ● restores TV</span></div>';
     screen.insertBefore(desktop,video);
-    const controls=document.createElement('div');
-    controls.className='login-cartoon-controls';
-    controls.setAttribute('role','group');
-    controls.setAttribute('aria-label','Cartoon video window controls');
-    controls.innerHTML=
-      '<span aria-hidden="true">Betty Boop · LWA TV</span>'+
-      '<button type="button" class="login-cartoon-minimize" aria-label="Minimize Betty Boop to see Studio preview" title="Minimize video">−</button>'+
-      '<button type="button" class="login-cartoon-close" aria-label="Close Betty Boop and see Studio preview" title="Close video">×</button>';
-    screen.append(controls);
+    // Reuse the three original laptop dots, instead of creating a second
+    // window-control bar on the opposite side of the picture.
+    const dots=laptop.querySelector('.login-laptop-lights');
+    const explore=loginPage?.querySelector('.login-explore-links');
+    const exploreToggle=desktop.querySelector('.login-mini-explore-toggle');
+    if(explore){
+      explore.id='loginScreenExploreLinks';
+      explore.hidden=true;
+      explore.setAttribute('aria-hidden','true');
+      desktop.append(explore); // Crawlable links stay in the DOM, but inside the screen.
+    }
+    const hideExplore=()=>{
+      if(!explore)return;
+      explore.hidden=true;
+      explore.classList.remove('is-open');
+      explore.setAttribute('aria-hidden','true');
+      exploreToggle?.setAttribute('aria-expanded','false');
+    };
     laptop.dataset.cartoonWindow='open';
     setCartoonWindow=state=>{
       const showing=state==='open';
       laptop.dataset.cartoonWindow=state;
       laptop.classList.toggle('is-studio-preview',!showing);
       desktop.setAttribute('aria-hidden',String(showing));
-      controls.hidden=!showing;
+      hideExplore();
       if(!showing){video.pause();}
       else if(previewStarted){
         const playing=video.play();
         playing?.catch?.(()=>{});
       }
+      const green=dots?.querySelector('button.green');
+      if(green){
+        green.setAttribute('aria-label',showing?'Switch laptop to Studio preview':'Restore Betty Boop on laptop');
+        green.title=showing?'Show Studio preview':'Restore Betty Boop';
+      }
     };
-    controls.querySelector('.login-cartoon-minimize')?.addEventListener('click',()=>setCartoonWindow('minimized'));
-    controls.querySelector('.login-cartoon-close')?.addEventListener('click',()=>setCartoonWindow('closed'));
-    desktop.querySelector('[data-login-cartoon-restore]')?.addEventListener('click',()=>setCartoonWindow('open'));
+    if(dots){
+      dots.removeAttribute('aria-hidden');
+      dots.setAttribute('role','group');
+      dots.setAttribute('aria-label','Laptop window controls');
+      for(const color of ['red','yellow','green']){
+        const original=dots.querySelector('span.'+color);
+        if(!original)continue;
+        const button=document.createElement('button');
+        button.type='button';
+        button.className=original.className;
+        button.dataset.loginWindowAction=color==='red'?'close':color==='yellow'?'minimize':'switch';
+        const label=color==='red'?'Close Betty Boop and show Studio':color==='yellow'?'Minimize Betty Boop and show Studio':'Switch laptop to Studio preview';
+        button.setAttribute('aria-label',label);
+        button.title=label;
+        original.replaceWith(button);
+        button.addEventListener('click',()=>{
+          if(color==='red')setCartoonWindow('closed');
+          else if(color==='yellow')setCartoonWindow('minimized');
+          else setCartoonWindow(laptop.dataset.cartoonWindow==='open'?'minimized':'open');
+        });
+      }
+    }
+    exploreToggle?.addEventListener('click',()=>{
+      if(!explore||laptop.dataset.cartoonWindow==='open')return;
+      const opening=explore.hidden;
+      hideExplore();
+      if(opening){
+        explore.hidden=false;
+        explore.classList.add('is-open');
+        explore.setAttribute('aria-hidden','false');
+        exploreToggle.setAttribute('aria-expanded','true');
+        explore.querySelector('a')?.focus();
+      }
+    });
+    explore?.addEventListener('keydown',event=>{
+      if(event.key==='Escape'){
+        hideExplore();
+        exploreToggle?.focus();
+      }
+    });
   }
 
   // The preview has a real introductory screen, not a second app-wide loader.
