@@ -702,7 +702,8 @@
     // media without CORS must keep playing directly without a WebAudio redirect.
     let musicAnalyser=null,musicAudioCtx=null,musicFrame=0;
     const eqBars=[...eq.querySelectorAll('i')];
-    const flatWave=()=>eqBars.forEach(bar=>{bar.style.transform='scaleY(.07)'});
+    const waveLevels=new Float32Array(eqBars.length);
+    const flatWave=()=>eqBars.forEach((bar,i)=>{waveLevels[i]=.04;bar.style.transform='scaleY(.04)'});
     const canAnalyze=()=>{
       const url=audio.currentSrc||audio.src;
       try{
@@ -720,7 +721,7 @@
         const source=musicAudioCtx.createMediaElementSource(audio);
         musicAnalyser=musicAudioCtx.createAnalyser();
         musicAnalyser.fftSize=256;
-        musicAnalyser.smoothingTimeConstant=.82;
+        musicAnalyser.smoothingTimeConstant=.94;
         source.connect(musicAnalyser);
         musicAnalyser.connect(musicAudioCtx.destination);
         return true;
@@ -741,8 +742,10 @@
         const hi=Math.max(lo+1,Math.floor(Math.pow((i+1)/eqBars.length,1.5)*bins.length));
         let sum=0;for(let j=lo;j<hi;j++)sum+=bins[j];
         const avg=sum/(hi-lo);
-        const height=Math.min(.79,Math.max(.07,.07+(avg/255)*.69));
-        eqBars[i].style.transform='scaleY('+height.toFixed(3)+')';
+        // Keep audio-reactive movement calm: modest amplitude and gradual change.
+        const target=Math.min(.53,Math.max(.04,.04+Math.pow(avg/255,1.15)*.49));
+        waveLevels[i]+=(target-waveLevels[i])*.13;
+        eqBars[i].style.transform='scaleY('+waveLevels[i].toFixed(3)+')';
       }
       musicFrame=requestAnimationFrame(frameWave);
     };

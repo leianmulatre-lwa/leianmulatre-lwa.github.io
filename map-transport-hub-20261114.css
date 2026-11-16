@@ -57,8 +57,10 @@ body.embedded.map-workspace-split .map-transport-trip-note{
  background:#f9f5f4;color:#765d6a!important;
  font:600 10px/1.5 system-ui,sans-serif!important;
 }
+/* Native details stays collapsed until explicitly opened: avoid an always-tall provider panel. */
+body.embedded.map-workspace-split .map-service-links:not([open]) > :not(summary){display:none!important}
 body.embedded.map-workspace-split .map-service-links{
- display:grid;gap:11px;margin:16px 0 0!important;padding:13px!important;
+ display:block;gap:11px;margin:16px 0 0!important;padding:13px!important;
  border:1px solid #e1d0d7!important;border-radius:14px!important;
  background:#fffaf8!important
 }
