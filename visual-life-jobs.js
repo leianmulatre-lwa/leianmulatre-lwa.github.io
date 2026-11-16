@@ -145,17 +145,11 @@ function ensure(root){
  return panel;
 }
 function ensureCard(root){
- const dir=$('.craft-directory',root);if(!dir||dir.querySelector('[data-craft-card="visual-life"]'))return;
- const tile=document.createElement('article');
- tile.className='craft-tile craft-tile-home visual-life-workshop-tile';
- tile.dataset.craftCard='visual-life';
- tile.innerHTML='<div class="craft-tile-eyebrow">BIG LWA ORIGINAL · WORK + LIFE</div>'+
- '<div class="craft-tile-icon craft-arcade-block" aria-hidden="true"><div class="craft-block-pair"><span class="craft-block-main"><span class="visual-life-icon">V<span>✺</span></span></span></div></div>'+
- '<h3>visual-life</h3><p>Creative work, everyday opportunity and accountable job discovery.</p>'+
- '<div class="craft-engine-credits">Visualizr family · Jobs</div><button type="button" data-visual-life-open>Find jobs →</button>';
- const visualizr=dir.querySelector('[data-craft-card="visualizr"]');
- if(visualizr)visualizr.insertAdjacentElement('afterend',tile);else dir.appendChild(tile);
+ // Job discovery remains available from Visualizr/Politic/L'wazi, but it is
+ // not an image or document editor. Keep the Workshop limited to actual tools.
+ root.querySelector('[data-craft-card="visual-life"]')?.remove();
 }
+
 function render(panel){
  const role=clean($('[name=role]',panel)?.value),where=clean($('[name=location]',panel)?.value);
  const note=$('.visual-life-source-note',panel),grid=$('.visual-life-job-grid',panel);
