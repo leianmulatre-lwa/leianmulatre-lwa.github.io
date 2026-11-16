@@ -89,6 +89,15 @@
 
 
     #studioApp #map .studio-map-preview-slot{width:100%;min-width:0;overflow:hidden;padding:0;display:block}
+    #studioApp #map .studio-map-preview-slot{position:relative!important;isolation:isolate;min-height:205px!important;border-radius:14px!important;overflow:hidden!important;background:#b2cad3!important}
+    #studioApp #map .studio-map-preview-slot .studio-map-still{display:block!important;width:100%!important;height:205px!important;object-fit:cover!important;object-position:center!important;filter:saturate(1.12) contrast(1.02)!important}
+    #studioApp #map .studio-map-scene{position:absolute;inset:0;z-index:2;pointer-events:none;color:#fff8e6;text-shadow:0 2px 5px #201220b8}
+    #studioApp #map .studio-map-scene-title{position:absolute;top:12px;left:13px;font:700 17px/1.2 Georgia,serif;letter-spacing:.015em;padding:5px 9px;background:#44212abe;border:1px solid #ffdfc38c;border-radius:8px}
+    #studioApp #map .studio-map-scene-sub{position:absolute;left:12px;bottom:13px;padding:7px 11px;border-radius:7px;background:#351b28d9;font:750 10px/1.2 system-ui,sans-serif;letter-spacing:.04em}
+    #studioApp #map .studio-map-scene-pin{position:absolute;display:grid;place-items:center;width:32px;height:32px;border:2px solid #fff6dd;border-radius:9px 9px 9px 2px;background:#91314c;box-shadow:0 3px 0 #5b2037,0 4px 13px #25132377;font:750 19px/1 Georgia,serif;transform:rotate(-8deg)}
+    #studioApp #map .studio-map-scene-pin--music{top:35%;left:25%}
+    #studioApp #map .studio-map-scene-pin--film{top:53%;right:22%;background:#c87f36}
+
     #studioApp #map .studio-map-preview-slot .studio-map-still{display:block;width:100%;height:205px;max-height:205px;object-fit:cover;object-position:center;border:1px solid #a4b8ac;border-radius:14px;box-shadow:2px 3px 0 #9faf9d;pointer-events:none;user-select:none}
 
     #studioApp #map .studio-mini-map{display:block;width:100%;height:205px!important;min-height:205px;border:1px solid #a2b7ac;border-radius:14px;background:#d9e8dc;box-shadow:2px 3px 0 #9fae9b;overflow:hidden}
@@ -4444,7 +4453,18 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       image.draggable=false;
       slot.appendChild(image);
     }
-    slot.setAttribute('aria-label','Decorative map preview. Open Map below for interactive navigation.');
+    // Culture/places badges are decorative context, not fake saved locations.
+    let scene=slot.querySelector('.studio-map-scene');
+    if(!scene){
+      scene=document.createElement('div');scene.className='studio-map-scene';
+      scene.setAttribute('aria-hidden','true');
+      scene.innerHTML='<span class="studio-map-scene-title">the world is a stage.</span>'+
+       '<span class="studio-map-scene-pin studio-map-scene-pin--music">♫</span>'+
+       '<span class="studio-map-scene-pin studio-map-scene-pin--film">✦</span>'+
+       '<span class="studio-map-scene-sub">⌖ routes · places · culture</span>';
+      slot.appendChild(scene);
+    }
+    slot.setAttribute('aria-label','Illustrated Map preview with culture and route motifs. Open Map below for interactive navigation.');
     mapCard.querySelectorAll('.studio-mini-map-open').forEach(el=>el.remove());
   }
 
