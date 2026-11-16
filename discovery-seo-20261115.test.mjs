@@ -80,13 +80,13 @@ test('Pages explicitly state native multiplayer, live-fare and live-show limitat
  assert.match(orbit,/permissions and supported endpoints/);
 });
 
-test('The login laptop shares user-selected manifesto, visible links and careful mobile styling',()=>{
+test('The login laptop uses approved on-your-terms copy, with no one-rule tagline',()=>{
  for(const file of ['index.html','studio/index.html','404.html','live-studio-shell.html']){
   const s=read(file);
-  assert.match(s,/a bigger you,<br><em>with control\.<\/em>/,file);
-  assert.match(s,/connect your platforms\. see your social body/,file);
-  assert.match(s,/class="login-laptop-copy"[\s\S]{0,800}<p class="login-manifesto-line">/,file);
-  assert.match(s,/one rule: the law starts with you/,file);
+  assert.match(s,/a bigger you,<br><em>on your terms\.<\/em>/,file);
+  assert.match(s,/connect your platforms\. see parts of your social body\. choose what grows with you\./,file);
+  assert.doesNotMatch(s,/<p class="login-manifesto-line">/,file);
+  assert.doesNotMatch(s,/one rule: the law starts with you/i,file);
   assert.match(s,/login-explore-links/,file);
   assert.match(s,/login-laptop-copy>p:not\(\.login-overline\):not\(\.login-manifesto-line\)/,file);
   assert.match(s,/login-explore-links a:focus-visible/,file);
@@ -94,7 +94,10 @@ test('The login laptop shares user-selected manifesto, visible links and careful
   assert.match(s,/user-search-results\.js\?v=20261115-discovery-intent-v3/,file);
   assert.match(s,/<meta name="theme-color" content="#250c17">/,file);
  }
- assert.match(read('live-studio-payload.html'),/A bigger you\.<br><em>With control\.<\/em>/);
+ const fallback=read('live-studio-payload.html');
+ assert.match(fallback,/A bigger you\.<br><em>On your terms\.<\/em>/);
+ assert.match(fallback,/Connect your platforms\. See parts of your social body\. Choose what grows with you\./);
+ assert.doesNotMatch(fallback,/one rule: the law starts with you/i);
 });
 
 test('Lwazi directs only relevant search intents to genuine public guides and Studio',()=>{
