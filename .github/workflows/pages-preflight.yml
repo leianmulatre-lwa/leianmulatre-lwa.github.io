@@ -41,6 +41,7 @@ on:
       - 'map-login-seo-20261115.test.mjs'
       - 'login-archive-player.js'
       - 'login-laptop-floating-preview-test.mjs'
+      - 'login-curtain-controls-20261115.test.mjs'
       - 'orbit-map-provider-regression-20261115.test.mjs'
       - 'config/orbit-provider-apps-20261115.json'
       - 'google-orbit.js'
@@ -158,7 +159,7 @@ jobs:
           node --test map-transport-hub-20261114.test.mjs
           node --check map-purposes-20261115.js
           node --check login-archive-player.js
-          node --test login-laptop-floating-preview-test.mjs
+          node --test login-curtain-controls-20261115.test.mjs
           node --test map-login-seo-20261115.test.mjs
           node --check google-orbit.js
           node --test orbit-map-provider-regression-20261115.test.mjs
