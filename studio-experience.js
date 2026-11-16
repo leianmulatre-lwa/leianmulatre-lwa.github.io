@@ -122,6 +122,11 @@
       #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(3n){animation-duration:.9s;animation-delay:.12s}
       #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(4n){animation-delay:.24s}
       @keyframes biglwa-eq-wave{0%,100%{transform:scaleY(.13)}25%{transform:scaleY(.83)}53%{transform:scaleY(.26)}76%{transform:scaleY(1.08)}}
+      /* Tiny true-audio waveform sits just above the progress rail. */
+      #studioApp .music-card.stereo-music-widget .stereo-eq{height:11px!important;min-height:11px!important;margin:2px 1px 0!important;align-items:end!important;overflow:hidden!important}
+      #studioApp .music-card.stereo-music-widget .stereo-eq i{height:100%!important;min-height:0!important;animation:none!important;transform:scaleY(.07);transform-origin:50% 100%;transition:transform .08s linear;will-change:transform}
+      #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i,
+      #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(n){animation:none!important}
       #studioApp .music-card .stereo-eq{height:22px!important;min-height:15px!important;align-items:end!important}
       #studioApp .music-card .stereo-eq i{height:85%!important;transform:scaleY(.18);will-change:transform}
       #studioApp .music-card .stereo-eq i:nth-child(3n){height:100%!important}
@@ -692,6 +697,70 @@
     const sync=()=>{const length=Number.isFinite(audio.duration)&&audio.duration>0?audio.duration:0;const current=Number.isFinite(audio.currentTime)?Math.max(0,audio.currentTime):0;const fraction=length?Math.max(0,Math.min(1,current/length)):0;progressBar.style.width=`${fraction*100}%`;progress.setAttribute('aria-valuenow',String(Math.round(fraction*100)));elapsed.textContent=timeLabel(current);durationLabel.textContent=timeLabel(length);progress.setAttribute('aria-valuetext',timeLabel(current)+' of '+timeLabel(length));progress.title=timeLabel(current)+' / '+timeLabel(length)};
     play.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();if(!audio.src){$('#studioTrackInput').click();setMusicStatus('Choose an audio file first.');return}if(audio.paused)audio.play().catch(()=>setMusicStatus('Playback needs another tap.'));else audio.pause()},{capture:true});
     audio.addEventListener('play',()=>{card.classList.add('is-playing');play.textContent='❚❚';play.setAttribute('aria-label','Pause track')});audio.addEventListener('pause',()=>{card.classList.remove('is-playing');play.textContent='▶';play.setAttribute('aria-label','Play track')});audio.addEventListener('ended',()=>{card.classList.remove('is-playing');play.textContent='▶';sync()});audio.addEventListener('timeupdate',sync);audio.addEventListener('loadedmetadata',sync);audio.addEventListener('durationchange',sync);audio.addEventListener('emptied',sync);sync();
+    // Match the waveform to the actual audio, not a synthetic loop.
+    // Source analysis is opt-in for same-origin / uploaded media; cross-origin
+    // media without CORS must keep playing directly without a WebAudio redirect.
+    let musicAnalyser=null,musicAudioCtx=null,musicFrame=0;
+    const eqBars=[...eq.querySelectorAll('i')];
+    const flatWave=()=>eqBars.forEach(bar=>{bar.style.transform='scaleY(.07)'});
+    const canAnalyze=()=>{
+      const url=audio.currentSrc||audio.src;
+      try{
+        const origin=new URL(url,location.href).origin;
+        return !/^https?:/i.test(url)||origin===location.origin||audio.crossOrigin==='anonymous';
+      }catch{return false}
+    };
+    const initAnalysis=()=>{
+      if(musicAnalyser)return true;
+      if(!canAnalyze())return false;
+      const AudioCtor=window.AudioContext||window.webkitAudioContext;
+      if(!AudioCtor)return false;
+      try{
+        musicAudioCtx=new AudioCtor();
+        const source=musicAudioCtx.createMediaElementSource(audio);
+        musicAnalyser=musicAudioCtx.createAnalyser();
+        musicAnalyser.fftSize=256;
+        musicAnalyser.smoothingTimeConstant=.82;
+        source.connect(musicAnalyser);
+        musicAnalyser.connect(musicAudioCtx.destination);
+        return true;
+      }catch(error){
+        console.info('[BIG LWA] Audio-reactive meter unavailable:',error?.message||error);
+        flatWave();return false;
+      }
+    };
+    const frameWave=()=>{
+      musicFrame=0;
+      if(audio.paused||audio.ended||!card.isConnected){flatWave();return}
+      if(!musicAnalyser){flatWave();return}
+      const bins=new Uint8Array(musicAnalyser.frequencyBinCount);
+      musicAnalyser.getByteFrequencyData(bins);
+      for(let i=0;i<eqBars.length;i++){
+        // Log-ish frequency slices keep bass and vocals readable at modest height.
+        const lo=Math.floor(Math.pow(i/eqBars.length,1.5)*(bins.length-1));
+        const hi=Math.max(lo+1,Math.floor(Math.pow((i+1)/eqBars.length,1.5)*bins.length));
+        let sum=0;for(let j=lo;j<hi;j++)sum+=bins[j];
+        const avg=sum/(hi-lo);
+        const height=Math.min(.79,Math.max(.07,.07+(avg/255)*.69));
+        eqBars[i].style.transform='scaleY('+height.toFixed(3)+')';
+      }
+      musicFrame=requestAnimationFrame(frameWave);
+    };
+    const startWave=()=>{
+      if(musicFrame)cancelAnimationFrame(musicFrame);
+      if(!initAnalysis()){flatWave();return}
+      musicAudioCtx?.resume?.().catch(()=>{});
+      musicFrame=requestAnimationFrame(frameWave);
+    };
+    const stopWave=()=>{
+      if(musicFrame){cancelAnimationFrame(musicFrame);musicFrame=0}
+      flatWave();
+    };
+    audio.addEventListener('play',startWave);
+    audio.addEventListener('pause',stopWave);
+    audio.addEventListener('ended',stopWave);
+    audio.addEventListener('emptied',stopWave);
+    flatWave();
     const seek=clientX=>{if(!audio.duration)return;const rect=progress.getBoundingClientRect();audio.currentTime=Math.max(0,Math.min(1,(clientX-rect.left)/rect.width))*audio.duration};
     progress.addEventListener('click',event=>seek(event.clientX));progress.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight'].includes(event.key)||!audio.duration)return;event.preventDefault();audio.currentTime=Math.max(0,Math.min(audio.duration,audio.currentTime+(event.key==='ArrowRight'?5:-5)))});
     // The rewind / forward keys were decorative spans. They now seek inside
