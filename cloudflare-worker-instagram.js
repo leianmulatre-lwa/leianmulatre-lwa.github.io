@@ -1,3 +1,4 @@
+import {PREVIEW_BYTES_MAX,PREVIEW_WIDTH,PREVIEW_MIME,validOriginalName,originalKey,derivativeKey,looksLikeWebp,verifyParent} from './media-derivative-policy.mjs';
 const INSTAGRAM_AUTHORIZE_URL = 'https://www.instagram.com/oauth/authorize';
 const INSTAGRAM_TOKEN_URL = 'https://api.instagram.com/oauth/access_token';
 const INSTAGRAM_GRAPH_URL = 'https://graph.instagram.com';
@@ -1264,7 +1265,7 @@ const MEDIA_MAX_VIDEO = 120 * 1024 * 1024;
 /* A profile picture is shown in a 34-106px circle, so it needs a far smaller ceiling than
    a wallpaper and is never a video. */
 const MEDIA_MAX_PHOTO = 8 * 1024 * 1024;
-const MEDIA_FOLDERS = { wallpaper: 'wallpapers', 'profile-photo': 'profile-photos', 'feed-image': 'feed-images', orbit: 'orbit' };
+const MEDIA_FOLDERS = { wallpaper: 'wallpapers', 'profile-photo': 'profile-photos', 'feed-image': 'feed-images', 'feed-image-variant': 'feed-image-variants', orbit: 'orbit' };
 
 function mediaFail(message, status = 400) { const error = new Error(message); error.publicMessage = message; error.status = status; throw error; }
 
@@ -1359,7 +1360,7 @@ async function mediaUser(request, env) {
 }
 
 function mediaSegment(pathname) {
-  const match = /^\/media\/(wallpaper|profile-photo|feed-image|orbit)(?:\/|$)/.exec(pathname);
+  const match = /^\/media\/(wallpaper|profile-photo|feed-image|feed-image-variant|orbit)(?:\/|$)/.exec(pathname);
   return match ? match[1] : '';
 }
 
@@ -1555,11 +1556,16 @@ async function mediaRoute(request, env) {
       methods: [
         'POST /media/wallpaper', 'GET /media/wallpaper/<uid>/<file>', 'DELETE /media/wallpaper/<uid>/<file>',
         'POST /media/profile-photo', 'GET /media/profile-photo/<uid>/<file>', 'DELETE /media/profile-photo/<uid>/<file>',
-        'POST /media/profile-music', 'GET /media/profile-music/<uid>', 'PATCH /media/profile-music/<uid>/<trackId>', 'POST /media/feed-image', 'GET /media/feed-image/<uid>/<file>', 'DELETE /media/feed-image/<uid>/<file>', 'POST /media/orbit-import (Instagram or Pinterest)', 'GET /media/orbit/<uid>/<file>'
+        'POST /media/profile-music', 'GET /media/profile-music/<uid>', 'PATCH /media/profile-music/<uid>/<trackId>', 'POST /media/feed-image-variant?original=<name>', 'GET /media/feed-image-variant/<uid>/<file>', 'POST /media/feed-image', 'GET /media/feed-image/<uid>/<file>', 'DELETE /media/feed-image/<uid>/<file>', 'POST /media/orbit-import (Instagram or Pinterest)', 'GET /media/orbit/<uid>/<file>'
       ]
     }, 200, request, env);
   }
   if (url.pathname === '/media/orbit-import' && request.method === 'POST') return orbitMediaImport(request, env);
+  if(request.method==='POST'&&url.pathname.replace(/\/$/,'')==='/media/feed-image-variant')
+    return mediaFeedImageVariantUpload(request,env,url);
+  if(segment==='feed-image-variant'&&request.method==='DELETE')
+    return json({error:'Delete the parent Feed image to remove its thumbnail.'},405,request,env);
+
   if (request.method === 'POST' && url.pathname.replace(/\/$/, '') === '/media/' + segment) {
     return mediaUpload(request, env, url, segment);
   }
@@ -1768,6 +1774,33 @@ async function mediaUpload(request, env, url, segment = 'wallpaper') {
   }, 200, request, env);
 }
 
+/* Optional owner-authorized, small WebP preview. An original is always
+   retained unchanged. Private wallpapers/profile photos are NOT accepted here.
+   No cross-account hash lookups, public indexes or external URL fetching. */
+async function mediaFeedImageVariantUpload(request,env,url){
+  const user=await mediaUser(request,env);
+  const sourceName=String(url.searchParams.get('original')||'');
+  if(!validOriginalName(sourceName))mediaFail('Invalid original Feed image name.',400);
+  const bucket=mediaBucket(env);
+  const parent=await bucket.head(originalKey(user.uid,sourceName));
+  if(!verifyParent(parent,user.uid))mediaFail('Only your original Feed image can receive a preview.',403);
+  const contentType=String(request.headers.get('Content-Type')||'').split(';')[0].trim().toLowerCase();
+  if(contentType!==PREVIEW_MIME)mediaFail('Choose a WebP thumbnail.',415);
+  const declared=Number(request.headers.get('Content-Length')||0);
+  if(declared>PREVIEW_BYTES_MAX)mediaFail('Thumbnail exceeds 512 KB.',413);
+  const bytes=await request.arrayBuffer();
+  if(bytes.byteLength<16||bytes.byteLength>PREVIEW_BYTES_MAX)mediaFail('Invalid thumbnail size.',413);
+  if(!looksLikeWebp(bytes))mediaFail('The thumbnail is not a WebP image.',415);
+  const key=derivativeKey(user.uid,sourceName);
+  await bucket.put(key,bytes,{
+    httpMetadata:{contentType:PREVIEW_MIME,cacheControl:'public, max-age=31536000, immutable'},
+    customMetadata:{uid:user.uid,kind:'feed-preview',original:sourceName,width:String(PREVIEW_WIDTH)}
+  });
+  return json({ok:true,key:user.uid+'/'+sourceName+'.w'+PREVIEW_WIDTH+'.webp',
+    url:url.origin+'/media/feed-image-variant/'+user.uid+'/'+sourceName+'.w'+PREVIEW_WIDTH+'.webp',
+    contentType:PREVIEW_MIME,width:PREVIEW_WIDTH,size:bytes.byteLength},200,request,env);
+}
+
 async function mediaServe(request, env, { key }, segment) {
   const bucket = mediaBucket(env);
   const object = await bucket.get(key);
@@ -1778,7 +1811,7 @@ async function mediaServe(request, env, { key }, segment) {
      wallpaper and a profile photo are read through a signed-in session instead, and are
      left out of shared caches. The key holds a random token either way, so a cached copy
      cannot be guessed at. */
-  headers.set('Cache-Control', (segment === 'feed-image' ? 'public, ' : 'private, ') + 'max-age=31536000, immutable');
+  headers.set('Cache-Control', ((segment === 'feed-image' || segment === 'feed-image-variant') ? 'public, ' : 'private, ') + 'max-age=31536000, immutable');
   headers.set('X-Content-Type-Options', 'nosniff');
   headers.set('ETag', object.httpEtag);
   const range = request.headers.get('Range');
@@ -1794,11 +1827,16 @@ async function mediaServe(request, env, { key }, segment) {
   return new Response(object.body, { status: 200, headers });
 }
 
-async function mediaDelete(request, env, { uid, key }) {
+async function mediaDelete(request, env, { uid, key, name }) {
   const user = await mediaUser(request, env);
   if (user.uid !== uid) mediaFail('You can only remove your own media.', 403);
   const bucket = mediaBucket(env);
   await bucket.delete(key);
+  // Owner requested deletion of the authentic Feed image; remove its
+  // derived thumbnail as well, never leave a publicly cacheable orphan.
+  if(key.startsWith('feed-images/')&&validOriginalName(name)){
+    await bucket.delete(derivativeKey(user.uid,name));
+  }
   return json({ ok: true, key }, 200, request, env);
 }
 
