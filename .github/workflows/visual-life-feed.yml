@@ -1,6 +1,13 @@
-name: Visual-Life jobs · manual vetted feed
+name: Visual-Life / Werk · reviewed multi-source jobs snapshot
 
 on:
+  # Refresh only owner-reviewed employer boards when the list changes on main.
+  # No unattended recurring job scraping; owner also has manual dispatch.
+  push:
+    branches: ["main"]
+    paths:
+      - "data/visual-life/searches.json"
+      - "data/visual-life/ats-boards.json"
   workflow_dispatch:
     inputs:
       search_term:
@@ -23,6 +30,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: visual-life-feed
@@ -41,15 +49,22 @@ jobs:
         with:
           python-version: '3.12'
       - name: Verify output schema without network
-        run: python3 -m unittest discover -s scripts -p test_visual_life_feed.py
+        run: |
+          python3 -m unittest discover -s scripts -p test_visual_life_feed.py
+          python3 -m unittest discover -s scripts -p test_visual_life_ats.py
       - name: Install local vendored MIT library
         run: pip install --disable-pip-version-check ./werk-main
-      - name: Run bounded job search (no proxies or API keys)
+      - name: Run bounded JobSpy searches (no proxies or API keys)
         env:
           JOB_TERM: ${{ inputs.search_term }}
           JOB_LOCATION: ${{ inputs.location }}
           JOB_SOURCE: ${{ inputs.source }}
-        run: python3 scripts/visual_life_feed.py --term "$JOB_TERM" --location "$JOB_LOCATION" --source "$JOB_SOURCE" --limit 10
+        run: |
+          if [ "${{ github.event_name }}" = "push" ]; then
+            python3 scripts/visual_life_feed.py --catalog data/visual-life/searches.json --ats data/visual-life/ats-boards.json
+          else
+            python3 scripts/visual_life_feed.py --term "$JOB_TERM" --location "$JOB_LOCATION" --source "$JOB_SOURCE" --limit 10
+          fi
       - name: Validate feed and commit only source records
         run: |
           python3 -m json.tool data/visual-life/jobs.json > /dev/null
@@ -60,3 +75,11 @@ jobs:
           fi
           git -c user.name="BIG LWA jobs feed" -c user.email="actions@users.noreply.github.com" commit -m "data(visual-life): publish verified JobSpy source results"
           git push origin HEAD:main
+          echo "JOBSPY_FEED_UPDATED=1" >> "$GITHUB_ENV"
+      # A GITHUB_TOKEN git push does not trigger ordinary push workflows.
+      # Workflow dispatch is explicitly exempt, so the new jobs.json reaches Pages.
+      - name: Publish updated JobSpy snapshot to GitHub Pages
+        if: env.JOBSPY_FEED_UPDATED == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy-pages.yml --ref main

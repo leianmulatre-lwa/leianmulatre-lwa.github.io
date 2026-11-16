@@ -186,3 +186,16 @@ body.night-mode #bl-studio-search-results .bl-lwazi-map-promo{
  #bl-studio-search-results .bl-lwazi-promo-art{min-height:90px!important;max-height:100px!important}
  #bl-studio-search-results .bl-lwazi-map-card{grid-column:span 1!important}
 }
+
+/* L'wazi route results remain in the same search card. Give the route
+   enough vertical room after a person submits the directions form. */
+#bl-studio-search-results .bl-lwazi-map-stage.bl-lwazi-route-active{
+ height:clamp(330px,48vw,510px)!important;
+ transition:height .22s ease-out!important;
+}
+#bl-studio-search-results .bl-lwazi-map-card .bl-trip-note{
+ min-height:16px!important;margin-top:9px!important;overflow-wrap:anywhere!important;
+}
+@media(max-width:650px){
+ #bl-studio-search-results .bl-lwazi-map-stage.bl-lwazi-route-active{height:330px!important}
+}

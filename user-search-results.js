@@ -6,7 +6,7 @@
     function localUsers(q){var out=[];try{var v=JSON.parse(localStorage.getItem('biglwaUserDirectory')||'[]');if(Array.isArray(v))out=out.concat(v)}catch(e){}if(Array.isArray(window.__biglwaUsers))out=out.concat(window.__biglwaUsers);var seen={};return out.filter(function(u){var key=String(u&&u.username||'').toLowerCase();if(seen[key]||!key||/private/i.test(String(u.accountVisibility||u.visibility||u.privacy||'')))return false;if(String(u.username||u.name||'').toLowerCase().indexOf(q)==-1)return false;seen[key]=1;return true}).slice(0,8)}
     async function searchUsers(q){var hits=[];try{if(window.BigLWAUserDirectory&&window.BigLWAUserDirectory.searchUsers)hits=await window.BigLWAUserDirectory.searchUsers(q)}catch(e){}if(!hits.length)hits=localUsers(q);return hits.slice(0,8)}
     async function fetchJSON(url){var controller=new AbortController(),stop=setTimeout(function(){controller.abort()},7000);try{var response=await fetch(url,{signal:controller.signal,headers:{Accept:'application/json'}});if(!response.ok)throw Error('Search source unavailable');return await response.json()}finally{clearTimeout(stop)}}
-    var sourceLibraryPromise=fetchJSON('/lwazi-source-library-v02.json?v=20261105-v02').catch(function(){return null});
+    var sourceLibraryPromise=fetchJSON('/lwazi-source-library-v02.json?v=20261114-risk-context-v3').catch(function(){return null});
     function sourceLibraryMatches(library,q){if(!library||!Array.isArray(library.public_sources))return [];var needle=String(q||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();var stop={what:1,when:1,where:1,which:1,whose:1,can:1,could:1,would:1,should:1,help:1,explore:1,search:1,lwazi:1,please:1,about:1,with:1,from:1,that:1,there:1,these:1,those:1,does:1,have:1,more:1,just:1,thing:1,things:1,find:1,show:1,into:1,look:1};var words=needle.split(' ').filter(function(w){return w.length>2&&!stop[w]});if(!words.length)return [];return library.public_sources.map(function(source){var hay=[source.title,source.creator,source.topic,source.role,source.usage,source.notes].join(' ').toLowerCase();var score=words.reduce(function(total,word){return total+(hay.indexOf(word)!==-1?1:0)},0)+(hay.indexOf(needle)!==-1?4:0);return {source:source,score:score}}).filter(function(item){return item.score>0}).sort(function(a,b){return b.score-a.score||String(a.source.id).localeCompare(String(b.source.id))}).slice(0,6).map(function(item){return item.source})}
     function sourceLibraryCard(source){var access=String(source.access||'Public source').replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase()});return '<article class="bl-search-card bl-source-card"><div class="bl-search-card-body"><span class="bl-search-kicker">'+esc(/official|government|clinical|medical|legal|regulator/i.test(String(source.role||'')+' '+String(source.topic||''))?'Official or clinical reference':'Community and academic research')+'</span><h3>'+esc(source.title||'Research source')+'</h3><p class="bl-search-muted">'+esc(source.creator||'Community or academic source')+' \u00b7 '+esc(access)+'</p><p>'+esc(source.usage||source.topic||'')+'</p><a class="bl-search-go" href="'+esc(source.url)+'" target="_blank" rel="noopener noreferrer">Open source &#8594;</a></div></article>'}
     async function searchWikipedia(q){var data=await fetchJSON('https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch='+encodeURIComponent(q)+'&format=json&origin=*');return (data.query&&data.query.search||[]).slice(0,5)}
@@ -61,11 +61,16 @@
       var cover=bookCover(b),meta=(b.author_name||[]).slice(0,2).join(', ')+(b.first_publish_year?' · '+b.first_publish_year:'');
       var path=String(b.key||'');
       var libraryUrl=/^\/(?:works|books)\/[a-zA-Z0-9_-]+$/.test(path)?'https://openlibrary.org'+path:'';
-      return '<article class="bl-search-card bl-media-card bl-search-book'+(cover?'':' bl-book-no-cover')+'"'+(libraryUrl?' data-bl-destination="'+esc(libraryUrl)+'"':'')+'>'+
+      return '<article class="bl-search-card bl-media-card bl-search-book'+(cover?'':' bl-book-no-cover')+'"'+
+        ' data-bl-book-key="'+esc(path)+'" data-bl-book-title="'+esc(b.title||'Untitled')+
+        '" data-bl-book-author="'+esc((b.author_name||[]).slice(0,3).join(', '))+
+        '" data-bl-book-year="'+esc(b.first_publish_year||'')+
+        '" data-bl-book-cover="'+esc(cover)+'"'+
+        (libraryUrl?' data-bl-destination="'+esc(libraryUrl)+'"':'')+'>'+
         (cover?'<img class="bl-search-card-media" src="'+esc(cover)+'" alt="Cover of '+esc(b.title||'this book')+'" loading="lazy">':'')+
         '<div class="bl-search-card-body"><span class="bl-search-kicker veve-eyebrow">Book</span><h3>'+esc(b.title||'Untitled')+'</h3>'+
         '<p class="bl-search-muted">'+esc(meta)+'</p>'+
-        internalButton('Open in Library','library')+
+        '<button type="button" class="bl-search-go bl-search-route bl-search-primary-action" data-lwazi-route="library" data-lwazi-book-open="1">Open in Library &#8599;</button>'+
         '</div></article>';
     }
     function songCard(s){
@@ -104,7 +109,7 @@
       if(/^all$/i.test(title))return '<span class="bl-veve-symbol" aria-hidden="true">✺</span>';
       if(/^images?$/i.test(title))return '<img src="/assets/feed-symbol-generated.png" alt="" loading="lazy">';
       if(/^herstory$/i.test(title))return '<span class="bl-herstory-symbol" aria-hidden="true">'+sectionSymbol('Books')+'</span>';
-      var type=/image/i.test(title)?'feed':/politic/i.test(title)?'politc':/research/i.test(title)?'research':/book/i.test(title)?'library':/stream|video|cinema/i.test(title)?'stream':/sqwidz/i.test(title)?'notes':/user|people/i.test(title)?'connect':/song/i.test(title)?'music':/place|map/i.test(title)?'map':/widget/i.test(title)?'studio':'archive';
+      var type=/jobs?|career/i.test(title)?'tools':/image/i.test(title)?'feed':/politic/i.test(title)?'politc':/research/i.test(title)?'research':/book/i.test(title)?'library':/stream|video|cinema/i.test(title)?'stream':/sqwidz/i.test(title)?'notes':/user|people/i.test(title)?'connect':/song/i.test(title)?'music':/place|map/i.test(title)?'map':/widget/i.test(title)?'studio':'archive';
       if(type==='politc')return '<img src="/assets/politc-nyame-baatanpa.svg" alt="" loading="lazy">';
       if(type==='research')return '<img src="/assets/tools-hand-eye.svg" alt="" loading="lazy">';
       var selectors=[
@@ -151,7 +156,75 @@
     window.addEventListener('resize',fitSearchPanel);
     new MutationObserver(fitSearchPanel).observe(document.body,{attributes:true,attributeFilter:['class']});
     function section(title,cards,category){if(!cards||!cards.length)return '';var ui=window.__biglwaLwaziSearchUi;var markup=cards.map(function(card,i){return ui&&ui.decorateCard?ui.decorateCard(card,i,title):card});return '<section class="bl-search-section" data-bl-category="'+esc(category||'research')+'" id="'+sectionId(title)+'"><h2><span class="bl-search-section-icon" aria-hidden="true">'+sectionSymbol(title)+'</span>'+esc(title)+'</h2><div class="bl-search-grid">'+markup.join('')+'</div></section>'}
-    function renderAnswer(target,value){if(!target)return;var html=esc(String(value==null?'':typeof value==='object'?(value.answer||value.text||'No answer available.'):value));html=html.replace(/\*\*([^*\n]+)\*\*/g,'<strong>$1</strong>').replace(/(^|[\s(])\*([^*\n]+)\*(?=\s|[.,;!?)]|$)/g,'$1<em>$2</em>');html=html.replace(/\n\n+/g,'</p><p>').replace(/\n/g,'<br>');target.innerHTML='<p>'+html+'</p>'}
+    // Safe, small Markdown renderer for model answers and chat follow-ups.
+    // Escape source text before introducing our own markup; no raw model HTML is trusted.
+    function lwaziInline(raw){
+      var source=String(raw||''),out='',from=0;
+      var tokens=/\*\*([^*\n]+)\*\*|__([^_\n]+)__|(?<!\*)\*([^*\n]+)\*(?!\*)|(?<!_)_([^_\n]+)_(?!_)|`([^`\n]+)`|\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)/g;
+      var hit;
+      while((hit=tokens.exec(source))){
+        out+=esc(source.slice(from,hit.index));
+        if(hit[1]!=null||hit[2]!=null)out+='<strong>'+esc(hit[1]||hit[2])+'</strong>';
+        else if(hit[3]!=null||hit[4]!=null)out+='<em>'+esc(hit[3]||hit[4])+'</em>';
+        else if(hit[5]!=null)out+='<code>'+esc(hit[5])+'</code>';
+        else if(hit[6]!=null){
+          var href='';try{var u=new URL(hit[7]);if(/^https?:$/.test(u.protocol))href=u.href}catch(e){}
+          out+=href?'<a href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">'+esc(hit[6])+'</a>':esc(hit[0]);
+        }
+        from=tokens.lastIndex;
+      }
+      return out+esc(source.slice(from));
+    }
+    function renderAnswer(target,value){
+      if(!target)return;
+      var raw=String(value==null?'':typeof value==='object'?(value.answer||value.text||'No answer available.'):value).replace(/\r\n?/g,'\n');
+      var parts=[],block=[],bullets=[];
+      function flushBullets(){if(bullets.length){parts.push('<ul>'+bullets.map(function(line){return '<li>'+lwaziInline(line)+'</li>'}).join('')+'</ul>');bullets=[]}}
+      function flushBlock(){if(block.length){parts.push('<p>'+block.map(lwaziInline).join('<br>')+'</p>');block=[]}}
+      raw.split('\n').forEach(function(line){
+        var item=line.match(/^\s*(?:[-•]|\d+[.)])\s+(.+)$/);
+        if(item){flushBlock();bullets.push(item[1]);return}
+        flushBullets();
+        if(!line.trim()){flushBlock();return}
+        var heading=line.match(/^\s*#{1,3}\s+(.+)$/);
+        if(heading){flushBlock();parts.push('<p><strong>'+lwaziInline(heading[1])+'</strong></p>');return}
+        block.push(line);
+      });
+      flushBlock();flushBullets();
+      // Only recognized Markdown markers become markup; mathematical symbols remain text.
+      target.innerHTML=parts.join('')||'<p></p>';
+    }
+    function renderThreadReply(node,value){renderAnswer(node,value);var prefix=document.createElement('strong');prefix.className='bl-lwazi-turn-prefix';prefix.textContent='L’wazi · ';node.prepend(prefix)}
+
+    // Photo previews stay within Studio. Genuine review data requires a licensed provider.
+    function renderLwaziPhotoPreview(host,query,items,images){
+      if(!host||!Array.isArray(items)||!images)return;
+      var placeIntent=/\b(?:where|place|places|near|nearby|visit|travel|trip|restaurant|cafe|coffee|hotel|museum|gallery|park|beach|landmark|shop|store|city|neighborhood|directions)\b/i.test(query);
+      var photos=items.filter(function(w){return w&&w.title&&typeof images[w.title]==='string'&&/^https:\/\/upload\.wikimedia\.org\//i.test(images[w.title])}).slice(0,3);
+      if(!photos.length){host.hidden=true;host.replaceChildren();return}
+      var gallery=document.createElement('div');gallery.className='bl-lwazi-photo-grid';
+      photos.forEach(function(w){
+        var article=document.createElement('article');article.className='bl-lwazi-photo-card';
+        var img=document.createElement('img');img.src=images[w.title];img.alt='Image related to '+w.title;img.loading='lazy';img.decoding='async';
+        var details=document.createElement('details');details.className='bl-lwazi-photo-details';
+        var summary=document.createElement('summary');summary.textContent=placeIntent?'Details & review links':'About this image';details.append(summary);
+        var info=document.createElement('p');info.textContent=plainSnippet(w.snippet||'').slice(0,200)||'See the encyclopedia article for background.';details.append(info);
+        var source=document.createElement('a');source.href='https://en.wikipedia.org/wiki/'+encodeURIComponent(w.title.replace(/\s+/g,'_'));source.target='_blank';source.rel='noopener noreferrer';source.textContent='Wikipedia article ↗';details.append(source);
+        if(placeIntent){
+          var note=document.createElement('p');note.textContent='Ratings and reviews are not imported into BIG LWA yet. These are optional source links.';details.append(note);
+          [['Google Maps reviews','https://www.google.com/maps/search/?api=1&query='],['Yelp reviews','https://www.yelp.com/search?find_desc=']].forEach(function(pair){
+            var link=document.createElement('a');link.href=pair[1]+encodeURIComponent(w.title);link.target='_blank';link.rel='noopener noreferrer';link.textContent=pair[0]+' ↗';details.append(link);
+          });
+        }
+        var name=document.createElement('strong');name.textContent=w.title;
+        article.append(img,name,details);gallery.append(article);
+      });
+      var heading=document.createElement('h3');heading.textContent=placeIntent?'Places & photos':'Related photos';
+      var note=document.createElement('p');note.className='bl-lwazi-photo-credit';note.textContent='Image previews via Wikipedia / Wikimedia Commons. Open details here without leaving BIG LWA.';
+      host.replaceChildren(heading,gallery,note);host.hidden=false;
+    }
+
+
 
     // Bounded, first-party conversational responses. Complex questions remain with the model.
     // These do not claim consciousness, racial experience, or verified outside knowledge.
@@ -207,6 +280,10 @@
     var browserSessionPromise=null;
     // Simple identity, social, and mathematical prompts work even without inference.
     function fastLwaziResponse(q){
+      // Stable, evidence-backed public-interest grounding for identified
+      // harmful subcultures; independent of the selected free AI model.
+      var context=typeof window!=='undefined'?window.BigLWACriticalContext?.lookup(q):null;
+      if(context)return context.answer;
       var social=conversationIntent(q);
       if(social)return social.reply;
       if(/^(?:what is\s+)?2\s*\+\s*2\s*\??$/i.test(String(q||'').trim()))return '4';
@@ -267,7 +344,10 @@
       if(saved&&options.restore){
         lwaziMode=['npc','deep'].includes(saved.mode)?saved.mode:'off';syncLwaziMode();
       }
-      var historyId=saved?.id||history?.add(q,lwaziMode)||null;
+      // A pasted file URL can carry a short-lived signed access token.
+      // Do not quietly persist those URLs in L’wazi's searchable history.
+      var isFileLink=Boolean(window.BigLWALinkTools?.parse(q));
+      var historyId=isFileLink?null:(saved?.id||history?.add(q,lwaziMode)||null);
       activeHistoryId=historyId;
       var storedTurns=!options.modeChange&&saved&&Array.isArray(saved.turns)?saved.turns.slice():[];
       var submitInput=document.getElementById('globalSearch');
@@ -276,6 +356,9 @@
       if(navCommand&&window.BigLWANavigationCommands.navigate(navCommand)){close();return}
       var route=routeCommand(q);if(route){goRoute(route);return}
       mount(q);var current=panel;var clean=String(q).replace(/^@/,'').trim();
+      // Explicit HTTP(S) links receive purpose-specific file controls rather than
+      // being sent to general discovery/AI sources as search keywords.
+      if(window.BigLWALinkTools?.renderForQuery(current,clean))return;
       var mathResult=window.BigLWAMath?.solve(clean)||null;
       panel.innerHTML='<div class="bl-search-head"><article class="bl-lwazi-answer" role="status" aria-live="polite" hidden><div class="bl-lwazi-answer-body">L’wazi is thinking…</div></article><button type="button" class="bl-search-close" aria-label="Close search results">&#10005;</button></div><section class="bl-lwazi-conversation" aria-label="Continue talking with L’wazi" hidden><p class="bl-lwazi-conversation-label">Continue this conversation with L’wazi</p><div class="bl-lwazi-conversation-turns" role="log" aria-live="polite"></div><form class="bl-lwazi-continue-form"><input class="bl-lwazi-continue-input" type="text" maxlength="450" aria-label="Follow up with L’wazi" placeholder="Ask a follow-up…" autocomplete="off"><button class="bl-lwazi-continue-send" type="submit">Send ↗</button></form></section><nav class="bl-search-category-nav" aria-label="Search result categories"><button type="button" data-bl-match="all"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('All')+'</span>All</button><button type="button" data-bl-match="users"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('People')+'</span>People</button><button type="button" data-bl-match="sqwidz"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Sqwidz')+'</span>Sqwidz</button><button type="button" data-bl-match="books"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Books')+'</span>Books</button><button type="button" data-bl-match="songs"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Songs')+'</span>Songs</button><button type="button" data-bl-match="research"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Research')+'</span>Research</button><button type="button" data-bl-match="politics"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Politics')+'</span>Politics</button><button type="button" data-bl-match="stream"><span class="bl-search-tab-symbol" aria-hidden="true">'+sectionSymbol('Stream')+'</span>Stream</button></nav><div class="bl-search-loading">Finding people, books, songs and sources…</div>';
       panel.querySelector('.bl-search-close').addEventListener('click',close);
@@ -293,12 +376,34 @@
       // Only the selected NPC/Deep mode requests an answer. Search-only
       // never calls an AI provider or fabricates an assistant response.
       var aiActive=lwaziMode!=='off'&&!mathResult&&!options.imageOnly;
+      var criticalContext=!options.imageOnly?window.BigLWACriticalContext?.lookup(clean):null;
       var answerArea=current.querySelector('.bl-lwazi-answer');
       var answerBody=current.querySelector('.bl-lwazi-answer-body');
+      var photoPreview=document.createElement('section');photoPreview.className='bl-lwazi-inline-preview';photoPreview.setAttribute('aria-label','Related pictures and place details');photoPreview.hidden=true;answerArea.after(photoPreview);
       var threadArea=current.querySelector('.bl-lwazi-conversation');
       var turnArea=current.querySelector('.bl-lwazi-conversation-turns');
       var followForm=current.querySelector('.bl-lwazi-continue-form');
-      answerArea.hidden=!aiActive;threadArea.hidden=!aiActive;
+      answerArea.hidden=!aiActive&&!criticalContext;threadArea.hidden=!aiActive;
+      if(criticalContext){
+        if(!aiActive){
+          // Search-only remains provider-free; this is an authored safety
+          // context note, never a fabricated model answer.
+          answerArea.setAttribute('aria-label','Research context and safety');
+          renderAnswer(answerBody,criticalContext.answer);
+        }
+        const sources=document.createElement('nav');
+        sources.className='bl-lwazi-critical-sources';
+        sources.setAttribute('aria-label','Evidence on this topic');
+        const prefix=document.createElement('strong');
+        prefix.textContent='Research & context: ';
+        sources.append(prefix);
+        criticalContext.sources.forEach(function(source){
+          const a=document.createElement('a');
+          a.href=source.url;a.textContent=source.name;a.target='_blank';
+          a.rel='noopener noreferrer';sources.append(a);
+        });
+        answerArea.append(sources);
+      }
       var turns=storedTurns;
       if(aiActive&&!turns.length)turns=[{role:'user',text:clean}];
       function persistTurns(){
@@ -311,6 +416,7 @@
       function showTurns(){
         if(!turnArea)return;
         turnArea.replaceChildren();
+        if(threaded)threadArea.after(photoPreview);else answerArea.after(photoPreview);
         answerArea.hidden=!aiActive||threaded;
         if(!threaded){
           if(turns.at(-1)?.role==='assistant')renderAnswer(answerBody,turns.at(-1).text);
@@ -321,7 +427,8 @@
           card.className='bl-lwazi-turn';
           card.dataset.role=turn.role;
           card.dataset.latest=String(index===turns.length-1&&turn.role==='assistant');
-          card.textContent=(turn.role==='assistant'?'L’wazi · ':'You · ')+turn.text;
+          if(turn.role==='assistant')renderThreadReply(card,turn.text);
+           else card.textContent='You · '+turn.text;
           turnArea.appendChild(card);
         });
         turnArea.scrollTop=turnArea.scrollHeight;
@@ -356,7 +463,7 @@
             if(panel!==current||turns.at(-1)!==liveTurn)return;
             liveTurn.text=String(partial||'').slice(0,1200);
             var last=turnArea.lastElementChild;
-            if(last){last.textContent='L’wazi · '+liveTurn.text;turnArea.scrollTop=turnArea.scrollHeight}
+            if(last){renderThreadReply(last,liveTurn.text);turnArea.scrollTop=turnArea.scrollHeight}
           });
           if(panel!==current||turns.at(-1)!==liveTurn)return;
           liveTurn.text=String(response||'No answer available.').slice(0,1200);
@@ -364,7 +471,13 @@
           if(panel!==current||turns.at(-1)!==liveTurn)return;
           liveTurn.text=explainModelFailure(e)||'That reply did not come through. Ask me again.';
         }finally{
-          if(panel===current){persistTurns();showTurns();send.disabled=false;input.focus()}
+          if(panel===current){persistTurns();showTurns();send.disabled=false;input.focus();
+             if(/\b(?:where|places?|nearby|visit|travel|museum|gallery|restaurant|cafe|park|hotel|beach|show.*(?:photo|picture|image)|tell me about)\b/i.test(follow)){
+               searchWikipedia(follow).then(function(items){return wikipediaImages(items).then(function(images){return {items:items,images:images}})}).then(function(data){
+                 if(panel===current&&current.isConnected)renderLwaziPhotoPreview(photoPreview,follow,data.items,data.images);
+               }).catch(function(){});
+             }
+           }
         }
       });
       if(options.imageOnly||mathResult){
@@ -375,7 +488,7 @@
         return;
       }
       // One delegated handler for the canonical categories and their extended searches.
-      var extraTabs=[['images','Images'],['places','Places & Maps'],['herstory','Herstory'],['widgets','Widgets']];
+      var extraTabs=[['images','Images'],['places','Places & Maps'],['herstory','Herstory'],['jobs','Jobs'],['widgets','Widgets']];
       var extraNav=panel.querySelector('.bl-search-category-nav');
       extraTabs.forEach(function(tab){
         var b=document.createElement('button');b.type='button';b.dataset.blMatch=tab[0];
@@ -392,7 +505,7 @@
           if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
         });
         var sections=Array.from(current.querySelectorAll('.bl-search-section'));
-        var named={users:'BigLWA users',sqwidz:'Public Sqwidz',books:'Books',songs:'Songs',research:'Community-centered research sources',politics:'Politics & public life',stream:'Stream videos',widgets:'Studio widgets',places:'Places & Maps'};
+        var named={users:'BigLWA users',sqwidz:'Public Sqwidz',books:'Books',songs:'Songs',research:'Community-centered research sources',politics:'Politics & public life',stream:'Stream videos',widgets:'Studio widgets',places:'Places & Maps',jobs:'Job postings'};
         var sectionName=named[category];
         var matches=sections.filter(function(section){
           if(section.id===sectionId('SoundCloud'))return category==='songs';
@@ -404,7 +517,7 @@
         current.querySelectorAll('.bl-lwazi-map-promo').forEach(function(promo){promo.hidden=category!=='songs'});
         if(fromClick&&matches.length)matches[0].scrollIntoView({behavior:'smooth',block:'nearest'});
         // Categories are real search pages, not hidden redirects to widgets.
-        if(fromClick&&['songs','widgets','places','stream'].includes(category)){
+        if(fromClick&&['songs','widgets','places','stream','jobs'].includes(category)){
           renderDiscovery(discoveryParts);
         }
       }
@@ -426,13 +539,15 @@
       var conversation=conversationIntent(clean);
       var isSocialGreeting=lwaziMode!=='off'&&!!(conversation&&(conversation.kind==='greeting'||conversation.kind==='identity'));
       var immediate=lwaziMode==='off'?null:conversation?conversation.reply:fastLwaziResponse(clean);
-      if(immediate){var instantBox=current.querySelector('.bl-lwazi-answer-body');if(instantBox)instantBox.textContent=immediate}
+      if(immediate){var instantBox=current.querySelector('.bl-lwazi-answer-body');if(instantBox)renderAnswer(instantBox,immediate)}
       var userPromise=(isSocialGreeting?Promise.resolve([]):searchUsers(lc)).catch(function(){return []});
       var postPromise=userPromise.then(publicUserPosts).catch(function(){return []});
       var songPromise=(isSocialGreeting?Promise.resolve([]):searchSongs(clean)).then(function(items){return items.map(songCard)}).catch(function(){return []});
       var bookPromise=(isSocialGreeting?Promise.resolve([]):searchBooks(clean)).then(function(items){return items.map(bookCard)}).catch(function(){return []});
       var wikiDataPromise=(isSocialGreeting?Promise.resolve([]):searchWikipedia(clean)).catch(function(){return []});
-       var wikiPromise=wikiDataPromise.then(function(items){return Promise.all([wikipediaImages(items).catch(function(){return {}}),items])}).then(function(pair){var images=pair[0];return pair[1].map(function(w){return wikiCard(w,images[w.title],/film|movie|cinema|director/i.test(clean+' '+w.title)?'movie':'research')})}).catch(function(){return []});
+       var wikiDetailsPromise=wikiDataPromise.then(function(items){return wikipediaImages(items).then(function(images){return {items:items,images:images}})}).catch(function(){return {items:[],images:{}}});
+       var wikiPromise=wikiDetailsPromise.then(function(data){return data.items.map(function(w){return wikiCard(w,data.images[w.title],/film|movie|cinema|director/i.test(clean+' '+w.title)?'movie':'research')})}).catch(function(){return []});
+       if(aiActive){wikiDetailsPromise.then(function(data){if(panel!==current||!current.isConnected)return;renderLwaziPhotoPreview(photoPreview,clean,data.items,data.images)})}
        // Wikipedia results are fetched once for cards, not twice to block the answer.
       var libraryPromise=isSocialGreeting?Promise.resolve([]):sourceLibraryPromise.then(function(library){return sourceLibraryMatches(library,clean)}).catch(function(){return []});
        var needsResearchSources=lwaziMode!=='off'&&wantsResearchSources(clean);
@@ -445,6 +560,20 @@
       // Render each source as it becomes ready, not after the slowest
       // image/people/library request. One provider cannot hold up the others.
       var discoveryParts=[[],[],[],[],[],[]],discoveryCompleted=0;
+      var jobCards=[];
+      function sourceJobCard(job){
+        if(!job||!/^https:\/\//i.test(String(job.url||'')))return '';
+        var original=String(job.url||'');
+        return '<article class="bl-search-card bl-search-job" data-bl-destination="'+esc(original)+'">'+
+          '<div class="bl-search-card-body"><span class="bl-search-kicker veve-eyebrow">Jobs · '+esc(job.source||'Source')+'</span>'+
+          '<h3>'+esc(job.title||'Untitled role')+'</h3>'+
+          '<p>'+esc(job.company||'Employer')+' · '+esc(job.location||'Location not listed')+'</p>'+
+          (job.postedAt?'<p class="bl-search-muted">Posted '+esc(job.postedAt)+'</p>':'')+
+          '<button type="button" data-werk-preview-url="'+esc(original)+'">Preview in Werk Window</button>'+ 
+          '<a class="bl-search-go bl-search-primary-action" href="'+esc(original)+'" target="_blank" rel="noopener noreferrer">Original posting ↗</a>'+
+          '</div></article>';
+      }
+
       function renderDiscovery(parts){
         if(panel!==current||!current.isConnected)return;
          var wikiCards=parts[2],politics=wikiCards.filter(function(x){return /politic|electoral|vote|government|president|law|court|parliament/i.test(x)}),films=wikiCards.filter(function(x){return /cinema|film|movie|video|episode|director/i.test(x)}),general=wikiCards.filter(function(x){return !politics.includes(x)&&!films.includes(x)});
@@ -452,25 +581,48 @@
            lwaziSiteCard('About BIG LWA','Meet the project, the people, and the ideas behind this Studio.','/about/'),
            lwaziSiteCard('Privacy at BIG LWA','What privacy and agency mean here.','/privacy/')
          ],'all studio identity'):'';
-         var html=firstParty+section('BigLWA users',parts[0].map(userCard),'people users images')+section('Public Sqwidz',parts[4],'sqwidz social posts')+section('Books',parts[1],'books images')+section('Songs',parts[5],'songs music videos audio')+(activeCategory==='songs'&&window.BigLWADiscoveryExtras?window.BigLWADiscoveryExtras.placePromo():'')+(activeCategory==='songs'&&!isSocialGreeting&&window.BigLWAMusicDiscovery?section('SoundCloud',[window.BigLWAMusicDiscovery.searchMarkup(clean)],'songs music soundcloud'):'')+section('Politics & public life',politics,'politics history research')+section('Cinema & video',films,'stream videos movies images')+section('Herstory',general,'research herstory places maps people politics images');
+         var hairModels=window.BigLWAHairVisuals?.markup(clean)||'';
+         var html=firstParty+(hairModels?section('Hair visual models',[hairModels],'hair images research'):'' )+section('Job postings',jobCards.map(sourceJobCard).filter(Boolean),'jobs careers work')+section('BigLWA users',parts[0].map(userCard),'people users images')+section('Public Sqwidz',parts[4],'sqwidz social posts')+section('Books',parts[1],'books images')+section('Songs',parts[5],'songs music videos audio')+(activeCategory==='songs'&&window.BigLWADiscoveryExtras?window.BigLWADiscoveryExtras.placePromo():'')+(activeCategory==='songs'&&!isSocialGreeting&&window.BigLWAMusicDiscovery?section('SoundCloud',[window.BigLWAMusicDiscovery.searchMarkup(clean)],'songs music soundcloud'):'')+section('Politics & public life',politics,'politics history research')+section('Cinema & video',films,'stream videos movies images')+section('Herstory',general,'research herstory places maps people politics images');
         var extras=window.BigLWADiscoveryExtras;
         if(extras){
+          const matchingFeatures=extras.discoveryIntentCards?.(clean)||[];
+          if(matchingFeatures.length)html=section('Explore this in BIG LWA',matchingFeatures,'all studio widgets games stream politics research places maps')+html;
+          const matchingTools=extras.toolIntentCards?.(clean)||[];
+          if(matchingTools.length)html=section('Free tools & creative alternatives',matchingTools,'all studio widgets games')+html;
           html+=section('Stream videos',extras.videoCards(clean,activeCategory==='stream'),'stream videos images');
           if(activeCategory==='widgets')html+=section('Studio widgets',extras.widgetCards(),'widgets studio');
           if(activeCategory==='places')html+=section('Places & Maps',extras.placeCards(),'places maps');
         }
         html+=section('Community-centered research sources',parts[3].map(sourceLibraryCard),'research herstory politics');
+        if(activeCategory==='jobs'&&!jobCards.length){
+          var api=window.BigLWAVisualLife;
+          var state=api?.getFeedInfo?.().status;
+          var note=state==='stale'?'The curated job snapshot has expired.':
+            state==='connected'?'No matching roles in the currently published JobSpy and employer-board snapshot.':
+            'No job feed is published right now.';
+          html+=section('Job search status',[
+            '<article class="bl-search-card bl-search-job-empty"><div class="bl-search-card-body"><p>'+
+              esc(note)+' Jobs are source-linked, not invented or guaranteed open.</p>'+
+              internalButton('Open Werk in Politic','politc')+'</div></article>'
+          ],'jobs work');
+        }
         var resultArea=current.querySelector('.bl-search-discovery');
         if(!resultArea){
           var loading=current.querySelector('.bl-search-loading');
           if(loading){resultArea=document.createElement('div');resultArea.className='bl-search-discovery';loading.replaceWith(resultArea)}
         }
         if(resultArea){
-          resultArea.innerHTML=html||(isSocialGreeting?'':discoveryCompleted===6?'<p class="bl-search-empty">No public results found.</p>':'');
+          resultArea.innerHTML=html||(isSocialGreeting?'':discoveryCompleted>=7?'<p class="bl-search-empty">No public results found.</p>':'');
         }if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.refresh(current);
         // Search always starts in All; preserve a user's later manual tab selection.
         activateCategory(activeCategory,false);
-        panel.querySelectorAll('[data-lwazi-route]').forEach(function(button){button.addEventListener('click',function(){goRoute(button.dataset.lwaziRoute)})});
+        panel.querySelectorAll('[data-lwazi-route]').forEach(function(button){button.addEventListener('click',function(){
+          if(button.dataset.lwaziBookOpen==='1'){
+            var card=button.closest('.bl-search-book');
+            if(window.BigLWABookHandoff?.openCard(card))return;
+          }
+          goRoute(button.dataset.lwaziRoute);
+        })});
       }
       [userPromise,bookPromise,wikiPromise,libraryPromise,postPromise,songPromise].forEach(function(job,i){
         Promise.resolve(job).then(function(found){
@@ -480,6 +632,13 @@
           renderDiscovery(discoveryParts);
         });
       });
+      Promise.resolve().then(function(){
+        var api=window.BigLWAVisualLife;
+        if(!api?.loadFeed)return [];
+        return api.loadFeed().then(function(){return api.searchLwazi?.(clean,12)||[]});
+      }).then(function(found){jobCards=Array.isArray(found)?found:[];})
+        .catch(function(){jobCards=[];})
+        .finally(function(){discoveryCompleted++;renderDiscovery(discoveryParts)});
       if(answerPromise)answerPromise.then(function(answer){
         if(panel!==current||!current.isConnected)return;
         var text=String(answer==null?'No answer available.':answer);

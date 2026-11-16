@@ -24,7 +24,7 @@ assert.match(search, /Community and academic research/, 'Community-centered sour
 assert.match(search, /bl-search-category-nav/, 'Lwazi must provide compact widget-style result category tabs');
 assert.match(search, /data-bl-match="users"/, 'People search tab must be available');
 assert.match(search, /extraTabs/, 'Expanded images, combined places and maps, Herstory and widgets tabs must be available');
-assert.match(search, /var extraTabs=\[\['images','Images'\],\['places','Places & Maps'\],\['herstory','Herstory'\],\['widgets','Widgets'\]\]/, 'Use one combined Places & Maps tab and rename History to Herstory');
+assert.match(search, /var extraTabs=\[\['images','Images'\],\['places','Places & Maps'\],\['herstory','Herstory'\],\['jobs','Jobs'\],\['widgets','Widgets'\]\]/, 'Use one combined Places & Maps tab and rename History to Herstory');
 assert.doesNotMatch(search, /\['videos','▶','Videos'\]/, 'Videos belongs to Stream, not a separate category');
 assert.match(search, /\.bl-search-category-nav button\{[^}]*border-radius:0!important/, 'Categories must be text tabs instead of rounded pills');
 assert.match(search, /\.bl-search-category-nav button\.is-active/, 'The selected tab must be visibly underlined');
@@ -65,6 +65,7 @@ assert.doesNotMatch(search,/Coffee-level processing speed|petty-level discernmen
 assert.match(search,/var isSocialGreeting=/,'Do not run irrelevant public searches for simple conversational greetings');
 assert.match(search,/if\(window\.__biglwaLwaziSearchUi\)window\.__biglwaLwaziSearchUi\.bind\(panel\)/,'Search binds actual contextual card controls');
 assert.match(search,/window\.__biglwaLwaziSearchUi\.refresh\(current\)/,'Explicit user blocks apply to refreshed results');
-assert.match(search,/internalButton\('Open in Library','library'\)/,'Book results use the internal BIG LWA Library route');
+assert.match(search,/data-lwazi-book-open="1"/,'Books pass their selected identity through the Library handoff');
+assert.match(search,/BigLWABookHandoff\?\.openCard\(card\)/,'Book results call the exact-book Library handoff');
 assert.match(search,/bl-search-primary-action/,'Book Library action is styled as the main Veve control');
 assert.doesNotMatch(search,/<div class="bl-lwazi-answer-body"Finding/,'Answer HTML should be valid');

@@ -1,0 +1,103 @@
+/* BIG LWA Map / Pop Culture — playful editorial desk, never fake data. */
+body.embedded:not(.preview) .map-purpose-rail{
+ position:relative;overflow:visible;
+ background:linear-gradient(135deg,#fff7ea,#f5e9dd 62%,#fff8f0)!important;
+ border:1px solid #b58b77!important;box-shadow:3px 4px 0 #8e334b2a!important;
+}
+body.embedded:not(.preview) .map-purpose-heading strong{
+ font:700 18px/1.1 Georgia,serif!important;letter-spacing:.025em!important
+}
+body.embedded:not(.preview) .map-purpose-heading small{
+ font-size:10px!important;letter-spacing:.04em;color:#7c5745!important
+}
+body.embedded:not(.preview) .map-purpose-buttons{
+ display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:5px!important
+}
+body.embedded:not(.preview) .map-purpose-tab{
+ min-height:34px!important;padding:5px 3px!important;
+ background:#fff9ef!important;border:1px solid #c5a08c!important;
+ color:#50342e!important;border-radius:6px!important;
+ font:750 10px/1.2 system-ui,sans-serif!important;
+ box-shadow:0 2px 0 #a86d5040!important
+}
+body.embedded:not(.preview) .map-purpose-tab[aria-pressed=true]{
+ background:#9a3046!important;color:#fff8e5!important;border-color:#76253a!important;
+ box-shadow:0 3px 0 #631c34!important
+}
+body.embedded:not(.preview) .map-purpose-tab[data-map-purpose=culture][aria-pressed=false]{
+ background:#fce0bc!important;color:#662d32!important
+}
+body.embedded:not(.preview) .map-culture-grid{
+ display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));margin:12px 0
+}
+body.embedded:not(.preview) .map-purpose-panel:has(.map-culture-grid){
+ background:linear-gradient(180deg,#341c22 0 34px,#fdf4e9 34px 100%);
+ padding:47px 12px 13px!important;
+ border:1px solid #ac7a70!important;border-radius:12px!important;
+ position:relative!important;box-shadow:3px 4px 0 #ad42594a!important
+}
+body.embedded:not(.preview) .map-purpose-panel:has(.map-culture-grid)::before{
+ content:"▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪ ▪";position:absolute;top:6px;left:13px;
+ color:#e5b39c;letter-spacing:12px;font-size:11px;white-space:nowrap;overflow:hidden;
+ max-width:calc(100% - 23px);pointer-events:none
+}
+body.embedded:not(.preview) .map-purpose-panel:has(.map-culture-grid)>h3{
+ font:700 clamp(19px,2.2vw,26px)/1.1 Georgia,serif!important;color:#7a2d42!important;
+ text-transform:none!important;letter-spacing:.02em!important
+}
+body.embedded:not(.preview) .map-culture-intro{
+ font:500 11px/1.45 system-ui!important;color:#6a4947!important
+}
+body.embedded:not(.preview) .map-culture-categories{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
+body.embedded:not(.preview) .map-culture-tab{
+ min-height:30px;padding:5px 10px;border:1px solid #a76e67;border-radius:999px;
+ background:#fff9ec;color:#58363b;font:750 11px/1.2 system-ui;cursor:pointer;
+}
+body.embedded:not(.preview) .map-culture-tab[aria-pressed=true]{background:#7e3044;color:#fff6e6}
+body.embedded:not(.preview) .map-culture-card{
+ display:grid;align-content:start;gap:5px;padding:12px 11px 10px;
+ border:1px solid #d0ad9b;border-radius:10px;background:#fffbf3;
+ box-shadow:3px 4px 0 #b94c6538;color:#392b2b;min-width:0;
+}
+body.embedded:not(.preview) .map-culture-card>strong{
+ font:750 15px/1.2 Georgia,serif;color:#66313d;
+}
+body.embedded:not(.preview) .map-culture-card>small{font:700 9px/1.3 system-ui;color:#977263}
+body.embedded:not(.preview) .map-culture-card>p{
+ font:500 11px/1.42 system-ui!important;color:#654d44!important;margin:2px 0 5px!important
+}
+body.embedded:not(.preview) .map-culture-actions{
+ display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:auto
+}
+body.embedded:not(.preview) .map-culture-actions button{
+ min-height:29px;padding:5px 8px;border:1px solid #8d5962;
+ border-radius:6px;cursor:pointer;font:700 10px/1.2 system-ui;
+ color:#743148;background:#fff3e5;
+}
+body.embedded:not(.preview) .map-culture-actions .map-culture-locate{
+ color:#fff6e9;background:#8e3550
+}
+body.embedded:not(.preview) .map-culture-actions .map-culture-source{
+ font:700 10px/1.25 system-ui!important;color:#9d3154!important;
+ padding:5px!important;text-decoration:underline;min-height:0
+}
+body.embedded:not(.preview) .map-culture-status,
+body.embedded:not(.preview) .map-culture-attribution{
+ color:#6b4d49!important;font:600 10px/1.5 system-ui!important;margin:5px 0!important
+}
+.map-culture-leaflet-marker{background:transparent!important;border:none!important}
+.map-culture-leaflet-marker span{
+ display:grid!important;place-items:center!important;width:36px;height:36px;
+ border:2px solid #fff3dc;border-radius:11px 11px 11px 3px;
+ background:linear-gradient(145deg,#a63251,#74273d);
+ font:20px/1 system-ui;box-shadow:0 3px 0 #5c1d30,0 6px 14px #1d0d176b;
+ transform:rotate(-8deg);text-shadow:0 1px 3px #14060b9f
+}
+.map-culture-popup{font:12px/1.45 system-ui;color:#38212a;min-width:150px}
+.map-culture-popup strong{font:700 15px/1.15 Georgia,serif;color:#7b2d48}
+.map-culture-popup p{margin:6px 0;color:#5b4a42}
+.map-culture-popup a{color:#a0324d}
+@media(max-width:520px){
+ body.embedded:not(.preview) .map-purpose-buttons{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ body.embedded:not(.preview) .map-culture-grid{grid-template-columns:1fr}
+}

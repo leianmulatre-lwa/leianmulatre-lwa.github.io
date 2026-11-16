@@ -209,7 +209,9 @@
 #studioApp #moduleWorkspace[data-module-key="stream"] .stream-heading-versions button[aria-selected="true"]{
  background:#71374f!important;color:#fffaf7!important;box-shadow:0 1px 3px #20081033!important
 }
-#studioApp #moduleWorkspace[data-module-key="stream"] .biglwa-stream .stream-nav{
+/* The header only hides native Stream controls AFTER its version selector
+   has been populated. A fifth channel (Music) must never blank the navigation. */
+#studioApp #moduleWorkspace[data-module-key="stream"].stream-versions-in-header .biglwa-stream .stream-nav{
  display:none!important
 }
 #studioApp #moduleWorkspace[data-module-key="stream"] .biglwa-stream{padding-top:0!important}
@@ -218,6 +220,120 @@
  #studioApp #moduleWorkspace[data-module-key="stream"] .stream-heading-versions button{min-width:51px!important;padding:5px 7px!important;font-size:10px!important}
 }
 
-/* Four native Stream channel controls remain on the title line. */
+/* Current Stream channels (including Music) share the title line. */
 #studioApp #moduleWorkspace[data-module-key="stream"] .module-heading--with-versions>.module-heading-right{max-width:min(72vw,600px)!important}
 #studioApp #moduleWorkspace[data-module-key="stream"] .stream-heading-versions{max-width:100%!important;overflow-x:auto!important}
+
+
+/* 2026-11-14 R-series typography:
+   Sqwibbl keeps its original Subwaygraph face; Visualize matches the light
+   Courier Prime screenplay body from Sqwip; the literal /r stays stitched.
+   These spans override older all-Stitch heading rules without changing
+   layout, symbols, controls, or the actual module route. */
+#studioApp .lwa-mixed-r-title{
+  font-synthesis:none!important;
+  white-space:normal;
+}
+#studioApp .lwa-mixed-r-title[data-lwa-mixed-title="notes"] > .lwa-title-base{
+  font-family:"Subwaygraph",Georgia,serif!important;
+  font-weight:400!important;
+  font-style:normal!important;
+  letter-spacing:normal!important;
+}
+#studioApp .lwa-mixed-r-title[data-lwa-mixed-title="projects"] > .lwa-title-base{
+  font-family:"Courier Prime","Courier New",Courier,monospace!important;
+  font-weight:400!important;
+  font-style:normal!important;
+  letter-spacing:-.075em!important;
+}
+#studioApp .module-heading h1.lwa-mixed-r-title[data-lwa-mixed-title="projects"] > .lwa-title-base{
+  font-size:.83em!important;
+}
+#studioApp .lwa-mixed-r-title > .lwa-title-r{
+  font-family:"CS Bergamot Stitched",Georgia,serif!important;
+  font-style:normal!important;
+  font-weight:400!important;
+  letter-spacing:-.025em!important;
+  text-transform:lowercase!important;
+}
+#studioApp .lwa-mixed-r-title > .lwa-title-base,
+#studioApp .lwa-mixed-r-title > .lwa-title-r{
+  display:inline!important;
+  line-height:inherit!important;
+}
+
+
+/* R-series: one baseline for both name and embroidered suffix.
+   Inline-flex prevents the different fonts from wrapping or taking different
+   line boxes. The thinner Visualize face sits slightly down optically. */
+#studioApp .lwa-mixed-r-title{
+  display:inline-flex!important;
+  align-items:baseline!important;
+  justify-content:flex-start!important;
+  flex-wrap:nowrap!important;
+  white-space:nowrap!important;
+  word-break:normal!important;
+  overflow-wrap:normal!important;
+  vertical-align:baseline!important;
+  line-height:1.05!important;
+  column-gap:0!important;
+}
+#studioApp .lwa-mixed-r-title > .lwa-title-base,
+#studioApp .lwa-mixed-r-title > .lwa-title-r{
+  display:inline-block!important;
+  align-self:baseline!important;
+  flex:0 0 auto!important;
+  line-height:1!important;
+  vertical-align:baseline!important;
+  white-space:nowrap!important;
+  position:relative!important;
+  margin:0!important;
+  padding:0!important;
+}
+#studioApp .lwa-mixed-r-title[data-lwa-mixed-title="projects"] > .lwa-title-base{
+  top:.11em!important;
+}
+#studioApp .lwa-mixed-r-title[data-lwa-mixed-title="notes"] > .lwa-title-base{
+  top:0!important;
+}
+#studioApp .lwa-mixed-r-title > .lwa-title-r{
+  top:0!important;
+}
+#studioApp #notes .card-head h2.lwa-mixed-r-title,
+#studioApp #projects .card-head h2.lwa-mixed-r-title{
+  max-width:100%!important;
+}
+@media(max-width:680px){
+ #studioApp #moduleWorkspace[data-module-key="projects"] .module-heading h1.lwa-mixed-r-title,
+ #studioApp #moduleWorkspace[data-module-key="notes"] .module-heading h1.lwa-mixed-r-title{
+   font-size:clamp(19px,5.15vw,38px)!important;
+ }
+}
+/* Calendar inherits Sqwib's same-line, moved (not cloned) mode buttons. */
+#studioApp #moduleWorkspace[data-module-key="calendar"] .module-heading--with-versions>.module-version-right{
+  max-width:min(53vw,390px)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="calendar"] .module-heading-versions.calendar-modes{
+  display:inline-flex!important;
+  flex-wrap:nowrap!important;
+  gap:4px!important;
+  width:max-content!important;
+  max-width:100%!important;
+  overflow-x:auto!important;
+}
+#studioApp #moduleWorkspace[data-module-key="calendar"] .calendar-modes button{
+  flex:0 0 auto!important;
+  min-width:90px!important;
+  font-size:11px!important;
+}
+#studioApp #moduleWorkspace[data-module-key="calendar"] .calendar-modes button[disabled]{
+  opacity:.5!important;cursor:not-allowed!important;
+}
+@media(max-width:640px){
+  #studioApp #moduleWorkspace[data-module-key="calendar"] .module-heading.module-heading--with-versions{
+    grid-template-columns:minmax(0,1fr) minmax(0,62%)!important;
+  }
+  #studioApp #moduleWorkspace[data-module-key="calendar"] .calendar-modes button{
+    min-width:80px!important;font-size:10px!important;
+  }
+}

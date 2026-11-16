@@ -1,0 +1,66 @@
+name: Politic post-election and Map split checks
+on:
+  pull_request:
+    paths:
+      - 'politc-post-election-results-20261113.js'
+      - 'politc-post-election-20261113.css'
+      - 'politc-post-election-map-desk-test.mjs'
+      - 'politc-poster-catalog-20261114.js'
+      - 'politc-poster-collection-20261114.css'
+      - 'politc-poster-search-bounds-20261114.test.mjs'
+      - 'politc-werk-test.mjs'
+      - 'politc-werk-20261114.js'
+      - 'politc-werk-20261114.css'
+      - 'lwazi-search-result-bounds-20261114.css'
+      - 'map-lwa-experience-20261113.js'
+      - 'map-lwa-navigate-20261113.js'
+      - 'map-go-navigation-test.mjs'
+      - 'map-lwa-experience-20261113.css'
+      - 'map-app.html'
+      - 'module-pages.js'
+      - 'index.html'
+      - 'studio/index.html'
+      - '404.html'
+      - 'live-studio-shell.html'
+      - '.github/workflows/politc-post-election-map-desk.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'politc-post-election-results-20261113.js'
+      - 'politc-post-election-20261113.css'
+      - 'politc-post-election-map-desk-test.mjs'
+      - 'politc-poster-catalog-20261114.js'
+      - 'politc-poster-collection-20261114.css'
+      - 'politc-poster-search-bounds-20261114.test.mjs'
+      - 'politc-werk-test.mjs'
+      - 'politc-werk-20261114.js'
+      - 'politc-werk-20261114.css'
+      - 'lwazi-search-result-bounds-20261114.css'
+      - 'map-lwa-experience-20261113.js'
+      - 'map-lwa-navigate-20261113.js'
+      - 'map-go-navigation-test.mjs'
+      - 'map-lwa-experience-20261113.css'
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax-check election results and Map scripts
+        run: |
+          node --check politc-post-election-results-20261113.js
+          node --check politc-poster-catalog-20261114.js
+          node --check politc-werk-20261114.js
+          node --check map-lwa-experience-20261113.js
+          node --check map-lwa-navigate-20261113.js
+          node --check module-pages.js
+          node --check user-search-results.js
+      - name: Run source integrity and desktop Map layout regressions
+        run: |
+          node --test politc-post-election-map-desk-test.mjs map-workspace-regression-test.mjs map-go-navigation-test.mjs politc-poster-search-bounds-20261114.test.mjs politc-werk-test.mjs
+          node --test lwazi/navigation-map-weather.test.mjs

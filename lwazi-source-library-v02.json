@@ -817,6 +817,36 @@
       "notes": "Do not cite as proof the alleged operation exists; use to understand a claim and why there is no credible supporting evidence.",
       "verified_discovered": "2026-11-05",
       "permissions": "Link and accurately attribute; confirm license and avoid unauthorized full-text redistribution."
+    },
+    {
+      "id": "SA-LOOKS-01",
+      "title": "Digital Subcultural Diffusion Theory: Rebranding the incel ideology through Looksmaxxing, Sub5s and the PSL scale",
+      "creator": "Anda Iulia Solea and Lisa Sugiura",
+      "topic": "looksmaxxing / incels / blackpill / misogyny / racial hierarchy",
+      "role": "peer_reviewed_scholarship",
+      "url": "https://doi.org/10.1177/17416590251387245",
+      "access": "free_public_page",
+      "usage": "Explain how incel-adjacent ideology and pseudo-scientific beauty ratings are normalized as self-improvement; identify harm and relevant safe alternatives.",
+      "verification_pair": null,
+      "refresh": "365d",
+      "notes": "Peer-reviewed research; specific communities are under analysis, not everyone pursuing self-care.",
+      "verified_discovered": "2026-11-14",
+      "permissions": "Link and cite; paraphrase responsibly, verify copyright before reprinting text."
+    },
+    {
+      "id": "SA-LOOKS-02",
+      "title": "When Help Is Harm: Health, Lookism and Self-Improvement in the Manosphere",
+      "creator": "Michael Halpin et al.",
+      "topic": "looksmaxxing / body image / health / manosphere",
+      "role": "peer_reviewed_scholarship",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC11896937/",
+      "access": "free_public_page",
+      "usage": "Ground health and psychological risk discussion in qualitative evidence rather than minimizing body-image and self-harm pressure.",
+      "verification_pair": null,
+      "refresh": "365d",
+      "notes": "Study of one looksmaxxing forum; do not generalize every grooming practice or person.",
+      "verified_discovered": "2026-11-14",
+      "permissions": "Link and cite; paraphrase responsibly, verify copyright before reprinting text."
     }
   ],
   "course_references": [

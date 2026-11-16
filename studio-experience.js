@@ -29,6 +29,8 @@
   let musicUrl='';
   let coverUrl='';
   let musicRestored=false;
+  let musicRestoredFor='';
+  let musicRestorePending=false;
 
   function ensureStyles(){
     let style=$('#biglwa-studio-experience-style');
@@ -119,7 +121,21 @@
       #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(2n){animation-duration:.6s}
       #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(3n){animation-duration:.9s;animation-delay:.12s}
       #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(4n){animation-delay:.24s}
-      @keyframes biglwa-eq-wave{0%,100%{transform:scaleY(.32)}50%{transform:scaleY(1)}}
+      @keyframes biglwa-eq-wave{0%,100%{transform:scaleY(.13)}25%{transform:scaleY(.83)}53%{transform:scaleY(.26)}76%{transform:scaleY(1.08)}}
+      /* Tiny true-audio waveform sits just above the progress rail. */
+      #studioApp .music-card.stereo-music-widget .stereo-eq{height:11px!important;min-height:11px!important;margin:2px 1px 0!important;align-items:end!important;overflow:hidden!important}
+      #studioApp .music-card.stereo-music-widget .stereo-eq i{height:100%!important;min-height:0!important;animation:none!important;transform:scaleY(.07);transform-origin:50% 100%;transition:transform .08s linear;will-change:transform}
+      #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i,
+      #studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i:nth-child(n){animation:none!important}
+      #studioApp .music-card .stereo-eq{height:22px!important;min-height:15px!important;align-items:end!important}
+      #studioApp .music-card .stereo-eq i{height:85%!important;transform:scaleY(.18);will-change:transform}
+      #studioApp .music-card .stereo-eq i:nth-child(3n){height:100%!important}
+      #studioApp .music-card .stereo-eq i:nth-child(4n){height:70%!important}
+      #studioApp .music-card .stereo-time-scale{position:relative;z-index:2;display:flex;align-items:center;gap:6px;width:100%;margin-top:5px;white-space:nowrap}
+      #studioApp .music-card .stereo-time-scale span{color:#81ef87;font:700 8px/1 ui-monospace,SFMono-Regular,Menlo,monospace;font-variant-numeric:tabular-nums;text-shadow:0 0 3px #162b1b}
+      #studioApp .music-card .stereo-time-scale .progress{flex:1 1 auto;min-width:12px;width:auto!important;margin:0!important}
+      #studioApp .music-card .stereo-time-scale .progress:focus-visible{outline:2px solid #a4ffac;outline-offset:2px}
+      @media(prefers-reduced-motion:reduce){#studioApp .music-card.stereo-music-widget.is-playing .stereo-eq i{animation:none!important;transform:scaleY(.45)!important}}
       #studioApp .music-card.stereo-music-widget .stereo-eject{
         width:30px!important;height:27px!important;min-width:30px!important;
         display:inline-grid!important;place-items:center!important;padding:0!important;
@@ -603,7 +619,7 @@
 
   function applyMusicRecord(record){
     const audio=$('#studioAudio'),art=$('#studioAlbumArt'),image=$('img',art),title=$('#studioMusicTitle'),artist=$('#studioMusicArtist');if(!audio||!record)return;
-    audio.pause();revokeMusicUrls();
+    audio.pause();revokeMusicUrls();audio.removeAttribute('src');audio.load();
     if(record.audioBlob){musicUrl=URL.createObjectURL(record.audioBlob);audio.src=musicUrl}
     if(record.coverBlob&&image){coverUrl=URL.createObjectURL(record.coverBlob);image.src=coverUrl;image.hidden=false;art.classList.add('has-cover')}
     else if(image){image.hidden=true;image.removeAttribute('src');art.classList.remove('has-cover')}
@@ -614,16 +630,35 @@
   }
 
   async function restoreMusic(){
-    if(musicRestored)return;musicRestored=true;
     if(document.documentElement.classList.contains('biglwa-preview-mode')||!viewingOwnProfile())return;
-    try{const record=await dbGet(musicKey());if(record)applyMusicRecord(record);else setMusicStatus('Choose a track or replace the cover.')}
-    catch{setMusicStatus('Music storage is unavailable in this browser.')}
+    const uid=verifiedOwner();
+    if(!uid){musicRestored=false;musicRestoredFor='';return;}
+    if((musicRestored&&musicRestoredFor===uid)||musicRestorePending)return;
+    musicRestorePending=true;
+    try{
+      const record=await dbGet('music:'+uid);
+      // A delayed IndexedDB response cannot overwrite a different member's player.
+      if(verifiedOwner()!==uid)return;
+      if(record)applyMusicRecord(record);else setMusicStatus('Choose a track or replace the cover.');
+      musicRestored=true;musicRestoredFor=uid;
+    }catch{setMusicStatus('Music storage is unavailable. Check browser storage and try again.');}
+    finally{musicRestorePending=false;}
   }
 
   async function updateMusic(patch){
-    const id=musicKey();const current=await dbGet(id)||{id};const next={...current,...patch,id,updatedAt:Date.now()};await dbPut(next);applyMusicRecord(next);
-    if(patch.audioBlob)window.dispatchEvent(new CustomEvent('biglwa:music-local-upload',{detail:{file:patch.audioBlob,title:next.title||'Your track',artist:next.artist||'Unknown artist'}}));
-    return next;
+    const owner=verifiedOwner(),id=musicKey();
+    const current=await dbGet(id)||{id},next={...current,...patch,id,updatedAt:Date.now()};
+    await dbPut(next);
+    const saved=await dbGet(id);
+    if(!saved||saved.updatedAt!==next.updatedAt||!saved.id)throw Error('Local song save could not be verified.');
+    if(owner!==verifiedOwner())throw Error('The signed-in account changed during the save.');
+    musicRestored=true;musicRestoredFor=owner;
+    applyMusicRecord(saved);
+    if(patch.audioBlob){
+      setMusicStatus('Saved on this device · checking private account backup…');
+      window.dispatchEvent(new CustomEvent('biglwa:music-local-upload',{detail:{file:patch.audioBlob,title:saved.title||'Your track',artist:saved.artist||'Unknown artist'}}));
+    }else setMusicStatus('Saved track details on this device.');
+    return saved;
   }
 
   function upgradeMusic(){
@@ -638,6 +673,10 @@
     const rightSpeaker=document.createElement('div');rightSpeaker.className='stereo-speaker';rightSpeaker.setAttribute('aria-hidden','true');
     const nowPlaying=document.createElement('div');nowPlaying.className='stereo-now-playing';nowPlaying.textContent='now playing';
     const eq=document.createElement('div');eq.className='stereo-eq';eq.setAttribute('aria-hidden','true');eq.innerHTML='<i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>';
+    const timeScale=document.createElement('div');timeScale.className='stereo-time-scale';
+    const elapsed=document.createElement('span');elapsed.className='stereo-time-elapsed';elapsed.textContent='0:00';
+    const durationLabel=document.createElement('span');durationLabel.className='stereo-time-duration';durationLabel.textContent='0:00';
+    timeScale.append(elapsed,progress,durationLabel);
     const deck=document.createElement('div');deck.className='stereo-control-deck';
     const rewind=document.createElement('button');rewind.type='button';rewind.className='stereo-skip-button stereo-rewind';rewind.textContent='◀◀';rewind.title='Back 10 seconds';rewind.setAttribute('aria-label','Rewind 10 seconds');
     const forward=document.createElement('button');forward.type='button';forward.className='stereo-skip-button stereo-forward';forward.textContent='▶▶';forward.title='Forward 10 seconds';forward.setAttribute('aria-label','Forward 10 seconds');
@@ -645,7 +684,7 @@
     eject.textContent='⏏';eject.setAttribute('aria-label','Eject current track and choose a different song');eject.title='Replace track';
     const kicker=$('.card-kicker',card);
     if(kicker)kicker.insertAdjacentElement('afterend',shell);else card.prepend(shell);
-    shell.append(tuner,face,deck);face.append(leftSpeaker,display,rightSpeaker);display.append(nowPlaying,row,eq,progress);deck.append(rewind,play,forward,eject);
+    shell.append(tuner,face,deck);face.append(leftSpeaker,display,rightSpeaker);display.append(nowPlaying,row,eq,timeScale);deck.append(rewind,play,forward,eject);
     art.id='studioAlbumArt';art.innerHTML='<span aria-hidden="true">♪</span><img alt="Album cover" hidden>';
     copy.classList.add('music-copy');const title=$('strong',copy),artist=$('span',copy);if(title)title.id='studioMusicTitle';if(artist)artist.id='studioMusicArtist';
     const audio=document.createElement('audio');audio.id='studioAudio';audio.preload='metadata';card.appendChild(audio);
@@ -654,9 +693,77 @@
     const status=document.createElement('p');status.className='music-status';status.id='studioMusicStatus';status.setAttribute('role','status');status.setAttribute('aria-live','polite');
     progress.insertAdjacentElement('afterend',actions);actions.insertAdjacentElement('afterend',editor);editor.insertAdjacentElement('afterend',status);
     progress.setAttribute('role','slider');progress.tabIndex=0;progress.setAttribute('aria-label','Track position');progress.setAttribute('aria-valuemin','0');progress.setAttribute('aria-valuemax','100');progress.setAttribute('aria-valuenow','0');
-    const sync=()=>{const fraction=audio.duration?audio.currentTime/audio.duration:0;progressBar.style.width=`${fraction*100}%`;progress.setAttribute('aria-valuenow',String(Math.round(fraction*100)));progress.title=`${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`};
+    const timeLabel=value=>{const seconds=Number.isFinite(value)&&value>0?Math.floor(value):0;return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0')};
+    const sync=()=>{const length=Number.isFinite(audio.duration)&&audio.duration>0?audio.duration:0;const current=Number.isFinite(audio.currentTime)?Math.max(0,audio.currentTime):0;const fraction=length?Math.max(0,Math.min(1,current/length)):0;progressBar.style.width=`${fraction*100}%`;progress.setAttribute('aria-valuenow',String(Math.round(fraction*100)));elapsed.textContent=timeLabel(current);durationLabel.textContent=timeLabel(length);progress.setAttribute('aria-valuetext',timeLabel(current)+' of '+timeLabel(length));progress.title=timeLabel(current)+' / '+timeLabel(length)};
     play.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();if(!audio.src){$('#studioTrackInput').click();setMusicStatus('Choose an audio file first.');return}if(audio.paused)audio.play().catch(()=>setMusicStatus('Playback needs another tap.'));else audio.pause()},{capture:true});
-    audio.addEventListener('play',()=>{card.classList.add('is-playing');play.textContent='❚❚';play.setAttribute('aria-label','Pause track')});audio.addEventListener('pause',()=>{card.classList.remove('is-playing');play.textContent='▶';play.setAttribute('aria-label','Play track')});audio.addEventListener('ended',()=>{card.classList.remove('is-playing');play.textContent='▶';sync()});audio.addEventListener('timeupdate',sync);audio.addEventListener('loadedmetadata',sync);
+    audio.addEventListener('play',()=>{card.classList.add('is-playing');play.textContent='❚❚';play.setAttribute('aria-label','Pause track')});audio.addEventListener('pause',()=>{card.classList.remove('is-playing');play.textContent='▶';play.setAttribute('aria-label','Play track')});audio.addEventListener('ended',()=>{card.classList.remove('is-playing');play.textContent='▶';sync()});audio.addEventListener('timeupdate',sync);audio.addEventListener('loadedmetadata',sync);audio.addEventListener('durationchange',sync);audio.addEventListener('emptied',sync);sync();
+    // Match the waveform to the actual audio, not a synthetic loop.
+    // Source analysis is opt-in for same-origin / uploaded media; cross-origin
+    // media without CORS must keep playing directly without a WebAudio redirect.
+    let musicAnalyser=null,musicAudioCtx=null,musicFrame=0;
+    const eqBars=[...eq.querySelectorAll('i')];
+    const waveLevels=new Float32Array(eqBars.length);
+    const flatWave=()=>eqBars.forEach((bar,i)=>{waveLevels[i]=.04;bar.style.transform='scaleY(.04)'});
+    const canAnalyze=()=>{
+      const url=audio.currentSrc||audio.src;
+      try{
+        const origin=new URL(url,location.href).origin;
+        return !/^https?:/i.test(url)||origin===location.origin||audio.crossOrigin==='anonymous';
+      }catch{return false}
+    };
+    const initAnalysis=()=>{
+      if(musicAnalyser)return true;
+      if(!canAnalyze())return false;
+      const AudioCtor=window.AudioContext||window.webkitAudioContext;
+      if(!AudioCtor)return false;
+      try{
+        musicAudioCtx=new AudioCtor();
+        const source=musicAudioCtx.createMediaElementSource(audio);
+        musicAnalyser=musicAudioCtx.createAnalyser();
+        musicAnalyser.fftSize=256;
+        musicAnalyser.smoothingTimeConstant=.94;
+        source.connect(musicAnalyser);
+        musicAnalyser.connect(musicAudioCtx.destination);
+        return true;
+      }catch(error){
+        console.info('[BIG LWA] Audio-reactive meter unavailable:',error?.message||error);
+        flatWave();return false;
+      }
+    };
+    const frameWave=()=>{
+      musicFrame=0;
+      if(audio.paused||audio.ended||!card.isConnected){flatWave();return}
+      if(!musicAnalyser){flatWave();return}
+      const bins=new Uint8Array(musicAnalyser.frequencyBinCount);
+      musicAnalyser.getByteFrequencyData(bins);
+      for(let i=0;i<eqBars.length;i++){
+        // Log-ish frequency slices keep bass and vocals readable at modest height.
+        const lo=Math.floor(Math.pow(i/eqBars.length,1.5)*(bins.length-1));
+        const hi=Math.max(lo+1,Math.floor(Math.pow((i+1)/eqBars.length,1.5)*bins.length));
+        let sum=0;for(let j=lo;j<hi;j++)sum+=bins[j];
+        const avg=sum/(hi-lo);
+        // Keep audio-reactive movement calm: modest amplitude and gradual change.
+        const target=Math.min(.53,Math.max(.04,.04+Math.pow(avg/255,1.15)*.49));
+        waveLevels[i]+=(target-waveLevels[i])*.13;
+        eqBars[i].style.transform='scaleY('+waveLevels[i].toFixed(3)+')';
+      }
+      musicFrame=requestAnimationFrame(frameWave);
+    };
+    const startWave=()=>{
+      if(musicFrame)cancelAnimationFrame(musicFrame);
+      if(!initAnalysis()){flatWave();return}
+      musicAudioCtx?.resume?.().catch(()=>{});
+      musicFrame=requestAnimationFrame(frameWave);
+    };
+    const stopWave=()=>{
+      if(musicFrame){cancelAnimationFrame(musicFrame);musicFrame=0}
+      flatWave();
+    };
+    audio.addEventListener('play',startWave);
+    audio.addEventListener('pause',stopWave);
+    audio.addEventListener('ended',stopWave);
+    audio.addEventListener('emptied',stopWave);
+    flatWave();
     const seek=clientX=>{if(!audio.duration)return;const rect=progress.getBoundingClientRect();audio.currentTime=Math.max(0,Math.min(1,(clientX-rect.left)/rect.width))*audio.duration};
     progress.addEventListener('click',event=>seek(event.clientX));progress.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight'].includes(event.key)||!audio.duration)return;event.preventDefault();audio.currentTime=Math.max(0,Math.min(audio.duration,audio.currentTime+(event.key==='ArrowRight'?5:-5)))});
     // The rewind / forward keys were decorative spans. They now seek inside
@@ -682,12 +789,23 @@
     $('#chooseStudioTrack',card).addEventListener('click',()=>$('#studioTrackInput')?.click());$('#chooseStudioCover',card).addEventListener('click',()=>$('#studioCoverInput')?.click());
     $('#editStudioMusicMeta',card).addEventListener('click',()=>{editor.classList.toggle('is-open');$('#studioTrackTitle',editor).value=$('#studioMusicTitle',card).textContent;$('#studioTrackArtist',editor).value=$('#studioMusicArtist',card).textContent});
     $('#saveStudioMusicMeta',editor).addEventListener('click',async()=>{try{await updateMusic({title:$('#studioTrackTitle',editor).value.trim()||'Your track',artist:$('#studioTrackArtist',editor).value.trim()||'Add artist'});editor.classList.remove('is-open')}catch{setMusicStatus('The track details could not be saved.')}});
-    $('#studioTrackInput').addEventListener('change',async event=>{const file=event.target.files?.[0];event.target.value='';if(!file)return;if(!file.type.startsWith('audio/')||file.size>75*1024*1024){setMusicStatus('Choose an audio file under 75 MB.');return}setMusicStatus('Saving track…');try{await updateMusic({audioBlob:file,fileName:String(file.name).slice(0,180),title:file.name.replace(/\.[^.]+$/,'').slice(0,100)})}catch{setMusicStatus('This browser could not save the track.')}});
+    $('#studioTrackInput').addEventListener('change',async event=>{const file=event.target.files?.[0];event.target.value='';if(!file)return;if(!(file.type.startsWith('audio/')||/\.(mp3|m4a|aac|ogg|wav|webm|flac)$/i.test(file.name))||file.size>75*1024*1024){setMusicStatus('Choose an audio file under 75 MB.');return}setMusicStatus('Saving track…');try{await updateMusic({audioBlob:file,fileName:String(file.name).slice(0,180),title:file.name.replace(/\.[^.]+$/,'').slice(0,100)})}catch(error){setMusicStatus(String(error?.message||'This browser could not save the track.').slice(0,160))}});
     $('#studioCoverInput').addEventListener('change',async event=>{const file=event.target.files?.[0];event.target.value='';if(!file)return;if(!/^image\/(jpeg|png|webp|gif)$/.test(file.type)||file.size>15*1024*1024){setMusicStatus('Choose a JPG, PNG, WebP, or GIF cover under 15 MB.');return}setMusicStatus('Reviewing cover on this device…');try{const result=await window.BIGLWAWallpaperSafety?.scan(file,{context:'mixed'});if(result&&['invalid','block','age-restricted'].includes(result.status)){setMusicStatus(result.status==='block'?'That cover cannot be used.':'That cover needs review before it can display.');return}await updateMusic({coverBlob:file,coverReview:result?.status==='local-only'?'pending':'complete'});if(result?.status==='local-only')setMusicStatus('Cover preview active locally · review pending.')}catch{setMusicStatus('The cover could not be saved.')}});
     $('#studioTrackTitle',editor).value=title?.textContent||'Your track';$('#studioTrackArtist',editor).value=artist?.textContent||'Add artist';
     const profileMount=$('#profileSongEditorMount');if(profileMount)profileMount.append(actions,editor,status);
     restoreMusic();
   }
+  window.addEventListener('biglwa:session-verified',event=>{
+    if(event.detail?.signedIn)restoreMusic();
+    else {
+      musicRestored=false;musicRestoredFor='';
+      const audio=$('#studioAudio');if(audio){audio.pause();revokeMusicUrls();audio.removeAttribute('src');audio.load();}
+      const title=$('#studioMusicTitle'),artist=$('#studioMusicArtist');
+      if(title)title.textContent='Choose a track';if(artist)artist.textContent='';
+      const art=$('#studioAlbumArt');if(art){const image=$('img',art);if(image){image.hidden=true;image.removeAttribute('src');}art.classList.remove('has-cover');}
+    }
+  });
+  window.addEventListener('biglwa:account-ready',restoreMusic);
   // Use the same audio element for tracks stored on the account or device.
   window.BigLWAStudioMusic={getLocalRecord:()=>dbGet(musicKey()),playCloudTrack:async function(track,loadPrivate){
     const audio=$('#studioAudio');if(!audio)return;

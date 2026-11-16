@@ -17,6 +17,12 @@ on:
       - 'live-studio-shell.html'
       - 'functions/api/lwazi.js'
       - 'user-search-results.js'
+      - 'lwazi-critical-context-20261114.js'
+      - 'lwazi-critical-context-20261114.css'
+      - 'lwazi-critical-research-regression-20261114.test.mjs'
+      - 'lwazi-source-library-v02.json'
+      - 'politc-research-desk-20261113.js'
+      - 'politc-post-election-results-20261113.js'
       - 'lwazi-music-discovery.js'
       - 'lwazi-discovery-extras.js'
       - 'lwazi-navigation-commands.js'
@@ -47,6 +53,12 @@ on:
       - 'live-studio-shell.html'
       - 'functions/api/lwazi.js'
       - 'user-search-results.js'
+      - 'lwazi-critical-context-20261114.js'
+      - 'lwazi-critical-context-20261114.css'
+      - 'lwazi-critical-research-regression-20261114.test.mjs'
+      - 'lwazi-source-library-v02.json'
+      - 'politc-research-desk-20261113.js'
+      - 'politc-post-election-results-20261113.js'
       - 'lwazi-music-discovery.js'
       - 'lwazi-discovery-extras.js'
       - 'lwazi-navigation-commands.js'
@@ -84,6 +96,9 @@ jobs:
           node --check lwazi-math.js
           node --check functions/api/lwazi.js
           node --check user-search-results.js
+          node --check lwazi-critical-context-20261114.js
+          node --check politc-research-desk-20261113.js
+          node --check politc-post-election-results-20261113.js
           node --check lwazi-history.js
           node --check lwazi-search-ui.js
           node --check lwazi-music-discovery.js
@@ -95,5 +110,7 @@ jobs:
           node --check tools-craft.js
       - name: Engine unit and mocked integration tests
         run: node --test lwazi/worker.test.mjs lwazi/relay.test.mjs lwazi/model-router.test.mjs lwazi/search-experience.test.mjs lwazi/music-jobs-integration.test.mjs lwazi/conversation-search.test.mjs lwazi/fast-answer-latency.test.mjs lwazi/staging-bridge.test.mjs lwazi/modes-history.test.mjs lwazi/math-vision.test.mjs lwazi/vinyl-covers.test.mjs lwazi/expanded-discovery.test.mjs lwazi/navigation-map-weather.test.mjs
+      - name: Evidence-aware high-risk topic and Politic source regressions
+        run: node --test lwazi-critical-research-regression-20261114.test.mjs
       - name: Preserve existing Studio search contracts
         run: node lwazi-search-regression-test.mjs

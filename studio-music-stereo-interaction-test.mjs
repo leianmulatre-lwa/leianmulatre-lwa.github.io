@@ -38,6 +38,13 @@ assert.equal(eject.getAttribute('aria-label'),'Eject current track and choose a 
 const originalShell=d.querySelector('.stereo-shell'),originalPlay=play;
 Object.defineProperty(audio,'duration',{configurable:true,get:()=>120});
 audio.currentTime=35;
+audio.dispatchEvent(new w.Event('loadedmetadata'));
+const timeScale=d.querySelector('.stereo-time-scale');
+assert(timeScale,'Stereo has visible playback timestamps around the seek slider');
+assert.equal(timeScale.querySelector('.stereo-time-elapsed').textContent,'0:35');
+assert.equal(timeScale.querySelector('.stereo-time-duration').textContent,'2:00');
+assert.equal(d.querySelector('.progress').getAttribute('aria-valuetext'),'0:35 of 2:00');
+assert.equal(d.querySelector('.stereo-eq').children.length,10,'Animated equalizer bars remain in the live stereo');
 rewind.click();assert.equal(audio.currentTime,25,'Rewind moves ten seconds backward');
 forward.click();assert.equal(audio.currentTime,35,'Forward moves ten seconds ahead');
 audio.currentTime=3;rewind.click();assert.equal(audio.currentTime,0,'Rewind clamps to zero');

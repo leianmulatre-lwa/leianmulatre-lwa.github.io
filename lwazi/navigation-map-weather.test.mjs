@@ -18,9 +18,9 @@ function nav(){
     openBIGLWAModule:route=>clicked.push('widget:'+route),
     addEventListener(){}
   };
-  const document={readyState:'loading',addEventListener(){},
+  const document={readyState:'loading',addEventListener(){},querySelectorAll:()=>[],
     querySelector:sel=>sel==='#studioApp'?{querySelector:()=>({click:()=>clicked.push('skeleton'),classList:{contains:()=>false}}),classList:{contains:()=>false}}:null};
-  vm.runInNewContext(source,{window,document,setTimeout,console});
+  vm.runInNewContext(source,{window,document,setTimeout:()=>0,console});
   return {api:window.BigLWANavigationCommands,navigated,clicked};
 }
 test('natural language commands reach real destinations and do not capture ordinary questions',()=>{
@@ -46,9 +46,9 @@ test('actions open the correct Studio page, widgets and categories with real han
  assert(api.navigate(api.resolve('open journal')));
  assert.deepEqual(navigated,['/studio','/settings/']);
  assert.deepEqual(clicked,['skeleton','widgets','widget:diary']);
- assert.match(source,/aria-label','Show L’wazi navigation commands/);
- assert.match(source,/menu\.append\(b\)/);
- assert.match(source,/trigger\.addEventListener\('click'/);
+ assert.doesNotMatch(source,/Show L’wazi navigation commands/,'Old search hint removed intentionally');
+ assert.match(source,/document\.querySelectorAll\('#studioApp \.bl-nav-hints'\)/);
+ assert.doesNotMatch(source,/menu\.append\(b\)/,'No duplicated hint menu');
 });
 test('Lwazi resolves navigation before fetching ordinary public search results',()=>{
  assert.match(search,/var navCommand=window\.BigLWANavigationCommands\?\.resolve\(q\)/);
@@ -66,7 +66,7 @@ test('weather displays explicitly chosen city and sits left of account actions',
  assert.doesNotMatch(weather,/navigator\.geolocation/,'Weather never silently accesses precise location');
 });
 test('Map uses existing interactive Leaflet preview and only asks for location on click',()=>{
- assert.match(extras,/src="\/map-app\.html\?preview=1&lwazi=1"/);
+ assert.match(extras,/src="\/map-app\.html\?preview=1&lwazi=1(?:&v=[^"]+)?"/);
  assert.match(extras,/function placePromo\(\)/);
  assert.match(extras,/data-bl-use-location/);
  assert.match(extras,/navigator\.geolocation\.getCurrentPosition\(position=>/);
@@ -95,7 +95,7 @@ test('real legal index and all shell entrypoints are available',()=>{
  for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html']){
    const shell=read(path);
    assert(shell.includes('lwazi-navigation-commands.js?v=20261113-navigation-v1'),path+' loads navigation');
-   assert(shell.includes('lwazi-navigation-map-weather.css?v=20261113-navmap-v1'),path+' loads updated chrome');
+   assert(shell.includes('lwazi-navigation-map-weather.css?v=20261113-onpage-routes-v3'),path+' loads updated chrome');
    assert(shell.indexOf('lwazi-navigation-commands.js')<shell.indexOf('user-search-results.js'),path+' routes loaded first');
    assert(shell.includes('studio-weather.js?v=20261113-city-header-v2'),path+' city weather cache bust');
  }

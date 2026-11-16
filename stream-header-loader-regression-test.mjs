@@ -36,7 +36,8 @@ assert.ok(overlay.includes('background:transparent!important'),'Loading shell no
 assert.ok(overlay.includes('top:calc(var(--lwa-loading-top,0px) + var(--lwa-loading-hero-height))'),'Battery back cover begins below top curtain');
 assert.ok(overlay.includes('background-image:linear-gradient(rgba(14,3,9,.36)'), 'Curtain is visually softened rather than using raw glossy block image');
 assert.ok(layout.includes('grid-row:1!important;grid-column:2!important'),'Stream versions occupy H1 right hand column');
-assert.ok(layout.includes('.stream-nav{'),'Old oversized Stream controls are hidden');
+assert.ok(layout.includes('.stream-versions-in-header .biglwa-stream .stream-nav{'),'Original Stream selector is hidden only after working header tabs exist');
+assert.ok(!ui.includes('options.length!==4'),'Stream heading must support fifth Music channel');
 assert.ok(layout.includes('min-width:66px!important'),'Stream version controls are compact');
 
 const markup='<main id="studioApp"><div id="moduleWorkspace" data-module-key="stream"><div class="module-shell"><div class="module-top"><button class="module-back">Studio</button></div><div id="moduleWorkspaceBody"><header class="module-heading"><div class="module-heading-copy"><h1>Stream</h1></div><div class="module-heading-bottom"><p>Programming</p></div></header>'+
@@ -44,7 +45,8 @@ const markup='<main id="studioApp"><div id="moduleWorkspace" data-module-key="st
 '<button data-stream-tab="podcast" aria-selected="true"><b>lwa radio</b></button>'+
 '<button data-stream-tab="lwa-tv" aria-selected="false"><b>lwa tv</b></button>'+
 '<button data-stream-tab="live" aria-selected="false"><b>live</b></button>'+
-'<button data-stream-tab="sqwibz" aria-selected="false"><b>sqwidz</b></button>'+
+'<button data-stream-tab="sqwibz" aria-selected="false"><b>sqwidz</b></button>'+ 
+'<button data-stream-tab="music" aria-selected="false"><b>music</b></button>'+
 '</div></nav></section></div></div></div></main>';
 const dom=new JSDOM('<!doctype html><html><head></head><body>'+markup+'</body></html>',{
  url:'https://biglwa.com/studio/stream',pretendToBeVisual:true,runScripts:'outside-only'
@@ -64,7 +66,8 @@ await new Promise(resolve=>setTimeout(resolve,90));
 const header=d.querySelector('.module-heading');
 const row=header.querySelector('.module-heading-right .stream-heading-versions');
 assert.ok(header.classList.contains('module-heading--with-versions'),'Stream header uses same Sqwibz layout');
-assert.equal(row?.children.length,4,'Four compact Stream channels including Sqwidz');
+assert.equal(row?.children.length,5,'Five compact Stream channels, including Music and Sqwidz');
+assert.ok(d.querySelector('#moduleWorkspace').classList.contains('stream-versions-in-header'),'Native nav is only hidden once the heading includes all five functional tabs');
 assert.ok(root.querySelector('.stream-nav .stream-channels'),'Original handlers stay inside Stream');
 row.querySelector('[data-stream-heading-tab="lwa-tv"]').click();
 await new Promise(resolve=>setTimeout(resolve,50));
@@ -74,6 +77,10 @@ row.querySelector('[data-stream-heading-tab="sqwibz"]').click();
 await new Promise(resolve=>setTimeout(resolve,50));
 assert.equal(activated,'sqwibz','Sqwibz joins the channel controls rather than appearing beneath the header');
 assert.equal(row.querySelector('[data-stream-heading-tab="sqwibz"]').getAttribute('aria-selected'),'true','Sqwidz becomes the selected channel');
-assert.equal(root.querySelectorAll('[data-stream-tab]').length,4,'No duplicate native Stream controls');
+row.querySelector('[data-stream-heading-tab="music"]').click();
+await new Promise(resolve=>setTimeout(resolve,50));
+assert.equal(activated,'music','New Music tab activates original Stream navigation');
+assert.equal(row.querySelector('[data-stream-heading-tab="music"]').getAttribute('aria-selected'),'true','Music can be selected from the title line');
+assert.equal(root.querySelectorAll('[data-stream-tab]').length,5,'No duplicate native Stream controls');
 dom.window.close();
-console.log('PASS Stream options align with title; original tabs work; wordmark-only loader and transparent header above masked content.');
+console.log('PASS five Stream heading tabs align with the title, react to native channel changes and retain the fallback selector.');

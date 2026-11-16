@@ -1,0 +1,67 @@
+/* All standalone Important routes share the actual BIG LWA stitched-crest mask.
+   These rules are scoped; they must not alter the signed-in Studio or login. */
+body:has(> main .policy-page){margin:0!important;min-height:100vh!important;
+ background:#19050a!important;color:#231c1b!important}
+body:has(> main .policy-page)>main{
+ width:min(100%,1180px)!important;max-width:1180px!important;
+ margin:0 auto!important;padding:clamp(12px,3vw,32px)!important;
+ box-sizing:border-box!important;
+}
+body:has(> main .policy-page) .policy-page{
+ min-width:0!important;min-height:calc(100vh - 64px)!important;
+ box-sizing:border-box!important;border-radius:17px!important;
+ overflow:clip!important;padding:clamp(14px,2vw,28px)!important;
+}
+body:has(> main .policy-page) .policy-shell{
+ width:100%!important;min-width:0!important;max-width:1050px!important;
+ margin:0 auto!important;
+}
+body:has(> main .policy-page) .policy-card{
+ width:100%!important;min-width:0!important;max-width:none!important;
+ box-sizing:border-box!important;margin:12px auto 0!important;
+ padding:clamp(18px,4vw,45px)!important;overflow-wrap:anywhere;
+}
+body:has(> main .policy-page) .policy-top{
+ display:flex!important;justify-content:space-between!important;align-items:center!important;
+ min-height:65px!important;gap:14px!important;
+}
+body:has(> main .policy-page) .policy-top .login-brand{
+ display:flex!important;align-items:center!important;
+ font-size:0!important;min-height:65px!important;
+ min-width:105px!important;
+}
+/* CSS masking works only after /stitched-crest.css defines the variable.
+   Prevent a blank or black block on partial-load/unsupported browsers. */
+body:has(> main .policy-page) .policy-card::before{
+ width:clamp(100px,13vw,145px)!important;
+ height:clamp(76px,10vw,110px)!important;
+ margin:-20px auto 18px!important;
+ background:#251a1a!important;
+ -webkit-mask-image:var(--biglwa-stitched-crest-mask,none)!important;
+ mask-image:var(--biglwa-stitched-crest-mask,none)!important;
+}
+@supports not ((-webkit-mask-image:url("")) or (mask-image:url(""))){
+ body:has(> main .policy-page) .policy-card::before{display:none!important}
+}
+body:has(> main .policy-page) .policy-card h1{
+ font-size:clamp(26px,3.7vw,43px)!important;
+ line-height:1.17!important;overflow-wrap:normal;
+}
+body:has(> main .policy-page) .policy-card p{
+ max-width:100%!important;overflow-wrap:anywhere;
+}
+body:has(> main .policy-page) .policy-links{
+ display:flex!important;flex-wrap:wrap!important;gap:10px!important;
+}
+@media(max-width:760px){
+ body:has(> main .policy-page)>main{padding:0!important}
+ body:has(> main .policy-page) .policy-page{
+  border-radius:0!important;min-height:100vh!important;padding:12px!important
+ }
+ body:has(> main .policy-page) .policy-card{padding:18px!important}
+ body:has(> main .policy-page) .privacy-principles,
+ body:has(> main .policy-page) .rights-grid,
+ body:has(> main .policy-page) .rights-grid-three{
+  grid-template-columns:minmax(0,1fr)!important;
+ }
+}

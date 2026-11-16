@@ -1,0 +1,131 @@
+{
+  "schema": "biglwa.foundation-snapshot.v1",
+  "capturedAt": "2026-11-16",
+  "intent": "Non-destructive baseline before branch optimization. Source paths are exact repository paths, not a guarantee that every public URL currently renders correctly.",
+  "repo": "leianmulatre-lwa/leianmulatre-lwa.github.io",
+  "baseline": {
+    "branch": "snapshot/2026-11-16-pre-performance-cleanup",
+    "sha": "1a10358b521ee912ac193638c5035d647aa56861",
+    "workingBranch": "refactor/2026-11-16-performance-foundation"
+  },
+  "deployments": {
+    "canonical": "https://biglwa.com/",
+    "notes": "GitHub Pages serves the canonical domain; the Cloudflare Pages biglwa-web-staging project is a separate deployment, not proof of public publish.",
+    "lastConfirmedCloudflareStaging": {
+      "url": "https://b9a97966.biglwa-web-staging.pages.dev",
+      "commit": "1a10358b521ee912ac193638c5035d647aa56861",
+      "status": "success",
+      "environment": "production",
+      "deployedAt": "2026-11-16T20:19:28Z"
+    }
+  },
+  "routes": [
+    {
+      "path": "/",
+      "source": "index.html",
+      "purpose": "Public landing + sign-in shell",
+      "access": "public",
+      "importance": "P0"
+    },
+    {
+      "path": "/studio/",
+      "source": "studio/index.html",
+      "purpose": "Signed-in Studio and widget router",
+      "access": "signed-in",
+      "importance": "P0"
+    },
+    {
+      "path": "/legal/",
+      "source": "legal/index.html",
+      "purpose": "Important/Legal index",
+      "access": "public",
+      "importance": "P0",
+      "regression": "Previously observed login/loading capture instead of index on staging; verify exact route in deployed browser before claiming fixed"
+    },
+    {
+      "path": "/about/",
+      "source": "about/index.html",
+      "access": "public",
+      "purpose": "About",
+      "importance": "P1"
+    },
+    {
+      "path": "/privacy/",
+      "source": "privacy/index.html",
+      "access": "public",
+      "purpose": "Privacy policy",
+      "importance": "P0"
+    },
+    {
+      "path": "/terms/",
+      "source": "terms/index.html",
+      "access": "public",
+      "purpose": "Terms of Use",
+      "importance": "P0"
+    },
+    {
+      "path": "/rights/",
+      "source": "rights/index.html",
+      "access": "public",
+      "purpose": "Rights & Likeness",
+      "importance": "P0"
+    },
+    {
+      "path": "/affidavit/",
+      "source": "affidavit/index.html",
+      "access": "public",
+      "purpose": "Affidavit of Good Faith",
+      "importance": "P1"
+    },
+    {
+      "path": "/map-app.html",
+      "source": "map-app.html",
+      "access": "feature",
+      "purpose": "Single interactive Map embedded/full",
+      "importance": "P1"
+    },
+    {
+      "path": "/404.html",
+      "source": "404.html",
+      "access": "fallback",
+      "purpose": "Fallback shell; avoid looping or overriding public routes",
+      "importance": "P0"
+    },
+    {
+      "path": "/sitemap.xml",
+      "source": "sitemap.xml",
+      "access": "public",
+      "purpose": "SEO URL inventory",
+      "importance": "P1"
+    },
+    {
+      "path": "/robots.txt",
+      "source": "robots.txt",
+      "access": "public",
+      "purpose": "Crawl rules",
+      "importance": "P1"
+    }
+  ],
+  "assets": {
+    "lockedReferences": [
+      "assets/login-curtain-film-grain-v2.webp",
+      "assets/studio-defaults/map-bikini-bottom-fallback.webp",
+      "assets/studio-defaults/archive-windows-hill.webp",
+      "assets/studio-defaults/archive-windows-hill-night.webp"
+    ],
+    "rule": "Do not alter source images, media user content, crest, licensed fonts, or legal content during performance cleanup without explicit and regression-tested migration."
+  },
+  "baselineSourceAudit": {
+    "files": 2747,
+    "trackedBytes": 138595724,
+    "landingUniqueJsRefs": 110,
+    "landingJsUncompressedApproxKB": 2508,
+    "landingUniqueCssRefs": 87,
+    "landingCssUncompressedApproxKB": 832,
+    "studioUniqueJsRefs": 108,
+    "studioJsUncompressedApproxKB": 2493,
+    "studioUniqueCssRefs": 86,
+    "studioCssUncompressedApproxKB": 832,
+    "notes": "Counts and byte totals are repository-source estimates, not transferred page weight or actual rendering times."
+  }
+}

@@ -153,7 +153,7 @@ await check('only the active channel is rendered, and standby stage sits above r
  assert.ok(mount.indexOf('id="streamPlayerStage"')<mount.indexOf('<section class="stream-guide"'));
  assert.ok(stream.includes("categories.filter(cat=>cat[0]===state.category).map("));
  assert.ok(stream.includes('data-stream-tab'));
- assert.ok(stream.includes("paintCategories();renderGrid();renderFeaturedSlots();renderCategory()"));
+ assert.ok(stream.includes("paintCategories();renderGrid();renderCategory()"),'Render channel content before populating its new discovery picker');
  assert.ok(style.includes('grid-template-columns:repeat(4,minmax(0,1fr))'));
 });
 await check('Ballroom sources remain credited but channel-only URLs never masquerade as playable TV',async()=>{

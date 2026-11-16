@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2';
+        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2';
         document.head.appendChild(script);
       }, 250);
     }
@@ -89,6 +89,17 @@
 
 
     #studioApp #map .studio-map-preview-slot{width:100%;min-width:0;overflow:hidden;padding:0;display:block}
+    #studioApp #map .studio-map-preview-slot{position:relative!important;isolation:isolate;min-height:205px!important;border-radius:14px!important;overflow:hidden!important;background:#b2cad3!important}
+    #studioApp #map .studio-map-preview-slot .studio-map-still{display:block!important;width:100%!important;height:205px!important;object-fit:cover!important;object-position:center!important;filter:saturate(1.12) contrast(1.02)!important}
+    #studioApp #map .studio-map-scene{position:absolute;inset:0;z-index:2;pointer-events:none;color:#fff8e6;text-shadow:0 2px 5px #201220b8}
+    #studioApp #map .studio-map-scene-title{position:absolute;top:12px;left:13px;font:700 17px/1.2 Georgia,serif;letter-spacing:.015em;padding:5px 9px;background:#44212abe;border:1px solid #ffdfc38c;border-radius:8px}
+    #studioApp #map .studio-map-scene-sub{position:absolute;left:12px;bottom:13px;padding:7px 11px;border-radius:7px;background:#351b28d9;font:750 10px/1.2 system-ui,sans-serif;letter-spacing:.04em}
+    #studioApp #map .studio-map-scene-pin{position:absolute;display:grid;place-items:center;width:32px;height:32px;border:2px solid #fff6dd;border-radius:9px 9px 9px 2px;background:#91314c;box-shadow:0 3px 0 #5b2037,0 4px 13px #25132377;font:750 19px/1 Georgia,serif;transform:rotate(-8deg)}
+    #studioApp #map .studio-map-scene-pin--music{top:35%;left:25%}
+    #studioApp #map .studio-map-scene-pin--film{top:53%;right:22%;background:#c87f36}
+
+    #studioApp #map .studio-map-preview-slot .studio-map-still{display:block;width:100%;height:205px;max-height:205px;object-fit:cover;object-position:center;border:1px solid #a4b8ac;border-radius:14px;box-shadow:2px 3px 0 #9faf9d;pointer-events:none;user-select:none}
+
     #studioApp #map .studio-mini-map{display:block;width:100%;height:205px!important;min-height:205px;border:1px solid #a2b7ac;border-radius:14px;background:#d9e8dc;box-shadow:2px 3px 0 #9fae9b;overflow:hidden}
     #studioApp #map .studio-mini-map-caption{font:650 11px/1.4 system-ui,sans-serif;padding:5px 2px 1px;color:#6d736b}
     #studioApp #map .studio-mini-map-caption .studio-mini-map-open{display:inline-flex;padding:2px 5px;border:0;border-radius:5px;background:transparent;color:#8b3642;font:750 11px/1.3 system-ui,sans-serif;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
@@ -337,6 +348,39 @@
     .video-booth-checks li::before{content:"";position:absolute;left:0;top:2px;width:12px;height:12px;border-radius:4px;border:1px solid #c9bdb4;background:rgba(255,255,255,.6)}
     .video-booth-checks li[data-ready="1"]::before{background:#477650;border-color:#3d6444}
     .video-booth-checks li[data-ready="1"]::after{content:"";position:absolute;left:3px;top:5px;width:5px;height:2px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg)}
+
+    /* The Studio thumbnail stays in Studio. The live Booth page is a lit mirror around
+       the actual signed-in member's profile portrait, never the uploaded film thumbnail. */
+    #moduleWorkspace[data-module-key="projects"] .module-heading h1,
+    #studioApp #projects .card-head h2{font-family:"CS Bergamot Stitched","Bergamot Stitched",Georgia,serif!important}
+    #moduleWorkspace[data-module-key="notes"] .diary-section-nav [data-diary-view] > span[aria-hidden]{display:inline-grid;place-items:center;min-width:1.1em;font-family:system-ui,sans-serif!important;font-weight:700}
+    .booth-vanity{--vanity-light:.72;position:relative;isolation:isolate;width:min(100%,750px);margin:15px auto 8px;padding:18px 23px;box-sizing:border-box;background:#251719;border:2px solid #6f4e42;border-radius:22px;box-shadow:0 12px 27px rgba(36,18,25,.22)}
+    .booth-vanity-lights{position:absolute;inset:0;z-index:2;pointer-events:none;overflow:hidden;border-radius:20px}
+    .booth-vanity .light-bar{position:absolute;background:rgba(255,248,233,var(--vanity-light));box-shadow:0 0 10px 3px rgba(255,248,226,var(--vanity-light)),0 0 35px 10px rgba(255,237,205,var(--vanity-light));transition:background .16s,box-shadow .16s}
+    .booth-vanity .light-bar.left,.booth-vanity .light-bar.right{width:7px;top:9%;bottom:9%;border-radius:99px}
+    .booth-vanity .light-bar.left{left:9px}.booth-vanity .light-bar.right{right:9px}
+    .booth-vanity .light-bar.top,.booth-vanity .light-bar.bottom{height:6px;left:8%;right:8%;border-radius:99px}
+    .booth-vanity .light-bar.top{top:7px}.booth-vanity .light-bar.bottom{bottom:7px}
+    .booth-vanity[data-lights="off"]{--vanity-light:0!important}
+    .booth-vanity .photobooth-stage.has-intro{width:100%;max-width:700px;max-height:460px;aspect-ratio:3/2;margin:0 auto;border:0;border-radius:12px;background:radial-gradient(ellipse at center,#51373b 0,#261d24 75%);color:#fff7ee}
+    .booth-avatar-prompt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;text-align:center;padding:18px;background:radial-gradient(circle,rgba(255,255,255,.09),transparent 69%)}
+    #boothProfilePhoto{display:block!important;width:clamp(94px,19vw,172px)!important;height:clamp(94px,19vw,172px)!important;min-height:0!important;max-height:none!important;flex:none;object-fit:cover!important;border:3px solid #ebc9bd;border-radius:50%;box-shadow:0 0 0 6px rgba(255,233,215,.1)}
+    #boothProfilePhoto[hidden]{display:none!important}
+    #boothProfileFallback{display:grid;place-items:center;width:clamp(94px,19vw,172px);height:clamp(94px,19vw,172px);border-radius:50%;background:#523c44;border:3px solid #c8a5a0;font:56px Georgia,serif}
+    .booth-avatar-prompt strong{font:600 clamp(16px,2.1vw,25px)/1.25 Georgia,serif;color:#fff6ee}
+    .booth-avatar-prompt small{font:600 11px/1.5 system-ui,sans-serif;opacity:.85}
+    .booth-light-controls{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;width:min(100%,750px);margin:10px auto 16px}
+    .booth-light-controls label{display:flex;gap:7px;align-items:center;font:650 12px system-ui,sans-serif}
+    .booth-light-controls input[type=range]{width:clamp(110px,25vw,250px);accent-color:#b83d61;cursor:pointer}
+    .booth-light-controls .module-action{margin:0;min-height:31px}
+    .booth-light-controls input:focus-visible,.booth-light-controls button:focus-visible{outline:3px solid #d75f78;outline-offset:2px}
+    .video-booth-tile.you{position:relative;overflow:hidden}
+    .video-booth-tile.you #videoBoothSelfPreview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1}
+    #videoBoothSelfPreview[hidden]{display:none!important}
+    .video-booth-tile.you:has(video:not([hidden])) b,.video-booth-tile.you:has(video:not([hidden])) small{position:relative;z-index:2;background:#251719bf;padding:3px 6px;border-radius:6px;color:#fff}
+    .video-booth-tile.you:has(video:not([hidden])) .video-booth-profile-photo{display:none}
+    @media(max-width:620px){.booth-vanity{padding:15px 18px}.booth-vanity .light-bar.left{left:6px}.booth-vanity .light-bar.right{right:6px}.booth-vanity .light-bar.top{top:5px}.booth-vanity .light-bar.bottom{bottom:5px}}
+
     .photobooth-stage.has-intro{min-height:0;aspect-ratio:3/2;background:#c9c0bd}
     .photobooth-stage .photobooth-intro{width:100%;height:100%;max-height:none;object-fit:cover;object-position:center;filter:contrast(1.02)}
     .photobooth-stage video,.photobooth-stage canvas,.photobooth-stage img{width:100%;height:100%;max-height:100%;object-fit:cover;display:block}
@@ -707,10 +751,10 @@
     .calendar-day.selected[data-calendar-crush]{outline:2px solid currentColor;outline-offset:-2px}
     .calendar-crush-chip{display:block;margin-top:4px;font:800 clamp(9px,1.3vw,12px)/1.15 system-ui,sans-serif;letter-spacing:.025em}
     .calendar-crushes>h2,.calendar-crushes .politc-panel h3{
-      font:400 clamp(24px,3vw,32px)/1.1 "CS Bergamot Stitched",Georgia,serif;text-align:left;letter-spacing:0;text-transform:none;border:0;padding:0
+      font:700 clamp(22px,2.7vw,34px)/1.05 Georgia,serif;text-align:left;letter-spacing:.065em;text-transform:uppercase;border-bottom:3px double currentColor;border-top:0;padding:0 0 8px
     }
     .calendar-crushes .politc-nominate-button{background:var(--crush-color);color:var(--crush-bg);border:0;border-radius:6px;padding:6px 10px;font-weight:700;cursor:pointer}
-    .calendar-crush-agenda strong{font:400 24px/1.15 "CS Bergamot Stitched",Georgia,serif}
+    .calendar-crush-agenda strong{font:700 20px/1.18 Georgia,serif;letter-spacing:.035em;text-transform:uppercase}
 
 
     .module-game-stage{grid-column:1/-1}
@@ -962,7 +1006,7 @@
   const routeName = $('#moduleRouteName');
   const moduleBack = $('#moduleBack');
 const known = new Set(['create','veve','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','project','visualz','games','learn','didyouknow','map','tools','reviews','politc']);
-const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',feed:'myfeed',connect:'Connect',camera:'booth',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'Sqwidz',projects:'visualizr',project:'visualizr',visualz:'visualizr',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'lwazi',reviews:'Wallpaper Reviews',politc:'politc'};
+const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',feed:'myfeed',connect:'Connect',camera:'booth',diary:'Journal',stream:'Stream',library:'Library',archive:'Archive',closet:'Closet',trophies:'Trophies',rooms:'The Lounge',room:'The Lounge',boards:'Boards',notes:'sqwibbl/r',projects:'visualize/r',project:'visualize/r',visualz:'visualize/r',games:'Games',learn:'Did You Know?',didyouknow:'Did You Know?',map:'Map',tools:'lwazi',reviews:'Wallpaper Reviews',politc:'politc'};
   const desc = {create:'Start something and send it to the right part of BIGLWA.',veve:'Public discovery, user-selected sections and shared culture, shaped by real posts.',calendar:'Your events and deadlines, with Google Calendar managed through Orbit.',orbit:'Connect Instagram, TikTok, and Pinterest, and keep every other profile link in one place as a shareable link list.',feed:'All parts of your social body in one place, controlled by you.',connect:'Invite boo·kiniz to join Big LWA.',camera:'Use our booth to feel yourself or chat with other bookiniz using Big LWA.',diary:'A private writing page that autosaves in this browser.',stream:'LWA Radio, TV, live channels and independent broadcasts.',library:'Build a returnable shelf of texts, PDFs, links, cases, and research.',archive:'Record materials worth preserving with enough context to find them again.',closet:'Your wardrobe, resale links and preloved listings.',trophies:'Keep awards, achievements, athletic results, race finishes, and the links that verify them in one personal trophy case.',rooms:'A shared-space prototype for conversation and working together.',boards:'Create visual/reference boards with names and context.',notes:'Sqwibs, conversations, long reads and streams. Your private writing stays below.',projects:'A creative home for visualeyez boards and visualslidez presentations.',visualz:'A creative home for visualeyez boards and visualslidez presentations.',games:'Small culture games and learning interactions.',learn:'A playable Did You Know? deck with answers, score, context, and sources.',map:'Pin places, memories, and projects. Your saved map stays in this browser.',tools:'Meet the blocks of the R/Lwazi seriez · create, edit, save and share.',politc:'Politics, elections, the pendulum, public records and reporting.'};
 
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1073,9 +1117,11 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   function miniCalendarMarkup(){
     const now=new Date(), start=new Date(now);start.setDate(now.getDate()-now.getDay());
     const dates=Array.from({length:14},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);return d});
-    const end=dates[13],monthLabel=start.getMonth()===end.getMonth()?start.toLocaleString(undefined,{month:'long'}):`${start.toLocaleString(undefined,{month:'short'})} – ${end.toLocaleString(undefined,{month:'short'})}`;
-    const cells=dates.map(d=>`<span class="${[0,6].includes(d.getDay())?'weekend ':''}${dayKey(d)===dayKey(now)?'today':''}" aria-label="${d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}">${d.getDate()}</span>`).join('');
-    return `<div class="calendar-mini" aria-label="Two week calendar preview"><div class="calendar-mini-head"><span>${monthLabel}</span><span>2 weeks</span></div><div class="calendar-mini-weekdays">${['S','M','T','W','T','F','S'].map((day,i)=>`<span class="${i===0||i===6?'weekend':''}">${day}</span>`).join('')}</div><div class="calendar-mini-grid">${cells}</div></div>`;
+    const geez=window.BigLWAGeezCalendar;
+    const alt=geez?.supported&&localStorage.getItem('biglwaCalendarSystemV1')==='geez';
+    const end=dates[13],monthLabel=alt?(geez.parts(start).name===geez.parts(end).name?geez.parts(start).name:geez.parts(start).name+' – '+geez.parts(end).name):start.getMonth()===end.getMonth()?start.toLocaleString(undefined,{month:'long'}):`${start.toLocaleString(undefined,{month:'short'})} – ${end.toLocaleString(undefined,{month:'short'})}`;
+    const cells=dates.map(d=>`<span class="${[0,6].includes(d.getDay())?'weekend ':''}${dayKey(d)===dayKey(now)?'today':''}" aria-label="${alt?geez.display(d)+' · ':''}${d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}">${alt?geez.parts(d).day:d.getDate()}</span>`).join('');
+    return `<div class="calendar-mini" aria-label="Two week ${alt?'Ge’ez':'Gregorian'} calendar preview"><div class="calendar-mini-head"><span>${monthLabel}</span><span>${alt?'Ge’ez · ':''}2 weeks</span></div><div class="calendar-mini-weekdays">${['S','M','T','W','T','F','S'].map((day,i)=>`<span class="${i===0||i===6?'weekend':''}">${day}</span>`).join('')}</div><div class="calendar-mini-grid">${cells}</div></div>`;
   }
 
   let calendarGeneration=0;
@@ -1114,13 +1160,21 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   function nominationPanel(cat,nominations,portrait){
     const isPoster=cat.id==='hunting'||cat.id==='cunting';
     const people=nominations.filter(x=>x.category===cat.id);
+    const firstPage=isPoster?24:people.length;
     return '<section class="politc-panel politc-collection-panel'+(isPoster?' politc-vintage-panel':'')+'" data-politc-season="'+cat.id+'">'+
       '<div class="politc-season-head"><div><h3>'+esc(cat.name)+'</h3><p class="politc-sub">'+esc(cat.subtitle)+'</p></div>'+
       '<div class="politc-season-tools"><span class="politc-record-count">'+people.length+' entries</span>'+
       '<button class="politc-nominate-button" type="button" data-politc-nominate="'+cat.id+'" aria-controls="politc-nominate-'+cat.id+'" aria-expanded="false">✦ Nominate</button></div></div>'+
-      '<div class="politc-portraits">'+(people.length?people.map(portrait).join(''):'<p class="politc-note politc-empty">No entries yet. Nominate someone to begin.</p>')+'</div>'+
+      '<div class="politc-portraits">'+(people.length?people.map((person,i)=>{
+        const html=portrait(person);
+        return isPoster&&i>=firstPage?html.replace('<article class="politc-person',
+          '<article hidden data-politc-paged="true" class="politc-person'):html;
+       }).join(''):'<p class="politc-note politc-empty">No entries yet. Nominate someone to begin.</p>')+'</div>'+
+      (isPoster&&people.length>firstPage?'<button type="button" class="politc-poster-load-more" data-politc-show-more="'+cat.id+'">Show 24 more · '+firstPage+' of '+people.length+' shown</button>':'')+
       '<div class="politc-nomination-drawer" id="politc-nominate-'+cat.id+'" hidden>'+
-      '<form class="politc-form" data-politc-form="'+cat.id+'"><label>Nominee<input required name="name" maxlength="70" placeholder="Name"></label><label>Photo (black & white on display)<input name="photo" type="file" accept="image/*"></label><label>Caption / context<textarea name="note" maxlength="280" rows="2" placeholder="'+(isPoster?'Provide grounded context':'Add a caption or context')+'"></textarea></label><label>'+(isPoster?'Evidence':'Source')+' / profile link (optional)<input name="source" type="url" placeholder="https://"></label><button type="submit">Add nomination</button><small>Saved privately on this device. No threats, addresses, personal contact details, or harassment.'+(isPoster?' Distinguish allegations from findings.':'')+'</small></form></div></section>';
+      '<form class="politc-form" data-politc-form="'+cat.id+'"><label>Nominee<input required name="name" maxlength="70" placeholder="Name"></label><label>Photo<input name="photo" type="file" accept="image/*"></label>'+
+      (isPoster?'<label>Portrait style<select name="life"><option value="unknown">Status unknown · neutral</option><option value="living">Living · color</option><option value="deceased">Deceased · black & white</option></select></label>':'')+
+      '<label>Caption / context<textarea name="note" maxlength="280" rows="2" placeholder="'+(isPoster?'Provide grounded context':'Add a caption or context')+'"></textarea></label><label>'+(isPoster?'Evidence':'Source')+' / profile link (optional)<input name="source" type="url" placeholder="https://"></label><button type="submit">Add nomination</button><small>Saved privately on this device. No threats, addresses, personal contact details, or harassment.'+(isPoster?' Distinguish allegations from findings.':'')+'</small></form></div></section>';
   }
   function bindNominationPanels(container,store,refresh){
     container.querySelectorAll('[data-politc-nominate]').forEach(button=>button.addEventListener('click',()=>{
@@ -1147,6 +1201,8 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     }));
     container.querySelectorAll('[data-politc-form]').forEach(form=>form.addEventListener('submit',async(e)=>{
       e.preventDefault();const fd=new FormData(form),name=String(fd.get('name')||'').trim(),note=String(fd.get('note')||'').trim(),source=String(fd.get('source')||'').trim();
+      const selectedLife=String(fd.get('life')||'unknown');
+      const life=['living','deceased','unknown'].includes(selectedLife)?selectedLife:'unknown';
       if(!name)return;
       const file=fd.get('photo');let photo='';
       if(file instanceof File&&file.size){
@@ -1154,7 +1210,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
         photo=await new Promise(resolve=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>resolve('');reader.readAsDataURL(file);});
       }
       try{if(!store.ownerUid||store.ownerUid!==nominationOwner())throw Error('Sign in before saving nominations.');
-        writeJSON(store.key,[...store.read(),{id:String(Date.now())+'-'+Math.random().toString(36).slice(2,7),category:form.dataset.politcForm,name,note,source,photo}]);if(form.isConnected)refresh()}
+        writeJSON(store.key,[...store.read(),{id:String(Date.now())+'-'+Math.random().toString(36).slice(2,7),category:form.dataset.politcForm,name,note,source,photo,life}]);if(form.isConnected)refresh()}
       catch(err){alert('This browser could not save the nomination. Try a smaller photo.');}
     }));
   }
@@ -1169,31 +1225,83 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const storage='biglwaCalendarEvents';
     let view=readJSON('biglwaCalendarView',null);if(!view||!Number.isInteger(view.year)||!Number.isInteger(view.month))view={year:new Date().getFullYear(),month:new Date().getMonth()};
     let selected=localStorage.getItem('biglwaCalendarSelected')||dayKey(new Date()),remote=[],syncMessage='',loaded='',requestId=0;
+    const geez=window.BigLWAGeezCalendar;
+    const geezSupported=Boolean(geez?.supported);
+    let calendarMode=geezSupported&&localStorage.getItem('biglwaCalendarSystemV1')==='geez'?'geez':'gregorian';
+    let geezAnchor=new Date(selected+'T12:00:00');
+    workspace.dataset.calendarMode=calendarMode;
     const events=()=>readJSON(storage,[]);
     const active=()=>instance===calendarGeneration&&routeName.textContent==='Calendar'&&!workspace.hidden;
     const onDay=(e,key)=>{if(e.start?.date)return key>=e.start.date&&key<(e.end?.date||e.start.date+'x');const s=new Date(e.start?.dateTime),end=new Date(e.end?.dateTime||e.start?.dateTime),day=new Date(key+'T00:00:00'),next=new Date(day);next.setDate(next.getDate()+1);return s<next&&end>=day&&(end>day||s.getTime()===end.getTime())};
     const googleRows=key=>remote.filter(e=>onDay(e,key)).map(e=>({title:e.summary||'Untitled Google event',meta:'Google · '+(e.start?.date?'All day':new Date(e.start.dateTime).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})),google:true,url:e.htmlLink||''}));
+    const calendarGrid=()=>{
+      if(calendarMode==='geez'&&geezSupported){
+        const grid=geez.grid(geezAnchor);
+        if(grid)return {geez:true,grid,dates:grid.dates};
+      }
+      return {geez:false,grid:null,dates:Array.from({length:42},(_,i)=>calendarGridDate(view.year,view.month,i))};
+    };
     const draw=()=>{
-      const all=events(),connected=window.__biglwaGoogleOrbit?.state.connected;const unRows=key=>window.BigLWAObservances?.onDay(key)||[];
-      const days=Array.from({length:42},(_,i)=>{
-        const d=calendarGridDate(view.year,view.month,i),key=dayKey(d);
-        const crush=calendarCrushOnDay(key),items=[...all.filter(x=>x.date===key),...googleRows(key),...unRows(key)];
+      const all=events(),connected=window.__biglwaGoogleOrbit?.state.connected;const unRows=key=>window.BigLWAObservances?.onDay(key)||[];const popRows=key=>window.BigLWAPopCultureCalendar?.onDay(key)||[];
+      const monthGrid=calendarGrid(),isGeez=monthGrid.geez;
+      workspace.dataset.calendarMode=isGeez?'geez':'gregorian';
+      const gMonth=monthGrid.grid?.month;
+      const days=monthGrid.dates.map(d=>{
+        const key=dayKey(d),gPart=isGeez?geez.parts(d):null;
+        const inMonth=isGeez?(gPart?.month===gMonth?.month&&gPart?.year===gMonth?.year):d.getMonth()===view.month;
+        const dateLabel=isGeez?geez.display(d)+' · '+d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+        const crush=calendarCrushOnDay(key),items=[...all.filter(x=>x.date===key),...googleRows(key),...unRows(key),...popRows(key)];
         const limit=crush?2:3;
-        return '<button class="calendar-day '+([0,6].includes(d.getDay())?'weekend ':'')+(d.getMonth()!==view.month?'other ':'')+(selected===key?'selected ':'')+(key===dayKey(new Date())?'today':'')+'" data-cal-date="'+key+'" type="button"'+(crush?' data-calendar-crush="'+crush.id+'"':'')+'>'+
-          '<span class="calendar-day-num">'+d.getDate()+'</span>'+
+        return '<button class="calendar-day '+([0,6].includes(d.getDay())?'weekend ':'')+(!inMonth?'other ':'')+(selected===key?'selected ':'')+(key===dayKey(new Date())?'today':'')+'" data-cal-date="'+key+'" type="button" aria-label="'+esc(dateLabel)+'"'+(crush?' data-calendar-crush="'+crush.id+'"':'')+'>'+
+          '<span class="calendar-day-num">'+(isGeez?gPart.day:d.getDate())+'</span>'+
           (crush?'<span class="calendar-crush-chip" title="'+esc(crush.title)+'" aria-label="'+esc(crush.title)+'">'+crush.short+'</span>':'')+
-          items.slice(0,limit).map(e=>'<span class="calendar-event-chip">'+esc(e.google?'G · '+e.title:e.un?'UN · '+e.title:e.title)+'</span>').join('')+
+          items.slice(0,limit).map(e=>'<span class="calendar-event-chip">'+esc(e.pop?'Pop · '+e.year+' · '+e.title:e.google?'G · '+e.title:e.un?'UN · '+e.title:e.title)+'</span>').join('')+
           (items.length>limit?'<small>+'+(items.length-limit)+' more</small>':'')+'</button>';
       }).join('');
-      const local=all.filter(x=>x.date===selected),readOnlyRows=[...googleRows(selected),...unRows(selected)];
+      const local=all.filter(x=>x.date===selected),readOnlyRows=[...googleRows(selected),...unRows(selected),...popRows(selected)];
       const selectedCrush=calendarCrushOnDay(selected);
       const crushAgenda=selectedCrush?'<div class="module-list-item calendar-crush-agenda" data-calendar-crush="'+selectedCrush.id+'"><div><strong>'+esc(selectedCrush.title)+'</strong><small>Weekly · BIG LWA</small></div></div>':'';
-      calendarContent.innerHTML=heading('calendar')+'<p class="module-status" role="status">'+esc(syncMessage||(connected?'Google Calendar connected through Orbit.':'Connect Google Calendar in Orbit to see your events here.'))+'</p><div class="calendar-shell"><section class="calendar-board"><div class="calendar-toolbar"><div class="module-actions"><button class="module-action ghost" id="calPrev" aria-label="Previous month">←</button><button class="module-action ghost" id="calToday">Today</button><button class="module-action ghost" id="calOrbit" type="button">Manage in Orbit</button></div><h2>'+new Date(view.year,view.month,1).toLocaleString(undefined,{month:'long',year:'numeric'})+'</h2><div class="module-actions"><button class="module-action ghost" id="calNext" aria-label="Next month">→</button>'+(connected?'<button class="module-action ghost" id="calRefresh" type="button">Refresh</button>':'')+'</div></div><div class="calendar-weekdays">'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((x,i)=>'<span class="'+(i===0||i===6?'weekend':'')+'">'+x+'</span>').join('')+'</div><div class="calendar-days">'+days+'</div></section><aside class="module-card"><h2>'+new Date(selected+'T12:00:00').toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})+'</h2><p>Google events and UN observances are read-only. New events below are saved in this browser.</p><p><a href="https://www.un.org/en/observances/list-days-weeks" target="_blank" rel="noopener">UN days &amp; weeks ↗</a> · <span id="unCalendarStatus">Loading observances…</span></p><form class="module-form" id="calendarEventForm"><input class="module-input" name="title" placeholder="Event title" required><input class="module-input" type="time" name="time"><button class="module-action" type="submit">Add local event</button></form><div class="module-list" id="calendarSelectedEvents">'+crushAgenda+listHtml(local,'event')+readOnlyRows.map(e=>'<div class="module-list-item"><div><b>'+esc(e.title)+'</b><small>'+esc(e.meta)+'</small></div></div>').join('')+'</div></aside></div>';
+      const monthLabel=isGeez?geez.label(monthGrid.grid.start):new Date(view.year,view.month,1).toLocaleString(undefined,{month:'long',year:'numeric'});
+      const chosenDate=new Date(selected+'T12:00:00');
+      const selectedLabel=isGeez?geez.display(chosenDate):chosenDate.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+      const calendarWeekdays=isGeez?['እሑ','ሰኞ','ማክ','ረቡ','ሐሙ','ዓር','ቅዳ']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+      const modeTabs='<nav class="calendar-modes" role="tablist" aria-label="Calendar systems">'+
+        '<button type="button" role="tab" data-calendar-mode="gregorian" aria-selected="'+(!isGeez)+'">Gregorian</button>'+
+        '<button type="button" role="tab" data-calendar-mode="geez" aria-selected="'+isGeez+'"'+(geezSupported?'':' disabled title="Ge’ez calendar is not supported in this browser"')+'>Pre-colonial</button></nav>';
+      const conversionNote=isGeez?'<p class="calendar-geez-note">Ge’ez Calendar · 13 months · '+esc(chosenDate.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}))+' Gregorian equivalent. Your events and Google sync keep their original dates.</p>':'';
+      calendarContent.innerHTML=heading('calendar')+modeTabs+'<p class="module-status" role="status">'+esc(syncMessage||(connected?'Google Calendar connected through Orbit.':'Connect Google Calendar in Orbit to see your events here.'))+'</p><div class="calendar-shell"><section class="calendar-board"><div class="calendar-toolbar"><div class="module-actions"><button class="module-action ghost" id="calPrev" aria-label="Previous month">←</button><button class="module-action ghost" id="calToday">Today</button><button class="module-action ghost" id="calOrbit" type="button">Manage in Orbit</button></div><h2>'+esc(monthLabel)+'</h2><div class="module-actions"><button class="module-action ghost" id="calNext" aria-label="Next month">→</button>'+(connected?'<button class="module-action ghost" id="calRefresh" type="button">Refresh</button>':'')+'</div></div><div class="calendar-weekdays">'+calendarWeekdays.map((x,i)=>'<span class="'+(i===0||i===6?'weekend':'')+'">'+x+'</span>').join('')+'</div><div class="calendar-days">'+days+'</div></section><aside class="module-card"><h2>'+esc(selectedLabel)+'</h2>'+conversionNote+'<p>Google events and UN observances are read-only. New events below are saved in this browser.</p><p><a href="https://www.un.org/en/observances/list-days-weeks" target="_blank" rel="noopener">UN days &amp; weeks ↗</a> · <span id="unCalendarStatus">Loading observances…</span></p><form class="module-form" id="calendarEventForm"><input class="module-input" name="title" placeholder="Event title" required><input class="module-input" type="time" name="time"><button class="module-action" type="submit">Add local event</button></form><div class="module-list" id="calendarSelectedEvents">'+crushAgenda+listHtml(local,'event')+readOnlyRows.map(e=>'<div class="module-list-item"'+(e.pop?' data-calendar-pop-history="1"':'')+'><div><b>'+esc(e.title)+'</b><small>'+esc(e.meta)+'</small>'+(e.pop?'<small>'+esc(e.description)+'</small><a href="'+esc(e.url)+'" target="_blank" rel="noopener noreferrer">Read original article ↗</a>':'')+'</div></div>').join('')+'</div></aside></div>';
+      const actualHeading=calendarContent.querySelector('.module-heading h1');
+      if(actualHeading)actualHeading.textContent=isGeez?'Ge’ez Calendar':'Calendar';
+      $$('.calendar-modes [data-calendar-mode]',calendarContent).forEach(button=>{
+        button.onclick=()=>{
+          const requested=button.dataset.calendarMode;
+          if(requested==='geez'&&!geezSupported||requested===calendarMode)return;
+          calendarMode=requested;
+          workspace.dataset.calendarMode=calendarMode;
+          if(calendarMode==='geez')geezAnchor=new Date(selected+'T12:00:00');
+          else{
+            const d=new Date(selected+'T12:00:00');
+            view={year:d.getFullYear(),month:d.getMonth()};
+            writeJSON('biglwaCalendarView',view);
+          }
+          try{localStorage.setItem('biglwaCalendarSystemV1',calendarMode);}catch{}
+          remote=[];loaded='';++requestId;draw();load();
+        };
+      });
       const unStatus=$('#unCalendarStatus',body),unData=window.BigLWAObservances?.data;
       if(unStatus&&unData)unStatus.textContent='Auto-updated daily · last fetched '+new Date(unData.updatedAt).toLocaleDateString()+(unData.retrievedFrom.includes('indonesia.un.org')?' · UN Indonesia mirror':'')+'. Lunar dates require checking the source.';
-      const change=n=>{const d=new Date(view.year,view.month+n,1);view={year:d.getFullYear(),month:d.getMonth()};writeJSON('biglwaCalendarView',view);remote=[];draw();load()};
+      const change=n=>{
+        if(calendarMode==='geez'&&geezSupported){
+          const next=geez.shift(geezAnchor,n);if(!next)return;
+          geezAnchor=next;
+        }else{
+          const d=new Date(view.year,view.month+n,1);view={year:d.getFullYear(),month:d.getMonth()};
+          writeJSON('biglwaCalendarView',view);
+        }
+        remote=[];loaded='';++requestId;draw();load();
+      };
       $('#calPrev',body).onclick=()=>change(-1);$('#calNext',body).onclick=()=>change(1);
-      $('#calToday',body).onclick=()=>{const n=new Date();view={year:n.getFullYear(),month:n.getMonth()};selected=dayKey(n);writeJSON('biglwaCalendarView',view);localStorage.setItem('biglwaCalendarSelected',selected);remote=[];loaded='';draw();load()};
+      $('#calToday',body).onclick=()=>{const n=new Date();view={year:n.getFullYear(),month:n.getMonth()};selected=dayKey(n);geezAnchor=new Date(n.getFullYear(),n.getMonth(),n.getDate(),12);writeJSON('biglwaCalendarView',view);localStorage.setItem('biglwaCalendarSelected',selected);remote=[];loaded='';++requestId;draw();load()};
       $('#calOrbit',body).onclick=()=>openModule('orbit');
       const refresh=$('#calRefresh',body);if(refresh)refresh.onclick=()=>{loaded='';load()};
       $$('.calendar-day',body).forEach(btn=>btn.onclick=()=>{selected=btn.dataset.calDate;localStorage.setItem('biglwaCalendarSelected',selected);draw()});
@@ -1202,9 +1310,14 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     };
     async function load(){
       const orbit=window.__biglwaGoogleOrbit;if(!orbit?.state.connected||!orbit.calendarEvents)return;
-      const key=view.year+'-'+view.month;if(loaded===key)return;loaded=key;const id=++requestId;
+      const range=calendarGrid();
+      const key=calendarMode+':'+dayKey(range.dates[0])+':'+range.dates.length;
+      if(loaded===key)return;loaded=key;const id=++requestId;
       syncMessage='Loading Google events…';draw();
-      try{const start=calendarGridDate(view.year,view.month,0),end=calendarGridDate(view.year,view.month,42);const items=await orbit.calendarEvents(start.toISOString(),end.toISOString());if(id!==requestId||!active())return;remote=items;syncMessage='Google events refreshed from Orbit.'}
+      try{
+        const start=range.dates[0],end=new Date(range.dates[range.dates.length-1]);
+        end.setDate(end.getDate()+1);
+        const items=await orbit.calendarEvents(start.toISOString(),end.toISOString());if(id!==requestId||!active())return;remote=items;syncMessage='Google events refreshed from Orbit.'}
       catch(e){if(id!==requestId||!active())return;remote=[];loaded='';syncMessage=e.message}
       if(active())draw();
     }
@@ -1228,8 +1341,8 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
      ['substack','S','Substack','#da521b'],['xbox','XB','Xbox','#a3d65e'],
     ['website','WWW','My website','rgb(var(--aura-rgb,216,95,109))']
   ];
-  const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest','facebook','youtube']);
-  const ORBIT_LIVE=new Set(['instagram','tiktok','pinterest','facebook','youtube']);
+  const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest','facebook','youtube','calendar','drive']);
+  const ORBIT_LIVE=new Set(['instagram','tiktok','pinterest','facebook','youtube','calendar','drive']);
   const ORBIT_APP_NAMES=Object.fromEntries([...ORBIT_APPS,...PLANETARY_APPS].map(([k,,n])=>[k,n]));
   /* Each API's chip wears that API's own colour. They were all one black pill, which read as
      a row of dead black dots with unreadable lettering rather than as a list of services.
@@ -1240,6 +1353,24 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const rows=[];
     for(const id of ['x','snapchat','tumblr']){const item=window.BigLWAOrbitOAuth?.get?.(id);if(item)rows.push(item)}
     try{rows.push(...Object.values(window.__biglwaConnections?.connections?.()||{}).filter(row=>row&&row.id&&row.link))}catch{}
+    // Google Identity Services returns a short-lived in-memory access token;
+    // it is not an account-level token nor a public profile link. Reflect it in
+    // all three Orbit rows only for the signed-in member who authorized it.
+    try{
+      const google=window.__biglwaGoogleOrbit;
+      const uid=String(window.__biglwaIdentity?.uid||window.BigLWAAccountStorage?.uid||'').trim();
+      const active=google?.state?.connected&&google?.state?.uid===uid&&
+        google.hasActiveToken?.()===true&&uid&&
+        !document.documentElement.classList.contains('biglwa-preview-mode');
+      if(active){
+        for(const id of ['youtube','drive','calendar']){
+          rows.push({id,label:id==='calendar'?'Google Calendar':id==='drive'?'Google Drive':'YouTube',
+            name:id==='youtube'?google.state.youtube?.snippet?.title||'YouTube authorized':
+              id==='drive'?'Google Drive authorized':'Google Calendar authorized',
+            verifiedFromProvider:true,googleSession:true,link:''});
+        }
+      }
+    }catch{}
     // The account mirror is asynchronous. If the Pinterest API has actually
     // verified a signed-in user's profile, show that verified connection right
     // away rather than falsely showing NOT CONNECTED until Firestore finishes.
@@ -1525,7 +1656,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
          return;
        }
        if(!ORBIT_LIVE.has(k)){say('This provider is not configured for sign-in yet.');return;}
-       const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.BigLWAFacebookPersonal,youtube:window.__biglwaGoogleOrbit}[k];
+       const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.BigLWAFacebookPersonal,youtube:window.__biglwaGoogleOrbit,calendar:window.__biglwaGoogleOrbit,drive:window.__biglwaGoogleOrbit}[k];
        if(!client?.connect){say('That connection is still loading. Try again in a moment.');return;}
        if(k==='facebook'){
          connect.disabled=true;
@@ -1539,6 +1670,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
        const k=unlink.dataset.orbitUnlink;unlink.disabled=true;say('Unlinking…');
        try{
          if(['x','snapchat','tumblr'].includes(k))await window.BigLWAOrbitOAuth.disconnect(k);
+         else if(['youtube','calendar','drive'].includes(k))await window.__biglwaGoogleOrbit?.disconnect?.();
          else if(k==='facebook'&&window.BigLWAFacebookPersonal?.state?.connected)await window.BigLWAFacebookPersonal.disconnect();
          else if(k==='facebook'&&window.__biglwaFacebookOrbit?.state?.connected)await window.__biglwaFacebookOrbit.disconnect();
          else await window.__biglwaConnections?.forget?.(k);
@@ -2109,25 +2241,93 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     $('#shareBiglwaInvite',body).onclick=async()=>{if(!navigator.share){await copy();return}try{await navigator.share({title:'Join BIGLWA',text:'Join me on BIGLWA — a space for creativity, culture, and connection.',url:invite});status.textContent='Invitation shared.'}catch(e){if(e.name!=='AbortError')await copy()}};
   }
 
-  let activeCameraStream=null;
-  function stopCamera(){if(activeCameraStream){activeCameraStream.getTracks().forEach(t=>t.stop());activeCameraStream=null}}
+  let activeCameraStream=null,activeVideoTestStream=null;
+  function stopVideoTest(){
+    if(activeVideoTestStream){activeVideoTestStream.getTracks().forEach(track=>track.stop());activeVideoTestStream=null;}
+    const preview=$('#videoBoothSelfPreview',body);if(preview){preview.pause();preview.srcObject=null;preview.hidden=true;}
+    const button=$('#videoBoothTestCamera',body);if(button)button.textContent='Test camera locally';
+  }
+  function stopCamera(){if(activeCameraStream){activeCameraStream.getTracks().forEach(t=>t.stop());activeCameraStream=null;}stopVideoTest();}
   function renderCamera(){
     stopCamera();
-    body.innerHTML=heading('camera')+`<div class="booth-tabs" role="tablist" aria-label="Choose booth mode"><button type="button" class="booth-tab" id="boothPhotoTab" role="tab" aria-selected="true" aria-controls="boothPhotoPanel" tabindex="0">photo·booth</button><button type="button" class="booth-tab" id="boothVideoTab" role="tab" aria-selected="false" aria-controls="boothVideoPanel" tabindex="-1">video·booth <span class="booth-tab-soon">soon</span></button></div><div class="module-grid booth-content"><section class="module-card wide booth-panel" id="boothPhotoPanel" role="tabpanel" aria-labelledby="boothPhotoTab"><h2>photo·booth</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="photobooth-stage has-intro" id="photoStage"><img class="photobooth-intro" src="/assets/booth-light-20261029.webp" alt="Red curtain for photo booth" width="800" height="533" loading="lazy" decoding="async"></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section>${renderVideoBooth()}</div>`;
+    body.innerHTML=heading('camera')+`<div class="booth-tabs" role="tablist" aria-label="Choose booth mode"><button type="button" class="booth-tab" id="boothPhotoTab" role="tab" aria-selected="true" aria-controls="boothPhotoPanel" tabindex="0">photo·booth</button><button type="button" class="booth-tab" id="boothVideoTab" role="tab" aria-selected="false" aria-controls="boothVideoPanel" tabindex="-1">video·booth <span class="booth-tab-soon">soon</span></button></div><div class="module-grid booth-content"><section class="module-card wide booth-panel" id="boothPhotoPanel" role="tabpanel" aria-labelledby="boothPhotoTab"><h2>photo·booth</h2><p>Your camera feed stays in the browser. Nothing is uploaded by starting the booth or taking a frame.</p><div class="booth-vanity" id="boothVanity" data-lights="on" style="--vanity-light:.72;--vanity-energy:.72"><div class="booth-vanity-lights" aria-hidden="true"><span class="light-bar left"></span><span class="light-bar right"></span><span class="light-bar top"></span><span class="light-bar bottom"></span></div><div class="photobooth-stage has-intro" id="photoStage"><div class="booth-avatar-prompt"><img id="boothProfilePhoto" alt="Your profile picture" hidden><span id="boothProfileFallback" aria-hidden="true">◉</span><strong id="boothProfileName">Your profile</strong><small>Look good, feel good, bookini.</small></div></div></div><div class="booth-light-controls"><label for="boothLightLevel">Vanity lighting <output id="boothLightValue" for="boothLightLevel">72%</output></label><input id="boothLightLevel" type="range" min="0" max="100" value="72" step="1" aria-label="Vanity screen light brightness"><button type="button" class="module-action secondary" id="boothLightToggle" aria-pressed="true">Lights on</button></div><div class="module-actions"><button class="module-action" id="photoStart" type="button">Start camera</button><button class="module-action secondary" id="photoCapture" type="button" disabled>Capture</button><button class="module-action ghost" id="photoFlip" type="button" disabled>Flip camera</button><label class="module-action ghost">Use existing photo<input id="cameraFile" type="file" accept="image/*" hidden></label></div><div class="photo-strip" id="photoStrip"></div><div class="module-status" id="photoStatus">Camera permission is requested only when you press Start camera.</div></section>${renderVideoBooth()}</div>`;
     const photoTab=$('#boothPhotoTab',body),videoTab=$('#boothVideoTab',body);
     const photoPanel=$('#boothPhotoPanel',body),videoPanel=$('#boothVideoPanel',body);
+    // UID-scoped owner portrait. Never fall back to an unrelated signed-in account,
+    // a public-profile visitor, or the Studio Booth thumbnail.
+    const ownBoothProfile=()=>{
+      if(document.documentElement.classList.contains('biglwa-preview-mode'))return {name:'Your profile',url:''};
+      const who=window.__biglwaIdentity;
+      const uid=String(who?.uid||'').trim();
+      if(!uid)return {name:'Your profile',url:''};
+      let saved={};
+      try{saved=JSON.parse(localStorage.getItem('biglwaOwnProfileV1:'+uid)||'null')||{}}catch{}
+      const name=String(who.name||saved.name||who.username||'Your profile').slice(0,90);
+      const source=String(who.avatarUrl||saved.profilePhoto?.url||saved.profilePhotoUrl||saved.avatarUrl||'').trim();
+      const url=(source.startsWith('https://')||(source.startsWith('/')&&!source.startsWith('//')))?source:'';
+      return {name,url};
+    };
+    function refreshBoothProfile(){
+      const profile=ownBoothProfile();
+      const avatar=$('#boothProfilePhoto',body),fallback=$('#boothProfileFallback',body),name=$('#boothProfileName',body);
+      if(name)name.textContent=profile.name;
+      if(avatar){
+        avatar.onerror=()=>{avatar.hidden=true;if(fallback)fallback.hidden=false;};
+        if(profile.url){if(avatar.getAttribute('src')!==profile.url)avatar.src=profile.url;avatar.hidden=false;if(fallback)fallback.hidden=true;}
+        else {avatar.removeAttribute('src');avatar.hidden=true;if(fallback)fallback.hidden=false;}
+      }
+      if(fallback)fallback.textContent=profile.name==='Your profile'?'◉':Array.from(profile.name)[0]?.toLocaleUpperCase()||'◉';
+      const videoAvatar=$('#videoBoothOwnPhoto',body),videoName=$('.video-booth-tile.you b',body);
+      if(videoName)videoName.textContent=profile.name;
+      if(videoAvatar){
+        videoAvatar.replaceChildren();
+        if(profile.url){
+          const photo=document.createElement('img');photo.alt='';photo.src=profile.url;
+          photo.addEventListener('error',()=>{photo.remove();videoAvatar.textContent='◉';},{once:true});
+          videoAvatar.append(photo);
+        }else videoAvatar.textContent=profile.name==='Your profile'?'◉':Array.from(profile.name)[0]?.toLocaleUpperCase()||'◉';
+      }
+      const rank=$('#studioApp .real-rank strong')?.textContent?.trim();
+      const rankLine=$('.video-booth-tile.you small',body);
+      if(rankLine&&rank)rankLine.textContent=rank;
+    }
+    const vanity=$('#boothVanity',body),level=$('#boothLightLevel',body),lightValue=$('#boothLightValue',body),lightToggle=$('#boothLightToggle',body);
+    let lightsOn=true;
+    const refreshLights=()=>{
+      const percent=Math.max(0,Math.min(100,Number(level.value)||0));
+      const power=lightsOn?percent/100:0;
+      // Drive the exterior LED strips, room spill and preview fill separately.
+      // This adjusts page lighting, not the physical device's display brightness.
+      vanity.style.setProperty('--vanity-light',power.toFixed(2));
+      vanity.style.setProperty('--vanity-energy',power.toFixed(3));
+      vanity.style.setProperty('--vanity-spill',(power*power).toFixed(3));
+      vanity.style.setProperty('--vanity-radius',(12+power*105).toFixed(1)+'px');
+      vanity.style.setProperty('--vanity-exposure',(1+power*.65).toFixed(2));
+      vanity.dataset.lights=lightsOn?'on':'off';
+      lightValue.textContent=percent+'%';
+      lightToggle.textContent=lightsOn?'Lights on':'Lights off';
+      lightToggle.setAttribute('aria-pressed',String(lightsOn));
+    };
+    level.addEventListener('input',refreshLights);
+    lightToggle.addEventListener('click',()=>{lightsOn=!lightsOn;refreshLights();});
+    // Slider works immediately with keyboard, touch and pointer input.
+    level.addEventListener('change',refreshLights);
+    refreshLights();refreshBoothProfile();
+    // The account photo may finish hydrating after the module is first painted.
+    setTimeout(()=>{if(photoPanel.isConnected)refreshBoothProfile();},550);
     const selectBooth=mode=>{
       const video=mode==='video';
       photoTab.setAttribute('aria-selected',String(!video));
       videoTab.setAttribute('aria-selected',String(video));
       photoTab.tabIndex=video?-1:0;videoTab.tabIndex=video?0:-1;
       photoPanel.hidden=video;videoPanel.hidden=!video;
+      if(!video)stopVideoTest();
       if(video&&activeCameraStream){
         stopCamera();
         const cameraStage=$('#photoStage',body);
         if(cameraStage?.querySelector('#boothVideo')){
           cameraStage.classList.add('has-intro');
-          cameraStage.innerHTML='<img class="photobooth-intro" src="/assets/booth-light-20261029.webp" alt="Red photo booth curtain" width="800" height="533">';
+          cameraStage.innerHTML='<div class="booth-avatar-prompt"><img id="boothProfilePhoto" alt="Your profile picture" hidden><span id="boothProfileFallback" aria-hidden="true">◉</span><strong id="boothProfileName">Your profile</strong><small>Look good, feel good, bookini.</small></div>';refreshBoothProfile();
           $('#photoCapture',body).disabled=true;$('#photoFlip',body).disabled=true;
           $('#photoStatus',body).textContent='Camera stopped when switching to Video Booth. Start camera again to take photos.';
         }
@@ -2144,11 +2344,38 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       });
     }
     selectBooth('photo');
+    const videoTestStatus=$('#boothVideoPanel .video-booth-status',body);
+    $('#videoBoothTestCamera',body).onclick=async()=>{
+      if(activeVideoTestStream){stopVideoTest();videoTestStatus.textContent='Local camera preview stopped. No footage was sent or saved.';return;}
+      const button=$('#videoBoothTestCamera',body);
+      button.disabled=true;
+      try{
+        if(!navigator.mediaDevices?.getUserMedia)throw Error('Camera not available in this browser.');
+        activeVideoTestStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false});
+        if(!videoPanel.isConnected||videoPanel.hidden){stopVideoTest();return;}
+        const preview=$('#videoBoothSelfPreview',body);
+        preview.srcObject=activeVideoTestStream;preview.hidden=false;
+        try{await preview.play();}catch{}
+        button.textContent='Stop local preview';
+        videoTestStatus.textContent='Your local camera preview is on. No matching or video call is active.';
+      }catch(error){stopVideoTest();videoTestStatus.textContent=error?.message||'Camera check failed. Review your browser permissions.';}
+      finally{button.disabled=false;}
+    };
+    $('#videoBoothTestMic',body).onclick=async()=>{
+      const button=$('#videoBoothTestMic',body);button.disabled=true;
+      let testStream=null;
+      try{
+        if(!navigator.mediaDevices?.getUserMedia)throw Error('Microphone not available in this browser.');
+        testStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+        videoTestStatus.textContent='Microphone access works. The test stopped immediately; no audio was saved or shared.';
+      }catch(error){videoTestStatus.textContent=error?.message||'Microphone access was not granted.';}
+      finally{testStream?.getTracks().forEach(track=>track.stop());button.disabled=false;}
+    };
     const stage=$('#photoStage',body),cap=$('#photoCapture',body),flip=$('#photoFlip',body),status=$('#photoStatus',body),strip=$('#photoStrip',body);let facing='user',latestPhotoBlob=null;
     const start=async()=>{try{stopCamera();activeCameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing},audio:false});stage.classList.remove('has-intro');stage.innerHTML='<video id="boothVideo" autoplay playsinline muted></video>';$('#boothVideo',body).srcObject=activeCameraStream;cap.disabled=false;flip.disabled=false;status.textContent='Photobooth ready.';status.classList.add('ok')}catch(err){status.textContent='Camera could not start. Check browser camera permission or use an existing photo.'}};
     $('#photoStart',body).onclick=start; $('#photoFlip',body).onclick=async()=>{facing=facing==='user'?'environment':'user';await start()};
-    cap.onclick=()=>{const v=$('#boothVideo',body);if(!v||!v.videoWidth)return;stage.classList.add('flash');setTimeout(()=>stage.classList.remove('flash'),380);const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0,c.width,c.height);const url=c.toDataURL('image/jpeg',.9);const captureBlob=fetch(url).then(r=>r.blob());window.BigLWABoothPreview?.capture(c);const fig=document.createElement('figure');fig.innerHTML=`<img src="${url}" alt="Photobooth capture"><a href="${url}" download="biglwa-photobooth-${Date.now()}.jpg">save</a><button type="button" class="module-action secondary photo-feed-upload" style="margin-top:5px;width:100%">Upload to Collective Feed</button>`;strip.prepend(fig);status.textContent='Captured. Save it if you want to keep it.';fig.querySelector('.photo-feed-upload').onclick=async()=>{const button=fig.querySelector('.photo-feed-upload');button.disabled=true;status.textContent='Uploading photo draft…';try{await window.__biglwaCollectivePublish?.createStudioDraft({source:'photobooth',title:'Photobooth',caption:'Photobooth capture',blob:await captureBlob});window.BigLWABoothPreview?.refresh();status.textContent='Photo saved to your account as a private feed draft. Open Collective Feed to choose whether to post it.';status.classList.add('ok')}catch(err){console.error(err);status.textContent=err?.message||'Could not upload the photo.';status.classList.remove('ok')}finally{button.disabled=false}}};
-    $('#cameraFile',body).onchange=e=>{const f=e.target.files?.[0];if(!f)return;latestPhotoBlob=f;const url=URL.createObjectURL(f);stage.classList.remove('has-intro');stage.innerHTML=`<img src="${url}" alt="Selected photo">`;cap.disabled=true;status.textContent='Local photo preview — choose Upload to Collective Feed when you want to save it.';let old=$('.photo-feed-upload',body);if(old)old.remove();const button=document.createElement('button');button.type='button';button.className='module-action secondary photo-feed-upload';button.textContent='Upload to Collective Feed';button.style.marginTop='8px';button.onclick=async()=>{button.disabled=true;status.textContent='Uploading photo draft…';try{await window.__biglwaCollectivePublish?.createStudioDraft({source:'photobooth',title:'Photobooth',caption:'Photobooth photo',blob:latestPhotoBlob});window.BigLWABoothPreview?.refresh();status.textContent='Photo saved to your account as a private feed draft. Open Collective Feed to choose whether to post it.';status.classList.add('ok')}catch(err){console.error(err);status.textContent=err?.message||'Could not upload the photo.';status.classList.remove('ok')}finally{button.disabled=false}};status.insertAdjacentElement('afterend',button)};
+    cap.onclick=()=>{const v=$('#boothVideo',body);if(!v||!v.videoWidth)return;stage.classList.add('flash');setTimeout(()=>stage.classList.remove('flash'),380);const c=document.createElement('canvas');c.width=v.videoWidth;c.height=v.videoHeight;c.getContext('2d').drawImage(v,0,0,c.width,c.height);const url=c.toDataURL('image/jpeg',.9);const captureBlob=new Promise(resolve=>c.toBlob(resolve,'image/jpeg',.9));window.BigLWABoothPreview?.capture(c);const fig=document.createElement('figure');fig.innerHTML=`<img src="${url}" alt="Photobooth capture"><a href="${url}" download="biglwa-photobooth-${Date.now()}.jpg">save</a><button type="button" class="module-action secondary photo-feed-upload" style="margin-top:5px;width:100%">Upload to Collective Feed</button>`;strip.prepend(fig);status.textContent='Captured. Save it if you want to keep it.';fig.querySelector('.photo-feed-upload').onclick=async()=>{const button=fig.querySelector('.photo-feed-upload');button.disabled=true;status.textContent='Uploading photo draft…';try{await window.__biglwaCollectivePublish?.createStudioDraft({source:'photobooth',title:'Photobooth',caption:'Photobooth capture',blob:await captureBlob});window.BigLWABoothPreview?.refresh();status.textContent='Photo saved to your account as a private feed draft. Open Collective Feed to choose whether to post it.';status.classList.add('ok')}catch(err){console.error(err);status.textContent=err?.message||'Could not upload the photo.';status.classList.remove('ok')}finally{button.disabled=false}}};
+    $('#cameraFile',body).onchange=e=>{const f=e.target.files?.[0];if(!f)return;stopCamera();flip.disabled=true;latestPhotoBlob=f;const url=URL.createObjectURL(f);stage.classList.remove('has-intro');stage.innerHTML=`<img src="${url}" alt="Selected photo">`;cap.disabled=true;status.textContent='Local photo preview — choose Upload to Collective Feed when you want to save it.';let old=$('.photo-feed-upload',body);if(old)old.remove();const button=document.createElement('button');button.type='button';button.className='module-action secondary photo-feed-upload';button.textContent='Upload to Collective Feed';button.style.marginTop='8px';button.onclick=async()=>{button.disabled=true;status.textContent='Uploading photo draft…';try{await window.__biglwaCollectivePublish?.createStudioDraft({source:'photobooth',title:'Photobooth',caption:'Photobooth photo',blob:latestPhotoBlob});window.BigLWABoothPreview?.refresh();status.textContent='Photo saved to your account as a private feed draft. Open Collective Feed to choose whether to post it.';status.classList.add('ok')}catch(err){console.error(err);status.textContent=err?.message||'Could not upload the photo.';status.classList.remove('ok')}finally{button.disabled=false}};status.insertAdjacentElement('afterend',button)};
   }
 
   /* Video Booth: a random one-to-1 video chat booth, held back until the safety work
@@ -2162,17 +2389,19 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       <p>Meet the person before the call. You'll see their profile picture, display name and BIG LWA rank — never their @handle. Connect only when you both agree.</p>
       <div class="video-booth-preview" aria-label="Pre-connection profile card layout — no live matches yet">
         <div class="video-booth-tile you">
-          <span class="video-booth-profile-photo" aria-hidden="true">◉</span>
+          <span class="video-booth-profile-photo" id="videoBoothOwnPhoto" aria-hidden="true">◉</span><video id="videoBoothSelfPreview" autoplay playsinline muted hidden aria-label="Local preview only"></video>
           <b>Your profile</b><small>Your rank appears here</small>
         </div>
         <div class="video-booth-tile them" id="videoBoothCandidateCard" aria-label="Candidate's public preview before a video connection">
-          <span class="video-booth-profile-photo" id="videoBoothCandidatePhoto"><img src="/assets/photobooth-before-use.webp?v=20260923-preview-800" alt="Video Booth sample portrait" loading="lazy"></span>
+          <span class="video-booth-profile-photo" id="videoBoothCandidatePhoto" aria-hidden="true">?</span>
           <b id="videoBoothCandidateName">Display name</b>
           <small class="video-booth-profile-rank" id="videoBoothCandidateRank">BIG LWA rank</small>
           <span class="video-booth-card-note">No @handle shown</span>
         </div>
       </div>
       <div class="module-actions">
+        <button class="module-action secondary" id="videoBoothTestCamera" type="button">Test camera locally</button>
+        <button class="module-action ghost" id="videoBoothTestMic" type="button">Check microphone</button>
         <button class="module-action" id="videoBoothRequestConnect" type="button" disabled aria-disabled="true" title="Available only after matching, moderation and consent are ready">Request connection</button>
         <button class="module-action secondary" id="videoBoothSkipCandidate" type="button" disabled aria-disabled="true">Pass</button>
       </div>
@@ -2186,11 +2415,13 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     </section>`;
   }
 
-  const TRENDING_ROOMS=[['lounge','The Lounge','BIGLWA home room'],['minecraft','#minecraft','Trending room'],['fortnite','#fortnite','Trending room'],['deadbydaylight','#deadbydaylight','Trending room'],['rocketleague','#rocketleague','Trending room'],['biglwa','#biglwa','Trending room'],['arcade','#arcade','Trending room'],['support','#support','Trending room'],['gov','#gov','Trending room'],['substack','#substack','Trending room'],['katseye','#katseye','Trending conversation'],['adela','#adela','Trending conversation']];
-  const roomStorageKey = slug => slug==='lounge' ? 'biglwaRoomMessages' : 'biglwaRoomMessages_'+slug;
+  const TRENDING_ROOMS=[['lounge','The Lounge','Your private browser conversation']];
+  const ownerRoomUid=()=>!document.documentElement.classList.contains('biglwa-preview-mode')&&
+    !window.__biglwaPublicStorageView?String(window.__biglwaIdentity?.uid||'').trim():'';
+  const roomStorageKey=slug=>'biglwaRoomMessagesV2:'+ownerRoomUid()+':'+slug;
   const customRoomSlug = name => 'custom-'+name.toLowerCase().replace(/^#/,'').replace(/[^a-z0-9-]/g,'');
-  const readCustomRooms = () => { const v=readJSON('biglwaCustomRooms',[]); return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x):[]; };
-  const writeCustomRooms = list => writeJSON('biglwaCustomRooms', list);
+  const readCustomRooms = () => { const uid=ownerRoomUid();if(!uid)return [];const v=readJSON('biglwaCustomRoomsV2:'+uid,[]); return Array.isArray(v)?v.filter(x=>typeof x==='string'&&x):[]; };
+  const writeCustomRooms = list => {const uid=ownerRoomUid();if(uid)writeJSON('biglwaCustomRoomsV2:'+uid,list);};
   const roomList = () => TRENDING_ROOMS.map(([slug,name,desc])=>({slug,name,desc})).concat(readCustomRooms().map(name=>({slug:customRoomSlug(name),name:normalizeRoomName(name),desc:'Custom room'})));
   function normalizeRoomName(raw){
     let name=String(raw||'').trim().replace(/\s+/g,'-');
@@ -2209,6 +2440,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     // Curated introductory records are examples for browsing, not verdicts on
     // anyone's character or invitations to target them.
     const curated=[{"id":"curated-1","category":"cunting","name":"Zendaya","note":"Actor and producer; screen and fashion figure.","source":"https://www.britannica.com/biography/Zendaya","photo":"","curated":true},{"id":"curated-2","category":"cunting","name":"Beyoncé","note":"Singer, songwriter and cultural innovator.","source":"https://www.britannica.com/biography/Beyonce","photo":"","curated":true},{"id":"curated-3","category":"cunting","name":"Rihanna","note":"Singer, entrepreneur and beauty industry founder.","source":"https://www.britannica.com/biography/Rihanna","photo":"","curated":true},{"id":"curated-4","category":"cunting","name":"Jennifer Lawrence","note":"Academy Award-winning actor.","source":"https://www.britannica.com/biography/Jennifer-Lawrence","photo":"","curated":true},{"id":"curated-5","category":"cunting","name":"Anne Hathaway","note":"Academy Award-winning actor.","source":"https://www.britannica.com/biography/Anne-Hathaway-American-actress","photo":"","curated":true},{"id":"curated-6","category":"cunting","name":"Ida B. Wells","note":"Journalist and anti-lynching civil rights organizer.","source":"https://www.nps.gov/people/ida-b-wells-barnett.htm","photo":"","curated":true},{"id":"curated-7","category":"cunting","name":"Malcolm X","note":"Black liberation leader and human-rights advocate.","source":"https://www.britannica.com/biography/Malcolm-X","photo":"","curated":true},{"id":"curated-8","category":"cunting","name":"Martin Luther King Jr.","note":"Civil rights organizer and Nobel Peace Prize laureate.","source":"https://www.nps.gov/malu/index.htm","photo":"","curated":true},{"id":"curated-9","category":"cunting","name":"Elaine Brown","note":"Former chair of the Black Panther Party.","source":"https://www.britannica.com/biography/Elaine-Brown","photo":"","curated":true},{"id":"curated-10","category":"cunting","name":"Kathleen Cleaver","note":"Black Panther Party leader and legal scholar.","source":"https://en.wikipedia.org/wiki/Kathleen_Cleaver","photo":"","curated":true},{"id":"curated-11","category":"cunting","name":"Ericka Huggins","note":"Black Panther Party organizer and educator.","source":"https://en.wikipedia.org/wiki/Ericka_Huggins","photo":"","curated":true},{"id":"curated-12","category":"cunting","name":"Fred Hampton","note":"Black Panther Party organizer and community leader.","source":"https://en.wikipedia.org/wiki/Fred_Hampton","photo":"","curated":true},{"id":"curated-13","category":"cunting","name":"Bobby Seale","note":"Co-founder of the Black Panther Party.","source":"https://www.britannica.com/biography/Bobby-Seale","photo":"","curated":true},{"id":"curated-14","category":"cunting","name":"Huey P. Newton","note":"Co-founder of the Black Panther Party.","source":"https://www.britannica.com/biography/Huey-P-Newton","photo":"","curated":true},{"id":"curated-15","category":"hunting","name":"Derek Chauvin","note":"Convicted in connection with George Floyd’s murder; public court record.","source":"https://www.justice.gov/opa/pr/former-minneapolis-police-officer-derek-chauvin-sentenced-more-20-years-prison-depriving","photo":"","curated":true},{"id":"curated-16","category":"hunting","name":"Jeffrey Epstein","note":"Convicted sex offender; documented institutional accountability issues.","source":"https://www.justice.gov/epstein","photo":"","curated":true},{"id":"curated-17","category":"hunting","name":"Elon Musk","note":"Billionaire technology executive; examine ownership and public influence.","source":"https://www.britannica.com/money/Elon-Musk","photo":"","curated":true},{"id":"curated-18","category":"hunting","name":"Jeff Bezos","note":"Amazon founder; examine concentrated wealth and corporate power.","source":"https://www.britannica.com/money/Jeff-Bezos","photo":"","curated":true},{"id":"curated-19","category":"hunting","name":"Peter Thiel","note":"Billionaire investor and political donor; examine public influence.","source":"https://www.britannica.com/money/Peter-Thiel","photo":"","curated":true},{"id":"curated-20","category":"hunting","name":"Cornell University · Chi Phi case","note":"2026 civil lawsuit concerning alleged sexual assault in 2024 and Cornell’s response. Investigation reopened; allegations disputed and not established in court.","source":"https://www.nbcchicago.com/news/local/cornell-7-what-happened-with-the-case-what-to-know-as-prosecutor-reopens-investigation/3995362/","photo":"","curated":true},{"id":"curated-21","category":"cunting","name":"Angela Davis","note":"Scholar and organizer for prison abolition, civil rights, and liberation.","source":"https://www.britannica.com/biography/Angela-Davis","photo":"","curated":true},{"id":"curated-22","category":"cunting","name":"Fannie Lou Hamer","note":"Voting-rights organizer and Mississippi Freedom Democratic Party leader.","source":"https://www.nps.gov/people/fannie-lou-hamer.htm","photo":"","curated":true},{"id":"curated-23","category":"cunting","name":"Shirley Chisholm","note":"First Black woman elected to the U.S. Congress.","source":"https://history.house.gov/People/Listing/C/CHISHOLM,-Shirley-Anita-(C000371)/","photo":"","curated":true},{"id":"curated-24","category":"cunting","name":"Audre Lorde","note":"Poet and activist whose writing shaped Black feminist thought.","source":"https://www.poetryfoundation.org/poets/audre-lorde","photo":"","curated":true},{"id":"curated-25","category":"cunting","name":"bell hooks","note":"Feminist theorist and writer on race, love, education, and power.","source":"https://www.britannica.com/biography/bell-hooks","photo":"","curated":true},{"id":"curated-26","category":"cunting","name":"Toni Morrison","note":"Nobel Prize–winning novelist and editor.","source":"https://www.nobelprize.org/prizes/literature/1993/morrison/facts/","photo":"","curated":true},{"id":"curated-27","category":"cunting","name":"Nina Simone","note":"Singer, pianist, and civil-rights voice.","source":"https://www.britannica.com/biography/Nina-Simone","photo":"","curated":true},{"id":"curated-28","category":"cunting","name":"Tarana Burke","note":"Organizer who founded the Me Too movement.","source":"https://metoomvmt.org/get-to-know-us/tarana-burke-founder/","photo":"","curated":true}];
+    // Preserve the original 28 entries and their source URLs, then add the
+    // specifically curated, exact-title historical/icon catalogs. Entries are
+    // editorial public-record references, never a crowd conviction or ranking.
+    const catalog=window.BigLWAPolitcPosterCatalog;
+    if(catalog&&Array.isArray(catalog.hunting)&&Array.isArray(catalog.cunting))
+      curated.push(...catalog.hunting,...catalog.cunting);
     const visibleNominations=[...curated.filter(item=>!curatedHidden.has(item.id)),...nominations];
 
     // Never attach an automatically sourced image by approximate name search.
@@ -2254,15 +2491,41 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const portrait=item=>{
       const monogram=String(item.name||'').split(/\s+/).slice(0,2).map(x=>x[0]||'').join('').toLocaleUpperCase();
       const record=item.category==='hunting';
-      const wiki=wikiPortraits[item.id]||'';
-      return '<article class="politc-person politc-poster'+(record?' is-record':' is-icon')+'">'+
-        '<div class="politc-poster-eyebrow">'+(record?'PUBLIC RECORD · CASE FILE':'WANTED · FOR ICON STATUS')+'</div>'+
+      const wiki=item.name==='Jack the Ripper'?'':(wikiPortraits[item.id]||item.wiki||'');
+      // Disambiguated, explicitly matched article titles prevent a portrait
+      // being assigned by fuzzy name matching.
+      const life=item.life||({
+        'curated-1':'living','curated-2':'living','curated-3':'living',
+        'curated-4':'living','curated-5':'living','curated-6':'deceased',
+        'curated-7':'deceased','curated-8':'deceased',
+        'curated-9':'living','curated-10':'unknown','curated-11':'living',
+        'curated-12':'deceased','curated-13':'unknown','curated-14':'deceased',
+        'curated-15':'living','curated-16':'deceased',
+        'curated-17':'living','curated-18':'living','curated-19':'living',
+        'curated-21':'living','curated-22':'deceased','curated-23':'deceased',
+        'curated-24':'deceased','curated-25':'deceased','curated-26':'deceased',
+        'curated-27':'deceased','curated-28':'living'
+      })[item.id]||'unknown';
+      const recordLabel={
+        convicted:'COURT CONVICTION',indicted:'INDICTED · NO FINAL VERDICT',
+        historical:'HISTORICAL RECORD',scrutiny:'PUBLIC POLICY SCRUTINY'
+      }[item.kind]||'ACCOUNTABILITY CONTEXT';
+      const iconCaption={
+        arts:'Wanted for stealing the whole scene.',
+        music:'Wanted for having the world on repeat.',
+        writing:'Wanted for rewriting the narrative.',
+        civil:'Wanted for changing what justice looks like.',
+        style:'Wanted for raising the fashion stakes.'
+      }[item.kind]||'Wanted for being too good for us.';
+      return '<article class="politc-person politc-poster'+(record?' is-record':' is-icon')+' is-'+life+'">'+
+        '<div class="politc-poster-eyebrow">'+(record?recordLabel:'WANTED · FOR ICON STATUS')+'</div>'+
         '<div class="politc-poster-photo"'+(wiki?' data-politc-wiki="'+esc(wiki)+'"':'')+(verifiedPosterPhotos[item.id]?' data-politc-verified="'+esc(verifiedPosterPhotos[item.id])+'"':'')+'>'+
          (item.photo?'<img src="'+esc(item.photo)+'" alt="Portrait of '+esc(item.name)+'" loading="lazy" decoding="async">':
           '<span class="politc-poster-monogram" aria-hidden="true">'+esc(monogram)+'</span>')+
         '</div>'+
         '<strong>'+esc(item.name)+'</strong>'+
-        '<details class="politc-poster-context"><summary>Details & source ↗</summary>'+
+        (!record?'<p class="politc-poster-wanted">'+esc(iconCaption)+'</p>':'')+
+        '<details class="politc-poster-context"><summary>'+(record?'What the records document':'Achievements & source')+' ↗</summary>'+
          (item.note?'<p>'+esc(item.note)+'</p>':'')+
          (item.source?'<a href="'+esc(item.source)+'" target="_blank" rel="noopener noreferrer">Read source ↗</a>':'<span>Personal nomination · not verified</span>')+
         '</details>'+
@@ -2377,38 +2640,53 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     refreshPolitc();
     // Wikimedia only supplies images for explicitly named, existing public
     // figures. Empty / blocked results retain the intentional monogram.
+    // Use explicit Wikipedia article identities rather than a person's
+    // search-result name. PageImages supplies free-license thumbnails only.
+    // Fetch only the visible page of posters; additional sets load on demand.
     const portraits=[...body.querySelectorAll('.politc-poster-photo[data-politc-wiki]')];
     const cache=window.__biglwaPolitcWikimediaCache||(window.__biglwaPolitcWikimediaCache=new Map());
-    const pending=portraits.filter(el=>!cache.has(el.dataset.politcWiki));
+    const creditCache=window.__biglwaPolitcImageCredits||(window.__biglwaPolitcImageCredits=new Map());
+    const credit=(host)=>{
+      if(!host?.isConnected||host.querySelector('.politc-poster-credit'))return;
+      const wiki=String(host.dataset.politcWiki||'');
+      const href=creditCache.get(wiki)||'https://en.wikipedia.org/wiki/'+encodeURIComponent(wiki.replaceAll(' ','_'));
+      if(!/^https:\/\/(?:commons\.wikimedia\.org|en\.wikipedia\.org)\//.test(href))return;
+      const link=document.createElement('a');
+      link.className='politc-poster-credit';link.href=href;
+      link.textContent='Photo source ↗';
+      link.setAttribute('aria-label','View image attribution and license for '+wiki);
+      link.target='_blank';link.rel='noopener noreferrer';
+      host.append(link);
+    };
     const hydrateImage=(host,url)=>{
-      if(!host?.isConnected||!url||host.querySelector('img'))return;
+      if(!host?.isConnected||!url||host.querySelector('img')||host.closest('.politc-person[hidden]'))return;
       try{
         const parsed=new URL(url);
         if(parsed.protocol!=='https:'||!/(^|\.)wikimedia\.org$/.test(parsed.hostname))return;
       }catch{return}
-      const image=new Image();
-      image.alt='Portrait of '+host.closest('.politc-person')?.querySelector('strong')?.textContent;
-      // Detached lazy images may never start loading; preload eagerly, then attach.
-      image.loading='eager';image.decoding='async';
       if(host.dataset.politcImageLoading===url)return;
       host.dataset.politcImageLoading=url;
+      const image=new Image();
+      image.alt='Portrait or historical depiction of '+host.closest('.politc-person')?.querySelector('strong')?.textContent;
+      image.loading='lazy';image.decoding='async';
       image.onload=()=>{
         delete host.dataset.politcImageLoading;
-        if(!host.isConnected||host.querySelector('img'))return;
-        host.querySelector('.politc-poster-monogram')?.remove();host.append(image);
+        if(!host.isConnected)return;
+        host.querySelector('.politc-poster-monogram')?.remove();
+        credit(host);
       };
       image.onerror=()=>{
         delete host.dataset.politcImageLoading;
-        // A historical Commons FilePath may have been renamed. Retry only
-        // the explicitly verified title's Wikipedia thumbnail (not a fuzzy search).
+        image.remove();
+        // A missing or blocked photo stays an initials card. No fuzzy
+        // image search, borrowed namesake photos or unrelated thumbnails.
         const fallback=cache.get(host.dataset.politcWiki);
         if(fallback&&fallback!==url)hydrateImage(host,fallback);
       };
+      host.append(image);
       image.src=url;
     };
-    portraits.forEach(el=>{const val=el.dataset.politcVerified||cache.get(el.dataset.politcWiki);if(val)hydrateImage(el,val)});
-    // User-provided photos are optional. A broken upload reverts to initials
-    // rather than a broken-image placeholder or the wrong public portrait.
+    // User-uploaded, locally saved photos preserve their own error fallback.
     body.querySelectorAll('.politc-poster-photo>img').forEach(img=>img.addEventListener('error',()=>{
       const host=img.closest('.politc-poster-photo');if(!host)return;
       const name=host.closest('.politc-person')?.querySelector('strong')?.textContent||'';
@@ -2420,61 +2698,190 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         host.append(initials);
       }
     },{once:true}));
-    if(pending.length){
-      const titles=[...new Set(pending.map(el=>el.dataset.politcWiki))];
-      const uri='https://en.wikipedia.org/w/api.php?'+new URLSearchParams({
-        action:'query',format:'json',redirects:'1',prop:'pageimages',
-        pithumbsize:'480',titles:titles.join('|'),origin:'*'
-      });
-      fetch(uri,{mode:'cors'}).then(r=>{if(!r.ok)throw Error('Wiki thumbnails unavailable');return r.json()})
-      .then(data=>{
-        const pages=Object.values(data?.query?.pages||{});
-        const found=new Map(pages.map(page=>[String(page.title||''),String(page.thumbnail?.source||'')]));
-        const redirects=new Map((data?.query?.redirects||[]).map(row=>[String(row.from||''),String(row.to||'')]));
-        for(const name of titles){const resolved=redirects.get(name)||name;cache.set(name,found.get(resolved)||'');}
-        for(const el of portraits)hydrateImage(el,cache.get(el.dataset.politcWiki)||el.dataset.politcVerified);
-      }).catch(async()=>{
-        // Wikipedia's multi-title endpoint can be denied by browsers or a privacy
-        // extension. Try per-person article summaries as a second source; only
-        // accept actual Wikimedia-hosted portraits, never approximate name matches.
-        await Promise.allSettled(titles.map(async name=>{
-          const url='https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(name.replaceAll(' ','_'));
-          try{
-            const response=await fetch(url,{mode:'cors'});
-            if(!response.ok)throw Error('No article thumbnail');
-            const info=await response.json();
-            cache.set(name,String(info.thumbnail?.source||info.originalimage?.source||''));
-          }catch{cache.set(name,'')}
-        }));
-        for(const el of portraits)hydrateImage(el,cache.get(el.dataset.politcWiki)||el.dataset.politcVerified);
-      });
-    }
+    const requestPortraits=async(hosts)=>{
+      const active=hosts.filter(host=>host?.isConnected&&!host.closest('.politc-person[hidden]'));
+      active.forEach(host=>hydrateImage(host,host.dataset.politcVerified||cache.get(host.dataset.politcWiki)));
+      const missing=[...new Set(active.filter(host=>!cache.has(host.dataset.politcWiki)).map(host=>host.dataset.politcWiki))];
+      if(!missing.length)return;
+      const batches=[];
+      for(let i=0;i<missing.length;i+=15)batches.push(missing.slice(i,i+15));
+      // Limit to small public API batches to avoid overlong title queries.
+      for(const titles of batches){
+        const uri='https://en.wikipedia.org/w/api.php?'+new URLSearchParams({
+          action:'query',format:'json',redirects:'1',prop:'pageimages',
+          piprop:'thumbnail|name',pilicense:'free',pilimit:'15',
+          pithumbsize:'380',titles:titles.join('|'),origin:'*'
+        });
+        try{
+          const response=await fetch(uri,{mode:'cors'});
+          if(!response.ok)throw Error('Wikipedia article thumbnail API unavailable');
+          const data=await response.json();
+          const pages=Object.values(data?.query?.pages||{});
+          const found=new Map(pages.map(page=>[String(page.title||''),page]));
+          const redirects=new Map((data?.query?.redirects||[]).map(row=>[String(row.from||''),String(row.to||'')]));
+          for(const title of titles){
+            const page=found.get(redirects.get(title)||title);
+            const url=String(page?.thumbnail?.source||'');
+            cache.set(title,url);
+            const file=String(page?.pageimage||'');
+            if(file)creditCache.set(title,'https://commons.wikimedia.org/wiki/File:'+encodeURIComponent(file.replaceAll(' ','_')));
+          }
+        }catch{
+          // A blocked API is not an invitation to scrape people by name.
+          titles.forEach(title=>cache.set(title,''));
+        }
+        for(const host of active){
+          if(titles.includes(host.dataset.politcWiki))
+            hydrateImage(host,host.dataset.politcVerified||cache.get(host.dataset.politcWiki));
+        }
+      }
+    };
+    requestPortraits(portraits);
+    body.querySelectorAll('[data-politc-show-more]').forEach(button=>button.addEventListener('click',()=>{
+      const panel=button.closest('.politc-collection-panel');
+      if(!panel)return;
+      const hidden=[...panel.querySelectorAll('.politc-person[hidden][data-politc-paged]')];
+      const revealed=hidden.slice(0,24);
+      revealed.forEach(card=>card.hidden=false);
+      const left=hidden.length-revealed.length;
+      if(!left)button.remove();
+      else{
+        const total=panel.querySelectorAll('.politc-person').length;
+        button.textContent='Show '+Math.min(24,left)+' more · '+(total-left)+' of '+total+' shown';
+      }
+      requestPortraits(revealed.map(card=>card.querySelector('.politc-poster-photo[data-politc-wiki]')).filter(Boolean));
+    }));
     bindNominationPanels(body,store,renderPolitc);
   }
 
   function renderRoom(){
-    let slug=String(localStorage.getItem('biglwaActiveRoom')||'lounge');
+    const uid=String(window.__biglwaIdentity?.uid||'').trim();
+    const privateMode=!document.documentElement.classList.contains('biglwa-preview-mode')&&!window.__biglwaPublicStorageView;
+    const keyBase=uid&&privateMode?uid:'guest';
+    // A direct Room navigation can happen before the profile card/editor mounts.
+    // Trigger the account read independently; the completed read re-renders
+    // the gate through biglwa:community-profile-updated.
+    if(uid&&privateMode&&window.BigLWACommunityProfile?.syncStatus==='loading')
+      window.BigLWACommunityProfile.load();
+    const modeKey='biglwaRoomTabV1:'+keyBase;
+    let mode=localStorage.getItem(modeKey)==='lounge'?'lounge':'room';
+    if(!uid||!privateMode)mode='room';
+    // Community roles now belong to Edit Profile, not the Room/Lounge page.
+    // Self-declared age and broad region stay private; never trust them as
+    // verified credentials or as authorization for real-time chat.
+    const profileReady=Boolean(uid&&privateMode&&window.BigLWACommunityProfile?.isReady?.());
+    const loungeReady=profileReady&&Boolean(window.BigLWACommunityProfile?.canUseLounge?.());
     const allRooms=roomList();
+    let slug=String(localStorage.getItem('biglwaActiveRoomV2:'+keyBase)||'lounge');
     if(!allRooms.some(r=>r.slug===slug))slug='lounge';
     const room=allRooms.find(r=>r.slug===slug)||allRooms[0],storage=roomStorageKey(room.slug);
-    const messages=readJSON(storage,[{text:'Welcome to '+room.name+'.',mine:false}]);
-    const chip=(r,i)=>`<button class="module-launcher" type="button" data-room="${i}" ${r.slug===slug?'aria-pressed="true"':''}><b>${esc(r.name)}</b><small>${esc(r.desc)}</small></button>`;
-    body.innerHTML=heading('rooms')+`<div class="module-grid">
-      <section class="module-card wide"><h2>Trending rooms</h2><p>Tap a room to drop in — conversation stays local for now.</p><div class="module-launchers" id="trendingRooms">${allRooms.map((r,i)=>chip(r,i)).join('')}</div></section>
-      <section class="module-card wide"><div class="room-head" style="display:flex;align-items:center;gap:10px"><h2>${esc(room.name)}</h2><span style="font-size:11px;padding:2px 8px;border:1px solid rgba(127,127,127,.35);border-radius:999px;color:#999;text-transform:uppercase;letter-spacing:.08em">${esc(room.slug==='lounge'?'home':room.slug.slice(0,7)==='custom-'?'custom':'trending')}</span></div><div class="module-chat" id="roomChat">${messages.map(m=>`<div class="module-bubble ${m.mine?'mine':''}">${esc(m.text)}</div>`).join('')}</div><form class="module-form two" id="roomForm" style="margin-top:8px"><input class="module-input" name="text" placeholder="Say something in ${esc(room.name)}…"><button class="module-action" type="submit">Send</button></form><div class="module-status">Local prototype — real room sync comes with the backend. Messages stay in this browser.</div></section>
-      <section class="module-card wide"><h2>Create a room</h2><p>Names start with <strong>#</strong> and spaces become <strong>-</strong> (e.g. <em>#my hangout</em> → <em>#my-hangout</em>).</p><form class="module-form two" id="createRoomForm" style="margin-top:8px"><input class="module-input" name="room" placeholder="#new-room" maxlength="32" autocomplete="off"><button class="module-action" type="submit">Create room</button></form><div class="module-status" id="createRoomStatus">Created rooms are saved in this browser and appear in the trending list above.</div></section>
-    </div>`;
-    const goTo=k=>{const target=allRooms[Number(k)];if(!target)return;localStorage.setItem('biglwaActiveRoom',target.slug);openModule('rooms','',false)};
+    const messages=readJSON(storage,[]);
+    const chip=(r,i)=>'<button class="module-launcher" type="button" data-room="'+i+'"'+(r.slug===slug?' aria-pressed="true"':'')+'><b>'+esc(r.name)+'</b><small>'+esc(r.desc)+'</small></button>';
+    const tabs='<nav class="room-mode-tabs" role="tablist" aria-label="Room sections">'+
+     '<button type="button" role="tab" aria-selected="'+(mode==='room')+'" data-room-mode="room">Room</button>'+
+     '<button type="button" role="tab" aria-selected="'+(mode==='lounge')+'" data-room-mode="lounge">Lounge</button></nav>';
+    const roomView='<div class="module-grid room-pixel-mode">'+
+       '<section class="module-card wide"><div class="room-pixel-scene" aria-hidden="true"><strong>Room</strong><small>People · ideas · sounds · self</small></div>'+
+       '<h2>Welcome to the Room</h2>'+
+       '<p>Your shared community entryway. Head to <strong>Lounge</strong> for source-linked trending searches, saved rooms, and conversation drafts. Real-time member chat is not enabled yet.</p></section></div>';
+    const loungeView='<div class="module-grid room-lounge-mode">'+
+       '<section class="module-card wide room-lounge-searches"><h2>Trending searches &amp; topics</h2>'+
+       '<p>Source-linked UN observances and topics from connected Instagram media, with links to search X and Instagram. These are <strong>not verified global trending rankings</strong>.</p>'+
+       '<div class="room-trend-grid" id="roomTrendSources" role="list"><p>Looking for source-linked topics…</p></div>'+
+       '<p class="module-status" id="roomTrendStatus" role="status">No fabricated hashtags, viewers, or activity counts.</p></section>'+
+       '<section class="module-card wide"><h2>Your lounges</h2><p>Your saved room names appear here. Public trending rooms and participant counts are not invented.</p>'+
+       '<div class="module-launchers" id="trendingRooms">'+allRooms.map((r,i)=>chip(r,i)).join('')+'</div></section>'+
+       '<section class="module-card wide"><div class="room-head"><h2>'+esc(room.name)+'</h2><small>Local conversation draft</small></div>'+
+       '<div class="module-chat" id="roomChat">'+(messages.length?messages.map(m=>'<div class="module-bubble '+(m.mine?'mine':'')+'">'+esc(m.text)+'</div>').join(''):'<p>No messages yet.</p>')+'</div>'+
+       '<form class="module-form two" id="roomForm" style="margin-top:8px"><input class="module-input" name="text" placeholder="Write in '+esc(room.name)+'…" maxlength="1200" required><button class="module-action" type="submit">Send</button></form>'+
+       '<p class="module-status">Local draft only. Messages are not live or shared; real community messaging needs account-level security, moderation, blocking, reporting, and an authenticated chat backend.</p></section>'+
+       '<section class="module-card wide"><h2>Create a lounge</h2><p>Use a # name for a private local conversation draft.</p>'+
+       '<form class="module-form two" id="createRoomForm"><input class="module-input" name="room" placeholder="#new-room" maxlength="32" autocomplete="off" required>'+
+       '<button class="module-action" type="submit">Create</button></form><p class="module-status" id="createRoomStatus">Saved locally for now; not discoverable by other members.</p></section></div>';
+    // Keep both section choices in the page header, beside the title; never as a second toolbar row.
+    const roomHeading=heading('rooms').replace('<div class="module-heading-bottom">',
+      '<div class="room-heading-tabs">'+tabs+'</div><div class="module-heading-bottom">');
+    const gateTitle=!uid||!privateMode?'Sign in for community spaces':
+      profileReady?'Community safety setting':'Complete your community profile';
+    const gateCopy=profileReady?
+      'Lounge drafts are limited to adults until moderated, age-appropriate community access is available. Self-reported age is not verification.':
+      (window.BigLWACommunityProfile?.missing?.()||'Add your roles, age range and broad location from Edit Profile first.');
+    const gateView='<section class="biglwa-room-profile-gate" role="status"><h2>'+esc(gateTitle)+'</h2>'+
+      '<p>'+esc(gateCopy)+'</p>'+
+      (uid&&privateMode?'<button type="button" data-open-community-profile>Edit roles in my profile</button>':'')+
+      '</section>';
+    body.innerHTML=roomHeading+(profileReady&&(mode==='room'||loungeReady)?
+      (mode==='room'?roomView:loungeView):gateView);
+    body.querySelector('[data-open-community-profile]')?.addEventListener('click',()=>{
+      window.BigLWACommunityProfile?.openEditor?.();
+    });
+    body.querySelectorAll('[data-room-mode]').forEach(button=>button.addEventListener('click',()=>{
+      const target=button.dataset.roomMode;
+      if(target===mode)return;
+      if(target==='lounge'&&!loungeReady){
+        button.setAttribute('aria-label','Complete your adult community profile before entering the Lounge');
+        window.BigLWACommunityProfile?.openEditor?.();return;
+      }
+      localStorage.setItem(modeKey,target);
+      openModule('rooms','',false);
+    }));
+    // The trending topic feed lives under Lounge, never Room. Gate access
+    // before resolving signals or binding controls on a blocked workspace.
+    if(!profileReady||(mode==='lounge'&&!loungeReady))return;
+    if(mode==='room')return;
+    const gen=body;
+    Promise.resolve().then(()=>window.BigLWARoomSignals?.load?.()||[]).then(items=>{
+        const slot=$('#roomTrendSources',gen),note=$('#roomTrendStatus',gen);
+        if(!slot||!slot.isConnected)return;
+        slot.replaceChildren();
+        if(!items.length){
+          const p=document.createElement('p');p.textContent='No recent verified source signals available. Connect Instagram or check official UN observances.';slot.append(p);
+          if(note)note.textContent='No live ranking feed is connected.';return;
+        }
+        items.forEach(item=>{
+          const card=document.createElement('article');card.className='room-trend-item';card.setAttribute('role','listitem');
+          const name=document.createElement('strong');name.textContent=item.title;
+          const desc=document.createElement('small');desc.textContent=item.kind+' · '+item.detail;
+          const links=document.createElement('div');links.className='room-trend-links';
+          const addLink=(label,url)=>{
+            if(!/^https:\/\/(?:www\.)?(?:un\.org|x\.com|instagram\.com)\//i.test(url||''))return;
+            const a=document.createElement('a');a.textContent=label;a.href=url;
+            a.target='_blank';a.rel='noopener noreferrer';links.append(a);
+          };
+          if(item.kind==='United Nations')addLink('UN source',item.url);
+          addLink('X search',item.links?.x);
+          addLink('Instagram search',item.links?.instagram);
+          card.append(name,desc,links);slot.append(card);
+        });
+        if(note)note.textContent=items.length+' source-linked topics shown. X and Instagram links open live searches; they do not imply platform trend ranking.';
+      }).catch(()=>{const p=$('#roomTrendStatus',gen);if(p)p.textContent='No verified source topics available right now.';});
+    const goTo=index=>{
+      const target=allRooms[Number(index)];if(!target)return;
+      localStorage.setItem('biglwaActiveRoomV2:'+keyBase,target.slug);openModule('rooms','',false);
+    };
     $('#trendingRooms',body).onclick=e=>{const b=e.target.closest('[data-room]');if(b)goTo(b.dataset.room)};
-    $('#createRoomForm',body).onsubmit=e=>{e.preventDefault();const status=$('#createRoomStatus',body);let raw=(new FormData(e.currentTarget).get('room')||'').trim();const name=normalizeRoomName(raw);if(!name){status.textContent='Type a room name first.';return}if(name.length>32){status.textContent='Room names are capped at 32 characters.';return}if(readCustomRooms().some(x=>normalizeRoomName(x).toLowerCase()===name.toLowerCase())){status.textContent='That room already exists in your list.';return}const list=readCustomRooms();list.push(name);writeCustomRooms(list);localStorage.setItem('biglwaActiveRoom',customRoomSlug(name));openModule('rooms','',false)};
-    $('#roomForm',body).onsubmit=e=>{e.preventDefault();const text=(new FormData(e.currentTarget).get('text')||'').trim();if(!text)return;const cur=readJSON(storage,[]);cur.push({text,mine:true});writeJSON(storage,cur);openModule('rooms','',false)};
+    $('#createRoomForm',body).onsubmit=e=>{
+      e.preventDefault();const status=$('#createRoomStatus',body);
+      const raw=new FormData(e.currentTarget).get('room')||'';
+      const name=normalizeRoomName(raw);
+      if(!name||name.length>32){status.textContent='Enter a valid room name, up to 32 characters.';return;}
+      if(readCustomRooms().some(x=>normalizeRoomName(x).toLowerCase()===name.toLowerCase())){status.textContent='This lounge already exists in your list.';return;}
+      const list=readCustomRooms();list.push(name);writeCustomRooms(list);
+      localStorage.setItem('biglwaActiveRoomV2:'+keyBase,customRoomSlug(name));openModule('rooms','',false);
+    };
+    $('#roomForm',body).onsubmit=e=>{
+      e.preventDefault();const text=String(new FormData(e.currentTarget).get('text')||'').trim().slice(0,1200);
+      if(!text)return;
+      const cur=readJSON(storage,[]);cur.push({text,mine:true});
+      writeJSON(storage,cur.slice(-100));openModule('rooms','',false);
+    };
   }
 
   function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},0)}
   function renderTools(){
     body.innerHTML=heading('tools')+'<div class="tool-studio" id="toolStudio"></div>';
     /* The intake page is its own module so the file work stays away from the module router. */
-    import('/tools-studio.js?v=20261029-single-header-6&social=20261029-old-web-1&preview=20261029-combined-1')
+    import('/tools-studio.js?v=20261116-image-adjust-file-drop-1')
       .then(mod=>mod.mountToolsStudio($('#toolStudio',body),{downloadBlob}))
       .catch(error=>{
         $('#toolStudio',body).innerHTML='<section class="module-card wide"><h2>lwazi could not start</h2><p>Give the page a refresh and it will load again.</p></section>';
@@ -3775,6 +4182,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       <p id="biglwaMapStatus" role="status">Loading your map inside Studio…</p>
       <iframe id="biglwaMapApp" src="/map-app.html?embed=1&v=20261113-openfreemap-transit-1" loading="eager" referrerpolicy="same-origin"
        title="BIG LWA interactive map and saved pins" allow="geolocation 'self'; fullscreen" allowfullscreen></iframe>
+      <iframe id="biglwaMapApp" src="/map-app.html?embed=1&v=20261114-inline-pinning-1" loading="eager" referrerpolicy="same-origin"
+       title="BIG LWA interactive map and saved pins" allow="geolocation 'self'; microphone 'self'; fullscreen" allowfullscreen></iframe>
       <button type="button" class="module-action ghost" id="biglwaMapRetry">Reload map only</button>
       </section>`;
     const frame=$('#biglwaMapApp',body),status=$('#biglwaMapStatus',body);
@@ -3812,6 +4221,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       ready=false;status.hidden=false;retry.hidden=true;
       status.textContent='Reloading the map inside Studio…';
       frame.src='/map-app.html?embed=1&v=20261113-openfreemap-transit-1';
+      frame.src='/map-app.html?embed=1&v=20261113-inpage-navigation-go-5';
     };
   }
 
@@ -3857,7 +4267,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
   let activeModuleKey='';
   function openModule(rawKey, context='', push=true){
     stopCamera();let key=(rawKey||'').toLowerCase();if(key==='politic'||key==='politics')key='politc';
-    if(activeModuleKey==='stream'&&key!=='stream')window.BigLWAStreamGuide?.parkInStudio?.();if(key==='room')key='rooms';if(key==='project'||key==='visualz'||key==='visualizr')key='projects';if(key==='lwazi')key='tools';if(key==='didyouknow')key='learn';if(!known.has(key))key='create';activeModuleKey=key;workspace.dataset.moduleKey=key;main.classList.add('module-view');workspace.hidden=false;routeName.textContent=labels[key]||key;
+    if(activeModuleKey==='stream'&&key!=='stream')window.BigLWAStreamGuide?.parkInStudio?.();if(key==='room')key='rooms';if(key==='project'||key==='visualz'||key==='visualizr')key='projects';if(key==='lwazi')key='tools';if(key==='didyouknow')key='learn';if(!known.has(key))key='create';if(activeModuleKey==='orbit'&&key!=='orbit')window.BigLWAOrbitSpace?.detachPage?.();activeModuleKey=key;workspace.dataset.moduleKey=key;main.classList.add('module-view');workspace.hidden=false;routeName.textContent=labels[key]||key;
     if(window.BigLWAProfileModules?.render(key,body))return;
     if(key==='calendar')renderCalendar();else if(key==='orbit')renderOrbitPage();else if(key==='diary'||key==='notes')renderWriting(key);else if(key==='feed')renderFeed();else if(key==='connect')renderConnect();else if(key==='camera')renderCamera();else if(key==='rooms')renderRoom();else if(key==='politc')renderPolitc();else if(key==='tools')renderTools();else if(key==='games')renderGames();else if(key==='learn')renderLearn();else if(key==='closet')renderCloset();else if(key==='archive')renderArchive();else if(key==='trophies')renderTrophies();else if(key==='map')renderMap();else if(key==='reviews')renderReviews();else if(key==='create')renderCreate();else if(key==='veve')renderVeve();else if(key==='library')renderCollection('library',[{name:'title',placeholder:'Resource title'},{name:'detail',placeholder:'URL, author, or collection'}],[]);else if(key==='boards')body.innerHTML=heading('boards');else if(key==='projects')renderCollection('projects',[{name:'title',placeholder:'Project name'},{name:'detail',placeholder:'Status · collaborators · next step'}],[]);else if(key==='stream'){body.innerHTML=heading('stream')+'<div id="biglwaStreamGuide"></div>';if(window.BigLWAStreamGuide?.mount)window.BigLWAStreamGuide.mount($('#biglwaStreamGuide',body));else body.innerHTML=heading('stream')+'<section class="module-card"><h2>Stream is loading</h2><p>Refresh to try again.</p></section>'}document.dispatchEvent(new CustomEvent('biglwa:module-open',{detail:{key}}));
     // The banner remains above, but entering a widget lands at the actual page
@@ -3872,7 +4282,17 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     });if(push){try{history.pushState({biglwaModule:key},'',(key==='map'||key==='politc')?`/studio?panel=${encodeURIComponent(key)}`:(key==='orbit'?'/studio?view=orbit':`/studio/${encodeURIComponent(key==='projects'?'visualz':key)}`))}catch{}}
   }
   window.openBIGLWAModule=openModule;
-  document.addEventListener('biglwa:google-state',()=>{if(routeName.textContent==='Calendar'&&!workspace.hidden)renderCalendar()});
+  // Authenticated Community Roles hydrate asynchronously from Firestore.
+  // Refresh a Room/Lounge access gate after confirmed account restore/save,
+  // without re-opening the module, changing history or scrolling the page.
+  document.addEventListener('biglwa:community-profile-updated',()=>{
+    if(activeModuleKey==='rooms'&&!workspace.hidden)renderRoom();
+  });
+  document.addEventListener('biglwa:google-state',()=>{
+    if(workspace.hidden)return;
+    if(activeModuleKey==='calendar')renderCalendar();
+    if(activeModuleKey==='orbit')renderOrbitPage();
+  });
   window.addEventListener('biglwa:orbit-imported',()=>{
     if(activeModuleKey==='archive') renderArchive();
     if(activeModuleKey==='feed'){
@@ -3905,7 +4325,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     if(activeModuleKey)closeModule();
     // Already on Studio home: stay here. This intentionally does not open Orbit or Veve.
   },true);
-  function closeModule(push=true){if(activeModuleKey==='stream')window.BigLWAStreamGuide?.parkInStudio?.();stopCamera();if(activeMap){try{activeMap.remove()}catch{}activeMap=null}activeModuleKey='';delete workspace.dataset.moduleKey;main.classList.remove('module-view');workspace.hidden=true;body.innerHTML='';routeName.textContent='Module';document.dispatchEvent(new CustomEvent('biglwa:module-close'));if(push){try{history.pushState({},'', '/studio')}catch{}}}
+  function closeModule(push=true){if(activeModuleKey==='stream')window.BigLWAStreamGuide?.parkInStudio?.();if(activeModuleKey==='orbit')window.BigLWAOrbitSpace?.detachPage?.();stopCamera();if(activeMap){try{activeMap.remove()}catch{}activeMap=null}activeModuleKey='';delete workspace.dataset.moduleKey;main.classList.remove('module-view');workspace.hidden=true;body.innerHTML='';routeName.textContent='Module';document.dispatchEvent(new CustomEvent('biglwa:module-close'));if(push){try{history.pushState({},'', '/studio')}catch{}}}
   moduleBack.addEventListener('click',()=>closeModule());
   workspace.addEventListener('change',event=>{
     const control=event.target.closest('[data-silent-update]');if(!control)return;
@@ -3968,8 +4388,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       }catch{}
       return (Array.from(name)[0]||'✦').toLocaleUpperCase();
     };
-    const noteLabel=$('#studioApp #notes .card-head h2');
-    if(noteLabel&&noteLabel.textContent.trim()!=='Sqwidz')noteLabel.textContent='Sqwidz';
+    // The R-series title controller owns Sqwibbl/r markup and font spans.
+    // Never revert it to the old Sqwidz label during writing-preview hydration.
     const journalLabel=$('#studioApp #diary .card-head h2');
     if(journalLabel&&journalLabel.textContent.trim()!=='Journal')journalLabel.textContent='Journal';
     const noteCard=$('#notes'),notePaper=noteCard&&$('.note-paper',noteCard),note=writingPreviewValue('notes');
@@ -4016,42 +4436,39 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     if(!slot){
       slot=document.createElement('div');
       slot.className='studio-map-preview-slot';
-      slot.setAttribute('aria-label','Interactive street map preview with saved pins');
+      slot.setAttribute('aria-label','Map thumbnail. Open Map for interactive navigation.');
       const oldVisual=$('.studio-map-visual',mapCard),cta=$('.card-cta',mapCard);
       if(oldVisual)oldVisual.replaceWith(slot);
       else if(cta)cta.before(slot);else mapCard.appendChild(slot);
     }
-    // Real Leaflet map, as used by the full Map page. Do not redraw or reload
-    // the iframe on focus/scroll: doing so makes tile layers flicker or reset.
-    let mini=$('#biglwaStudioMiniMap',slot);
-    if(!mini){
-      slot.replaceChildren();
-      mini=document.createElement('iframe');
-      mini.id='biglwaStudioMiniMap';
-      mini.className='studio-mini-map';
-      mini.title='Interactive mini map — pan, zoom, and see saved locations';
-      mini.src='/map-app.html?embed=1&preview=1&v=20261029-island-signal-1';
-      mini.loading='eager';
-      mini.referrerPolicy='same-origin';
-      mini.setAttribute('allow','geolocation \'self\'');
-      slot.appendChild(mini);
-      const status=document.createElement('p');
-      status.className='studio-mini-map-caption';
-      status.textContent='Drag to explore · +/- to zoom';
-      slot.appendChild(status);
+    // Studio gets a stable decorative poster; the full Map page owns live
+    // Leaflet, location permissions and zoom. Never mount a nested map here.
+    const old=slot.querySelector('#biglwaStudioMiniMap');
+    if(old)old.remove();
+    slot.querySelectorAll('.biglwa-map-error-fallback,.studio-mini-map-caption').forEach(node=>node.remove());
+    let image=slot.querySelector('.studio-map-still');
+    if(!image){
+      image=document.createElement('img');
+      image.className='studio-map-still';
+      image.src='/assets/studio-defaults/map-bikini-bottom-fallback.webp';
+      image.alt='Illustrated tropical island map preview';
+      image.decoding='async';image.loading='lazy';
+      image.draggable=false;
+      slot.appendChild(image);
     }
-    const pins=readMapPreviewPins();
-    const caption=$('.studio-mini-map-caption',slot);
-    if(caption){
-      const message=pins.length
-        ?pins.length+' saved spot'+(pins.length===1?'':'s')+' · drag to explore'
-        :'Interactive map · drag to explore and zoom';
-      caption.innerHTML='<span>'+message+'</span> · <button type="button" class="studio-mini-map-open" data-open="map">Open full map ↗</button>';
+    // Culture/places badges are decorative context, not fake saved locations.
+    let scene=slot.querySelector('.studio-map-scene');
+    if(!scene){
+      scene=document.createElement('div');scene.className='studio-map-scene';
+      scene.setAttribute('aria-hidden','true');
+      scene.innerHTML='<span class="studio-map-scene-title">the world is a stage.</span>'+
+       '<span class="studio-map-scene-pin studio-map-scene-pin--music">♫</span>'+
+       '<span class="studio-map-scene-pin studio-map-scene-pin--film">✦</span>'+
+       '<span class="studio-map-scene-sub">⌖ routes · places · culture</span>';
+      slot.appendChild(scene);
     }
-    if(mini.dataset.pinCount!==String(pins.length)){
-      mini.dataset.pinCount=String(pins.length);
-      if(mini.contentWindow)mini.contentWindow.postMessage({type:'biglwa:map-preview-refresh'},location.origin);
-    }
+    slot.setAttribute('aria-label','Illustrated Map preview with culture and route motifs. Open Map below for interactive navigation.');
+    mapCard.querySelectorAll('.studio-mini-map-open').forEach(el=>el.remove());
   }
 
   function enhanceStudioCards(){

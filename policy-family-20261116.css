@@ -1,0 +1,115 @@
+/* BIG LWA / Important-family visual and navigation contract.
+   One shared curtain, ink, paper, framed crest and sibling links. Content
+   on the actual privacy/terms/rights/affidavit pages is not replaced. */
+:root{--biglwa-policy-rose:#9c3c53;--biglwa-policy-paper:#fff8ef}
+body:has(> main .policy-page),
+body.about-site,
+body.legal-index{
+ background-color:#180007!important;
+ background-image:linear-gradient(rgba(23,0,6,.69),rgba(23,0,6,.80)),
+  url('/assets/login-curtain-film-grain-v2.webp?v=20260912-policy-1')!important;
+ background-position:center!important;background-size:cover!important;
+ background-repeat:no-repeat!important;background-attachment:fixed!important;
+}
+body:has(> main .policy-page) .policy-page{
+ background-image:linear-gradient(rgba(23,0,6,.69),rgba(23,0,6,.80)),
+  url('/assets/login-curtain-film-grain-v2.webp?v=20260912-policy-1')!important;
+ background-position:center!important;background-size:cover!important;
+}
+body:has(> main .policy-page) .policy-card{
+ background:linear-gradient(155deg,#fffcf7,#f7eee4)!important;
+ border:1px solid #d5b8ac!important;border-radius:19px!important;
+ box-shadow:5px 7px 0 rgba(115,35,53,.22),0 16px 45px #1301093f!important;
+ color:#292022!important;
+}
+body:has(> main .policy-page) .policy-card :is(h1,h2,h3){
+ color:#513040;overflow-wrap:anywhere
+}
+body:has(> main .policy-page) .policy-card h1{
+ font-family:"CS Bergamot Stitched",Georgia,serif!important;
+ font-weight:400!important
+}
+body:has(> main .policy-page) .policy-card .policy-kicker{
+ color:#a24458!important;letter-spacing:.08em!important
+}
+body:has(> main .policy-page) .policy-top{
+ align-items:center!important;gap:12px!important
+}
+body:has(> main .policy-page) .policy-links{
+ display:flex!important;align-items:center!important;gap:8px 15px!important;
+ flex-wrap:wrap!important;margin-top:23px!important;padding-top:15px!important;
+ border-top:1px solid #d8b6aa!important;
+}
+.policy-family-nav{
+ display:flex!important;align-items:center!important;flex-wrap:wrap!important;
+ gap:7px!important;margin:10px auto 18px!important;padding:8px 10px!important;
+ background:rgba(22,3,9,.74)!important;
+ border:1px solid #e9c1b173!important;border-radius:10px!important;
+ color:#fff4e9!important;max-width:1050px!important;box-sizing:border-box!important;
+}
+.policy-family-nav a{
+ display:inline-flex;align-items:center;min-height:28px;padding:5px 9px;
+ border:1px solid transparent;border-radius:6px;text-decoration:none!important;
+ color:#fff0e7!important;font:700 11px/1.2 system-ui,sans-serif!important;
+}
+.policy-family-nav a:hover,.policy-family-nav a:focus-visible{
+ background:#9a4158!important;outline:2px solid #e8b3b0;outline-offset:1px
+}
+.policy-family-nav a[aria-current=page]{
+ background:#fff0e1!important;color:#59283a!important;border-color:#bd846f!important
+}
+body:has(> main .policy-page) .policy-family-nav{
+ width:min(100%,1050px)!important;margin:8px 0 18px!important
+}
+body.about-site .policy-family-nav{
+ width:min(calc(100% - 32px),1040px)!important;margin:13px auto 15px!important
+}
+body.legal-index{color:#302528!important;min-height:100vh!important}
+body.legal-index header{
+ display:flex;align-items:center;justify-content:space-between;gap:20px;
+ color:#fff4e8;max-width:1120px;margin:0 auto;padding:18px clamp(16px,4vw,36px)!important;
+ border-bottom:1px solid #fff5df55
+}
+body.legal-index header a{color:#fff5e9;text-decoration:none}
+body.legal-index .biglwa-policy-emblem{
+ display:block;width:112px;height:73px;background:#fff5e9;
+ -webkit-mask:var(--biglwa-stitched-crest-mask) center/contain no-repeat;
+ mask:var(--biglwa-stitched-crest-mask) center/contain no-repeat
+}
+body.legal-index main{
+ width:min(calc(100% - 28px),1070px);margin:18px auto 50px!important;
+ padding:clamp(20px,4vw,42px)!important;
+ background:linear-gradient(150deg,#fffbf4,#f4e8dd)!important;
+ border:1px solid #e9c7b2;border-radius:18px;
+ box-shadow:5px 7px 0 #89314550,0 18px 55px #1601095c
+}
+body.legal-index main>small{font:800 10px/1.3 system-ui;letter-spacing:.12em;color:#9d4657;text-transform:uppercase}
+body.legal-index h1{
+ font:400 clamp(32px,5vw,53px)/1.06 "CS Bergamot Stitched",Georgia,serif!important;
+ color:#5b2e40;margin:10px 0 13px
+}
+body.legal-index .legal-family-grid{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));
+ gap:12px;margin:24px 0!important
+}
+body.legal-index .legal-family-grid a{
+ display:grid;align-content:start;gap:9px;min-height:148px;
+ padding:17px;border:1px solid #d9b9a7;border-radius:12px;
+ text-decoration:none;color:#392631;background:#fff9f0;
+ box-shadow:3px 4px 0 #aa42674a;transition:transform .15s ease
+}
+body.legal-index .legal-family-grid a:hover,
+body.legal-index .legal-family-grid a:focus-visible{
+ transform:translateY(-2px);outline:2px solid #a04b62;outline-offset:2px
+}
+body.legal-index .legal-family-grid h2{font:700 20px/1.13 Georgia,serif;margin:0}
+body.legal-index .legal-family-grid p{font:500 12px/1.5 system-ui;margin:0;color:#725b5c}
+body.legal-index main>footer{border-top:1px solid #d7bbaa;padding-top:20px;font:600 12px system-ui;color:#6e5a56}
+@media(max-width:540px){
+ .policy-family-nav{gap:3px!important;padding:7px!important}
+ .policy-family-nav a{font-size:10px!important;padding:5px 7px}
+ body.legal-index header{padding:12px 17px}
+}
+@media(prefers-reduced-motion:reduce){
+ body.legal-index .legal-family-grid a{transition:none}
+}

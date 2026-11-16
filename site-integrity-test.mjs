@@ -53,15 +53,15 @@ assert.match(modules, /--feed-heading-offset:calc/);
 assert.match(modules, /module-workspace\[data-module-key="feed"\] :is\(\.module-top,\.module-heading\)/);
 assert.match(modules, /module-workspace\[data-module-key="feed"\] \.module-heading h1\{\s*transform:none/);
 assert.match(projectCanvas, /module-heading lwa-project-heading/);
-assert.match(projectCanvas, /<h1>visualizr<\/h1>/);
+assert.match(projectCanvas, /<h1>visualize\/r<\/h1>/);
 assert.match(projectCanvas, /visualslidez\.js\?v=/);
-assert.match(modules, /visualz:'visualizr'/);
+assert.match(modules, /visualz:'visualize\/r'/);
 assert.match(projectCanvas, /\.lwa-project-toolbar\{display:flex/);
 assert.match(orbitFeed, /rim:'#f36b21'/); // Current Instagram: orange, not legacy purple.
 assert.match(orbitFeed, /rim:'#772dcc'/); // TikTok: purple.
 assert.match(index, /feed-polish\.js\?v=/);
 assert.match(index, /project-canvas\.js\?v=/);
-assert.match(index, /tiktok-orbit\.js\?v=20261111-force-retry-1/);
+assert.match(index, /tiktok-orbit\.js\?v=20261114-session-repair-2/);
 assert.match(feedPolish, /biglwa-feed-lights/);
 assert.match(feedPolish, /data-feed-light/);
 assert.match(feedPolish, /data-post-/);

@@ -47,6 +47,8 @@ assert.equal(jobs.normalizeJobs([{title:'Artist',company:'Studio',source:'Job bo
 assert.equal(jobs.normalizeJobs([{title:'Artist',company:'Studio',source:'Job board',url:'http://example.com/role'}]).length,0);
 assert.equal(jobs.setJobs([]).status,'pending');
 assert.equal(jobs.searchTargets('design','Los Angeles').length,3);
+assert.ok(jobs.searchTargets('SKIMS jobs','Los Angeles').some(x=>x.url==='https://skims.pinpointhq.com/'),'Brand search has a direct verified employer careers fallback');
+assert.ok(jobs.searchTargets('Calvin Klein positions','Los Angeles').some(x=>x.url.startsWith('https://careers.pvh.com/')),'Other brand searches resolve verified official careers pages');
 assert.ok(jobs.searchTargets('design','Los Angeles').every(x=>x.url.startsWith('https://')));
 assert.match(jobsCode,/vendored werk-main \/ JobSpy feed has not been published/);
 assert.match(jobsCode,/fetch\('\/data\/visual-life\/jobs.json'/,'Only read the fixed local jobs feed');

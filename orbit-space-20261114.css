@@ -1,0 +1,363 @@
+/* BIG LWA Orbit · cosmic atmosphere.
+ * Original, dependency-free companion to the existing planet artwork.
+ * Space-warp visual reference: https://github.com/o2bomb/space-warp
+ * Never reflows the 4x2 Studio grid or the full-page connection controls.
+ */
+#studioApp #orbit,
+#studioApp #moduleWorkspace[data-module-key="orbit"]{
+  position:relative!important;
+  isolation:isolate;
+  background-color:#080d22!important;
+  /* Two always-visible star grids provide fallback even before the canvas
+     mounts. Nonharmonic spacing avoids a conspicuous tiled constellation. */
+  background-image:
+    radial-gradient(circle at 3px 4px,rgba(255,246,255,.17) 0 1.15px,transparent 1.8px),
+    radial-gradient(circle at 16px 21px,rgba(206,217,255,.13) 0 1px,transparent 1.7px),
+    radial-gradient(circle at 54px 24px,rgba(255,192,222,.12) 0 .75px,transparent 1.35px),
+    radial-gradient(ellipse at 18% 12%,rgba(113,56,159,.41) 0,transparent 48%),
+    radial-gradient(ellipse at 83% 74%,rgba(39,85,155,.39) 0,transparent 49%),
+    radial-gradient(ellipse at 66% 9%,rgba(168,57,98,.18) 0,transparent 35%),
+    linear-gradient(158deg,#070a19 0%,#17132d 50%,#060d20 100%)!important;
+  background-size:59px 67px,97px 83px,131px 113px,100% 100%,100% 100%,100% 100%,100% 100%!important;
+  background-repeat:repeat,repeat,repeat,no-repeat,no-repeat,no-repeat,no-repeat!important;
+  color:#f4edfb!important;
+}
+/* Independent constellations brighten and fade at different rhythms.
+ * These are a living fall-back even if WebGL/2D canvas is delayed or blocked.
+ * The canvas above also twinkles EACH individual point independently. */
+#studioApp #orbit::before,
+#studioApp #orbit::after,
+#studioApp #moduleWorkspace[data-module-key="orbit"]::before,
+#studioApp #moduleWorkspace[data-module-key="orbit"]::after{
+ content:"";position:absolute;inset:0;z-index:1;
+ border-radius:inherit;pointer-events:none!important;
+ background-repeat:repeat;
+ will-change:opacity;
+}
+#studioApp #orbit::before,
+#studioApp #moduleWorkspace[data-module-key="orbit"]::before{
+ background-image:
+   radial-gradient(circle at 9px 13px,rgba(255,255,255,.95) 0 1.15px,transparent 2.1px),
+   radial-gradient(circle at 33px 37px,rgba(255,205,240,.85) 0 .9px,transparent 1.8px);
+ background-size:71px 79px,113px 97px;
+ animation:biglwa-orbit-twinkle-a 3.7s ease-in-out infinite alternate;
+ background-position:
+  calc(var(--orbit-cursor-x, 0) * -22px) calc(var(--orbit-cursor-y, 0) * -22px);
+}
+#studioApp #orbit::after,
+#studioApp #moduleWorkspace[data-module-key="orbit"]::after{
+ background-image:
+   radial-gradient(circle at 23px 19px,rgba(218,232,255,.85) 0 .8px,transparent 1.8px),
+   radial-gradient(circle at 47px 59px,rgba(255,255,255,.9) 0 1px,transparent 1.9px);
+ background-size:89px 101px,131px 113px;
+ animation:biglwa-orbit-twinkle-b 5.3s ease-in-out -2.4s infinite alternate;
+ background-position:
+  calc(var(--orbit-cursor-x, 0) * -42px) calc(var(--orbit-cursor-y, 0) * -42px);
+}
+@keyframes biglwa-orbit-twinkle-a{
+ 0%,15%{opacity:.21;transform:translate3d(0,0,0)}
+ 48%{opacity:1;transform:translate3d(7px,-5px,0)}
+ 71%{opacity:.4;transform:translate3d(13px,-9px,0)}
+ 100%{opacity:.82;transform:translate3d(19px,-12px,0)}
+}
+@keyframes biglwa-orbit-twinkle-b{
+ 0%{opacity:.9;transform:translate3d(0,0,0)}
+ 34%{opacity:.28;transform:translate3d(-6px,4px,0)}
+ 57%{opacity:1;transform:translate3d(-10px,7px,0)}
+ 78%{opacity:.26;transform:translate3d(-15px,11px,0)}
+ 100%{opacity:.75;transform:translate3d(-19px,13px,0)}
+}
+#studioApp #orbit{border-color:rgba(167,133,198,.4)!important;box-shadow:inset 0 0 0 1px rgba(229,196,255,.06),0 12px 30px rgba(10,6,40,.19)!important}
+#studioApp #moduleWorkspace[data-module-key="orbit"]{border-radius:18px!important;box-shadow:inset 0 0 0 1px rgba(220,204,255,.16)!important}
+/* Canvas must stay out of normal document flow even during route changes.
+ * Studio reuses #moduleWorkspace; when it stops being Orbit, older styling
+ * no longer matched, exposing the canvas's large intrinsic bitmap height. */
+#studioApp #moduleWorkspace>.orbit-space-canvas{
+ position:absolute!important;inset:0!important;
+ display:none!important;width:100%!important;height:100%!important;
+ pointer-events:none!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"]:not([hidden])>.orbit-space-canvas{
+ display:block!important;
+}
+
+#studioApp #orbit>.orbit-space-canvas,
+#studioApp #moduleWorkspace[data-module-key="orbit"]>.orbit-space-canvas{
+  position:absolute;inset:0;width:100%;height:100%;display:block;
+  /* Animated pixels ABOVE the decorative texture, BELOW the real controls.
+     Previous z-index:0 let the CSS star layers hide the live canvas. */
+  z-index:2!important;pointer-events:none!important;user-select:none!important;
+  border-radius:inherit;clip-path:inset(0 round 15px);
+  opacity:1!important;filter:brightness(1.4);
+  mix-blend-mode:screen;
+}
+#studioApp #orbit>:not(.orbit-space-canvas),
+#studioApp #moduleWorkspace[data-module-key="orbit"]>:not(.orbit-space-canvas){
+  position:relative;z-index:3;
+}
+#studioApp #orbit :is(.card-title,.widget-title,h2,h3),
+#studioApp #orbit .orbit-note{color:#f5eafd!important}
+#studioApp #orbit .orbit-note{opacity:.86}
+#studioApp #orbit #orbitGrid{
+  position:relative;z-index:3;
+}
+
+/* The widget's canvas is a true, clipped space layer: absolutely positioned,
+ * never a grid child, and never a click interception surface. */
+#studioApp article#orbit>.orbit-space-canvas{
+ display:block!important;position:absolute!important;inset:0!important;
+ width:100%!important;height:100%!important;max-width:100%!important;
+ max-height:100%!important;z-index:2!important;pointer-events:none!important;
+ contain:paint;
+}
+#studioApp article#orbit > :is(.card-head,.sub,#orbitGrid,.orbit-note){
+ position:relative!important;z-index:3!important;
+}
+#studioApp #orbit #orbitGrid>button[data-orbit-app]{
+  background:rgba(46,32,74,.32)!important;
+  backdrop-filter:blur(1.5px);
+  border-color:rgba(232,210,255,.33)!important;
+  transition:background-color .22s ease,border-color .22s ease,filter .22s ease!important;
+}
+#studioApp #orbit #orbitGrid>button[data-orbit-app]:hover,
+#studioApp #orbit #orbitGrid>button[data-orbit-app]:focus-visible{
+  background:rgba(99,72,142,.48)!important;
+  border-color:rgba(235,210,255,.78)!important;
+  filter:brightness(1.04);
+}
+#studioApp #orbit #orbitGrid>button[data-orbit-app]>.orbit-glyph{
+  animation:biglwa-orbit-hover 5.6s ease-in-out infinite;
+  animation-delay:-.7s;
+  will-change:translate;
+}
+#studioApp #orbit #orbitGrid>button:nth-child(2)>.orbit-glyph{animation-delay:-1.26s}
+#studioApp #orbit #orbitGrid>button:nth-child(3)>.orbit-glyph{animation-delay:-1.89s}
+#studioApp #orbit #orbitGrid>button:nth-child(4)>.orbit-glyph{animation-delay:-2.52s}
+#studioApp #orbit #orbitGrid>button:nth-child(5)>.orbit-glyph{animation-delay:-3.15s}
+#studioApp #orbit #orbitGrid>button:nth-child(6)>.orbit-glyph{animation-delay:-3.78s}
+#studioApp #orbit #orbitGrid>button:nth-child(7)>.orbit-glyph{animation-delay:-4.41s}
+#studioApp #orbit #orbitGrid>button:nth-child(8)>.orbit-glyph{animation-delay:-5.04s}
+#studioApp #orbit #orbitGrid>button:is(:hover,:focus-visible)>.orbit-glyph{
+  scale:1.08;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-heading :is(h1,h2),
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-heading-bottom>p{
+  color:#f4eafc!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-heading-bottom .module-update-privacy{
+  color:#f1e5f5!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-card.wide{
+  background:rgba(35,24,62,.37)!important;
+  border-color:rgba(209,172,251,.34)!important;
+  box-shadow:0 9px 30px rgba(6,7,29,.25)!important;
+  color:#f3eafc!important;
+  backdrop-filter:blur(2px);
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]{
+  background:rgba(90,65,128,.22)!important;
+  border-color:rgba(205,177,237,.33)!important;
+  box-shadow:0 3px 11px rgba(26,17,55,.10)!important;
+  transition:border-color .2s ease,box-shadow .2s ease,translate .25s ease!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]:hover,
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]:focus-within{
+  border-color:rgba(229,200,255,.76)!important;
+  box-shadow:0 7px 18px rgba(43,26,90,.19)!important;
+  translate:0 -2px;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row .orbit-platform-badge{
+  animation:biglwa-orbit-hover 5.3s ease-in-out infinite;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row:nth-child(3n+1) .orbit-platform-badge{animation-delay:-1.8s}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row:nth-child(3n+2) .orbit-platform-badge{animation-delay:-3.4s}
+#studioApp #moduleWorkspace[data-module-key="orbit"] #orbitPageStatus{color:#f2dfff!important}
+
+/* Frosted-lavender glass: reveal the moving star field through every nested
+ * ivory surface without sacrificing contrast or touching OAuth action colors. */
+#studioApp #orbit #orbitGrid>button[data-orbit-app]{
+  color:#fbf5ff!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10);
+}
+#studioApp #orbit #orbitGrid>button[data-orbit-app]>b{
+  color:#fbf4ff!important;-webkit-text-fill-color:#fbf4ff!important;
+  text-shadow:0 1px 2px rgba(7,3,24,.48);
+}
+#studioApp #orbit #orbitGrid>button[data-orbit-app]>small{
+  color:#e2d1ef!important;-webkit-text-fill-color:#e2d1ef!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-card.wide>h2,
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-card.wide>p{
+  color:#f5eafd!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]:is(:hover,:focus-within){
+  background:rgba(110,82,154,.34)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]>header>b{
+  color:#fcf4ff!important;-webkit-text-fill-color:#fcf4ff!important;
+  text-shadow:0 1px 3px rgba(12,6,32,.32);
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row .orbit-state{
+  color:#493b59!important;
+  background:rgba(239,226,252,.88)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row .orbit-state.is-on{
+  color:#224c34!important;
+  background:rgba(194,243,206,.87)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick{
+  background:rgba(86,62,125,.18)!important;
+  border:1px solid rgba(214,183,246,.28)!important;
+  backdrop-filter:blur(1.5px);
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick h3{
+  color:#fbf3ff!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick p{
+  color:#e4d6f1!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick-link{
+  background:rgba(151,123,191,.19)!important;
+  color:#fcf5ff!important;
+  border-color:rgba(239,224,254,.27)!important;
+  backdrop-filter:blur(1px);
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick-link:is(:hover,:focus-visible){
+  background:rgba(170,142,206,.34)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick-link b{
+  color:#fff7ff!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick-link small{
+  color:#e7d7f3!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main>:is(.orbit-not-connected,.orbit-link-summary){
+  color:#f5eaff!important;
+  background:rgba(179,151,214,.16)!important;
+  border:1px solid rgba(214,185,244,.42)!important;
+  border-left:3px solid rgba(214,167,255,.74)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card{
+  background:rgba(191,164,220,.17)!important;
+  border:1px solid rgba(235,212,255,.19)!important;
+  color:#fcf3ff!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card :is(b,small,span){
+  color:#f9efff!important;-webkit-text-fill-color:#f9efff!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card .orbit-hotlink{
+  background:rgba(255,248,253,.93)!important;
+  color:#803953!important;-webkit-text-fill-color:#803953!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-card.wide .orbit-shadow-legend{
+  background:rgba(231,213,249,.82)!important;
+}
+
+@keyframes biglwa-orbit-hover{
+  0%,100%{translate:0 0}
+  50%{translate:0 -4px}
+}
+@media(max-width:650px){
+  #studioApp #orbit #orbitGrid>button[data-orbit-app]{backdrop-filter:none}
+  #studioApp #moduleWorkspace[data-module-key="orbit"] .module-card.wide{backdrop-filter:none}
+}
+@media(prefers-reduced-motion:reduce){
+ #studioApp #orbit::before,#studioApp #orbit::after,
+ #studioApp #moduleWorkspace[data-module-key="orbit"]::before,
+ #studioApp #moduleWorkspace[data-module-key="orbit"]::after{
+   animation:none!important;will-change:auto!important;opacity:.55!important;
+ }
+
+  #studioApp #orbit #orbitGrid>button[data-orbit-app]>.orbit-glyph,
+  #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row .orbit-platform-badge{
+    animation:none!important;will-change:auto!important;translate:none!important;
+  }
+  #studioApp #orbit #orbitGrid>button[data-orbit-app],
+  #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]{
+    transition:none!important;
+  }
+  #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row:hover{translate:none!important}
+}
+
+
+/* Ivory starlight · light/day Orbit. Night mode keeps the original galaxy.
+   Preserve all connection controls, app colors, motion and pinned layout. */
+body:not(.night-mode) #studioApp #orbit,
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"]{
+ background-color:#f0e8ee!important;
+ background-image:
+  radial-gradient(circle at 6px 12px,rgba(101,72,135,.28) 0 1px,transparent 1.8px),
+  radial-gradient(circle at 41px 27px,rgba(134,92,149,.25) 0 .85px,transparent 1.7px),
+  radial-gradient(circle at 81px 67px,rgba(139,67,106,.22) 0 .85px,transparent 1.7px),
+  radial-gradient(ellipse at 17% 15%,rgba(218,186,224,.73),transparent 48%),
+  radial-gradient(ellipse at 84% 76%,rgba(174,199,232,.56),transparent 53%),
+  radial-gradient(ellipse at 60% 5%,rgba(253,243,217,.9),transparent 36%),
+  linear-gradient(145deg,#fff9f1 0%,#f0e7f2 48%,#dfdeee 100%)!important;
+ background-size:67px 71px,113px 101px,143px 137px,100% 100%,100% 100%,100% 100%,100% 100%!important;
+ background-repeat:repeat,repeat,repeat,no-repeat,no-repeat,no-repeat,no-repeat!important;
+ color:#30243c!important;
+}
+body:not(.night-mode) #studioApp #orbit::before,
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"]::before{
+ background-image:radial-gradient(circle at 9px 13px,rgba(84,54,126,.82) 0 1.1px,transparent 2.1px),
+ radial-gradient(circle at 33px 37px,rgba(151,85,129,.68) 0 .9px,transparent 1.8px)!important;
+}
+body:not(.night-mode) #studioApp #orbit::after,
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"]::after{
+ background-image:radial-gradient(circle at 23px 19px,rgba(71,86,146,.68) 0 .85px,transparent 1.9px),
+ radial-gradient(circle at 47px 59px,rgba(134,84,160,.68) 0 1px,transparent 1.9px)!important;
+}
+body:not(.night-mode) #studioApp :is(#orbit,#moduleWorkspace[data-module-key="orbit"])>.orbit-space-canvas{
+ mix-blend-mode:multiply!important;
+ filter:invert(1) sepia(.25) saturate(1.8) hue-rotate(210deg) brightness(.75)!important;
+ opacity:.59!important;
+}
+body:not(.night-mode) #studioApp #orbit{border-color:rgba(139,101,157,.53)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.48),0 9px 24px rgba(94,71,111,.13)!important}
+body:not(.night-mode) #studioApp #orbit :is(.card-title,.widget-title,h2,h3,.orbit-note){
+ color:#392849!important;-webkit-text-fill-color:#392849!important;
+}
+body:not(.night-mode) #studioApp #orbit #orbitGrid>button[data-orbit-app]{
+ background:rgba(255,252,254,.68)!important;border-color:rgba(112,81,133,.39)!important;
+ color:#32253d!important;box-shadow:inset 0 1px 0 #fff!important;
+}
+body:not(.night-mode) #studioApp #orbit #orbitGrid>button[data-orbit-app] :is(b,small,.orbit-label,.orbit-glyph){
+ color:#362741!important;-webkit-text-fill-color:#362741!important;
+}
+body:not(.night-mode) #studioApp #orbit #orbitGrid>button[data-orbit-app]:is(:hover,:focus-visible){
+ background:rgba(246,230,251,.9)!important;border-color:#9263ae!important;
+}
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] .module-heading :is(h1,h2,p,small),
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] .module-heading-bottom :is(p,small,.module-update-privacy){
+ color:#372945!important;-webkit-text-fill-color:#372945!important;
+}
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] .module-card.wide{
+ background:rgba(255,253,253,.67)!important;border-color:rgba(124,86,152,.3)!important;
+ color:#34273f!important;box-shadow:0 6px 22px rgba(99,77,116,.11)!important;
+}
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]{
+ background:rgba(252,249,255,.64)!important;border-color:rgba(134,106,163,.31)!important;
+ color:#34273e!important;box-shadow:0 3px 10px rgba(98,77,124,.10)!important;
+}
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]:is(:hover,:focus-within){background:rgba(251,244,255,.87)!important}
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]>header>b{
+ color:#32233b!important;-webkit-text-fill-color:#32233b!important;text-shadow:none!important;
+}
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row .orbit-state:not(.is-on){
+ background:#e9e0eb!important;color:#594360!important;
+}
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick,
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card{
+ background:rgba(255,250,255,.72)!important;border-color:rgba(122,99,155,.33)!important;color:#352b43!important;
+}
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] :is(.orbit-quick h3,.orbit-quick p,.orbit-quick-link b,.orbit-quick-link small,.orbit-main .orbit-connected-card b,.orbit-main .orbit-connected-card small,.orbit-main .orbit-connected-card span){
+ color:#33273d!important;-webkit-text-fill-color:#33273d!important;
+}
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick-link,
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main>:is(.orbit-not-connected,.orbit-link-summary){
+ background:rgba(241,226,248,.73)!important;color:#3c2a4a!important;border-color:rgba(138,108,174,.37)!important;
+}
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-quick-link:is(:hover,:focus-visible){background:#ead7f0!important}
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] #orbitPageStatus{color:#594066!important}
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card .orbit-hotlink{
+ background:#65436c!important;color:#fff9f9!important;-webkit-text-fill-color:#fff9f9!important;
+}

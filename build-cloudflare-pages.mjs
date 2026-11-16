@@ -12,8 +12,11 @@ import {generateOgImage} from './build-og-image.mjs';
 const root=resolve(fileURLToPath(new URL('.',import.meta.url)));
 const dest=join(root,'dist');
 const publishDirs=new Set([
-  'MiiEditor','about','affidavit','arcade','archive','assets','avatar','leian-mulatre',
+  'MiiEditor','about','affidavit','arcade','archive','assets','boards temp thumbnail','avatar','leian-mulatre',
   'cedarville-pnkfun1-cursive-font','cuteness-font','data-deletion',
+  // Independently indexable, deliberately public, static feature guides.
+  'discover','online-games','fare-checker','live-shows','free-knowledge',
+  'power-and-politics','connect-social-platforms','free-tools',
   'licenses','logout','privacy','rights','terms','settings','stars-and-stripes-font',
   'third-party','tools','wiimii'
 ]);
@@ -73,7 +76,19 @@ for(const dirent of readdirSync(root,{withFileTypes:true})){
   cpSync(join(root,name),join(dest,name));
   count++;total+=sz;
 }
-for(const required of ['index.html','404.html','assets/login-curtain-film-grain-v2.webp','google0f54272f22b5ea1f.html','leian-mulatre/index.html','affidavit/index.html']){
+for(const required of ['index.html','404.html','assets/login-curtain-film-grain-v2.webp','google0f54272f22b5ea1f.html','leian-mulatre/index.html','affidavit/index.html','free-tools/index.html','discover/index.html','online-games/index.html','fare-checker/index.html','live-shows/index.html','free-knowledge/index.html','power-and-politics/index.html','connect-social-platforms/index.html',
+  // Both Boards and Booth use these published decorative photos.
+  'boards temp thumbnail/0b6e427c1b03b0a862e18119fc5a946d.jpg',
+  'boards temp thumbnail/15b2005e7f894079f5461a5612b8b2ec.jpg',
+  'boards temp thumbnail/1e11bab1fe6c29fc6c0eef146f0064d7.jpg',
+  'boards temp thumbnail/2a7294cb4c09b2b863d15a023090d019.jpg',
+  'boards temp thumbnail/5156b0b96eb6a8248e54280d2c6ba900.jpg',
+  'boards temp thumbnail/61ba5b5f5dd60e46f636c9cde3479eae.jpg',
+  'boards temp thumbnail/a4d68aa776aac96bb0054c628e7d3e18.jpg',
+  'boards temp thumbnail/b8ce4928ebccf42c9ecc749fe0b347e9.jpg',
+  'boards temp thumbnail/e642fae88aa023fc8124ead156cff138.jpg',
+  'boards temp thumbnail/eecc0dabc950626bd32c902f28c4e7fa.jpg',
+  'boards temp thumbnail/fb0612c7df6af82845036d2e3e06e32a.jpg']){
   if(!existsSync(join(dest,required)))throw Error('Missing required public asset: '+required);
 }
 for(const hidden of ['cloudflare-worker-instagram.js','new-orbit-oauth.js','public-tiktok-snapshot-worker.js','wrangler.toml','firestore.rules','.github']){

@@ -37,6 +37,106 @@
     '<p class="map-plan-result" id="mapTripResult" role="status">Pick two places to compare a trip. Location is never requested automatically.</p>'+
     '<p>Map exploration stays here. Live traffic, bike-lane conditions and transit arrivals require dedicated routing/data providers.</p>';
   brand.after(planner);
+      '</div>'+
+    '<p class="map-plan-result" id="mapTripResult" role="status">Pick two places to compare a trip. Location is never requested automatically.</p>'+
+    '<p>Map exploration stays here. Live traffic, bike-lane conditions and transit arrivals require dedicated routing/data providers.</p>';
+  brand.after(planner);
+
+  // Desk mode: keep the live map on the LEFT and tools on the RIGHT. Move
+  // actual nodes, not copies, preserving saved-pin, sharing and search handlers.
+  const sidebar=document.querySelector('main > aside');
+  const main=document.querySelector('main');
+  let selectDeskTab=()=>{};
+  if(sidebar&&main){
+    const tabbar=document.createElement('div');
+    tabbar.id='mapActionTabs';
+    tabbar.className='map-action-tabs';
+    tabbar.setAttribute('role','tablist');
+    tabbar.setAttribute('aria-label','Map tools');
+    const deskHead=document.createElement('div');
+    deskHead.className='map-desk-heading';
+    deskHead.innerHTML='<span>MAP WORKSPACE</span><b>Explore · Plan · Keep</b>';
+    const pane=(id,label)=>{
+      const box=document.createElement('section');
+      box.id=id;box.className='map-workspace-pane';
+      box.setAttribute('role','tabpanel');box.setAttribute('aria-label',label);
+      return box;
+    };
+    const planPane=pane('mapPlanPane','Plan a route');
+    const editPane=pane('mapEditPane','Add or edit a pin');
+    const savedPane=pane('mapSavedPane','Saved pins');
+    const publicPane=pane('mapPublicPane','Nearby public pins');
+    planPane.append(planner);
+    const editTitle=sidebar.querySelector('#formTitle');
+    const editForm=sidebar.querySelector('#pinForm');
+    const editStatus=sidebar.querySelector('#saveStatus');
+    const undo=sidebar.querySelector('#undo');
+    [editTitle,editForm,editStatus,undo].forEach(el=>{if(el)editPane.append(el)});
+    const saved=sidebar.querySelector('.saved');
+    if(saved)savedPane.append(saved);
+    const publicStrip=sidebar.querySelector('#publicStrip');
+    if(publicStrip)publicPane.append(publicStrip);
+    const tabs=[
+      {key:'plan',name:'↗ Route',pane:planPane},
+      {key:'pin',name:'＋ Add pin',pane:editPane},
+      {key:'saved',name:'▣ Saved pins',pane:savedPane},
+      {key:'nearby',name:'◉ Nearby',pane:publicPane}
+    ];
+    let activeTab='plan';
+    const controls=tabs.map((item,i)=>{
+      const button=document.createElement('button');button.type='button';
+      button.className='map-action-tab';button.id='mapTab'+item.key;
+      button.dataset.mapTab=item.key;
+      button.setAttribute('role','tab');
+      button.setAttribute('aria-controls',item.pane.id);
+      button.setAttribute('aria-selected','false');
+      button.textContent=item.name;tabbar.append(button);
+      item.pane.setAttribute('aria-labelledby',button.id);
+      button.addEventListener('click',()=>selectDeskTab(item.key,true));
+      button.addEventListener('keydown',event=>{
+        const next=event.key==='ArrowRight'?1:event.key==='ArrowLeft'?-1:0;
+        if(!next)return;
+        event.preventDefault();
+        const target=controls[(i+next+controls.length)%controls.length];
+        target.focus();selectDeskTab(tabs[(i+next+tabs.length)%tabs.length].key,true);
+      });
+      return button;
+    });
+    const panes=document.createElement('div');
+    panes.className='map-tool-panels';
+    tabs.forEach(item=>panes.append(item.pane));
+    sidebar.replaceChildren(deskHead,tabbar,panes);
+    selectDeskTab=(key,userAction=false)=>{
+      const chosen=tabs.some(item=>item.key===key)?key:'pin';
+      activeTab=chosen;
+      tabs.forEach(item=>{
+        const shown=item.key===chosen;
+        item.pane.hidden=!shown;
+        const button=controls[tabs.indexOf(item)];
+        button.setAttribute('aria-selected',String(shown));
+        button.tabIndex=shown?0:-1;
+      });
+      if(userAction)panes.scrollTop=0;
+    };
+    selectDeskTab(activeTab);
+    // Map clicks and "Drop pin" reveal the relevant editor immediately.
+    const drop=byId('drop');
+    drop?.addEventListener('click',()=>selectDeskTab('pin',true));
+    function mapReady(){
+      const bridge=window.BigLWAMapBridge;
+      if(!bridge?.map)return;
+      bridge.map.on('click',()=>selectDeskTab('pin'));
+      requestAnimationFrame(()=>bridge.map.invalidateSize({pan:false}));
+    }
+    window.addEventListener('biglwa:map-ready-local',mapReady,{once:true});
+    if(window.BigLWAMapBridge?.map)mapReady();
+    if(typeof ResizeObserver==='function'){
+      new ResizeObserver(()=>window.BigLWAMapBridge?.map?.invalidateSize({pan:false}))
+        .observe(mapSide.querySelector('.map-stage'));
+    }
+    document.body.classList.add('map-workspace-split');
+  }
+
   const fullscreen=byId('fullscreenMap'),toolbar=mapSide.querySelector(':scope > .toolbar');
   if(fullscreen&&toolbar){fullscreen.textContent='Full screen ↗';toolbar.appendChild(fullscreen);}
   const tip=document.createElement('div');tip.className='map-layer-tip';
@@ -58,6 +158,7 @@
   }
   let mode='bicycling',fromGps=null,routeLine=null,lastPlan=null;
   const result=byId('mapTripResult'),external=byId('mapTripExternal');
+  const result=byId('mapTripResult');
   const centerOf=point=>[Number(point.lat),Number(point.lng)];
   const valid=p=>p&&Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng))&&
     Math.abs(Number(p.lat))<=90&&Math.abs(Number(p.lng))<=180;
@@ -104,6 +205,7 @@
     u.searchParams.set('travelmode',mode);
     return u.href;
   };
+
   function drawLine(coords,options){
     const bridge=window.BigLWAMapBridge;
     if(!bridge?.map||!bridge?.L)return;
@@ -115,6 +217,8 @@
   }
   async function plan(){
     result.textContent='Finding both places…';external.hidden=true;
+    window.dispatchEvent(new Event('biglwa:map-navigation-reset'));
+    result.textContent='Finding both places on BIG LWA…';
     clearLine();
     const stamp=Symbol('plan');lastPlan=stamp;
     try{
@@ -124,6 +228,7 @@
       if(lastPlan!==stamp)return;
       if(kmBetween(origin,destination)<.02)throw Error('Those points are effectively the same place.');
       external.href=navigationLink(origin,destination);external.hidden=false;
+      // The route remains in this widget. No Google Maps handoff.
       const aerial=kmBetween(origin,destination),shortDistance=(aerial<10?aerial.toFixed(1):Math.round(aerial))+' km';
       const provider=window.BigLWAMapRouteProvider;
       if(provider&&typeof provider.getRoute==='function'){
@@ -139,6 +244,20 @@
             result.textContent=travelLabel()+' · '+String(route.distanceLabel||shortDistance)+eta+
               ' · '+String(route.provider||'Connected route provider')+
               (route.trafficAware?' · Traffic-aware':' · Live traffic not included');
+              (route.trafficAware?' · Traffic-aware':' · No live traffic');
+            // A successful navigable road route (never a straight-line
+            // fallback) unlocks Go. Data remains in page memory only.
+            if(Array.isArray(route.maneuvers)&&route.maneuvers.length){
+              window.dispatchEvent(new CustomEvent('biglwa:map-navigation-route',{
+                detail:{
+                  origin,destination,mode,
+                  points:route.points,maneuvers:route.maneuvers,
+                  distanceLabel:String(route.distanceLabel||shortDistance),
+                  durationMinutes:Number(route.durationMinutes)||null,
+                  provider:String(route.provider||'Road router')
+                }
+              }));
+            }
             return;
           }
         }catch(e){console.info('[Map] Connected router unavailable, using orientation only.',e);}
@@ -163,6 +282,11 @@
         const origin=lastResolvedOrigin,destination=lastResolvedDestination;
         if(origin&&destination)external.href=navigationLink(origin,destination);
         result.textContent='Travel mode changed. Select Explore trip for a fresh preview.';
+      window.dispatchEvent(new Event('biglwa:map-navigation-reset'));
+      planner.querySelectorAll('[data-map-travel]').forEach(b=>
+        b.setAttribute('aria-pressed',String(b===btn)));
+      if(lastPlan){
+        result.textContent='Travel mode changed. Select Explore trip to recalculate on this map.';
       }
     });
   });
@@ -182,6 +306,8 @@
   byId('mapTripSwap').addEventListener('click',()=>{
     const from=byId('mapTripFrom'),to=byId('mapTripTo'),value=from.value;
     from.value=to.value;to.value=value;fromGps=null;external.hidden=true;
+    from.value=to.value;to.value=value;fromGps=null;
+    window.dispatchEvent(new Event('biglwa:map-navigation-reset'));
     clearLine();result.textContent='Places swapped. Explore trip to recalculate.';
   });
 

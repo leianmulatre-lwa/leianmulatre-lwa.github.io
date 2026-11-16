@@ -6,11 +6,11 @@
 (function(){
 'use strict';
 if(window.BigLWAVisualLife)return;
-const MAX_JOBS=60;
+const MAX_JOBS=240;
 const $=(s,r=document)=>r.querySelector(s);
 const clean=v=>String(v==null?'':v).trim().slice(0,160);
 const esc=v=>clean(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let jobs=[],sourceStatus='pending',sourceTimestamp='',sourceLoading=null,pendingOpen=false;
+let jobs=[],sourceStatus='pending',sourceTimestamp='',sourceLoading=null,pendingOpen=false,feedVerified=false,feedMeta={};
 function externalUrl(raw){
  try{
   const url=new URL(raw);
@@ -29,17 +29,101 @@ function normalizeJobs(rows){
   const title=clean(row.title),company=clean(row.company),location=clean(row.location),source=clean(row.source);
   if(!url||!title||!company||!source)return null;
   const id=url+'|'+title.toLowerCase();if(used.has(id))return null;used.add(id);
-  return {title,company,location,source,url,postedAt:clean(row.postedAt)};
+  return {title,company,location,source,url,postedAt:clean(row.postedAt),searchTerm:clean(row.searchTerm)};
  }).filter(Boolean);
 }
+/* Verified official careers pages, not invented postings. */
+const BRAND_CAREERS=[
+ {aliases:['skims','nikeskims'],label:'SKIMS careers',url:'https://skims.pinpointhq.com/'},
+ {aliases:['glossier'],label:'Glossier careers',url:'https://job-boards.greenhouse.io/glossier'},
+ {aliases:['calvin klein'],label:'Calvin Klein careers',url:'https://careers.pvh.com/calvinklein/us/en'},
+ {aliases:['chanel'],label:'CHANEL careers',url:'https://www.chanel.com/us/careers/'},
+ {aliases:['michael kors'],label:'Michael Kors careers',url:'https://www.michaelkors.com/careers.html'},
+ {aliases:['abercrombie','abercrombie and fitch'],label:'Abercrombie careers',url:'https://corporate.abercrombie.com/Careers/'}
+];
+function companyCareers(query){
+ const words=' '+clean(query).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()+' ';
+ return BRAND_CAREERS.find(entry=>entry.aliases.some(alias=>words.includes(' '+alias+' ')))||null;
+}
 function searchTargets(query,where){
- const term=clean(query)||'creative jobs';
- const place=clean(where)||'United States';
- return [
-  {label:'USAJOBS',description:'Public-sector openings',url:'https://www.usajobs.gov/Search/Results?k='+encodeURIComponent(term)+'&l='+encodeURIComponent(place)},
+ const term=clean(query)||'creative jobs',place=clean(where)||'United States';
+ const federal=/\b(government|federal|public sector|civil service|policy)\b/i.test(term);
+ const targets=[
+  federal
+   ?{label:'USAJOBS',description:'Federal and public-sector openings',url:'https://www.usajobs.gov/Search/Results?k='+encodeURIComponent(term)+'&l='+encodeURIComponent(place)}
+   :{label:'Google Jobs',description:'Search beyond BIG LWA’s published index',url:'https://www.google.com/search?q='+encodeURIComponent(term+' jobs '+place)},
   {label:'LinkedIn Jobs',description:'Employer and network listings',url:'https://www.linkedin.com/jobs/search/?keywords='+encodeURIComponent(term)+'&location='+encodeURIComponent(place)},
-  {label:'Indeed',description:'Jobs from employers',url:'https://www.indeed.com/jobs?q='+encodeURIComponent(term)+'&l='+encodeURIComponent(place)}
+  {label:'Indeed',description:'Listings from more employers',url:'https://www.indeed.com/jobs?q='+encodeURIComponent(term)+'&l='+encodeURIComponent(place)}
  ];
+ const brand=companyCareers(term);
+ if(brand)targets.unshift({label:brand.label,description:'Official employer career opportunities',url:brand.url});
+ return targets;
+}
+function addSourceOptions(grid,role,where){
+ const section=document.createElement('div');section.className='visual-life-external';
+ const note=document.createElement('p');note.textContent='BIG LWA’s snapshot is not the entire job market. Continue on these original sources:';
+ section.append(note);
+ for(const target of searchTargets(role,where)){
+  const link=document.createElement('a');link.href=target.url;link.target='_blank';link.rel='noopener noreferrer';
+  link.textContent=target.label+' ↗';link.title=target.description;section.append(link);
+ }
+ grid.append(section);
+}
+/* Share only accepted, non-expired source records with Politic Werk.
+ * Searches do not contact job boards or create proxy scraping requests. */
+function searchVerified(role,where){
+ if(!feedVerified||sourceStatus!=='connected')return [];
+ const irrelevant=new Set(['job','jobs','role','roles','opening','openings','career','careers','hiring','find','show','me','at','for','in','with','from','the','a','an']);
+ const tokens=clean(role).toLowerCase().replace(/[^a-z0-9]+/g,' ').split(/\s+/).filter(term=>term&&!irrelevant.has(term));
+ const place=clean(where).toLowerCase();
+ const wide=!place||['united states','usa','us','anywhere'].includes(place);
+ return jobs.filter(job=>{
+  const searchable=[job.title,job.company,job.searchTerm].join(' ').toLowerCase();
+  const roleMatch=tokens.every(term=>searchable.includes(term));
+  const loc=job.location.toLowerCase();
+  const placePart=place.split(',')[0].trim();
+  const locationMatch=wide||loc.includes(place)||Boolean(placePart)&&loc.includes(placePart)
+    ||(place==='remote'&&loc.includes('remote'));
+  return roleMatch&&locationMatch;
+ }).slice(0,20).map(job=>({...job}));
+}
+function searchLwazi(query,limit=12){
+ if(!feedVerified||sourceStatus!=='connected')return [];
+ const stop=new Set(['find','show','me','all','real','actual','latest','current','open','jobs','job','postings','roles','opportunities','available','near','please','work','hiring','for','in','at','from','with','the','a','an','and','or','i','want','am','looking','search']);
+ const terms=clean(query).toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(/\s+/)
+  .filter(token=>token.length>1&&!stop.has(token));
+ const scored=jobs.map(job=>{
+   const title=job.title.toLowerCase(),company=job.company.toLowerCase();
+   const location=job.location.toLowerCase(),term=job.searchTerm.toLowerCase();
+   let score=0,matches=0;
+   for(const word of terms){
+     if(title.includes(word)){score+=4;matches++;}
+     else if(company.includes(word)){score+=3;matches++;}
+     else if(location.includes(word)){score+=2;matches++;}
+     else if(term.includes(word)){score+=1;matches++;}
+   }
+   return {job,score,matches};
+ }).filter(entry=>terms.length===0||entry.matches>=Math.min(terms.length,2));
+ return scored.sort((a,b)=>b.matches-a.matches||b.score-a.score)
+  .slice(0,Math.max(0,Math.min(20,Number(limit)||12))).map(entry=>({...entry.job}));
+}
+function listVerified(){
+ if(!feedVerified||sourceStatus!=='connected')return [];
+ return jobs.map(job=>({...job}));
+}
+function getJobByUrl(url){
+ if(typeof url!=='string'||!url.startsWith('https://'))return null;
+ const match=listVerified().find(job=>job.url===url);
+ return match||null;
+}
+function getFeedInfo(){
+ return {
+  status:feedVerified&&sourceStatus==='connected'?'connected':sourceStatus==='stale'?'stale':'pending',
+  generatedAt:feedMeta.generatedAt||'',
+  searchTerm:feedMeta.searchTerm||'',
+  sources:[...(feedMeta.sources||[])],
+  count:feedVerified?jobs.length:0
+ };
 }
 function ensure(root){
  if(!root)return null;
@@ -61,37 +145,40 @@ function ensure(root){
  return panel;
 }
 function ensureCard(root){
- const dir=$('.craft-directory',root);if(!dir||dir.querySelector('[data-craft-card="visual-life"]'))return;
- const tile=document.createElement('article');
- tile.className='craft-tile craft-tile-home visual-life-workshop-tile';
- tile.dataset.craftCard='visual-life';
- tile.innerHTML='<div class="craft-tile-eyebrow">BIG LWA ORIGINAL · WORK + LIFE</div>'+
- '<div class="craft-tile-icon craft-arcade-block" aria-hidden="true"><div class="craft-block-pair"><span class="craft-block-main"><span class="visual-life-icon">V<span>✺</span></span></span></div></div>'+
- '<h3>visual-life</h3><p>Creative work, everyday opportunity and accountable job discovery.</p>'+
- '<div class="craft-engine-credits">Visualizr family · Jobs</div><button type="button" data-visual-life-open>Find jobs →</button>';
- const visualizr=dir.querySelector('[data-craft-card="visualizr"]');
- if(visualizr)visualizr.insertAdjacentElement('afterend',tile);else dir.appendChild(tile);
+ // Job discovery remains available from Visualizr/Politic/L'wazi, but it is
+ // not an image or document editor. Keep the Workshop limited to actual tools.
+ root.querySelector('[data-craft-card="visual-life"]')?.remove();
 }
+
 function render(panel){
  const role=clean($('[name=role]',panel)?.value),where=clean($('[name=location]',panel)?.value);
  const note=$('.visual-life-source-note',panel),grid=$('.visual-life-job-grid',panel);
  grid.replaceChildren();
- note.textContent=jobs.length?
-   'JobSpy source snapshot'+(sourceTimestamp?' · '+sourceTimestamp:'')+'. Open each original posting to verify its details, employer and current availability.':
-   sourceStatus==='stale'?'Previously generated job listings are outdated and hidden until the next verified refresh. Use the original search platforms below.':
-   'The vendored werk-main / JobSpy feed has not been published yet. These buttons open searches at original job platforms. No scraped listings are being represented as current.';
- const all=jobs.length?jobs.filter(j=>[j.title,j.company,j.location].join(' ').toLowerCase().includes(role.toLowerCase())).slice(0,MAX_JOBS):[];
- if(all.length){
-  all.forEach(job=>{
-   const card=document.createElement('article');card.className='visual-life-job-card';
-   card.innerHTML='<span class="craft-label">'+esc(job.source)+'</span><h3>'+esc(job.title)+'</h3><p>'+esc(job.company)+(job.location?' · '+esc(job.location):'')+'</p><a target="_blank" rel="noopener noreferrer" href="'+esc(job.url)+'">View original posting ↗</a>';
-   grid.appendChild(card);
-  });
+ const info=getFeedInfo();
+ if(info.status!=='connected'){
+  note.textContent=sourceStatus==='stale'?
+   'The JobSpy source snapshot has expired; previously retrieved listings are hidden until the reviewed feed is updated.':
+   'The vendored werk-main / JobSpy feed has not been published yet. Visual-Life cannot run a Python scraper in the browser.';
+  addSourceOptions(grid,role,where);
+  return;
  }
- searchTargets(role,where).forEach(item=>{
-  const card=document.createElement('article');card.className='visual-life-job-card visual-life-search-link';
-  card.innerHTML='<span class="craft-label">EXTERNAL SEARCH</span><h3>'+esc(item.label)+'</h3><p>'+esc(item.description)+'</p><a href="'+esc(item.url)+'" rel="noopener noreferrer" target="_blank">Search '+esc(item.label)+' ↗</a>';
-  grid.appendChild(card);
+ const filtered=searchVerified(role,where);
+ note.textContent='JobSpy snapshot'+(sourceTimestamp?' · '+sourceTimestamp:'')+
+  ' · '+filtered.length+' matching results. Listings are source-linked, not confirmed live; verify each original posting.';
+ if(!filtered.length){
+  const none=document.createElement('p');
+  none.className='visual-life-empty';
+  none.textContent='No matching jobs in this published snapshot. Try broader keywords or location.';
+  grid.append(none);addSourceOptions(grid,role,where);return;
+ }
+ filtered.forEach(job=>{
+  const card=document.createElement('article');card.className='visual-life-job-card';
+  const source=document.createElement('span');source.className='craft-label';source.textContent=job.source;
+  const title=document.createElement('h3');title.textContent=job.title;
+  const desc=document.createElement('p');desc.textContent=[job.company,job.location].filter(Boolean).join(' · ');
+  const link=document.createElement('a');link.href=job.url;link.target='_blank';
+  link.rel='noopener noreferrer';link.textContent='View original posting ↗';
+  card.append(source,title,desc,link);grid.appendChild(card);
  });
 }
 async function loadFeed(){
@@ -108,7 +195,9 @@ async function loadFeed(){
    const published=Date.parse(data.generated_at||'');
    if(!Number.isFinite(published)||Date.now()-published>96*3600*1000||published>Date.now()+3600*1000){sourceStatus='stale';jobs=[];return}
    sourceTimestamp=new Date(published).toLocaleDateString();
+   feedMeta={generatedAt:data.generated_at,searchTerm:clean(data.search_term),sources:Array.isArray(data.sources)?data.sources.map(clean):[]};
    setJobs(data.jobs);
+   feedVerified=jobs.length>0;
   }catch{sourceStatus='pending'}
  })();
  return sourceLoading;
@@ -153,5 +242,5 @@ function install(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});
 else install();
 new MutationObserver(install).observe(document.documentElement,{childList:true,subtree:true});
-window.BigLWAVisualLife={open,ensureCard,setJobs,normalizeJobs,searchTargets,loadFeed,getStatus:()=>sourceStatus,version:'1.1.0'};
+window.BigLWAVisualLife={open,ensureCard,setJobs,normalizeJobs,searchTargets,searchVerified,searchLwazi,listVerified,getJobByUrl,getFeedInfo,loadFeed,getStatus:()=>sourceStatus,getSourceTimestamp:()=>sourceTimestamp,version:'1.4.0'};
 })();

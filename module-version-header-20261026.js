@@ -6,13 +6,32 @@
  const $=(s,r=document)=>r?.querySelector(s);
  const config={
   camera:{title:'booth',selector:'.booth-tabs',icon:'bookini'},
+  calendar:{title:'Calendar',selector:'.calendar-modes'},
   stream:{title:'stream',stream:true},
-  notes:{title:'sqwidz',selector:'.diary-section-nav',icon:'sqwibblR'},
-  projects:{title:'visualizr',selector:'.visualz-tabs',icon:'visualizr'},
+  notes:{title:'sqwibbl/r',selector:'.diary-section-nav',icon:'sqwibblR'},
+  projects:{title:'visualize/r',selector:'.visualz-tabs',icon:'visualizr'},
   diary:{title:'Journal',journal:true},
   tools:{title:'lwazi',icon:'r-editor'}
  };
  const workspace=()=>$('#studioApp #moduleWorkspace');
+ // Typography belongs to the two title fragments, not a single inherited font.
+ // Preserve source text for screen readers and avoid repaint loops on mutations.
+ function paintMixedTitle(node,route,label){
+  if(!node)return;
+  const m=/^(.+)(\/r)$/.exec(label);
+  if(!m){if(node.textContent.trim()!==label)node.textContent=label;return}
+  if(node.dataset.lwaMixedTitle===route
+   &&node.textContent===label
+   &&node.querySelector(':scope > .lwa-title-base')
+   &&node.querySelector(':scope > .lwa-title-r'))return;
+  const base=document.createElement('span');
+  base.className='lwa-title-base';base.textContent=m[1];
+  const ending=document.createElement('span');
+  ending.className='lwa-title-r';ending.textContent=m[2];
+  node.replaceChildren(base,ending);
+  node.classList.add('lwa-mixed-r-title');
+  node.dataset.lwaMixedTitle=route;
+ }
  function rightSlot(heading){
   let right=$(':scope > .module-heading-right',heading);
   if(!right){
@@ -41,9 +60,15 @@
   // forwards clicks to the ORIGINAL (hidden) buttons without breaking that
   // delegation or losing the selection/data-loading logic.
   const native=$('.biglwa-stream .stream-channels',ws);
-  if(!native)return;
-  const options=[...native.querySelectorAll('[data-stream-tab]')];
-  if(options.length!==4)return;
+  const options=native?[...native.querySelectorAll('[data-stream-tab]')]:[];
+  // Channel count is dynamic: Radio, TV, Live, Sqwidz, Music (and future
+  // additions). Never hide the original tabs unless the heading has actually
+  // received its functioning proxies.
+  if(!options.length){
+    ws.classList.remove('stream-versions-in-header');
+    $('.module-heading-versions[data-version-stream]',right)?.remove();
+    return;
+  }
   let row=$('.module-heading-versions[data-version-stream]',right);
   if(!row){
    row=document.createElement('div');
@@ -52,6 +77,11 @@
    row.setAttribute('role','tablist');
    row.setAttribute('aria-label','Stream channels');
    right.prepend(row);
+  }
+  const modes=new Set(options.map(source=>source.dataset.streamTab));
+  // On module remount, discard old proxies that no longer exist in Stream.
+  for(const stale of [...row.children]){
+    if(!modes.has(stale.dataset.streamHeadingTab))stale.remove();
   }
   for(const source of options){
    const mode=source.dataset.streamTab;
@@ -74,7 +104,11 @@
    button.classList.toggle('is-active',active);
    button.tabIndex=active?0:-1;
   }
-  ws.classList.add('stream-versions-in-header');
+  // Hide native controls only after all current tabs are accessible in the
+  // heading. Native buttons remain mounted as delegated event targets.
+  if(row.querySelectorAll('[data-stream-heading-tab]').length===options.length)
+    ws.classList.add('stream-versions-in-header');
+  else ws.classList.remove('stream-versions-in-header');
  }
  function journalVersions(ws,right){
   let nav=$('nav.module-heading-versions[data-version-journal]',right);
@@ -98,16 +132,16 @@
  }
  function renameNavigation(){
   const routes=[
-    ['tools','lwazi'],['projects','visualizr'],['camera','booth'],['notes','sqwidz']
+    ['tools','lwazi'],['projects','visualize/r'],['camera','booth'],['notes','sqwibbl/r']
   ];
   for(const [route,name]of routes){
     for(const link of document.querySelectorAll('#studioApp [data-shortcut-route="'+route+'"],#studioApp [data-sidebar-route="'+route+'"],#studioApp [data-open="'+route+'"]')){
       const label=link.querySelector('.hero-shortcut-label,.sidebar-route-label,.nav-label');
-      if(label&&label.textContent.trim()!==name)label.textContent=name;
+      if(label)paintMixedTitle(label,route,name);
       if(link.getAttribute('aria-label')===({tools:'Tools',projects:'Projects',camera:'Booth',notes:'Sqwibz'}[route]))link.setAttribute('aria-label',name);
     }
     const widget=document.querySelector('#studioApp #'+route+' .card-head h2');
-    if(widget&&widget.textContent.trim()!==name)widget.textContent=name;
+    if(widget)paintMixedTitle(widget,route,name);
   }
  }
  function install(){
@@ -122,12 +156,13 @@
    :$('#moduleWorkspaceBody > .module-heading',ws)||$('.module-heading',ws);
   if(!heading)return;
   const title=$('h1',heading);if(!title)return;
-  if(title.textContent.trim()!==item.title)title.textContent=item.title;
+  const dynamicTitle=key==='calendar'&&ws.dataset.calendarMode==='geez'?'Ge’ez Calendar':item.title;
+  paintMixedTitle(title,key,dynamicTitle);
   const right=rightSlot(heading);
   const controls=item.selector?$(item.selector,ws):null;
   if(controls){
    controls.classList.add('module-heading-versions');
-   controls.setAttribute('aria-label','Choose '+item.title+' version');
+   controls.setAttribute('aria-label',key==='calendar'?'Choose calendar system':'Choose '+item.title+' version');
    if(controls.parentElement!==right)right.prepend(controls);
   }
   if(item.stream)streamVersions(ws,right);

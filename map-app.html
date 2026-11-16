@@ -717,6 +717,47 @@ body.preview .leaflet-control-attribution{font-size:8px}
 .night-mode .map-safety-dialog h2,.night-mode .map-safety-dialog .map-safety-signoff{color:#f0b1bc}
 .night-mode #mapSafetyKey{background:#302b2a;color:#f0b1bc;border-color:#68575a}
 body.preview .map-stage{width:100%;height:100%}
+/* Studio preview: keep the real OpenFreeMap/Leaflet surface and its actual
+   account-backed private pin flow, with same-window Visual-eyez-like controls. */
+body.preview #studioMapPreviewTools{
+ position:absolute;top:9px;left:9px;right:35px;z-index:1001;
+ display:block!important;max-width:calc(100% - 46px);padding:6px;
+ border:1px solid rgba(74,61,58,.4);border-radius:10px;
+ background:rgba(249,243,233,.96);box-shadow:0 3px 10px #302f3455;
+ color:#3e383c;pointer-events:auto;
+}
+body.preview #studioMapPreviewTools .mini-map-tool-row{
+ display:flex;gap:5px;flex-wrap:wrap;align-items:center
+}
+body.preview #studioMapPreviewTools button{
+ background:#fffdf9;border:1px solid #b59c91;color:#42323e;border-radius:7px;
+ min-height:29px;padding:5px 8px;font:700 10px/1.3 system-ui,sans-serif;
+ cursor:pointer;white-space:nowrap
+}
+body.preview #studioMapPreviewTools button[aria-pressed="true"]{background:#693c56;color:#fff1ec}
+body.preview #studioMapPreviewTools button:focus-visible,
+body.preview #studioMapPreviewTools input:focus-visible{outline:2px solid #a14461;outline-offset:2px}
+body.preview #studioMapPreviewTools .mini-map-pin-form:not([hidden]){
+ display:flex;align-items:end;gap:6px;flex-wrap:wrap;margin-top:7px
+}
+body.preview #studioMapPreviewTools .mini-map-pin-form label{
+ display:grid;gap:3px;font:700 10px system-ui,sans-serif;flex:1;min-width:120px
+}
+body.preview #studioMapPreviewTools input{
+ min-height:30px;box-sizing:border-box;width:100%;border:1px solid #b59c91;
+ background:#fffdf9;color:#3e2833;border-radius:6px;padding:6px;
+ font:500 11px system-ui,sans-serif
+}
+body.preview #studioMapPreviewTools [hidden]{display:none!important}
+body.preview #studioMapPreviewTools #miniMapToolStatus{
+ font:500 10px/1.4 system-ui,sans-serif;margin:5px 1px 0!important;color:#624857
+}
+body.preview #mapProviderIndicator{bottom:5px;top:auto}
+@media(max-width:400px){
+ body.preview #studioMapPreviewTools{right:25px;max-width:calc(100% - 34px)}
+ body.preview #studioMapPreviewTools button{font-size:9px;padding:4px 6px;min-height:27px}
+}
+
 body.preview #mapSafetyKey,body.preview .map-safety-overlay{display:none!important}
 @media(max-width:540px){.map-safety-overlay{padding:8px}.map-safety-dialog{padding:12px}.map-safety-dialog h2{font-size:20px}.map-safety-dialog p{font-size:11px}.map-safety-checkbox{margin:5px 0 9px}}
 </style><link rel="stylesheet" href="/assets/biglwa-dialog.css?v=20261025-shared-popups-1"><script src="/account-storage-policy.js?v=20261023-private-shelf-2"></script><script src="/account-storage.js?v=20261023-private-shelf-2"></script></head><body>
@@ -752,12 +793,70 @@ body.embedded aside{grid-template-columns:1fr}
 body.embedded aside>h2,body.embedded #pinForm,body.embedded aside>.saved,body.embedded aside>.public-strip{grid-column:1;grid-row:auto}
 body.embedded #pinForm{grid-template-columns:1fr 1fr}
 }
+/* Studio thumbnail is BOTH embedded and preview. The later generic embedded rules
+   must not convert the 205px interactive preview into a 390px grid page.
+   Keep the map itself touchable while native Studio scrolling remains outside. */
+body.embedded.preview,body.embedded.preview main{
+ width:100%!important;height:100%!important;min-height:0!important;
+ max-height:100%!important;overflow:hidden!important;margin:0!important;
+ padding:0!important;
+}
+body.embedded.preview main{
+ display:block!important;max-width:none!important;
+}
+body.embedded.preview .map-side{
+ position:relative!important;display:block!important;width:100%!important;
+ height:100%!important;min-height:0!important;max-height:100%!important;
+ padding:0!important;margin:0!important;overflow:hidden!important;
+ border:0!important;border-radius:0!important;
+}
+body.embedded.preview .map-stage{
+ position:relative!important;width:100%!important;height:100%!important;
+ min-height:0!important;max-height:100%!important;padding:0!important;
+ margin:0!important;overflow:hidden!important;
+}
+body.embedded.preview #map{
+ position:absolute!important;inset:0!important;width:100%!important;
+ height:100%!important;min-height:0!important;max-height:100%!important;
+ margin:0!important;z-index:0;pointer-events:auto!important;
+}
+body.embedded.preview .map-side>.toolbar,
+body.embedded.preview .map-side>.hint,
+body.embedded.preview .map-side>.status,
+body.embedded.preview aside,
+body.embedded.preview header{
+ display:none!important;
+}
+body.embedded.preview #studioMapPreviewTools{
+ display:block!important;position:absolute!important;
+ z-index:1001!important;pointer-events:auto!important;
+}
+body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
+@media(max-width:760px){
+ body.embedded.preview main{padding:0!important}
+ body.embedded.preview #map{height:100%!important;min-height:0!important}
+}
 </style>
 <link rel="stylesheet" href="/map-lwa-experience-20261113.css?v=20261113-1">
+<link rel="stylesheet" href="/map-lwa-experience-20261113.css?v=20261114-wider-map-page-scroll-v7&nov16=singlemap-streets-v1">
 <main><section class="map-side" aria-label="Map and location controls">
 <div class="toolbar"><button id="drop" class="primary" type="button" disabled>Drop pin at center</button><button id="locate" type="button">Use my location</button><button id="fit" type="button" disabled>Show saved pins</button><button id="mapSafetyKey" type="button" aria-controls="mapSafetyOverlay" aria-expanded="false" title="Review Map safety notice"><span aria-hidden="true" class="map-safety-indicator">●</span> Map safety</button></div>
 <div class="map-stage">
 <div id="map" aria-label="Interactive map. Tap to choose a location, or use Drop pin at center."></div>
+<div id="studioMapPreviewTools" class="studio-map-preview-tools" aria-label="Interactive map pin tools" hidden>
+  <nav class="mini-map-tool-row" aria-label="Map tools">
+    <button type="button" id="miniMapExplore" aria-pressed="true">Explore</button>
+    <button type="button" id="miniMapDrop">Drop pin</button>
+    <button type="button" id="miniMapSaved">Saved pins</button>
+    <button type="button" id="miniMapLayers">Layers</button>
+  </nav>
+  <form class="mini-map-pin-form" id="miniMapPinForm" hidden>
+    <label>Private pin name<input name="pinTitle" maxlength="100" required placeholder="A park, museum, favorite place…" autocomplete="off"></label>
+    <button type="submit">Save pin</button>
+    <button type="button" id="miniMapCancel">Cancel</button>
+  </form>
+  <p id="miniMapToolStatus" role="status">Drag the map to explore.</p>
+</div>
 <div class="map-safety-overlay" id="mapSafetyOverlay" hidden>
   <section class="map-safety-dialog biglwa-dialog" role="dialog" aria-modal="true" aria-labelledby="mapSafetyTitle" aria-describedby="mapSafetyDescription" tabindex="-1">
     <div class="map-safety-lights biglwa-dialog-lights" aria-hidden="true"><i></i><i></i><i></i></div>
@@ -1011,6 +1110,60 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
     }});
   $('cancel').onclick=()=>{clear();$('saveStatus').textContent='';};
   $('drop').onclick=()=>{const p=map.getCenter();stage(p.lat,p.lng);$('pinName').focus();};
+
+  // Same source-backed pin storage and validation as the full Map page.
+  // Preview never publishes publicly, requests exact location, or invents pins.
+  function initStudioPreviewTools(){
+    if(!document.body.classList.contains('preview'))return;
+    const tools=$('studioMapPreviewTools'),pinForm=$('miniMapPinForm');
+    if(!tools||!pinForm)return;
+    tools.hidden=false;
+    const status=$('miniMapToolStatus');
+    const buttons=[$('miniMapExplore'),$('miniMapDrop'),$('miniMapSaved'),$('miniMapLayers')];
+    const setActive=id=>buttons.forEach(b=>b.setAttribute('aria-pressed',String(b.id===id)));
+    $('miniMapExplore').onclick=()=>{pinForm.hidden=true;clear();setActive('miniMapExplore');status.textContent='Explore mode · drag and zoom the open-source map.';};
+    $('miniMapDrop').onclick=()=>{
+      if(!map){status.textContent='Map is still loading.';return;}
+      const center=map.getCenter();stage(center.lat,center.lng);
+      pinForm.hidden=false;setActive('miniMapDrop');
+      status.textContent='Draft pin at map center. Give it a name to save privately.';
+      pinForm.querySelector('input').focus();
+    };
+    $('miniMapSaved').onclick=()=>{
+      const count=pins.filter(valid).length;
+      if(count&&map)$('fit').click();
+      setActive('miniMapSaved');
+      status.textContent=count?count+' saved pin(s) · map centered on your saved places.':'No saved pins yet. Drop one at the center of the map.';
+    };
+    $('miniMapLayers').onclick=()=>{
+      const target=document.querySelector('.leaflet-control-layers-toggle');
+      if(target)target.click();
+      status.textContent='Choose OpenFreeMap styles or alternate map layers.';
+      setActive('miniMapLayers');
+    };
+    $('miniMapCancel').onclick=()=>{$('miniMapExplore').click()};
+    pinForm.onsubmit=event=>{
+      event.preventDefault();
+      if(!map||!read||readError){status.textContent='Map storage is not ready; please use the full Map page.';return;}
+      const title=String(pinForm.elements.pinTitle?.value||'').trim().slice(0,100);
+      if(!title){status.textContent='Name the place before saving.';return;}
+      if(!valid({lat:$('lat').value,lng:$('lng').value})){
+        const center=map.getCenter();stage(center.lat,center.lng);
+      }
+      $('pinName').value=title;
+      $('pinPublic').checked=false;
+      $('pinForm').requestSubmit();
+      const exists=pins.some(p=>p?.title===title);
+      status.textContent=exists?'Saved privately. Your pin appears on this same map.':'Could not save; open Map to review storage.';
+      if(exists){
+        pinForm.hidden=true;pinForm.reset();setActive('miniMapExplore');
+        try{window.parent.postMessage({type:'biglwa:map-preview-pins-updated'},location.origin)}catch{}
+      }
+    };
+    tools.addEventListener('pointerdown',event=>event.stopPropagation());
+  }
+  initStudioPreviewTools();
+
   $('fit').onclick=()=>{const points=pins.filter(valid).map(p=>[Number(p.lat),Number(p.lng)]);if(points.length)map.fitBounds(points,{padding:[35,35],maxZoom:14});};
   $('locate').onclick=()=>{if(!navigator.geolocation){$('mapStatus').textContent='Location is unavailable. Search for a place or select it on the map.';return;}$('mapStatus').textContent='Finding your location…';navigator.geolocation.getCurrentPosition(p=>{stage(p.coords.latitude,p.coords.longitude);map?.setView([p.coords.latitude,p.coords.longitude],14);},()=>{$('mapStatus').textContent='Could not get your location. Search for a place, tap the map, or enter coordinates instead.';},{timeout:10000,maximumAge:60000});};
   $('pins').onclick=e=>{const edit=e.target.closest('[data-edit]'),remove=e.target.closest('[data-remove]'),unpublish=e.target.closest('[data-unpublish]');
@@ -1053,6 +1206,35 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
     (baseLayers[preferred]||street).addTo(map);
     const layerControl=L.control.layers(baseLayers,{'Mapped bike lanes · not live':cyclingOverlay},{position:'topright',collapsed:true}).addTo(map);
     map.on('baselayerchange',event=>{try{localStorage.setItem('biglwaMapMode',event.name);}catch{}
+      const valid=['LWA Streets','LWA Light','LWA Night','Street','Satellite','Hybrid','Terrain'];
+      if(localStorage.getItem('biglwaMapOpenFreeMapOnboarded')==='1'){
+        if(savedMode&&valid.includes(savedMode))preferred=savedMode;
+      }else{
+        // A legacy saved Street choice should not prevent discovering the
+        // newly installed BIG LWA OpenFreeMap style on first visit.
+        if(savedMode&&savedMode!=='Street'&&valid.includes(savedMode))preferred=savedMode;
+        localStorage.setItem('biglwaMapOpenFreeMapOnboarded','1');
+        if(preferred==='LWA Streets')localStorage.setItem('biglwaMapMode',preferred);
+      }
+    }catch{}
+    (baseLayers[preferred]||street).addTo(map);
+    const layerControl=L.control.layers(baseLayers,{'Mapped bike lanes · not live':cyclingOverlay},{
+      position:'topright',collapsed:document.body.classList.contains('preview')
+    }).addTo(map);
+    const providerTag=document.createElement('div');
+    providerTag.id='mapProviderIndicator';
+    providerTag.className='map-provider-indicator';
+    providerTag.setAttribute('role','status');
+    providerTag.textContent='BIG LWA · Loading OpenFreeMap…';
+    document.querySelector('.map-stage')?.appendChild(providerTag);
+    const sourceLabel=name=>{
+      providerTag.textContent=name.startsWith('LWA ')?
+        'BIG LWA · OpenFreeMap · '+name.replace('LWA ',''):
+        'BIG LWA · Classic map · '+name;
+    };
+    sourceLabel('Street');
+    map.on('baselayerchange',event=>{try{localStorage.setItem('biglwaMapMode',event.name);}catch{}
+      sourceLabel(event.name);
       $('mapStatus').textContent=event.name+' mode active. Search for a place or tap the map.';});
     const loadPublicScript=(src)=>new Promise((resolve,reject)=>{
       const script=document.createElement('script');script.src=src;script.crossOrigin='anonymous';
@@ -1081,10 +1263,32 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
           map.removeLayer(street);
           vectors[preferred].addTo(map);
         }
+          // An async vector load can fail after the JS bundle loads. Keep
+          // classic tiles until MapLibre has rendered its actual map.
+          const vector=vectors[preferred];
+          vector.addTo(map);
+          const gl=typeof vector.getMaplibreMap==='function'?vector.getMaplibreMap():null;
+          if(gl&&typeof gl.once==='function'){
+            const watchdog=setTimeout(()=>{
+              if(map.hasLayer(vector)&&map.hasLayer(street)){
+                map.removeLayer(vector);
+                providerTag.textContent='BIG LWA · Classic map fallback (OpenFreeMap unavailable)';
+              }
+            },11000);
+            gl.once('load',()=>{
+              clearTimeout(watchdog);
+              if(map.hasLayer(vector)){map.removeLayer(street);sourceLabel(preferred);}
+            });
+          }else{
+            map.removeLayer(street);
+            sourceLabel(preferred);
+          }
+        }else sourceLabel(preferred);
         $('tileStatus').textContent='';
       }catch(error){
         console.info('[BIG LWA Map] OpenFreeMap vector unavailable; retaining raster map.',error);
         $('tileStatus').textContent='OpenFreeMap unavailable here; the classic map is still available.';
+        providerTag.textContent='BIG LWA · Classic map fallback';
       }
     })();
     map.on('click',e=>stage(e.latlng.lat,e.latlng.lng));
@@ -1195,4 +1399,7 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
 </script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.1/dist/maplibre-gl.css">
 <script src="/map-lwa-experience-20261113.js?v=20261113-1"></script>
+<script src="/map-lwa-router-20261113.js?v=20261113-turns-v5"></script>
+<script src="/map-lwa-experience-20261113.js?v=20261113-go-v5&nov16=singlemap-streets-v1"></script>
+<link rel="stylesheet" href="/map-lwa-discovery-20261114.css?v=20261114-public-neighborhood-v1"><script src="/map-lwa-navigate-20261113.js?v=20261113-go-v5&nov16=singlemap-streets-v1"></script><link rel="stylesheet" href="/map-transport-hub-20261114.css?v=20261114-inapp-desk-v1&compact=20261115-1"><script src="/map-lwa-discovery-20261114.js?v=20261114-inapp-desk-v2"></script><script src="/map-transport-hub-20261114.js?v=20261114-inapp-desk-v1&compact=20261115-1"></script><link rel="stylesheet" href="/map-purposes-20261115.css?v=20261115-map-1"><link rel="stylesheet" href="/map-popculture-20261116.css?v=20261116-scene-1"><script src="/map-popculture-20261116.js?v=20261116-scene-1"></script><script src="/map-purposes-20261115.js?v=20261116-culture-1"></script>
 </body></html>

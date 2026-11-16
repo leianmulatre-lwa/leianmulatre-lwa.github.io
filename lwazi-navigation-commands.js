@@ -31,6 +31,10 @@ const widgets={
  'connect':'connect','logs':'logs','workshop':'tools','lwazi workshop':'tools',
  'veve':'veve'
 };
+const rApps={
+ 'sqwibblr':'image-desk','image desk':'image-desk','visualizr':'visualizr',
+ 'lightr':'photocraft','paintr':'vectorcraft','keyframer':'effectcraft','filer':'pdfcraft'
+};
 const clean=s=>String(s||'').toLowerCase().replace(/[’']/g,"").replace(/[?!.,:;]+/g,' ').replace(/\s+/g,' ').trim();
 function resolve(query){
  const text=clean(query);
@@ -46,6 +50,7 @@ function resolve(query){
  if(destination==='settings legal'||destination==='legal and settings')destination='legal';
  if(pages[destination])return {type:'page',path:pages[destination],label:destination};
  if(categories[destination])return {type:'category',category:categories[destination],label:destination};
+ if(rApps[destination])return {type:'craft',app:rApps[destination],label:destination};
  if(widgets[destination])return {type:'widget',route:widgets[destination],label:destination};
  return null;
 }
@@ -70,6 +75,11 @@ function navigate(command){
    if(!panel?.classList.contains('is-skeleton-open'))toggle.click();
    return true;
  }
+ if(command.type==='craft'){
+   if(typeof window.BigLWAOpenCraftApp==='function')return window.BigLWAOpenCraftApp(command.app);
+   if(typeof window.openBIGLWAModule==='function'){window.openBIGLWAModule('tools');return true;}
+   return false;
+ }
  if(command.type==='widget'){
    if(typeof window.openBIGLWAModule==='function'){
      window.openBIGLWAModule(command.route);return true;
@@ -80,30 +90,12 @@ function navigate(command){
  }
  return false;
 }
+// Navigation phrases remain available via L'wazi, but the persistent "Try"
+// pill was noisy inside the global search field. No separate hint control.
 function mountSuggestions(){
- const wrap=document.querySelector('#studioApp .topbar .search-wrap');
- const input=wrap?.querySelector('#globalSearch');
- if(!wrap||!input||wrap.querySelector('.bl-nav-hints'))return;
- const box=document.createElement('div');box.className='bl-nav-hints';
- const trigger=document.createElement('button');trigger.type='button';trigger.className='bl-nav-hints-trigger';
- trigger.textContent='✦ Try: Studio · Settings · Legal · Skeleton Key · Widgets';
- trigger.setAttribute('aria-label','Show L’wazi navigation commands');trigger.setAttribute('aria-expanded','false');
- const menu=document.createElement('div');menu.className='bl-nav-hints-menu';menu.hidden=true;menu.setAttribute('role','menu');
- const entries=[['Studio','take me to studio'],['Settings','take me to settings'],['Legal pages','take me to legal pages'],['Skeleton Key','open skeleton key'],['Widgets','show widgets']];
- for(const [label,query] of entries){
-  const b=document.createElement('button');b.type='button';b.setAttribute('role','menuitem');
-  b.textContent=label;b.addEventListener('click',()=>{
-   input.value=query;menu.hidden=true;trigger.setAttribute('aria-expanded','false');
-   const cmd=resolve(query);if(cmd&&!navigate(cmd))input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
-  });menu.append(b);
- }
- trigger.addEventListener('click',event=>{event.stopPropagation();menu.hidden=!menu.hidden;trigger.setAttribute('aria-expanded',String(!menu.hidden))});
- document.addEventListener('pointerdown',event=>{if(!box.contains(event.target)){menu.hidden=true;trigger.setAttribute('aria-expanded','false')}});
- input.addEventListener('input',()=>{
-   box.classList.toggle('is-typing',input.value.trim().length>24);
- });
- box.append(trigger,menu);wrap.append(box);
+ document.querySelectorAll('#studioApp .bl-nav-hints').forEach(node=>node.remove());
 }
+
 window.BigLWANavigationCommands={resolve,navigate,mountSuggestions};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mountSuggestions,{once:true});
 else mountSuggestions();

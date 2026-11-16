@@ -29,8 +29,13 @@ await new Promise(r=>setTimeout(r,20));await bw.BigLWABoothPreview.refresh();
 const urls=()=>[...bw.document.querySelectorAll('.booth-recent-frame img')].map(i=>i.src);
 assert.deepEqual(urls(),[5,4,3,2].map(i=>'https://example.com/'+i+'.jpg'),'Newest saved account photos appear in descending order');
 const canvas=bw.document.createElement('canvas');canvas.width=800;canvas.height=600;bw.BigLWABoothPreview.capture(canvas);assert(urls()[0].startsWith('data:image/jpeg'));
-const priorReads=reads;bw.document.documentElement.classList.add('biglwa-preview-mode');await bw.BigLWABoothPreview.refresh();assert.equal(urls().length,0);assert.equal(reads,priorReads,'Public visitors cannot query private Booth records');
-bw.document.documentElement.classList.remove('biglwa-preview-mode');auth.currentUser={uid:'b'};await bw.BigLWABoothPreview.refresh();assert.equal(urls().length,0,'Account switch clears previous member captures and saved photos');bw.close();
+const priorReads=reads;bw.document.documentElement.classList.add('biglwa-preview-mode');await bw.BigLWABoothPreview.refresh();
+assert.equal(urls().length,4,'Public previews use four decorative placeholder photos');
+assert(urls().every(src=>src.includes('/boards%20temp%20thumbnail/')),'Public preview must not expose account photos');
+assert.equal(bw.document.querySelector('.booth-recent-film')?.dataset.samplesOnly,'true');
+assert.equal(reads,priorReads,'Public visitors cannot query private Booth records');
+bw.document.documentElement.classList.remove('biglwa-preview-mode');auth.currentUser={uid:'b'};await bw.BigLWABoothPreview.refresh();
+assert(urls().every(src=>src.includes('/boards%20temp%20thumbnail/')),'Account switch clears previous member captures and saved photos; samples remain decorative');bw.close();
 // Mini-calendar dates, including month boundaries, mark actual weekend columns.
 const source=read('module-pages.js');const begin=source.indexOf('  function monthKey('),end=source.indexOf('  let calendarGeneration=',begin);
 const calendar=new Function(source.slice(begin,end)+';return miniCalendarMarkup();')();

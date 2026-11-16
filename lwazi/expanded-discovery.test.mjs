@@ -36,7 +36,7 @@ test('Songs use real licensed previews on-site without auto-playing search or do
 test('SoundCloud search is only mounted when the Songs tab is open',()=>{
  assert.match(search,/activeCategory==='songs'&&!isSocialGreeting&&window\.BigLWAMusicDiscovery/);
  assert.match(search,/if\(section\.id===sectionId\('SoundCloud'\)\)return category==='songs'/);
- assert.match(search,/fromClick&&\['songs','widgets','places','stream'\]\.includes\(category\)/);
+ assert.match(search,/fromClick&&\['songs','widgets','places','stream','jobs'\]\.includes\(category\)/);
  assert.doesNotMatch(search,/if\(!isSocialGreeting&&window\.BigLWAMusicDiscovery&&/);
 });
 test('Vinyl record becomes prominent, with no loss of artwork accuracy',()=>{
@@ -80,8 +80,10 @@ test('Widget directory, curated Stream video cards and route planning expose rea
  assert.match(api.placeCards()[0],/option value="transit"/);
  assert.match(api.placeCards()[0],/option value="walking"/);
  assert.match(api.placeCards()[0],/bl-lwazi-transit-form/);
- assert.match(extras,/https:\/\/www\.google\.com\/maps\/dir\//);
- assert.match(extras,/window\.open\(url\.href/);
+ assert.doesNotMatch(extras,/window\.open\(/);
+ assert.doesNotMatch(extras,/google\.com\/maps\/dir/);
+ assert.match(extras,/biglwa:lwazi-map-trip/);
+ assert.match(extras,/Show route on BIG LWA/);
  assert.match(search,/extras\.videoCards\(clean,activeCategory==='stream'\)/);
  assert.match(search,/extras\.widgetCards\(\)/);
  assert.match(search,/extras\.placeCards\(\)/);

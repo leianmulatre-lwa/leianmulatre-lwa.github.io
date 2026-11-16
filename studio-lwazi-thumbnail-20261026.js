@@ -20,18 +20,36 @@
  }
  function openApp(app){
    if(app.id==='visualizr'){openModule('projects');return;}
+   // Do not guess at the native editor's availability or race its manifest.
+   const target=app.id;
+   let finished=false;
+   const cleanup=()=>document.removeEventListener('biglwa:craft-ready',onReady);
+   function openIfReady(){
+     if(typeof window.BigLWACraftLaunch!=='function')return false;
+     if(window.BigLWACraftLaunch(target)){finished=true;cleanup();return true;}
+     cleanup();finished=true;return false;
+   }
+   function onReady(){openIfReady();}
+   document.addEventListener('biglwa:craft-ready',onReady);
    openModule('tools');
-   // Work with the existing Lwazi editor router; never reimplement editors.
-   let tries=0;
-   const tryLaunch=()=>{
-     const button=$('#studioApp #craftSuite [data-craft-open="'+app.id+'"]')||
-                  $('#studioApp [data-craft-open="'+app.id+'"]');
-     if(button&&!button.disabled){button.click();return;}
-     if(++tries<35){setTimeout(tryLaunch,160);return;}
-     $('#studioApp [data-craft-card="'+app.id+'"]')?.scrollIntoView({block:'center',behavior:'smooth'});
-   };
-   setTimeout(tryLaunch,180);
+   // Allow a mounted Workshop to signal readiness before presenting errors.
+   setTimeout(()=>{
+     if(finished)return;
+     const button=$('#studioApp #craftSuite [data-craft-open="'+target+'"]');
+     if(button&&!button.disabled){button.click();finished=true;cleanup();}
+   },650);
+   setTimeout(()=>{
+     if(finished)return;
+     finished=true;cleanup();
+     const status=$('#studioApp #craftInstallStatus');
+     if(status)status.textContent='Workshop is unavailable or still loading. Use the R app tiles to review available engines.';
+   },8500);
  }
+ window.BigLWAOpenCraftApp=function(id){
+   const app=BLOCKS.find(item=>item.id===id||item.name.toLowerCase()===String(id||'').toLowerCase());
+   if(!app)return false;
+   openApp(app);return true;
+ };
  function tile(app,duplicate=false){
    const el=document.createElement('button');
    el.type='button';el.className='arcade-game-tile lwazi-block-tile';

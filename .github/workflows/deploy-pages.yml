@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 
@@ -29,21 +30,112 @@ jobs:
           node --check lwazi-search-ui.js
           node --check lwazi-music-discovery.js
           node --check visual-life-jobs.js
+          node --check politc-werk-20261114.js
+          node --test politc-werk-test.mjs
+          node --check user-search-results.js
+          node --check pop-culture-calendar-20261114.js
+          node --check werk-browser-window-20261114.js
+          node --test werk-lwazi-popcalendar-test.mjs
+          node --check lwazi-hair-visuals-20261114.js
+          node --check room-discovery-signals-20261114.js
+          node --check stream-guide.js
+          node --test stream-music-ch05-20261115.test.mjs
+          node --test stream-radio-sections-20261115.test.mjs
+          node --check stream-radio-world-20261115.js
+          node --test stream-radio-world-20261115.test.mjs
+          node --test studio-booth-hair-map-room-stream-test.mjs
+          node --check studio-booth-preview.js
+          node --test booth-thumbnail-board-samples-20261116.test.mjs
+          node --check community-profile-roles-20261114.js
+          node --test community-profile-policy-regression-20261114.test.mjs
+          node --check map-lwa-discovery-20261114.js
+          node --test map-discovery-test.mjs
+          node --check map-transport-hub-20261114.js
+          node --test map-transport-hub-20261114.test.mjs
+          node --check map-purposes-20261115.js
+          node --check login-archive-player.js
+          node --test map-login-seo-20261115.test.mjs
+          node --check google-orbit.js
+          node --test orbit-map-provider-regression-20261115.test.mjs
+          python3 -m unittest discover -s scripts -p test_visual_life_feed.py
+          python3 -m unittest discover -s scripts -p test_visual_life_ats.py
           node --check profile-music.js
+          node --check tunes-transfer-20261115.js
+          node --test tunes-transfer-20261115.test.mjs
           node --check tools-craft.js
           node --check module-pages.js
+          node --check orbit-space-20261114.js
+          node --test orbit-space-20261114.test.mjs
+          node --check lwazi-link-tools-20261114.js
+          node --test lwazi-link-tools-20261114.test.mjs
+          node --test free-tools-seo-20261114.test.mjs
+          node --check lwazi-discovery-extras.js
+          node --test discovery-seo-20261115.test.mjs
+          node --check geez-calendar-20261114.js
+          node --test geez-calendar-mode-test.mjs
+          node booth-vanity-preflight-test.mjs
           node --check pinterest-orbit.js
           node --check stream-guide.js
           node lwazi-search-regression-test.mjs
           node --test lwazi/search-experience.test.mjs lwazi/music-jobs-integration.test.mjs
           node studio-first-paint-rgb-regression-test.mjs
           node studio-myfeed-archive-filmstrip-test.mjs
+      - name: Restore verified BIG LWA native R editors into public release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          config=".github/native-release-lock.json"
+          tag=$(python3 -c 'import json;print(json.load(open(".github/native-release-lock.json"))["tag"])')
+          asset=$(python3 -c 'import json;print(json.load(open(".github/native-release-lock.json"))["archive"])')
+          expected=$(python3 -c 'import json;print(json.load(open(".github/native-release-lock.json"))["archive_sha256"])')
+          mkdir -p "$RUNNER_TEMP/native-editors"
+          gh release download "$tag" --pattern "$asset" --dir "$RUNNER_TEMP/native-editors"
+          printf '%s  %s\n' "$expected" "$RUNNER_TEMP/native-editors/$asset" | sha256sum --check --status
+          BIGLWA_NATIVE_ARCHIVE="$RUNNER_TEMP/native-editors/$asset" python3 .github/scripts/stage-craft-apps.py .
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          manifest=json.loads(Path('bigapps/manifest.json').read_text())
+          assert manifest['schema']==1
+          routes={'photocraft':'lightR','vectorcraft':'paintR','effectcraft':'keyframeR','pdfcraft':'fileR'}
+          for row in manifest['apps']:
+              assert row['id'] in routes and row['available'] is True and row.get('build')=='biglwa-native'
+              folder=Path('bigapps')/routes[row['id']]
+              assert (folder/'index.html').is_file()
+              assert any(folder.rglob('*.wasm'))
+              assert (folder/'upstream-licenses'/'SOURCE.txt').is_file()
+          print('BIG LWA four native R editor builds restored and verified for Pages.')
+          PY
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: .
+      # GitHub Pages sometimes cannot discover a freshly uploaded artifact
+      # immediately. Rerunning a failed job may produce duplicate artifacts;
+      # a new workflow run plus this guard avoids both races.
+      - name: Confirm exactly one Pages artifact is registered
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for i in $(seq 1 20); do
+            count=$(gh api "repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts" --jq '[.artifacts[] | select(.name=="github-pages")] | length' || echo 0)
+            echo "Pages artifact count: ${count} (attempt ${i})"
+            if [ "${count}" = "1" ]; then
+              sleep 5
+              exit 0
+            fi
+            if [ "${count}" -gt 1 ]; then
+              echo "Refusing to deploy ambiguous duplicate Pages artifacts."
+              exit 1
+            fi
+            sleep 3
+          done
+          echo "Timed out waiting for the Pages artifact to be indexed."
+          exit 1
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

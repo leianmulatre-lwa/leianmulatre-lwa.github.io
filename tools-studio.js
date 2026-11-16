@@ -251,6 +251,7 @@ export function mountToolsStudio(root,helper){
   let current=null;
   let busy=false;
   let activeTrimmer=null;
+  let activeImageAdjuster=null;
   let trimmerImport=null;
   let craftApi=null;
   async function loadTrimmer(){
@@ -299,7 +300,7 @@ export function mountToolsStudio(root,helper){
 
   // Independently load creative editors; file conversions and video trim still
   // work even when the external ArtCraft release build is unavailable.
-  import('./tools-craft.js?v=20261029-single-header-6&social=20261029-old-web-1&preview=20261029-combined-1')
+  import('./tools-craft.js?v=20261116-symbol-workshop-1')
     .then(mod=>mod.mountCraftSuite(root.querySelector('#craftSuite')))
     .then(api=>{craftApi=api})
     .catch(error=>{
@@ -416,6 +417,7 @@ export function mountToolsStudio(root,helper){
       resultEl.innerHTML='';groupsEl.replaceChildren();return;
     }
     activeTrimmer?.dispose();activeTrimmer=null;
+    activeImageAdjuster?.dispose?.();activeImageAdjuster=null;
     current=file;
     statusEl.textContent='Looking at '+file.name+' ('+sizeText(file.size)+')…';
     resultEl.innerHTML='';
@@ -485,6 +487,22 @@ export function mountToolsStudio(root,helper){
       '<h3>Or use a converter online</h3><p class="tool-note">'+escapeHtml(online.note)+'</p>'+
       '<div class="tool-actions">'+links.map(link=>'<a class="module-action ghost" href="'+link.url+'" target="_blank" rel="noopener nofollow">'+escapeHtml(link.name)+'</a>').join('')+'</div></section>';
 
+    if(kind==='image'){
+      // Native Lwazi Tool Drop photo controls are in the same file intake.
+      const pane=document.createElement('section');
+      pane.id='lwaPhotoAdjustPanel';
+      pane.setAttribute('aria-label','Adjust and crop selected image');
+      const container=groupsEl.querySelector('.tool-group');
+      if(container)container.appendChild(pane);
+      try{
+        const {mountImageAdjuster}=await import('./tools-image-adjust-20261116.js?v=20261116-image-controls-1');
+        if(current!==file)return;
+        activeImageAdjuster=mountImageAdjuster(pane,file,{download});
+      }catch(error){
+        pane.textContent='Image adjustments could not load. Image conversions above still work.';
+        console.warn('[BIG LWA] Image adjustments unavailable:',error);
+      }
+    }
     if(kind==='video'){
       try{
         const {mountVideoTrimmer}=await loadTrimmer();
