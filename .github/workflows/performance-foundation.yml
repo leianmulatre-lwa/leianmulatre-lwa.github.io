@@ -1,0 +1,41 @@
+name: BIG LWA Performance Foundation (branch-only)
+on:
+  push:
+    branches:
+      - refactor/2026-11-16-performance-foundation
+  pull_request:
+    paths:
+      - index.html
+      - studio/index.html
+      - scripts/performance/**
+      - docs/architecture/**
+      - .github/workflows/performance-foundation.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: performance-foundation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-guardrails:
+    name: Preserve routes and constrain source growth
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Check performance-audit syntax
+        run: node --check scripts/performance/audit.mjs
+      - name: Preserve public routes and startup resource budgets
+        run: node scripts/performance/audit.mjs --check
+      - name: Print read-only source audit
+        run: node scripts/performance/audit.mjs --json > "${RUNNER_TEMP}/biglwa-performance-source-audit.json"
+      - name: Upload source audit (no member data)
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-source-audit
+          path: ${{ runner.temp }}/biglwa-performance-source-audit.json
+          retention-days: 21
