@@ -7,7 +7,7 @@
   const PENDING_KEY = 'biglwaTikTokPendingHandoffV2';
   const START_UID = 'biglwaTikTokStartingUid';
   // Capture OAuth response before module-pages rewrites the Studio URL.
-  const CALLBACK_HANDOFF=(()=>{try{return new URL(location.href).searchParams.get('tiktok_handoff')||''}catch{return''}})();
+  let CALLBACK_HANDOFF=(()=>{try{return new URL(location.href).searchParams.get('tiktok_handoff')||''}catch{return''}})();
   const CALLBACK_ERROR=(()=>{try{return new URL(location.href).searchParams.get('tiktok_error')||''}catch{return''}})();
   let connected = false, profile = {}, videos = [], authUid = '', restoreBusy = false;
   let lastError='',videoPermissionPending=false,videoLoadError='',lastCollectiveSync='',videoAppScopePending=false;
@@ -480,7 +480,7 @@
   if(window.BIGLWAFeedMount)window.BIGLWAFeedMount('TikTok','tiktok-feed-item',renderFeedList);
   async function init() {
     const url=new URL(location.href),handoff=url.searchParams.get('tiktok_handoff')||CALLBACK_HANDOFF,error=url.searchParams.get('tiktok_error')||CALLBACK_ERROR;
-    if(handoff)sessionStorage.setItem(PENDING_KEY,JSON.stringify({handoff,receivedAt:Date.now()}));
+    if(handoff){sessionStorage.setItem(PENDING_KEY,JSON.stringify({handoff,receivedAt:Date.now()}));CALLBACK_HANDOFF='';}
     if(handoff||error){
       url.searchParams.delete('tiktok_handoff');url.searchParams.delete('tiktok_error');
       history.replaceState(history.state,'',url.href);
@@ -669,6 +669,25 @@
   // importer after page mounts without leaving duplicate controls.
   document.addEventListener('biglwa:module-open',()=>setTimeout(()=>{render();renderTikTokLinkImporter();renderTikTokFeedImporter();renderFeedList();},70));
   document.addEventListener('biglwa:new-orbit-status',()=>setTimeout(()=>{renderTikTokLinkImporter();renderTikTokFeedImporter();},70));
+  // A signed-out Studio can load this module before Firebase resolves. Retry
+  // account-bound recovery once the REAL session is verified, especially if
+  // Login Kit redirected through the login screen and left a pending handoff.
+  let postLoginRestoreQueued=false;
+  const recoverAfterLogin=()=>{
+    if(postLoginRestoreQueued)return;
+    postLoginRestoreQueued=true;
+    setTimeout(async()=>{
+      postLoginRestoreQueued=false;
+      try{
+        if(sessionStorage.getItem(PENDING_KEY))await init();
+        else if(!restoreBusy)await restore();
+      }catch(error){notice(error?.message||'TikTok reconnection after login failed.')}
+    },180);
+  };
+  window.addEventListener('biglwa:session-verified',event=>{
+    if(event.detail?.signedIn)recoverAfterLogin();
+  });
+  window.addEventListener('biglwa:account-ready',recoverAfterLogin);
   window.addEventListener('biglwa:external-stats-updated',renderTikTokAnalytics);
   window.__biglwaTikTokOrbit={connect,restore,disconnect,render,publicVideo,renderTikTokFeedImporter,
     get state(){return {connected,uid:authUid,profile:connected?{...profile}:{},lastError,videoPermissionPending,videoLoadError,videoCount:videos.length,lastCollectiveSync}}};
