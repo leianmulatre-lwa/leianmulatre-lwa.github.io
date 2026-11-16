@@ -42,12 +42,12 @@ test('Provider setup controls visibly distinguish API readiness from booking lin
  assert.match(section.textContent,/Spotify/);
  assert.match(section.textContent,/OAuth setup required/);
  assert.match(section.textContent,/server callback/);
- assert.equal(section.querySelectorAll('a[href="/studio?view=orbit"]').length,3);
+ assert.equal(section.querySelectorAll('a[href="/studio/orbit"]').length,3);
  const ext=[...section.querySelectorAll('a[href^="https://"]')];
  assert(ext.every(x=>x.rel.includes('noopener')));
  w.document.querySelector('[data-map-purpose="music"]').click();
  assert.match(section.textContent,/college radio by state/);
- assert(section.querySelector('a[href="/studio?view=stream"]'));
+ assert(section.querySelector('a[href="/studio/stream"]'));
  assert(!/access_token|client_secret/.test(section.innerHTML));
  dom.window.close();
 });
