@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'map-app.html'
+      - 'map-lwa-experience-20261113.js'
       - 'lwazi-discovery-extras.js'
       - 'map-lwa-router-20261113.js'
       - 'map-inpage-route-test.mjs'
@@ -18,6 +19,7 @@ on:
     branches: [main]
     paths:
       - 'map-app.html'
+      - 'map-lwa-experience-20261113.js'
       - 'lwazi-discovery-extras.js'
       - 'map-lwa-router-20261113.js'
       - 'map-inpage-route-test.mjs'
@@ -44,6 +46,7 @@ jobs:
         run: |
           node --check module-pages.js
           node --check map-lwa-experience-20261113.js
+          node --test map-workspace-regression-test.mjs
           node --check map-lwa-router-20261113.js
           node --check map-lwa-navigate-20261113.js
           node --check lwazi-discovery-extras.js

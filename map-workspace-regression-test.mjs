@@ -7,6 +7,10 @@ const map=read('map-app.html');
 const studio=read('module-pages.js');
 const planner=read('map-lwa-experience-20261113.js');
 const css=read('map-lwa-experience-20261113.css');
+test('map source parses, preserves Leaflet marker and private pin flows',()=>{
+  for(const [name,src] of [
+    ['map-lwa-experience-20261113.js',planner],
+    ['module-pages.js',studio]
 const router=read('map-lwa-router-20261113.js');
 const extras=read('lwazi-discovery-extras.js');
 test('map source parses, preserves Leaflet marker and private pin flows',()=>{
@@ -55,6 +59,7 @@ test('route interface is labeled, private, and does not pretend to have live ETA
   assert.match(planner,/straight-line distance/);
   assert.match(planner,/not a street route or ETA/);
   assert.match(planner,/BigLWAMapRouteProvider/);
+  assert.match(planner,/Google Maps/);
   assert.doesNotMatch(planner,/google\.com\/maps/);
   assert.doesNotMatch(extras,/window\.open\(/);
   assert.match(extras,/biglwa:lwazi-map-trip/);
