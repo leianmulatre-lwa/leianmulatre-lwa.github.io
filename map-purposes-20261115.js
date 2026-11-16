@@ -61,7 +61,7 @@
    const h=el('h3','','Sound & place');panel.append(h);
    panel.append(el('p','','Find college radio by state and world stations by country and language in LWA Stream. Spotify playlists will be available only after account authorization is installed.'));
    const group=el('div','map-purpose-actions');
-   group.append(link('Open LWA Radio ↗','/studio?view=stream'),link('Manage Spotify in Orbit ↗','/studio?view=orbit'));
+   group.append(link('Open LWA Radio ↗','/studio/stream'),link('Manage Spotify in Orbit ↗','/studio/orbit'));
    panel.append(group);
   }else if(next==='connections'){
    panel.append(el('h3','','Provider connections'));
@@ -74,7 +74,7 @@
     const item=el('article','map-purpose-connection');
     item.append(el('strong','',entry.name),el('span','map-purpose-status',entry.status),el('p','',entry.detail));
     const buttons=el('div','map-purpose-actions');
-    buttons.append(link('Set up in Orbit ↗','/studio?view=orbit'),link('Open provider ↗',entry.link));
+    buttons.append(link('Set up in Orbit ↗','/studio/orbit'),link('Open provider ↗',entry.link));
     item.append(buttons);group.append(item);
    }
    panel.append(group);
