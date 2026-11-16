@@ -11,9 +11,10 @@ const dom=new JSDOM('<!doctype html><html><body class="biglwa-session-pending">'
  '<span class="login-archive-credit"></span><button id="loginVolumeToggle"></button>'+
  '</div></section></body></html>',{url:'https://biglwa.com/',pretendToBeVisual:true,runScripts:'outside-only'});
 const w=dom.window,doc=w.document,video=doc.getElementById('loginArchiveVideo');
-let loads=0,plays=0;
+let loads=0,plays=0,pauses=0;
 video.load=()=>{loads++};
 video.play=()=>{plays++;return Promise.resolve()};
+video.pause=()=>{pauses++};
 Object.defineProperty(video,'readyState',{get:()=>3});
 w.eval(source);
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
@@ -35,5 +36,27 @@ assert.equal(laptop.classList.contains('is-preparing'),false,'Login laptop revea
 assert.equal(loads,1,'No duplicate first cartoon source or conflicting video loaders');
 assert.match(video.src,/archive.org\/download\/BettyBoopCartoons/);
 assert.equal(plays,1,'Playback begins on the same original video');
+const desktop=doc.querySelector('.login-studio-desktop');
+const minimize=doc.querySelector('.login-cartoon-minimize');
+const close=doc.querySelector('.login-cartoon-close');
+const restore=doc.querySelector('[data-login-cartoon-restore]');
+assert(desktop&&minimize&&close&&restore,'Laptop includes real video window controls and Studio preview');
+for(const widget of ['aura','myfeed','stream','map','orbit','tunes']){
+ assert(desktop.textContent.toLowerCase().includes(widget),'Studio preview includes '+widget);
+}
+minimize.click();
+assert.equal(laptop.dataset.cartoonWindow,'minimized');
+assert(laptop.classList.contains('is-studio-preview'));
+assert.equal(desktop.getAttribute('aria-hidden'),'false');
+assert.equal(pauses,1,'Minimizing Betty Boop pauses playback');
+restore.click();
+assert.equal(laptop.dataset.cartoonWindow,'open');
+assert(!laptop.classList.contains('is-studio-preview'));
+assert.equal(desktop.getAttribute('aria-hidden'),'true');
+assert.equal(loads,1,'Restoring cartoon does not re-download or reinitialize the episode');
+close.click();
+assert.equal(laptop.dataset.cartoonWindow,'closed');
+assert.equal(pauses,2,'Closing the stream pauses playback');
+assert(laptop.classList.contains('is-studio-preview'));
 w.close();
 console.log('PASS laptop preview: private initial curtain, 2.6s single loader, one playable cartoon after intro.');
