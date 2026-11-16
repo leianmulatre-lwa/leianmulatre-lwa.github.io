@@ -742,10 +742,10 @@
     .calendar-day.selected[data-calendar-crush]{outline:2px solid currentColor;outline-offset:-2px}
     .calendar-crush-chip{display:block;margin-top:4px;font:800 clamp(9px,1.3vw,12px)/1.15 system-ui,sans-serif;letter-spacing:.025em}
     .calendar-crushes>h2,.calendar-crushes .politc-panel h3{
-      font:400 clamp(24px,3vw,32px)/1.1 "CS Bergamot Stitched",Georgia,serif;text-align:left;letter-spacing:0;text-transform:none;border:0;padding:0
+      font:700 clamp(22px,2.7vw,34px)/1.05 Georgia,serif;text-align:left;letter-spacing:.065em;text-transform:uppercase;border-bottom:3px double currentColor;border-top:0;padding:0 0 8px
     }
     .calendar-crushes .politc-nominate-button{background:var(--crush-color);color:var(--crush-bg);border:0;border-radius:6px;padding:6px 10px;font-weight:700;cursor:pointer}
-    .calendar-crush-agenda strong{font:400 24px/1.15 "CS Bergamot Stitched",Georgia,serif}
+    .calendar-crush-agenda strong{font:700 20px/1.18 Georgia,serif;letter-spacing:.035em;text-transform:uppercase}
 
 
     .module-game-stage{grid-column:1/-1}
