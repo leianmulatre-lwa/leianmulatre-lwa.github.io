@@ -315,3 +315,29 @@ body.embedded.map-workspace-split:not(.preview) .map-tool-panels{
   overscroll-behavior-y:auto!important;
   touch-action:pan-y!important;
 }
+
+/* One navigable map, one compact control desk; desktop keeps the route panel
+   adjacent instead of pushing the same map beneath several vertical sections. */
+@media(min-width:950px){
+ body.embedded:not(.preview) main{
+  display:grid!important;grid-template-columns:minmax(0,1.8fr) minmax(320px,.95fr)!important;
+  align-items:start!important;gap:12px!important
+ }
+ body.embedded:not(.preview) main>.map-side{grid-column:1!important;grid-row:1!important}
+ body.embedded:not(.preview) main>aside{
+  grid-column:2!important;grid-row:1!important;
+  max-height:min(85vh,780px)!important;overflow-y:auto!important;overscroll-behavior:contain
+ }
+ body.embedded:not(.preview) #map{height:clamp(480px,71vh,830px)!important}
+}
+@media(max-width:949px){
+ body.embedded:not(.preview) main{grid-template-columns:minmax(0,1fr)!important}
+ body.embedded:not(.preview) aside{margin-top:0!important;border-radius:16px!important}
+ body.embedded:not(.preview) #map{height:clamp(360px,58vh,640px)!important}
+}
+body.embedded:not(.preview) #mapActionTabs{display:flex!important;flex-wrap:wrap!important;gap:5px!important}
+body.embedded:not(.preview) #mapActionTabs button{flex:1 1 auto!important;min-width:70px!important}
+body.embedded:not(.preview) #mapPlanPane .map-trip-fields{grid-template-columns:1fr 1fr!important}
+body.embedded:not(.preview) #mapPlanPane #mapTripPlan{grid-column:1/-1!important;justify-self:stretch!important}
+body.embedded:not(.preview) #mapNavControls .map-nav-actions{display:flex;gap:6px;flex-wrap:wrap}
+body.embedded:not(.preview) #mapNavControls .map-nav-actions button{min-height:35px}
