@@ -808,12 +808,16 @@ function renderHero(force) {
     const src = accentOf(post.source);
     const caption = (post.caption || "").trim();
     const first = heroPhotoUrl(post);
+    const thumbnail=String(post.thumbnailUrl||'');
+    const displayImage=thumbnail.startsWith(orbitMediaBase+'/media/feed-image-variant/')?
+      thumbnail:first;
+
     if (!first) {
       return '<div class="biglwa-feed-hero-empty biglwa-feed-needs-sync" style="--accent:' + src.accent + '">' +
         '<span role="img" aria-label="Image waiting for storage">▧</span><small>Image needs sync</small></div>';
     }
     return '<button type="button" class="biglwa-feed-hero-preview" style="--accent:' + src.accent + '" aria-label="Preview ' + esc(caption || "feed picture") + '">' +
-      '<img src="' + esc(first) + '" alt="' + esc(caption || "Feed picture") + '" loading="lazy">' +
+      '<img src="' + esc(displayImage) + '" alt="' + esc(caption || "Feed picture") + '" loading="lazy" decoding="async">' +
       "</button>";
   });
 
@@ -1143,6 +1147,11 @@ function renderPosts(force) {
     /* The saved picture is preferred, and the link thumbnail is the way back if it is gone.
        A post with neither cannot be offered as a card, so it is left off the wall. */
     const fallbackSrc = thumbnailFor(post);
+    const ownerPreview=typeof fallbackSrc==='string'&&
+      fallbackSrc.startsWith(orbitMediaBase+'/media/feed-image-variant/');
+    const gridSrc=ownerPreview?fallbackSrc:shown[0];
+    const gridFallback=ownerPreview?shown[0]:fallbackSrc;
+
     const playable = playableVideo(post);
     const soleVideo = playable && (!Array.isArray(post.mediaItems)||post.mediaItems.length<=1);
     const sourceVideoId=String(post.sourcePostId||"");
@@ -1160,9 +1169,9 @@ function renderPosts(force) {
           ? '<video class="biglwa-pin-img" data-feed-video src="' + esc(shown[0]) + '"' +
             (fallbackSrc ? ' poster="' + esc(fallbackSrc) + '"' : "") +
             ' muted playsinline preload="none" controls></video>'
-          : '<img class="biglwa-pin-img" data-feed-media src="' + esc(shown[0]) + '"' +
-            (fallbackSrc && fallbackSrc !== shown[0] ? ' data-feed-fallback="' + esc(fallbackSrc) + '"' : "") +
-            ' data-feed-preview="' + esc(shown[0] || fallbackSrc) + '" alt="' + esc(String(post.caption||'Collective feed media').slice(0,160)) + '" loading="lazy">'
+          : '<img class="biglwa-pin-img" data-feed-media src="' + esc(gridSrc) + '"' +
+            (gridFallback && gridFallback !== gridSrc ? ' data-feed-fallback="' + esc(gridFallback) + '"' : "") +
+            ' data-feed-preview="' + esc(shown[0] || fallbackSrc) + '" alt="' + esc(String(post.caption||'Collective feed media').slice(0,160)) + '" loading="lazy" decoding="async">'
         : slideshow(shown, "Collective feed media"));
     // Pinterest-imported media is a normal visual card. Even historical records
     // mislabeled as Instagram must not show a bulky "Shared link" footer.
