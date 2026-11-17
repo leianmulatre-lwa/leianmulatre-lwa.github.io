@@ -4444,33 +4444,41 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       if(oldVisual)oldVisual.replaceWith(slot);
       else if(cta)cta.before(slot);else mapCard.appendChild(slot);
     }
-    // Studio gets a stable decorative poster; the full Map page owns live
-    // Leaflet, location permissions and zoom. Never mount a nested map here.
-    const old=slot.querySelector('#biglwaStudioMiniMap');
-    if(old)old.remove();
-    slot.querySelectorAll('.biglwa-map-error-fallback,.studio-mini-map-caption').forEach(node=>node.remove());
-    let image=slot.querySelector('.studio-map-still');
-    if(!image){
-      image=document.createElement('img');
-      image.className='studio-map-still';
+    // Restore the interactive baseline (6858a0ef, Nov 16), keeping one frame
+    // alive across Studio refreshes. An unavailable map leaves the artwork intact.
+    slot.setAttribute('aria-label','Interactive map preview');
+    if(!slot.querySelector('#biglwaStudioMiniMap')){
+      slot.replaceChildren();
+      const image=document.createElement('img');image.className='studio-map-still';
       image.src='/assets/studio-defaults/map-bikini-bottom-fallback.webp';
-      image.alt='Bikini Bottom island map · open Map to explore';
-      image.decoding='async';image.loading='lazy';
-      image.draggable=false;
-      slot.appendChild(image);
+      image.alt='Bikini Bottom map · interactive map unavailable';
+      image.style.cssText='display:block;width:100%;height:auto;object-fit:contain';
+      const mini=document.createElement('iframe');mini.id='biglwaStudioMiniMap';
+      mini.title='Interactive map — drag to explore, plus and minus to zoom';
+      mini.className='studio-mini-map';mini.referrerPolicy='same-origin';
+      mini.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;visibility:hidden';
+      const retry=document.createElement('button');retry.type='button';retry.textContent='Retry interactive map';retry.hidden=true;
+      retry.style.cssText='position:absolute;bottom:8px;left:8px;z-index:2';
+      slot.style.position='relative';slot.append(image,mini,retry);
+      let timeout,ready=false;
+      const fail=()=>{if(ready)return;mini.style.visibility='hidden';retry.hidden=false;};
+      const load=()=>{ready=false;retry.hidden=true;mini.style.visibility='hidden';clearTimeout(timeout);
+        mini.src='/map-app.html?embed=1&preview=1&v=20261117-focused-map&retry='+Date.now();
+        timeout=setTimeout(fail,18000);};
+      const listener=event=>{
+        if(!slot.isConnected){clearTimeout(timeout);window.removeEventListener('message',listener);return;}
+        if(event.origin!==location.origin||event.source!==mini.contentWindow||!['biglwa:map-ready','biglwa:map-failed'].includes(event.data?.type))return;
+        if(event.data.type==='biglwa:map-failed'){ready=false;fail();return;}
+        ready=true;clearTimeout(timeout);mini.style.visibility='visible';retry.hidden=true;
+      };
+      window.addEventListener('message',listener);mini.addEventListener('error',fail);
+      retry.addEventListener('click',load);load();
     }
-    // Culture/places badges are decorative context, not fake saved locations.
-    let scene=slot.querySelector('.studio-map-scene');
-    if(!scene){
-      scene=document.createElement('div');scene.className='studio-map-scene';
-      scene.setAttribute('aria-hidden','true');
-      scene.innerHTML='<span class="studio-map-scene-title">the world is a stage.</span>'+
-       '<span class="studio-map-scene-pin studio-map-scene-pin--music">♫</span>'+
-       '<span class="studio-map-scene-pin studio-map-scene-pin--film">✦</span>'+
-       '<span class="studio-map-scene-sub">⌖ routes · places · culture</span>';
-      slot.appendChild(scene);
+    const mini=slot.querySelector('#biglwaStudioMiniMap'),pins=readMapPreviewPins();
+    if(mini.dataset.pinCount!==String(pins.length)){
+      mini.dataset.pinCount=String(pins.length);
+      mini.contentWindow?.postMessage({type:'biglwa:map-preview-refresh'},location.origin);
     }
-    slot.setAttribute('aria-label','Illustrated Map preview with culture and route motifs. Open Map below for interactive navigation.');
     mapCard.querySelectorAll('.studio-mini-map-open').forEach(el=>el.remove());
   }
 
