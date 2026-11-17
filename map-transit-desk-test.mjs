@@ -18,7 +18,7 @@ test('rail network loads only on request and shows real lines and stations',asyn
  const host=w.document.createElement('div');
  const b=data.routes.find(r=>r.id==='802'),a=b.stops[0].point,z=b.stops.at(-1).point;
  assert.equal(await w.BigLWAMetroTransit.plan({lat:a[0],lng:a[1]},{lat:z[0],lng:z[1]},host),true);
- assert.match(host.textContent,/Rail route · LA Metro/);assert.match(host.textContent,/Metro B Line/);
+ assert.match(host.textContent,/Rail route · LA Metro/);assert.match(host.textContent,/Metro B Line/);assert.doesNotMatch(host.textContent,/Transfer at/);
  assert.equal(await w.BigLWAMetroTransit.plan({lat:40,lng:-74},{lat:40.1,lng:-74},host),false);
  const before=host.textContent;
  assert.equal(await w.BigLWAMetroTransit.plan({lat:a[0],lng:a[1]},{lat:z[0],lng:z[1]},host,()=>false),false);

@@ -893,7 +893,7 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
   'use strict';
   await window.BigLWAAccountStorage.ready;
   if(window.parent!==window&&window.parent.__biglwaPublicStorageView){document.body.replaceChildren(Object.assign(document.createElement('p'),{textContent:'Open Map to see this member’s shared locations.'}));return;}
-  if(new URLSearchParams(location.search).has('embed'))document.body.classList.add('embedded');
+  document.body.classList.add('embedded');
   if(new URLSearchParams(location.search).has('preview'))document.body.classList.add('preview');
   const $=id=>document.getElementById(id),key='biglwaMapPins',categories=['Place','Memory','Project','Event','Resource'];
   const GEOCODER_BASE='https://photon.komoot.io';
@@ -1391,8 +1391,8 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
 </script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.1/dist/maplibre-gl.css">
 <script src="/map-lwa-router-20261113.js?v=20261113-turns-v5"></script>
-<script src="/map-lwa-experience-20261113.js?v=20261113-go-v5&nov16=singlemap-streets-v1&embed=20261116-fit&desk=20261116-2&tour=20261117-1"></script>
-<link rel="stylesheet" href="/map-lwa-discovery-20261114.css?v=20261114-public-neighborhood-v1"><script src="/map-lwa-navigate-20261113.js?v=20261113-go-v5&nov16=singlemap-streets-v1&tour=20261117-1"></script><link rel="stylesheet" href="/map-transport-hub-20261114.css?v=20261114-inapp-desk-v1&compact=20261115-1"><script src="/map-lwa-discovery-20261114.js?v=20261114-inapp-desk-v2&desk=20261116-2"></script><script src="/map-transport-hub-20261114.js?v=20261114-inapp-desk-v1&compact=20261115-1&desk=20261116-2&tour=20261117-1"></script><link rel="stylesheet" href="/map-purposes-20261115.css?v=20261115-map-1&tour=20261117-1"><link rel="stylesheet" href="/map-popculture-20261116.css?v=20261116-scene-1"><script src="/map-popculture-20261116.js?v=20261116-scene-1&tour=20261117-1"></script><script src="/map-purposes-20261115.js?v=20261116-culture-1"></script>
+<script src="/map-lwa-experience-20261113.js?v=20261113-go-v5&nov16=singlemap-streets-v1&embed=20261116-fit&desk=20261116-2&tour=20261117-2"></script>
+<link rel="stylesheet" href="/map-lwa-discovery-20261114.css?v=20261114-public-neighborhood-v1"><script src="/map-lwa-navigate-20261113.js?v=20261113-go-v5&nov16=singlemap-streets-v1&tour=20261117-2"></script><link rel="stylesheet" href="/map-transport-hub-20261114.css?v=20261114-inapp-desk-v1&compact=20261115-1"><script src="/map-lwa-discovery-20261114.js?v=20261114-inapp-desk-v2&desk=20261116-2"></script><script src="/map-transport-hub-20261114.js?v=20261114-inapp-desk-v1&compact=20261115-1&desk=20261116-2&tour=20261117-2"></script><link rel="stylesheet" href="/map-purposes-20261115.css?v=20261115-map-1&tour=20261117-2"><link rel="stylesheet" href="/map-popculture-20261116.css?v=20261116-scene-1"><script src="/map-popculture-20261116.js?v=20261116-scene-1&tour=20261117-2"></script><script src="/map-purposes-20261115.js?v=20261116-culture-1"></script>
 <script src="/map-live-transit.js?v=20261116-1"></script>
-<script src="/map-transit-desk.js?v=20261117-1"></script>
+<script src="/map-transit-desk.js?v=20261117-2"></script>
 </body></html>

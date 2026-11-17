@@ -43,9 +43,10 @@
   d.routes.forEach(route=>route.stops.forEach((stop,index)=>nodes.push({...stop,route,index})));
   const nearest=p=>nodes.reduce((a,b)=>distance(a.point,p)<distance(b.point,p)?a:b);
   const fromPoint=[origin.lat,origin.lng],toPoint=[destination.lat,destination.lng];
-  const first=nearest(fromPoint),last=nearest(toPoint);
+  let first=nearest(fromPoint),last=nearest(toPoint);
   if(distance(first.point,fromPoint)>2||distance(last.point,toPoint)>2)return false;
   const start=nodes.indexOf(first),end=nodes.indexOf(last),cost=nodes.map(()=>Infinity),previous=new Map(),pending=new Set(nodes.map((_,i)=>i));cost[start]=0;
+  nodes.forEach((node,i)=>{if(distance(node.point,first.point)<.1)cost[i]=0});
   while(pending.size){
    let current=-1;for(const i of pending)if(current<0||cost[i]<cost[current])current=i;
    if(!Number.isFinite(cost[current])||current===end)break;pending.delete(current);
@@ -62,6 +63,7 @@
   if(!Number.isFinite(cost[end]))return false;
   const path=[];let i=end;while(i!==undefined){path.unshift(nodes[i]);i=previous.get(i)}
   if(path.length<2)return false;
+  first=path[0];last=path.at(-1);
   const summary=document.createElement('section');summary.className='metro-itinerary';
   const title=document.createElement('strong');title.textContent='Rail route · LA Metro';summary.append(title);
   const note=document.createElement('p');note.textContent='Rail-only suggestion from published station data. Walking distances are approximate straight-line distances; check pedestrian access, service alerts and departure times before travelling.';summary.append(note);
