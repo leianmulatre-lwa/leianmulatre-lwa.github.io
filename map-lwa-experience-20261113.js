@@ -158,7 +158,6 @@
   }
   let mode='bicycling',fromGps=null,routeLine=null,lastPlan=null;
   const result=byId('mapTripResult'),external=byId('mapTripExternal');
-  const result=byId('mapTripResult');
   const centerOf=point=>[Number(point.lat),Number(point.lng)];
   const valid=p=>p&&Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng))&&
     Math.abs(Number(p.lat))<=90&&Math.abs(Number(p.lng))<=180;
@@ -244,7 +243,6 @@
             result.textContent=travelLabel()+' · '+String(route.distanceLabel||shortDistance)+eta+
               ' · '+String(route.provider||'Connected route provider')+
               (route.trafficAware?' · Traffic-aware':' · Live traffic not included');
-              (route.trafficAware?' · Traffic-aware':' · No live traffic');
             // A successful navigable road route (never a straight-line
             // fallback) unlocks Go. Data remains in page memory only.
             if(Array.isArray(route.maneuvers)&&route.maneuvers.length){
@@ -282,6 +280,7 @@
         const origin=lastResolvedOrigin,destination=lastResolvedDestination;
         if(origin&&destination)external.href=navigationLink(origin,destination);
         result.textContent='Travel mode changed. Select Explore trip for a fresh preview.';
+      }
       window.dispatchEvent(new Event('biglwa:map-navigation-reset'));
       planner.querySelectorAll('[data-map-travel]').forEach(b=>
         b.setAttribute('aria-pressed',String(b===btn)));
@@ -306,7 +305,6 @@
   byId('mapTripSwap').addEventListener('click',()=>{
     const from=byId('mapTripFrom'),to=byId('mapTripTo'),value=from.value;
     from.value=to.value;to.value=value;fromGps=null;external.hidden=true;
-    from.value=to.value;to.value=value;fromGps=null;
     window.dispatchEvent(new Event('biglwa:map-navigation-reset'));
     clearLine();result.textContent='Places swapped. Explore trip to recalculate.';
   });
