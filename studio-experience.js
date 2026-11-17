@@ -721,7 +721,7 @@
         const source=musicAudioCtx.createMediaElementSource(audio);
         musicAnalyser=musicAudioCtx.createAnalyser();
         musicAnalyser.fftSize=256;
-        musicAnalyser.smoothingTimeConstant=.94;
+        musicAnalyser.smoothingTimeConstant=.97;
         source.connect(musicAnalyser);
         musicAnalyser.connect(musicAudioCtx.destination);
         return true;
@@ -743,8 +743,8 @@
         let sum=0;for(let j=lo;j<hi;j++)sum+=bins[j];
         const avg=sum/(hi-lo);
         // Keep audio-reactive movement calm: modest amplitude and gradual change.
-        const target=Math.min(.53,Math.max(.04,.04+Math.pow(avg/255,1.15)*.49));
-        waveLevels[i]+=(target-waveLevels[i])*.13;
+        const target=Math.min(.34,Math.max(.035,.035+Math.pow(avg/255,1.55)*.305));
+        waveLevels[i]+=(target-waveLevels[i])*.065;
         eqBars[i].style.transform='scaleY('+waveLevels[i].toFixed(3)+')';
       }
       musicFrame=requestAnimationFrame(frameWave);
