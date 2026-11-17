@@ -216,6 +216,17 @@
       if(kmBetween(origin,destination)<.02)throw Error('Those points are effectively the same place.');
       // The route remains in this widget. No Google Maps handoff.
       const aerial=kmBetween(origin,destination),shortDistance=(aerial<10?aerial.toFixed(1):Math.round(aerial))+' km';
+      if(mode==='transit'){
+        const url=new URL('https://maps.apple.com/directions');
+        url.searchParams.set('source',centerOf(origin).join(','));
+        url.searchParams.set('destination',centerOf(destination).join(','));
+        url.searchParams.set('mode','transit');
+        const directions=document.createElement('a');
+        directions.href=url.href;directions.target='_blank';directions.rel='noopener noreferrer';
+        directions.textContent='View transit directions in Apple Maps ↗';
+        result.replaceChildren(directions);
+        return;
+      }
       const provider=window.BigLWAMapRouteProvider;
       if(provider&&typeof provider.getRoute==='function'){
         try{

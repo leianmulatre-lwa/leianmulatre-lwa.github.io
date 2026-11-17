@@ -216,3 +216,19 @@ body.night-mode #studioApp #moduleWorkspace[data-module-key="rooms"] .room-role-
   min-width:70px;padding:6px 14px;
  }
 }
+
+/* Classic instant-message window for the Lounge draft composer. */
+#studioApp .room-lounge-mode .lounge-im{order:-1;padding:3px!important;background:#ece9d8!important;border:2px solid #1856ad;border-radius:7px 7px 3px 3px;color:#151515;overflow:hidden;font-family:Tahoma,Arial,sans-serif}
+#studioApp .lounge-im-title{padding:6px 9px;background:linear-gradient(#4594f1 0%,#0754c5 50%,#0040a5);color:white;border-radius:4px 4px 0 0}
+#studioApp .lounge-im-title h2{color:inherit!important;margin:0!important;font:700 14px/1.25 Tahoma,Arial,sans-serif!important}
+#studioApp .lounge-im-menubar,#studioApp .lounge-im-actions{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;font:12px Tahoma,Arial,sans-serif;color:#252525}
+#studioApp .lounge-im-pane{display:grid;grid-template-columns:52px minmax(0,1fr);gap:5px;margin:3px}
+#studioApp .lounge-im-avatar{display:grid;place-items:center;align-content:start;padding:8px;color:#1e5ea2;background:linear-gradient(#b9f5f8,#61a3d3);font-size:26px}
+#studioApp .lounge-im-self{color:#175391;background:linear-gradient(#e3f4ff,#8cc4e4)}
+#studioApp .lounge-im :is(.module-chat,textarea.module-input){background:white!important;color:#171717!important;border:1px solid #929185;border-radius:0;min-width:0;min-height:110px;margin:0;padding:8px;width:100%;box-sizing:border-box}
+#studioApp .lounge-im .module-chat{display:block;max-height:270px;overflow:auto}
+#studioApp .lounge-im .module-bubble{background:none!important;border:0!important;padding:1px 0!important;color:#151515!important;white-space:pre-wrap;overflow-wrap:anywhere}
+#studioApp .lounge-im .module-bubble b{color:#064bbb}
+#studioApp .lounge-im textarea{resize:vertical}
+#studioApp .lounge-im-actions button{border:1px solid #8c8b82!important;color:#111!important;background:linear-gradient(white,#e5e2d2)!important;border-radius:3px!important}
+@media(max-width:560px){#studioApp .lounge-im-pane{grid-template-columns:30px minmax(0,1fr)}#studioApp .lounge-im-avatar{padding:5px;font-size:17px}}

@@ -98,6 +98,13 @@
     if(!from?.value)from?.focus();
    });
    actions.append(trip);
+   const yelp=new URL('https://www.yelp.com/search');
+   yelp.searchParams.set('find_desc',entry.name);
+   yelp.searchParams.set('find_loc',entry.address||entry.lat.toFixed(4)+', '+entry.lng.toFixed(4));
+   const reviews=el('a','', 'Find Yelp reviews ↗');
+   reviews.href=yelp.href;reviews.target='_blank';reviews.rel='noopener noreferrer';
+   actions.append(reviews);
+
    if(/^(node|way|relation)$/.test(entry.osmType)&&/^\d+$/.test(entry.osmId)){
     const link=el('a','', 'OSM source ↗');
     link.href='https://www.openstreetmap.org/'+entry.osmType+'/'+entry.osmId;

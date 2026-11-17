@@ -1,4 +1,4 @@
-/* Booth filmstrip: saved account captures take priority over rotating sample
+/* Booth filmstrip: saved account captures take priority over page-picked sample
    stills from the same local collection as the Boards Studio thumbnail.
    Samples are decorative and never saved, uploaded, or attributed to a member.
    Public profile previews must never reveal private member captures. */
@@ -7,7 +7,8 @@
  const FALLBACK_SAMPLES=Object.freeze(["/boards%20temp%20thumbnail/0b6e427c1b03b0a862e18119fc5a946d.jpg","/boards%20temp%20thumbnail/15b2005e7f894079f5461a5612b8b2ec.jpg","/boards%20temp%20thumbnail/1e11bab1fe6c29fc6c0eef146f0064d7.jpg","/boards%20temp%20thumbnail/2a7294cb4c09b2b863d15a023090d019.jpg","/boards%20temp%20thumbnail/5156b0b96eb6a8248e54280d2c6ba900.jpg","/boards%20temp%20thumbnail/61ba5b5f5dd60e46f636c9cde3479eae.jpg","/boards%20temp%20thumbnail/a4d68aa776aac96bb0054c628e7d3e18.jpg","/boards%20temp%20thumbnail/b8ce4928ebccf42c9ecc749fe0b347e9.jpg","/boards%20temp%20thumbnail/e642fae88aa023fc8124ead156cff138.jpg","/boards%20temp%20thumbnail/eecc0dabc950626bd32c902f28c4e7fa.jpg","/boards%20temp%20thumbnail/fb0612c7df6af82845036d2e3e06e32a.jpg"]);
  const SAMPLE_URL=/^\/boards%20temp%20thumbnail\/[a-f0-9]{32}\.jpg$/;
  let owner='',captures=[],saved=[],loading=false,auth=null,watching=false;
- let sampleOffset=0,rotationTimer=null;
+ // Shuffle the fallback order once per document; later paints reuse it.
+ const sampleOrder=new Map(FALLBACK_SAMPLES.map(url=>[url,Math.random()]));
  const failedSamples=new Set();
  const privateView=()=>!document.documentElement.classList.contains('biglwa-preview-mode')&&!window.__biglwaPublicStorageView;
  const uid=()=>String(auth?(auth.currentUser?.uid||''):(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||''));
@@ -19,25 +20,13 @@
  function samplePool(){
   const boards=window.__biglwaBoardsTemporaryPhotos?.();
   const entries=Array.isArray(boards)&&boards.length?boards:FALLBACK_SAMPLES;
-  return [...new Set(entries.filter(x=>typeof x==='string'&&SAMPLE_URL.test(x)&&!failedSamples.has(x)))];
- }
- function stopRotation(){
-  if(rotationTimer!==null){window.clearInterval(rotationTimer);rotationTimer=null;}
- }
- function manageRotation(enabled){
-  if(!enabled){stopRotation();return;}
-  if(rotationTimer!==null)return;
-  rotationTimer=window.setInterval(()=>{
-   if(document.hidden||window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches)return;
-   const pool=samplePool();
-   if(pool.length<2)return;
-   sampleOffset=(sampleOffset+4)%pool.length;
-   paint();
-  },6800);
+  const valid=entries.filter(x=>typeof x==='string'&&SAMPLE_URL.test(x)&&!failedSamples.has(x));
+  for(const url of valid)if(!sampleOrder.has(url))sampleOrder.set(url,Math.random());
+  return [...new Set(valid)].sort((a,b)=>sampleOrder.get(a)-sampleOrder.get(b));
  }
  function paint(){
   const host=document.querySelector('#studioApp #camera .contact-sheet');
-  if(!host){stopRotation();return;}
+  if(!host)return;
   // In public preview render only decorative sample photos. Never render,
   // read, or transfer the signed-in owner's private capture URLs.
   const owned=boundary();
@@ -51,7 +40,7 @@
   const pool=samplePool();
   const samplesNeeded=Math.max(0,4-photos.length);
   const samples=Array.from({length:samplesNeeded},(_,i)=>
-   pool.length?pool[(sampleOffset+i+2)%pool.length]:'');
+   pool.length?pool[i % pool.length]:'');
   const signature=(owned?owner:'public-samples-only')+'|'+
    photos.map(p=>p.url).join('|')+'|'+samples.join('|');
   strip.dataset.samplesOnly=String(!owned);
@@ -59,7 +48,6 @@
   strip.setAttribute('aria-label',owned?
    'Recent Booth photos with temporary sample images':
    'Sample Booth film-strip preview');
-  manageRotation(samplesNeeded>0&&pool.length>1);
   if(strip.dataset.signature===signature)return;
   strip.dataset.signature=signature;
   strip.replaceChildren();

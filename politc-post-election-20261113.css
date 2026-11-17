@@ -672,3 +672,9 @@ body.night-mode .politc-result-status{color:#f0c4d0}
   font-size:9px!important;
  }
 }
+
+/* Keep dense reading lists legible without changing the Politics sections. */
+#studioApp [data-module-key="politc"] :is(.politc-panel,.politc-result-card) :is(a,button):focus-visible{
+ outline:2px solid #ab4c69;outline-offset:3px;
+}
+#studioApp [data-module-key="politc"] .politc-panel :is(p,li){line-height:1.5;overflow-wrap:anywhere}

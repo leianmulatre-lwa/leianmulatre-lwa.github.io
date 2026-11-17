@@ -278,7 +278,7 @@
   prev.onclick=()=>{track.scrollBy({left:-140,behavior:'smooth'});setTimeout(arrows,250)};
   next.onclick=()=>{track.scrollBy({left:140,behavior:'smooth'});setTimeout(arrows,250)};
   track.addEventListener('scroll',arrows,{passive:true});
-  rail.append(track);stats.insertAdjacentElement('afterend',rail);requestAnimationFrame(arrows);
+  rail.append(track);(stats.closest('.biglwa-profile-role-statline')||stats).insertAdjacentElement('afterend',rail);requestAnimationFrame(arrows);
  }
 
  function show(){

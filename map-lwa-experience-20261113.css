@@ -341,3 +341,12 @@ body.embedded:not(.preview) #mapPlanPane .map-trip-fields{grid-template-columns:
 body.embedded:not(.preview) #mapPlanPane #mapTripPlan{grid-column:1/-1!important;justify-self:stretch!important}
 body.embedded:not(.preview) #mapNavControls .map-nav-actions{display:flex;gap:6px;flex-wrap:wrap}
 body.embedded:not(.preview) #mapNavControls .map-nav-actions button{min-height:35px}
+
+/* Transit and destinations read as compact controls around the existing map. */
+.map-side > .map-transit-status{margin:4px 0 8px;color:#255a49;font:600 12px/1.35 system-ui}
+.map-side > .toolbar button[aria-pressed="true"]{background:#14654b!important;color:white!important}
+body.map-workspace-split .map-desk-heading{padding-bottom:7px}
+body.map-workspace-split .map-action-tabs{gap:4px}
+body.map-workspace-split #mapPlanPane .map-plan{border:0!important;box-shadow:none!important}
+body.map-workspace-split .map-brand-strip .map-brand-tag{display:none}
+body.map-workspace-split .map-plan .map-mode-buttons{gap:4px}

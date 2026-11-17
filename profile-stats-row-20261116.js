@@ -9,18 +9,20 @@
   requested=false;
   const profile=document.querySelector('#studioApp .profile-card:not(.profile-is-editing) .profile-copy');
   if(!profile)return;
-  const badges=profile.querySelector(':scope > #biglwaCommunityRoleBadges')||
-    profile.querySelector(':scope > .biglwa-community-badges');
-  const stats=profile.querySelector(':scope > .stats')||
-    profile.querySelector(':scope > .biglwa-profile-role-statline > .stats');
-  if(!badges||!stats)return;
+  const bio=profile.querySelector('.bio');
+  const stats=profile.querySelector('.stats');
+  if(!bio||!stats)return;
   let line=profile.querySelector(':scope > .biglwa-profile-role-statline');
   if(!line){
    line=document.createElement('div');line.className='biglwa-profile-role-statline';
-   badges.before(line);
+   bio.before(line);
   }
-  if(badges.parentElement!==line)line.appendChild(badges);
-  if(stats.parentElement!==line)line.appendChild(stats);
+  if(bio.parentElement!==line)line.prepend(bio);
+  if(stats.parentElement!==line)line.append(stats);
+  const highlights=profile.querySelector('.biglwa-stories-ribbon');
+  if(highlights?.parentElement===line)line.after(highlights);
+  const rank=profile.querySelector(':scope > .real-rank');
+  if(highlights&&rank&&(highlights.compareDocumentPosition(rank)&Node.DOCUMENT_POSITION_PRECEDING))rank.before(highlights);
  }
  function schedule(){
   if(requested)return;requested=true;requestAnimationFrame(align);

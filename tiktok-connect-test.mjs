@@ -48,8 +48,10 @@ check("TikTok account can restore its session across devices",
  worker.includes("path === '/tiktok/session/account'"));
 check("session handoff includes Firebase ID token",
  tiktok.includes("handoff:pending.handoff,verifier,firebaseIdToken:token"));
-check("frontend verifies server-side account mapping",
- tiktok.includes("verified.session!==result.session"));
+check("frontend uses the account-bound handoff confirmation without a second KV read",
+ tiktok.includes("!result.session||!result.persisted")&&
+ tiktok.includes("initializing=finishConnection().finally")&&
+ !tiktok.includes("verified.session!==result.session"));
 check("TikTok session is tied to signed-in UID",
  tiktok.includes("KEY + ':' + authUid"));
 check("Orbit updates from verified TikTok session",

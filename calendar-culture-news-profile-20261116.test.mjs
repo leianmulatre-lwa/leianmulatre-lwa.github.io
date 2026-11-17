@@ -58,16 +58,15 @@ test('Crush Day headings use exact Politic Stars and Stripes font but body remai
  assert(existsSync(new URL('./stars-and-stripes-font/StarsAndStripes-A4XM.ttf',import.meta.url)));
 });
 
-test('profile statistics remain beside role badges without duplicating account data',()=>{
- const original=get('profile-stats-row-20261116.js');
- assert.match(original,/line\.appendChild\(badges\)/);
- assert.match(original,/line\.appendChild\(stats\)/);
- assert.match(profileCss,/@media\(min-width:760px\)/);
- assert.match(profileCss,/flex-wrap:nowrap!important/);
- assert.match(profileCss,/flex-basis:auto!important/);
- assert.match(profileCss,/\.biglwa-stories-ribbon/);
- assert.match(profileCss,/\.real-rank\.real-rank/);
- assert(!/setDoc|localStorage|sessionStorage/.test(original));
+test('profile statistics share the biography line, with highlights beneath',()=>{
+ const layout=get('profile-stats-row-20261116.js');
+ const highlight=get('profile-social-showcase.js');
+ assert.match(layout,/line\.prepend\(bio\)/);
+ assert.match(layout,/line\.append\(stats\)/);
+ assert.match(profileCss,/grid-template-columns:minmax\(0,1fr\) auto/);
+ assert.match(profileCss,/justify-content:flex-end!important/);
+ assert.match(highlight,/stats\.closest\('.biglwa-profile-role-statline'\)/);
+ assert(!/setDoc|localStorage|sessionStorage/.test(layout));
 });
 
 test('all Studio shells bust cached culture, editorial CSS and profile assets',()=>{
