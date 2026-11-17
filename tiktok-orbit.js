@@ -478,7 +478,12 @@
     list.insertAdjacentHTML('afterbegin',cards.join(''));
   }
   if(window.BIGLWAFeedMount)window.BIGLWAFeedMount('TikTok','tiktok-feed-item',renderFeedList);
-  async function init() {
+  let initializing=null;
+  function init(){
+    if(!initializing)initializing=finishConnection().finally(()=>{initializing=null});
+    return initializing;
+  }
+  async function finishConnection() {
     const url=new URL(location.href),handoff=url.searchParams.get('tiktok_handoff')||CALLBACK_HANDOFF,error=url.searchParams.get('tiktok_error')||CALLBACK_ERROR;
     if(handoff){sessionStorage.setItem(PENDING_KEY,JSON.stringify({handoff,receivedAt:Date.now()}));CALLBACK_HANDOFF='';}
     if(handoff||error){
@@ -506,10 +511,8 @@
         const result=await api('session',{handoff:pending.handoff,verifier,firebaseIdToken:token});
         if(!result.session||!result.persisted)throw new Error('TikTok authorized but could not link to this Big LWA account.');
         save(result.session);
-        const check=await fetch(API+'/tiktok/session/account',{headers:{Authorization:'Bearer '+token}});
-        const verified=await check.json().catch(()=>({}));
-        if(!check.ok||!verified.connected||verified.session!==result.session)
-          throw new Error('TikTok connection is not recoverable on your Big LWA account yet.');
+        // Redeeming the one-use handoff already wrote the account binding.
+        // A second cross-edge KV read can still return the previous binding.
         sessionStorage.removeItem(PENDING_KEY);
         sessionStorage.removeItem('tt_verifier');
         sessionStorage.removeItem(START_UID);

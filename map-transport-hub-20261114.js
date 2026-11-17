@@ -22,7 +22,9 @@
    {id:'uber',name:'Uber',icon:'🚘',type:'ride',url:'https://m.uber.com/',
     detail:'Check actual fares, pickup times, driver availability and complete a ride with Uber.'},
    {id:'lyft',name:'Lyft',icon:'🚗',type:'ride',url:'https://www.lyft.com/rider',
-    detail:'Check current prices and request rides on Lyft. No live Lyft quote is shown here.'}
+    detail:'Check current prices and request rides on Lyft. No live Lyft quote is shown here.'},
+   {id:'apple',name:'Apple Maps',icon:'↗',type:'ride',url:'https://maps.apple.com/',
+    detail:'Open your route in Apple Maps for directions and supported transit options.'}
   ],
   food:[
    {id:'ubereats',name:'Uber Eats',icon:'🥡',type:'food',url:'https://www.ubereats.com/',
@@ -128,8 +130,24 @@
  const valid=p=>p&&Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng))&&
   Math.abs(Number(p.lat))<=90&&Math.abs(Number(p.lng))<=180;
  function providerUrl(provider){
-  if(provider.id!=='uber'||!planned||!valid(planned.origin)||!valid(planned.destination))
+  if(!planned||!valid(planned.origin)||!valid(planned.destination))
    return provider.url;
+  if(provider.id==='apple'){
+   const url=new URL('https://maps.apple.com/directions');
+   url.searchParams.set('source',planned.origin.lat+','+planned.origin.lng);
+   url.searchParams.set('destination',planned.destination.lat+','+planned.destination.lng);
+   return url.href;
+  }
+  if(provider.id==='lyft'){
+   const url=new URL('https://ride.lyft.com/u');
+   url.searchParams.set('id','lyft');
+   for(const [key,point] of [['pickup',planned.origin],['destination',planned.destination]]){
+    url.searchParams.set(key+'[latitude]',String(point.lat));
+    url.searchParams.set(key+'[longitude]',String(point.lng));
+   }
+   return url.href;
+  }
+  if(provider.id!=='uber')return provider.url;
   // Uber's documented optional ride-request handoff. It does not fetch fares,
   // authorize booking or guarantee that every client accepts prefilled fields.
   const url=new URL('https://m.uber.com/ul/');

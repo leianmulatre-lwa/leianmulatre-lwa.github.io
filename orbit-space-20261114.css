@@ -361,3 +361,22 @@ body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] #orbi
 body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] .orbit-main .orbit-connected-card .orbit-hotlink{
  background:#65436c!important;color:#fff9f9!important;-webkit-text-fill-color:#fff9f9!important;
 }
+
+/* Day looks like a candy-colored nebula; night keeps a cooler moonlit sky. */
+body:not(.night-mode) #studioApp :is(#orbit,#moduleWorkspace[data-module-key="orbit"]){
+ background-color:#f9d6ed!important;
+ background-image:radial-gradient(ellipse at 10% 5%,#fff3bf,transparent 44%),radial-gradient(ellipse at 90% 12%,#fcc0e5,transparent 51%),radial-gradient(ellipse at 78% 95%,#b5e9fa,transparent 56%),linear-gradient(135deg,#f8cfe5,#dfd1fa 55%,#c9e7f8)!important;
+ background-size:100% 100%!important;
+}
+body.night-mode #studioApp :is(#orbit,#moduleWorkspace[data-module-key="orbit"]){
+ background-image:radial-gradient(ellipse at 87% 14%,#63529b88,transparent 37%),radial-gradient(ellipse at 12% 80%,#ae50706b,transparent 55%),radial-gradient(ellipse at 74% 80%,#32868a64,transparent 45%),linear-gradient(145deg,#0a132e,#21183b 60%,#141831)!important;
+ background-size:100% 100%!important;
+}
+#studioApp :is(#orbit,#moduleWorkspace[data-module-key="orbit"])::after{
+ background-image:radial-gradient(ellipse 1px 7px at 20px 21px,#fff7dccc 45%,transparent 75%),radial-gradient(ellipse 7px 1px at 20px 21px,#fff7dccc 45%,transparent 75%),radial-gradient(circle at 53px 57px,#ffd9f0dd 0 1px,transparent 2px);
+ background-size:121px 103px,121px 103px,167px 113px;
+ animation-duration:9s;
+}
+@media(prefers-reduced-motion:reduce){
+ #studioApp :is(#orbit,#moduleWorkspace[data-module-key="orbit"])::after{animation:none!important}
+}

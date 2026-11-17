@@ -87,22 +87,20 @@ test('Booth placeholder pool is an exact fallback copy of the existing Boards te
   'Samples are never saved to an account or uploaded');
 });
 
-test('Empty Booth filmstrip displays four distinct local sample photos and rotates them',async()=>{
+test('Empty Booth filmstrip displays four distinct local sample photos and holds them through repaint',async()=>{
  const ui=harness();await ui.refresh();
  const initial=ui.preview();
  assert.equal(initial.length,4);
  assert.equal(new Set(initial).size,4);
  assert(initial.every(x=>sourceSamples.includes(x)));
  assert(ui.frames().every(f=>f.classList.contains('booth-temporary-frame')));
- assert.equal(ui.timers.delay,6800);
- ui.tick();
- const rotated=ui.preview();
- assert.notDeepEqual(rotated,initial);
- assert(rotated.every(x=>sourceSamples.includes(x)));
+ assert.equal(ui.timers.delay,undefined);
+ await ui.refresh();
+ assert.deepEqual(ui.preview(),initial);
  assert.equal(ui.strip().dataset.sampleCount,'4');
 });
 
-test('Saved owner photos and new captures take precedence; only empty slots rotate',async()=>{
+test('Saved owner photos and new captures take precedence; only empty slots use samples',async()=>{
  const records=[
   {uid:'person-a',source:'photobooth',state:'draft',sourceCreatedAtMs:5,imageUrl:'https://example.org/5.jpg'},
   {uid:'person-a',source:'photobooth',state:'draft',sourceCreatedAtMs:4,imageUrl:'https://example.org/4.jpg'}
@@ -133,7 +131,7 @@ test('Public profile and account switches reveal only samples, never private cap
  assert.match(css,/booth-recent-film\[data-samples-only="true"\]\s*\{display:grid!important\}/);
 });
 
-test('Reduced motion and hidden document pause rotation; failed samples are replaced',async()=>{
+test('Hidden documents stay stable; failed samples are replaced',async()=>{
  const ui=harness();await ui.refresh();
  const first=ui.preview();
  ui.setReducedMotion(true);ui.tick();

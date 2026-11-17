@@ -192,7 +192,7 @@
   if(!row){
    row=el('div','biglwa-community-badges');row.id='biglwaCommunityRoleBadges';
    row.setAttribute('aria-label','My community roles');
-   const bio=parent.querySelector('.bio');
+   const bio=parent.querySelector('.biglwa-profile-role-statline')||parent.querySelector('.bio');
    if(bio)bio.insertAdjacentElement('afterend',row);
    else parent.append(row);
   }

@@ -96,7 +96,9 @@ test('Provider choices and Ride/Food/Courier tabs change in-page only; no automa
  const e=harness(),api=e.win.BigLWATransportHub;
  assert.equal(api.getMode(),'rides');
  const providers=e.byClass(e.services,'map-provider-list');
- assert.equal(providers.children.length,2);
+ assert.equal(providers.children.length,3);
+ providers.children[2].click();
+ assert.equal(api.getSelected(),'apple');
  providers.children[1].click();
  assert.equal(api.getSelected(),'lyft');
  assert.equal(e.calls.planning,0);

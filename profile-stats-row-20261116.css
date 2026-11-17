@@ -1,91 +1,21 @@
-/* November 16 profile spacing: one compact role + stats row.
-   The count nodes stay in place; the JS only moves them into a shared line.
-   The public preview is untouched unless it already owns a role row. */
-#studioApp .profile-card:not(.profile-is-editing) .profile-copy>.biglwa-profile-role-statline{
- display:flex!important;align-items:center!important;justify-content:flex-start!important;
- gap:clamp(14px,2vw,30px)!important;flex-wrap:wrap!important;
- width:100%!important;max-width:none!important;min-width:0!important;
- margin:7px 0 15px!important;padding:0!important;box-sizing:border-box!important;
+/* Keep the biography and existing counts on the same banner row. */
+#studioApp .profile-card .profile-copy>.biglwa-profile-role-statline{
+ display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 20px;
+ align-items:start;width:100%;min-width:0;margin:7px 0 8px;
 }
-#studioApp .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline>#biglwaCommunityRoleBadges{
- display:flex!important;align-items:center!important;flex-wrap:wrap!important;
- gap:7px!important;flex:0 1 auto!important;max-width:100%!important;
- min-width:180px!important;margin:0!important;padding:0!important;
+#studioApp#studioApp .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline>.bio{
+ margin:0!important;min-width:0;overflow-wrap:anywhere;
 }
-#studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline>.stats.stats{
- display:flex!important;flex:1 1 420px!important;flex-wrap:wrap!important;
- justify-content:flex-start!important;align-items:center!important;
- gap:clamp(12px,1.65vw,25px)!important;
- width:auto!important;min-width:0!important;max-width:100%!important;
- margin:0!important;padding:0!important;
+#studioApp#studioApp .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline>.stats.stats{
+ display:flex!important;flex-wrap:wrap!important;justify-content:flex-end!important;
+ gap:6px 14px!important;width:auto!important;margin:0!important;max-width:100%;
 }
-#studioApp .profile-card .biglwa-profile-role-statline>.stats.stats>*{
- flex:0 0 auto!important;width:auto!important;min-width:0!important;
- padding:0!important;margin:0!important;
+#studioApp .profile-card .biglwa-profile-role-statline>.stats>*{
+ flex:0 0 auto!important;width:auto!important;padding:0!important;margin:0!important;
 }
-#studioApp .profile-card .biglwa-profile-role-statline>.stats.stats b{
- display:block!important;font-size:clamp(14px,1.3vw,19px)!important;
- line-height:1.1!important;margin-bottom:3px!important;
-}
-/* Give the Highlight circles their own visual lane above the rank track. */
-#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-copy>.biglwa-stories-ribbon{
- margin:10px 0 25px!important;padding:0 0 4px!important;
- overflow:visible!important;min-height:55px!important;
-}
-#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank{
- margin:14px 0 2px!important;padding-top:12px!important;
-}
-#studioApp .profile-card .profile-copy>.real-rank .rank-label::after{
- content:"✦";display:inline-block;vertical-align:middle;
- margin:0 0 0 13px!important;font:700 17px/1 Georgia,serif!important;
- letter-spacing:0!important;color:rgb(var(--aura-rgb,179,75,110));
-}
-@media(max-width:940px){
- #studioApp .profile-card:not(.profile-is-editing) .profile-copy>.biglwa-profile-role-statline{
-  gap:9px!important;align-items:flex-start!important
- }
- #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline>.stats.stats{
-  flex-basis:100%!important;gap:12px!important
- }
- #studioApp .profile-card .profile-copy>.biglwa-stories-ribbon{margin-bottom:17px!important}
-}
+#studioApp .profile-card .biglwa-profile-role-statline>.stats b{font-size:clamp(14px,1.3vw,19px)!important}
+#studioApp .profile-card .profile-copy>.biglwa-stories-ribbon{margin:9px 0 16px!important}
 @media(max-width:560px){
- #studioApp .profile-card .biglwa-profile-role-statline>.stats.stats>*{font-size:10px!important}
- #studioApp .profile-card .biglwa-profile-role-statline>.stats.stats b{font-size:14px!important}
-}
-
-/* Follow-up: profile stats must share the Roles line on desktop, rather than
-   forcing the next row at 940px because of a 420px flex basis. */
-@media(min-width:760px){
- #studioApp .profile-card:not(.profile-is-editing) .profile-copy>.biglwa-profile-role-statline{
-  display:flex!important;flex-wrap:nowrap!important;align-items:center!important;
-  gap:clamp(7px,1.1vw,16px)!important;
-  margin:5px 0 9px!important;min-height:0!important;
- }
- #studioApp .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline>#biglwaCommunityRoleBadges{
-  flex:0 1 36%!important;max-width:36%!important;min-width:0!important;
-  align-items:center!important;gap:5px!important;
- }
- #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline>.stats.stats{
-  flex:1 1 auto!important;flex-basis:auto!important;
-  min-width:0!important;max-width:none!important;
-  display:flex!important;flex-wrap:wrap!important;
-  align-items:center!important;justify-content:flex-end!important;
-  gap:6px clamp(8px,1.2vw,18px)!important;
-  margin:0!important;
- }
- #studioApp .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline>.stats.stats>*{
-  white-space:nowrap!important;flex:0 0 auto!important;
- }
-}
-@media(min-width:1100px){
- #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline>.stats.stats{
-  flex-wrap:nowrap!important;
- }
-}
-#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-copy>.biglwa-stories-ribbon{
- margin:8px 0 16px!important;padding-bottom:2px!important;min-height:55px!important;
-}
-#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank{
- margin:7px 0 3px!important;padding-top:9px!important;
+ #studioApp .profile-card .profile-copy>.biglwa-profile-role-statline{grid-template-columns:1fr}
+ #studioApp#studioApp .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline>.stats.stats{justify-content:flex-start!important}
 }

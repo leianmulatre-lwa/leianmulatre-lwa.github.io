@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1';
+        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2';
         document.head.appendChild(script);
       }, 250);
     }
@@ -1256,8 +1256,8 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
           historyRows.map(e=>'<article class="module-list-item" data-calendar-pop-history="1"><div><b>'+
             esc(e.title)+'</b><small>'+esc(e.meta)+'</small><small>'+esc(e.description)+'</small>'+
             '<a href="'+esc(e.url)+'" target="_blank" rel="noopener noreferrer">Read original article ↗</a></div></article>').join(''):
-          '<p class="calendar-editorial-note">No verified curated anniversary for this date yet. Your saved and connected events are unchanged.</p>')+
-        '</section>';
+          '<p class="calendar-editorial-note">No curated anniversary for this date yet.</p>')+
+        '<a class="calendar-editorial-note" href="https://writerofpop.com/this-day-in-pop-culture-history/" target="_blank" rel="noopener noreferrer">Browse This Day in Pop Culture History ↗</a></section>';
       // Source access is always available, but headlines are not presented as
       // dated calendar events unless a verified historical date is recorded.
       const newsHtml='<section class="calendar-news-shelf" aria-label="News and reporting sources">'+
@@ -2800,10 +2800,14 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
        '<p class="module-status" id="roomTrendStatus" role="status">No fabricated hashtags, viewers, or activity counts.</p></section>'+
        '<section class="module-card wide"><h2>Your lounges</h2><p>Your saved room names appear here. Public trending rooms and participant counts are not invented.</p>'+
        '<div class="module-launchers" id="trendingRooms">'+allRooms.map((r,i)=>chip(r,i)).join('')+'</div></section>'+
-       '<section class="module-card wide"><div class="room-head"><h2>'+esc(room.name)+'</h2><small>Local conversation draft</small></div>'+
-       '<div class="module-chat" id="roomChat">'+(messages.length?messages.map(m=>'<div class="module-bubble '+(m.mine?'mine':'')+'">'+esc(m.text)+'</div>').join(''):'<p>No messages yet.</p>')+'</div>'+
-       '<form class="module-form two" id="roomForm" style="margin-top:8px"><input class="module-input" name="text" placeholder="Write in '+esc(room.name)+'…" maxlength="1200" required><button class="module-action" type="submit">Send</button></form>'+
-       '<p class="module-status">Local draft only. Messages are not live or shared; real community messaging needs account-level security, moderation, blocking, reporting, and an authenticated chat backend.</p></section>'+
+       '<section class="module-card wide lounge-im" aria-label="Lounge draft window">'+
+       '<header class="lounge-im-title"><h2>'+esc(room.name)+' · Instant Message</h2></header>'+
+       '<div class="lounge-im-menubar"><span>Conversation</span><span>Private draft</span></div>'+
+       '<div class="lounge-im-pane"><span class="lounge-im-avatar" aria-hidden="true">★</span><div class="module-chat" id="roomChat" aria-label="Draft messages">'+
+       (messages.length?messages.map(m=>'<div class="module-bubble"><b>'+ (m.mine?'Me':'Draft') +':</b> '+esc(m.text)+'</div>').join(''):'<p>No messages yet.</p>')+'</div></div>'+
+       '<form class="lounge-im-form" id="roomForm"><div class="lounge-im-pane"><span class="lounge-im-avatar lounge-im-self" aria-hidden="true">✦</span>'+
+       '<textarea class="module-input" name="text" aria-label="Message draft" placeholder="Write in '+esc(room.name)+'…" maxlength="1200" required></textarea></div>'+
+       '<footer class="lounge-im-actions"><small>Saved in this browser</small><button class="module-action" type="submit">➤ Save draft</button></footer></form></section>'+
        '<section class="module-card wide"><h2>Create a lounge</h2><p>Use a # name for a private local conversation draft.</p>'+
        '<form class="module-form two" id="createRoomForm"><input class="module-input" name="room" placeholder="#new-room" maxlength="32" autocomplete="off" required>'+
        '<button class="module-action" type="submit">Create</button></form><p class="module-status" id="createRoomStatus">Saved locally for now; not discoverable by other members.</p></section></div>';
@@ -4182,7 +4186,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     });
   }
 
-  const mapAppUrl='/map-app.html?embed=1&v=20261116-studio-tour';
+  const mapAppUrl='/map-app.html?embed=1&v=20261116-map-desk';
   let disposeMap=null;
   function renderMap(){
     // The map is an isolated embedded app. If its data/API fails it must never
