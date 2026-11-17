@@ -15,6 +15,14 @@ test('rail network loads only on request and shows real lines and stations',asyn
  assert.equal(requests,1);assert.equal(lines,6);assert(stations>100);
  const select=w.document.querySelector('select');select.value='802';select.dispatchEvent(new w.Event('change'));await new Promise(r=>setTimeout(r,0));
  assert.equal(requests,1);assert.equal(removed,1);assert.equal(w.document.querySelectorAll('ol li').length,14);
+ const host=w.document.createElement('div');
+ const b=data.routes.find(r=>r.id==='802'),a=b.stops[0].point,z=b.stops.at(-1).point;
+ assert.equal(await w.BigLWAMetroTransit.plan({lat:a[0],lng:a[1]},{lat:z[0],lng:z[1]},host),true);
+ assert.match(host.textContent,/Rail route · LA Metro/);assert.match(host.textContent,/Metro B Line/);
+ assert.equal(await w.BigLWAMetroTransit.plan({lat:40,lng:-74},{lat:40.1,lng:-74},host),false);
+ const before=host.textContent;
+ assert.equal(await w.BigLWAMetroTransit.plan({lat:a[0],lng:a[1]},{lat:z[0],lng:z[1]},host,()=>false),false);
+ assert.equal(host.textContent,before);
  dom.window.close();
 });
 test('rail data contains valid geographic coordinates and source provenance',()=>{

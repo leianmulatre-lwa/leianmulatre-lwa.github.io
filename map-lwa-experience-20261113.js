@@ -233,6 +233,7 @@
         directions.textContent='View transit directions in Apple Maps ↗';
         result.replaceChildren(directions);
         document.getElementById('metroTransitDesk')?.setAttribute('open','');
+        try{await window.BigLWAMetroTransit?.plan(origin,destination,result,()=>lastPlan===stamp)}catch{ /* Provider handoff remains usable. */ }
         return;
       }
       const provider=window.BigLWAMapRouteProvider;
