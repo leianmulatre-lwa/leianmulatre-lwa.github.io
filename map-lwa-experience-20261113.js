@@ -233,7 +233,7 @@
         directions.textContent='View transit directions in Apple Maps ↗';
         result.replaceChildren(directions);
         document.getElementById('metroTransitDesk')?.setAttribute('open','');
-        try{await window.BigLWAMetroTransit?.plan(origin,destination,result,()=>lastPlan===stamp)}catch{ /* Provider handoff remains usable. */ }
+        try{const found=await window.BigLWAMetroTransit?.plan(origin,destination,result,()=>lastPlan===stamp);if(lastPlan===stamp&&!found){const note=document.createElement('p');note.textContent='No supported rail route here. Check bus routes, schedules and fares in Apple Maps.';result.prepend(note);}}catch{ /* Provider handoff remains usable. */ }
         return;
       }
       const provider=window.BigLWAMapRouteProvider;
@@ -274,13 +274,14 @@
     }catch(error){if(lastPlan!==stamp)return;
       result.textContent=error&&error.message?error.message:'Could not plan that trip.';}
   }
+  window.addEventListener('biglwa:map-route-select',event=>{const route=event.detail;if(!route?.points?.length)return;mode=route.mode;planner.querySelectorAll('[data-map-travel]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mapTravel===mode)));drawLine(route.points,{dashArray:null});window.dispatchEvent(new CustomEvent('biglwa:map-navigation-route',{detail:route}));});
   byId('mapTripPlan').addEventListener('click',plan);
   byId('mapTripTo').addEventListener('keydown',event=>{
     if(event.key==='Enter'){event.preventDefault();plan();}
   });
   planner.querySelectorAll('[data-map-travel]').forEach(btn=>{
     btn.addEventListener('click',()=>{
-      mode=btn.dataset.mapTravel;
+      mode=btn.dataset.mapTravel;lastPlan=null;clearLine();endpointPins?.remove();
       const nav=byId('mapNavControls');if(nav)nav.hidden=mode==='transit';
       window.dispatchEvent(new Event('biglwa:map-navigation-reset'));
       planner.querySelectorAll('[data-map-travel]').forEach(b=>
@@ -303,6 +304,7 @@
       {enableHighAccuracy:false,timeout:10000,maximumAge:60000});
   });
   byId('mapTripFrom').addEventListener('input',()=>{fromGps=null;});
+  for(const id of ['mapTripFrom','mapTripTo'])byId(id).addEventListener('input',()=>{lastPlan=null;clearLine();endpointPins?.remove();window.dispatchEvent(new Event('biglwa:map-navigation-reset'));});
   byId('mapTripSwap').addEventListener('click',()=>{
     const from=byId('mapTripFrom'),to=byId('mapTripTo'),value=from.value;
     from.value=to.value;to.value=value;fromGps=null;

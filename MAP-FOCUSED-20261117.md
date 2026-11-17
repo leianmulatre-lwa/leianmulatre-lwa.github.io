@@ -1,0 +1,7 @@
+# Map restoration and focused journeys
+
+Interactive Studio baseline: 6858a0ef719745d429d3a1ac6fbc172bb5f6d81e (2026-11-16 11:33:54 -08:00). Removed by 57f69e1f (2026-11-16 11:34:48 -08:00). Restore the single persistent iframe and private saved-pin refresh, adding source/origin-checked readiness, real tile readiness, an 18-second fallback, and retry. The fallback artwork retains its contained 4:3 display.
+
+The map now progressively exposes trip tools: input → route comparison → chosen journey → opt-in GPS. Transit fares, network, live-vehicle control and learner terminology are together under Transit. Existing saved-pin/account handlers remain on the same nodes. Map layers use a native dropdown; an independent pitched MapLibre scene displays extruded buildings and the selected road route without projecting Leaflet overlays incorrectly. GPS, pins and live vehicle exploration return to 2D.
+
+Validation: 73 preflight/map workflow commands pass; focused DOM tests cover selection/edit, transit disclosure, unsupported 3D, thumbnail timeout/readiness/retry. Browser preview exercised drive/bike/walk comparison and LA Metro B Line planning. Cloud browser has no WebGL: the 3D fallback is verified, actual GPU rendering needs a supported device. Authenticated Studio account behavior and real-device moving GPS are not browser-verified. No full bus itinerary engine, live departure predictions, rideshare price API or photorealistic 3D is claimed.

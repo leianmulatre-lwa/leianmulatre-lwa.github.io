@@ -1183,7 +1183,9 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
   draw();
   try{
     map=L.map('map',{worldCopyJump:true,rotate:true,bearing:0,rotateControl:false}).setView([20,0],2);
-    const watchTiles=(layer,label)=>{layer.on('tileerror',()=>{$('tileStatus').textContent=label+' tiles could not load completely. Your pins are safe; try another map mode or check your connection.';});layer.on('load',()=>{if(($('tileStatus').textContent||'').startsWith(label))$('tileStatus').textContent='';});return layer;};
+    let previewTilesReady=false;
+    const signalPreviewReady=()=>{previewTilesReady=true;try{if(window.parent!==window)window.parent.postMessage({type:'biglwa:map-ready'},location.origin)}catch{}};
+    const watchTiles=(layer,label)=>{layer.once('tileload',signalPreviewReady);layer.on('tileerror',()=>{$('tileStatus').textContent=label+' tiles could not load completely. Your pins are safe; try another map mode or check your connection.';});layer.on('load',()=>{if(($('tileStatus').textContent||'').startsWith(label))$('tileStatus').textContent='';});return layer;};
     const street=watchTiles(L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'}),'Street');
     const imageryUrl='https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',labelsUrl='https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',esriAttr='Imagery &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a> and contributors';
     const satellite=watchTiles(L.tileLayer(imageryUrl,{maxZoom:19,attribution:esriAttr}),'Satellite'),hybridImagery=watchTiles(L.tileLayer(imageryUrl,{maxZoom:19,attribution:esriAttr}),'Hybrid'),hybridLabels=watchTiles(L.tileLayer(labelsUrl,{maxZoom:19,attribution:'Reference labels &copy; Esri, HERE, OpenStreetMap contributors, and the GIS community'}),'Hybrid'),hybrid=L.layerGroup([hybridImagery,hybridLabels]);
@@ -1214,7 +1216,7 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
     }catch{}
     (baseLayers[preferred]||street).addTo(map);
     const layerControl=L.control.layers(baseLayers,{'Mapped bike lanes · not live':cyclingOverlay},{
-      position:'topright',collapsed:document.body.classList.contains('preview')
+      position:'topright',collapsed:true
     }).addTo(map);
     const providerTag=document.createElement('div');
     providerTag.id='mapProviderIndicator';
@@ -1288,7 +1290,7 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
     window.dispatchEvent(new Event('biglwa:map-ready-local'));
     $('drop').disabled=false;draw();if(pins.some(valid))$('fit').click();$('mapStatus').textContent='Search for a place or tap the map. Switch map modes in the upper-right.';
     // Tell the Studio container the map is actually interactive, not merely an iframe that loaded HTML.
-    try{if(window.parent!==window)window.parent.postMessage({type:'biglwa:map-ready'},location.origin)}catch{}
+    try{if(window.parent!==window&&!document.body.classList.contains('preview'))window.parent.postMessage({type:'biglwa:map-ready'},location.origin)}catch{}
     watchPublic();
     firestore().then(who=>{
       if(!who.account)return;
@@ -1341,7 +1343,7 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
         if(validPoints.length===1)map.setView(validPoints[0],12);
         else if(validPoints.length>1)map.fitBounds(validPoints,{padding:[22,22],maxZoom:13});
       });
-      try{window.parent?.postMessage({type:'biglwa:map-ready',pins:pins.filter(valid).length},location.origin)}catch{}
+      try{if(previewTilesReady)window.parent?.postMessage({type:'biglwa:map-ready',pins:pins.filter(valid).length},location.origin)}catch{}
     }
   }catch(error){$('mapStatus').textContent='Map display is unavailable. You can still save pins using the address search or latitude and longitude.';try{if(window.parent!==window)window.parent.postMessage({type:'biglwa:map-failed'},location.origin)}catch{}}
 })();
@@ -1391,8 +1393,8 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
 </script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.1/dist/maplibre-gl.css">
 <script src="/map-lwa-router-20261113.js?v=20261113-turns-v5"></script>
-<script src="/map-lwa-experience-20261113.js?v=20261113-go-v5&nov16=singlemap-streets-v1&embed=20261116-fit&desk=20261116-2&tour=20261117-2"></script>
+<script src="/map-lwa-experience-20261113.js?v=20261113-go-v5&nov16=singlemap-streets-v1&embed=20261116-fit&desk=20261116-2&tour=20261117-2&focus=20261117-1"></script>
 <link rel="stylesheet" href="/map-lwa-discovery-20261114.css?v=20261114-public-neighborhood-v1"><script src="/map-lwa-navigate-20261113.js?v=20261113-go-v5&nov16=singlemap-streets-v1&tour=20261117-2"></script><link rel="stylesheet" href="/map-transport-hub-20261114.css?v=20261114-inapp-desk-v1&compact=20261115-1"><script src="/map-lwa-discovery-20261114.js?v=20261114-inapp-desk-v2&desk=20261116-2"></script><script src="/map-transport-hub-20261114.js?v=20261114-inapp-desk-v1&compact=20261115-1&desk=20261116-2&tour=20261117-2"></script><link rel="stylesheet" href="/map-purposes-20261115.css?v=20261115-map-1&tour=20261117-2"><link rel="stylesheet" href="/map-popculture-20261116.css?v=20261116-scene-1"><script src="/map-popculture-20261116.js?v=20261116-scene-1&tour=20261117-2"></script><script src="/map-purposes-20261115.js?v=20261116-culture-1"></script>
-<script src="/map-live-transit.js?v=20261116-1"></script>
-<script src="/map-transit-desk.js?v=20261117-3"></script>
-</body></html>
+<script src="/map-live-transit.js?v=20261116-1&focus=20261117-1"></script>
+<script src="/map-transit-desk.js?v=20261117-3&focus=20261117-1"></script>
+<link rel="stylesheet" href="/map-focused.css?v=20261117-1"><script src="/map-focused.js?v=20261117-1"></script><script src="/map-3d.js?v=20261117-1"></script></body></html>

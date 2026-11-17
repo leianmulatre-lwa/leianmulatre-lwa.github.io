@@ -37,6 +37,7 @@
  }
 
  window.BigLWAMetroTransit={async plan(origin,destination,host,isCurrent=()=>true){
+  layer?.remove();layer=null;
   const d=await load();if(!isCurrent())return false;
   const distance=(a,b)=>Math.hypot((a[0]-b[0])*111.2,(a[1]-b[1])*92.2);
   const nodes=[];
@@ -76,12 +77,13 @@
   for(let j=1;j<=path.length;j++){
    if(j<path.length&&path[j].route.id===path[begin].route.id)continue;
    const a=path[begin],b=path[j-1];
-   if(j-begin>1)step(a.route.name+': '+a.name+' → '+b.name+' · '+(j-begin-1)+' stops');
+   if(j-begin>1){const terminal=b.index>a.index?a.route.stops.at(-1):a.route.stops[0];step(a.route.name+': board at '+a.name+' toward '+terminal.name+' → get off at '+b.name+' · '+(j-begin-1)+' stops');}
    if(j<path.length)step('Transfer at '+b.name+' to '+path[j].route.name+'.');
    begin=j;
   }
   step('Exit at '+last.name+' · destination about '+Math.round(distance(last.point,toPoint)*1000)+' m away.');
   host.prepend(summary);desk.open=true;
+  window.dispatchEvent(new CustomEvent('biglwa:map-transit-route',{detail:{origin,destination}}));
   const bridge=window.BigLWAMapBridge;
   if(bridge?.map){
    layer?.remove();layer=bridge.L.featureGroup().addTo(bridge.map);
@@ -97,6 +99,7 @@
   }
   return true;
  }};
+ window.addEventListener('biglwa:map-navigation-reset',()=>{layer?.remove();layer=null;});
  button.addEventListener('click',show);select.addEventListener('change',show);
  window.addEventListener('pagehide',()=>layer?.remove());
 })();

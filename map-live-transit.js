@@ -3,7 +3,7 @@
   const toolbar = document.querySelector('body:not(.preview) .map-side > .toolbar');
   if (!toolbar) return;
   const button = document.createElement('button');
-  button.type = 'button';
+  button.type = 'button';button.id='mapLiveTransit';
   button.textContent = 'LA Metro live';
   button.setAttribute('aria-pressed', 'false');
   const status = document.createElement('p');
