@@ -222,7 +222,7 @@
    if(!moduleCurtain||!shell.contains(moduleCurtain))moduleCurtain=curtain(shell,'Loading '+key,'module');
    moduleCurtain.querySelector('.lwa-curtain-label').textContent='loading '+key;
    const heading=shell.querySelector('.module-heading');const bounds=shell.getBoundingClientRect();const head=heading?.getBoundingClientRect();
-   const curtainOffset=0;shell.style.setProperty('--lwa-loading-top',curtainOffset+'px');moduleCurtain.style.top=curtainOffset+'px';
+   const curtainOffset=head?Math.max(0,Math.ceil(head.bottom-bounds.top)+16):16;shell.style.setProperty('--lwa-loading-top',curtainOffset+'px');moduleCurtain.style.top=curtainOffset+'px';
    const busy=[...space.querySelectorAll('[aria-busy="true"]:not(.lwa-curtain)')].find(node=>node!==shell);
    const veve=key==='veve';
    const feed=veve?window.BigLWAVeve?.status?.():null;
