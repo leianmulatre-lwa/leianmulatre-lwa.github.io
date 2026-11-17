@@ -281,6 +281,7 @@
   planner.querySelectorAll('[data-map-travel]').forEach(btn=>{
     btn.addEventListener('click',()=>{
       mode=btn.dataset.mapTravel;
+      const nav=byId('mapNavControls');if(nav)nav.hidden=mode==='transit';
       window.dispatchEvent(new Event('biglwa:map-navigation-reset'));
       planner.querySelectorAll('[data-map-travel]').forEach(b=>
         b.setAttribute('aria-pressed',String(b===btn)));
