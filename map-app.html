@@ -796,9 +796,11 @@ body.embedded #pinForm{grid-template-columns:1fr 1fr}
 /* Studio thumbnail is BOTH embedded and preview. The later generic embedded rules
    must not convert the 205px interactive preview into a 390px grid page.
    Keep the map itself touchable while native Studio scrolling remains outside. */
+html:has(body.embedded.preview){height:100%!important;min-height:100%!important}
+body.embedded.preview{height:100dvh!important}
 body.embedded.preview,body.embedded.preview main{
- width:100%!important;height:100%!important;min-height:0!important;
- max-height:100%!important;overflow:hidden!important;margin:0!important;
+ width:100%!important;height:100dvh!important;min-height:0!important;
+ max-height:100dvh!important;overflow:hidden!important;margin:0!important;
  padding:0!important;
 }
 body.embedded.preview main{
@@ -829,7 +831,7 @@ body.embedded.preview header{
 }
 body.embedded.preview #studioMapPreviewTools{
  display:block!important;position:absolute!important;
- z-index:1001!important;pointer-events:auto!important;
+ z-index:1001!important;pointer-events:auto!important;top:8px!important;right:85px!important;left:48px!important;max-width:none!important;
 }
 body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
 @media(max-width:760px){
@@ -1395,6 +1397,6 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
 <script src="/map-lwa-router-20261113.js?v=20261113-turns-v5"></script>
 <script src="/map-lwa-experience-20261113.js?v=20261113-go-v5&nov16=singlemap-streets-v1&embed=20261116-fit&desk=20261116-2&tour=20261117-2&focus=20261117-1"></script>
 <link rel="stylesheet" href="/map-lwa-discovery-20261114.css?v=20261114-public-neighborhood-v1"><script src="/map-lwa-navigate-20261113.js?v=20261113-go-v5&nov16=singlemap-streets-v1&tour=20261117-2"></script><link rel="stylesheet" href="/map-transport-hub-20261114.css?v=20261114-inapp-desk-v1&compact=20261115-1"><script src="/map-lwa-discovery-20261114.js?v=20261114-inapp-desk-v2&desk=20261116-2"></script><script src="/map-transport-hub-20261114.js?v=20261114-inapp-desk-v1&compact=20261115-1&desk=20261116-2&tour=20261117-2"></script><link rel="stylesheet" href="/map-purposes-20261115.css?v=20261115-map-1&tour=20261117-2"><link rel="stylesheet" href="/map-popculture-20261116.css?v=20261116-scene-1"><script src="/map-popculture-20261116.js?v=20261116-scene-1&tour=20261117-2"></script><script src="/map-purposes-20261115.js?v=20261116-culture-1"></script>
-<script src="/map-live-transit.js?v=20261116-1&focus=20261117-1"></script>
+<script src="/map-live-transit.js?detail=20261117-2&v=20261116-1&focus=20261117-1"></script>
 <script src="/map-transit-desk.js?v=20261117-3&focus=20261117-1"></script>
-<link rel="stylesheet" href="/map-focused.css?v=20261117-1"><script src="/map-focused.js?v=20261117-1"></script><script src="/map-3d.js?v=20261117-1"></script></body></html>
+<link rel="stylesheet" href="/map-focused.css?v=20261117-1"><script src="/map-focused.js?thumbs=20261117-2&v=20261117-1"></script><script src="/map-3d.js?v=20261117-1"></script></body></html>

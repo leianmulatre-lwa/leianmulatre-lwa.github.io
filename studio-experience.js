@@ -722,7 +722,7 @@
         const source=musicAudioCtx.createMediaElementSource(audio);
         musicAnalyser=musicAudioCtx.createAnalyser();
         musicAnalyser.fftSize=2048;
-        musicAnalyser.smoothingTimeConstant=.35;
+        musicAnalyser.smoothingTimeConstant=.62;
         spectrum=new Float32Array(musicAnalyser.frequencyBinCount);
         const hzPerBin=musicAudioCtx.sampleRate/musicAnalyser.fftSize;
         const edges=[40,80,140,240,400,700,1200,2100,3600,6200,10500];
@@ -749,8 +749,8 @@
         let peak=-Infinity;
         for(let bin=first;bin<last;bin++)peak=Math.max(peak,spectrum[bin]);
         const level=Math.max(0,Math.min(1,(peak+72)/58));
-        const target=.04+.46*level**1.5;
-        const timeConstant=target>waveLevels[i] ? 130 : 260;
+        const target=.04+.68*level**2.0;
+        const timeConstant=target>waveLevels[i] ? 210 : 360;
         waveLevels[i]+=(target-waveLevels[i])*(1-Math.exp(-elapsedMs/timeConstant));
         eqBars[i].style.transform='scaleY('+waveLevels[i].toFixed(3)+')';
       }
