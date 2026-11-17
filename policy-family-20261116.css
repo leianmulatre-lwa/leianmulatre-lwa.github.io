@@ -113,3 +113,25 @@ body.legal-index main>footer{border-top:1px solid #d7bbaa;padding-top:20px;font:
 @media(prefers-reduced-motion:reduce){
  body.legal-index .legal-family-grid a{transition:none}
 }
+
+/* Screenshot-verified fixes: Legal index uses the same real crest as Privacy.
+   Override the old generic nav links (cream background) with high contrast. */
+body.legal-index>header a.login-brand{
+ display:inline-flex!important;align-items:center!important;
+ min-width:122px!important;min-height:65px!important;
+ background-color:transparent!important;border:0!important;
+ padding:0!important;box-shadow:none!important
+}
+body.legal-index .policy-family-nav a,
+body.legal-index .policy-family-nav a:not([aria-current]){
+ color:#fff4e7!important;background:#542738!important;
+ border:1px solid #a76874!important;box-shadow:none!important;
+ padding:6px 10px!important;min-height:30px!important;
+}
+body.legal-index .policy-family-nav a[aria-current=page]{
+ color:#5d293b!important;background:#fff0e1!important;
+ border-color:#de9a91!important
+}
+body.legal-index .policy-family-nav a:focus-visible{
+ outline:2px solid #fff4e7!important;outline-offset:2px!important
+}
