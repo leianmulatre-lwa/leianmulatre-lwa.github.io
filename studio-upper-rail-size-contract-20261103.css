@@ -497,3 +497,16 @@ body.night-mode #studioApp #minimizedWidgetDock .sidebar-route-icon img:is([src*
 #studioApp .music-card.stereo-music-widget.studio-music-square .stereo-shell .stereo-display>.stereo-time-scale{
   min-height:10px!important;
 }
+
+/* 2026-11-16: Keep the calm audio meter beside the seek rail, not floating above it. */
+#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display>.stereo-eq{
+  height:13px!important;min-height:13px!important;max-height:13px!important;
+  margin-top:auto!important;margin-bottom:0!important;padding-bottom:0!important;
+  align-self:stretch!important;transform:translateY(1px);
+}
+#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display>.stereo-time-scale{
+  margin-top:0!important;padding-top:0!important;gap:4px!important;
+}
+#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display>.stereo-eq i{
+  transition:transform .18s ease-out!important;
+}
