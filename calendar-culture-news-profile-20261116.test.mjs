@@ -40,7 +40,7 @@ test('calendar Events show dated cultural history separately from future/current
   /Reuters/,
   /Al Jazeera/,
   /readOnlyRows.filter\(e=>!e.pop\)/,
-  /no claim of political neutrality or a live news feed/
+  /not a claim of political neutrality or a live news feed/
  ])assert.match(pages,pattern);
  assert.match(pages,/window.BigLWAPopCultureCalendar\?\.onDay\(key\)/);
  assert(!/\bfetch\(\s*['"]https:\/\/www\.aljazeera\.com/.test(pages),'No browser-side RSS scraping or cross-origin assumptions');
