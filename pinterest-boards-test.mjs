@@ -60,6 +60,6 @@ assert.ok(!pages.includes("tiles.slice(0,6).map((item,i)=>"),'Old six-tile Studi
 assert.ok(frontend.includes("const previews=window.__biglwaPinterest?.getPreview?.()||[]"),'the canonical thumbnail reads current Pinterest previews');
 assert.ok(frontend.includes('if(!photos.length)studioBoardsSamples.forEach(add)'),'approved temporary photos appear only until connected Pins are available');
 assert.ok(frontend.includes("card.querySelectorAll('.board-collage,#biglwaStudioBoardsPreview').forEach(el=>el.remove())"),'retired previews cannot stack above the canonical gallery');
-assert.ok(pages.includes("studio-mini-map-open"),'the Studio map has an open-full-map action');
-assert.ok(pages.includes("mini.loading='eager'"),'real mini-map loads on Studio without scrolling to it');
-console.log('Studio Boards five-photo portrait mosaic and interactive Map checks passed');
+assert.ok(pages.includes("studio-map-still"),'Studio Map shows a stable no-flicker poster instead of nested map tiles');
+assert.ok(pages.includes("mapCard.querySelectorAll('.studio-mini-map-open').forEach(el=>el.remove())"),'old duplicate map control is removed');
+console.log('Studio Boards five-photo portrait mosaic and noninteractive Map thumbnail checks passed');
