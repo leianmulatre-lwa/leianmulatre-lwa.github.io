@@ -123,7 +123,7 @@
   const d=new Date(day+'T12:00:00');
   return Number.isFinite(d.valueOf())?d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}):day;
  };
- const state={category:'podcast',day:localDay(),shuffleOffset:0,programs:[],myRequests:[],editorial:[],isEditor:false,requestPrefill:'',selected:null,followGuide:true,discoveryMood:'all'};
+ const state={category:'podcast',radioSection:'music',day:localDay(),shuffleOffset:0,programs:[],myRequests:[],editorial:[],isEditor:false,requestPrefill:'',selected:null,followGuide:true,discoveryMood:'all'};
  let discoveryCursor=Object.create(null);
  let root=null;
  let mediaPortal=null,mediaTarget=null,studioTarget=null;
@@ -378,10 +378,10 @@
   if(state.category==='music')state.category='podcast';
   state.day=localDay();
   root.innerHTML=[
-   '<nav class="stream-nav" aria-label="Stream channel selector"><div class="stream-nav-meta"><span class="stream-eyebrow">BIG LWA / FIVE-CHANNEL GUIDE</span><span id="streamGuideClock" class="stream-nav-clock"></span>', 
+   '<nav class="stream-nav" aria-label="Stream channel selector"><div class="stream-nav-meta"><span class="stream-eyebrow">BIG LWA / FOUR-CHANNEL GUIDE</span><span id="streamGuideClock" class="stream-nav-clock"></span>',
    '<div class="stream-nav-actions"><form id="streamMediaLinkForm" class="stream-media-link-form" aria-label="Play a creator-hosted video or audio"><label for="streamMediaLink">Tune a link</label><div><input id="streamMediaLink" type="url" inputmode="url" placeholder="YouTube, TikTok or Spotify URL" aria-describedby="streamMediaLinkStatus"><button type="submit">▶ Tune</button></div><small id="streamMediaLinkStatus" role="status" aria-live="polite">Play a public creator-hosted track or video inside Stream.</small></form><button class="stream-youtube-orbit" type="button" data-google-orbit-connect aria-label="Connect YouTube through Orbit" title="Connect YouTube through Orbit"><img src="/assets/orbit-icons/youtube.svg" alt="" width="19" height="19"><span data-stream-youtube-status>YouTube Orbit · Connect</span></button></div></div>',
    '<div class="stream-channels" role="tablist" aria-label="Stream category">',
-   categories.map(c=>'<button class="stream-tab" role="tab" id="stream-tab-'+c[0]+'" data-stream-tab="'+c[0]+'" aria-controls="stream-category-content" aria-selected="false"><small>'+c[2]+'</small><b>'+c[1]+'</b></button>').join(''),
+   programmedCategories().map(c=>'<button class="stream-tab" role="tab" id="stream-tab-'+c[0]+'" data-stream-tab="'+c[0]+'" aria-controls="stream-category-content" aria-selected="false"><small>'+c[2]+'</small><b>'+c[1]+'</b></button>').join(''),
    '</div></nav>',
    '<section class="stream-spotlight" id="streamPlayerStage" aria-label="Channel player"><div class="stream-monitor" id="streamMonitor"><div class="stream-screen"><span class="stream-monitor-kicker">BIG LWA / TUNING IN</span><div class="stream-screen-center"><span>✳</span><strong>loading the current program</strong><small>today’s picks · original hosts</small></div><span class="stream-screen-bottom">BIG LWA · independent programming</span></div></div>',
    '<div class="stream-channel-copy" id="streamCategoryCopy"></div></section>',
@@ -455,13 +455,13 @@
   const dock=root.querySelector('.stream-dock-options');
   if(dock)dock.hidden=state.category==='music';
   root.querySelectorAll('[data-stream-tab]').forEach(button=>{
-   const current=button.dataset.streamTab===state.category;
+   const current=button.dataset.streamTab===state.category||(button.dataset.streamTab==='podcast'&&state.category==='music');
    button.classList.toggle('is-active',current);
    button.setAttribute('aria-selected',String(current));
    button.tabIndex=current?0:-1;
   });
   const panel=root.querySelector('#stream-category-content');
-  if(panel)panel.setAttribute('aria-labelledby','stream-tab-'+state.category);
+  if(panel)panel.setAttribute('aria-labelledby','stream-tab-'+(state.category==='music'?'podcast':state.category));
   const select=root.querySelector('select[name="category"]');
   if(select&&!select.dataset.edited)select.value=state.category;
   syncSqwidzStage();
@@ -619,6 +619,7 @@
  }
  function dailyPlaylist(category,day=state.day,offset=state.shuffleOffset){
   if(category==='podcast'){
+   if(state.radioSection==='podcast')return shuffled(featured.filter(item=>item.category==='podcast'&&/podcast/i.test(item.source||'')&&playableFeature(item)).map(item=>({kind:'feature',id:item.id,title:item.title,subtitle:item.subtitle,status:'▶ PLAY EPISODE'})),day,category,offset);
    // Only direct HTTPS audio streams are treated as LWA Radio channels.
    const radio=stations.flatMap((station,index)=>audioStreams[index]&&/^https:\/\//.test(audioStreams[index])
     ?[{kind:'station',index,title:station[0],subtitle:station[1],status:'▶ PLAY IN BIG LWA'}]:[]);
@@ -1082,16 +1083,19 @@
     'Watch YouTube music, ASMR and frequency recordings alongside Twitch channels. Current live availability is not guaranteed.'],
    sqwibz:['CH 04 / THE TIMELINE','sqwidz',
     'Short thoughts, long reads, photos and clips from the community. Float a post, reply and keep the conversation moving.'],
-   music:['CH 05 / THE MUSIC ROOM','music',
+   music:['LWA RADIO / MUSIC','music',
     'Connect the sounds you love. Bring playlists and libraries into Stream once authorized music services are ready.'],
   }[state.category];
-  copy.innerHTML='<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p>'+
+  copy.innerHTML=((state.category==='podcast'||state.category==='music')?'<nav class="stream-radio-modes" aria-label="Radio listening"><button type="button" data-radio-section="podcast" aria-pressed="'+(state.category==='podcast'&&state.radioSection==='podcast')+'">Podcasts</button><button type="button" data-radio-section="music" aria-pressed="'+(state.category==='music'||state.radioSection==='music')+'">Music</button></nav>':'')+'<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p>'+
    '<div id="streamDiscoveryPicker" class="stream-discovery-picker" aria-label="Daily Discovery playable choices"></div>';
+  if(state.category==='podcast'&&state.radioSection==='podcast'){copy.querySelector('h2').textContent='podcasts';copy.querySelector('p').textContent='Conversations, stories and episodes from their original creators.';copy.querySelector('.stream-eyebrow').textContent='LWA RADIO / PODCASTS';}
   if(state.category==='sqwibz')sqRight(sqCurrent(),null);
   if(state.category==='music'){
    detail.innerHTML=musicSetupMarkup();
    root.querySelector('#streamDiscoveryPicker')?.replaceChildren();
    musicStandby();
+  }else if(state.category==='podcast'&&state.radioSection==='podcast'){
+   detail.innerHTML='<h3>podcasts</h3><p>Conversations, stories and original episodes.</p><div id="streamRadioExtras" class="stream-radio-extras-grid"></div>';renderRadioExtras();
   }else if(state.category==='podcast'){
    detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA RADIO / COLLEGE DIAL</span><h3>all 16 campus stations</h3><p>Press Play to listen directly in Big LWA. The complete campus directory is kept below; stations still missing an in-site audio source are marked pending rather than removed.</p></div><label>Find a station <input id="streamStationSearch" type="search" placeholder="School or call letters" autocomplete="off"></label></div><div class="stream-stations" id="streamStations"></div><p class="stream-directory-note">Audio streams remain hosted by their original broadcasters or listed stream relays. No partnership is implied.</p><section class="stream-radio-extras" aria-label="More LWA radio programs and mixtapes"><div class="stream-section-head"><div><span class="stream-eyebrow">LWA RADIO / EXTRA TUNES</span><h3>mixtapes, podcasts &amp; DJ sets</h3><p>Our additional original-source listening directory. Tracks with playable clips can tune into Stream; other entries open their credited publisher.</p></div></div><div id="streamRadioExtras" class="stream-radio-extras-grid"></div></section>';
    const filter=detail.querySelector('#streamStationSearch');
@@ -1099,6 +1103,7 @@
    renderStations('');
    renderRadioExtras();
    window.BigLWARadioDirectory?.mount?.(root,{play:playDirectoryRadio});
+   const services=document.createElement('details');services.innerHTML='<summary>Music services & playlists</summary>'+musicSetupMarkup();detail.append(services);
   }else if(state.category==='lwa-tv'){
    detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA TV / READY TO WATCH</span><h3>pick a video, stay here</h3><p>Use the thumbnail and arrows above to browse playable clips and cartoons. Channel-page links without a playable video are not shown as TV programs. Ballroom / CCTV remains within LWA TV.</p></div></div><p class="stream-directory-note">Original publishers control their own embedding permissions; this does not imply a Big LWA partnership.</p>';
   }else if(state.category==='sqwibz'){
@@ -1113,7 +1118,7 @@
  }
  function renderRadioExtras(){
   const host=root?.querySelector('#streamRadioExtras');if(!host)return;
-  const extras=featured.filter(item=>item.category==='podcast'&&/^https:\/\//.test(item.url||''));
+  const extras=featured.filter(item=>item.category==='podcast'&&(state.radioSection==='podcast'?/podcast/i.test(item.source||''):!/podcast/i.test(item.source||''))&&/^https:\/\//.test(item.url||''));
   host.innerHTML=extras.map(item=>{
    const clip=item.videoId&&/^[A-Za-z0-9_-]{11}$/.test(item.videoId);
    return '<article class="stream-radio-extra"><span class="stream-eyebrow">'+escapeHTML(item.source||'ORIGINAL PROGRAM')+'</span><strong>'+escapeHTML(item.title)+'</strong><small>'+escapeHTML(item.creator||'')+'</small><p>'+escapeHTML(item.subtitle||'')+'</p><div class="stream-radio-extra-actions">'+
@@ -1280,6 +1285,7 @@
   if(button.matches('[data-discovery-play]')){playDiscovery(Number(button.dataset.discoveryPlay));return;}
   if(button.matches('[data-radio-play]')){state.followGuide=false;saveLastPlayed(state.selected);const audio=mediaPortal?.querySelector('#streamRadioAudio');if(!audio)return;if(audio.paused)playRadio(audio,button);else{audio.pause();button.textContent='▶ Play';const status=mediaPortal.querySelector('#streamRadioStatus');if(status)status.textContent='Paused';}return;}
   if(button.matches('[data-stream-episode]')){state.followGuide=false;saveLastPlayed(state.selected);changeArchiveEpisode(Number(button.dataset.streamEpisode));return;}
+  if(button.matches('[data-radio-section]')){state.category='podcast';state.radioSection=button.dataset.radioSection;state.selected=null;paintCategories();renderGrid();renderCategory();tuneCurrent();return;}
   if(button.matches('[data-stream-tab]')){
    const changing=state.category!==button.dataset.streamTab;
    state.category=button.dataset.streamTab;

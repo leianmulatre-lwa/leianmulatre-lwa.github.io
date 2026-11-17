@@ -179,7 +179,7 @@
  // Loading readiness is a one-way transition for a mounted module.
  // A late image, tiny aria-busy pulse, or hydration mutation cannot flash the
  // pixel curtain back over content after it has been revealed.
- let moduleReadyCandidateAt=0,moduleRevealedFor='',moduleStableTimer=0;
+ let moduleReadyCandidateAt=0,moduleRevealedFor='',moduleStableTimer=0,modulePollTimer=0;
  const resetModuleReadiness=()=>{
   moduleReadyCandidateAt=0;moduleRevealedFor='';
   if(moduleStableTimer){clearTimeout(moduleStableTimer);moduleStableTimer=0}
@@ -209,7 +209,7 @@
  function unresolvedImages(el){
   // Lazy images outside the viewport intentionally remain incomplete until
   // someone scrolls. They must never hold an entire widget page hostage.
-  return [...el.querySelectorAll('img:not([loading="lazy"])')].some(img=>!img.complete);
+  return [...el.querySelectorAll('img')].some(img=>{if(img.closest('.lwa-curtain'))return false;const r=img.getBoundingClientRect();const visible=r.width>0&&r.height>0&&r.top<innerHeight&&r.bottom>0;return visible&&!img.complete;});
  }
  function loadingState(){
   if(!window.document?.getElementById)return;
@@ -222,14 +222,14 @@
    if(!moduleCurtain||!shell.contains(moduleCurtain))moduleCurtain=curtain(shell,'Loading '+key,'module');
    moduleCurtain.querySelector('.lwa-curtain-label').textContent='loading '+key;
    const heading=shell.querySelector('.module-heading');const bounds=shell.getBoundingClientRect();const head=heading?.getBoundingClientRect();
-   const curtainOffset=Math.max(0,(head?head.bottom:bounds.top)-bounds.top+16);shell.style.setProperty('--lwa-loading-top',curtainOffset+'px');moduleCurtain.style.top=curtainOffset+'px';
-   const busy=space.querySelector('[aria-busy="true"]:not(.lwa-curtain)');
+   const curtainOffset=0;shell.style.setProperty('--lwa-loading-top',curtainOffset+'px');moduleCurtain.style.top=curtainOffset+'px';
+   const busy=[...space.querySelectorAll('[aria-busy="true"]:not(.lwa-curtain)')].find(node=>node!==shell);
    const veve=key==='veve';
    const feed=veve?window.BigLWAVeve?.status?.():null;
    // The Veve API owns the data fetch lifecycle: public posts, Sqwidz, and
    // the final render. Do NOT wait for lazy photos below the landing viewport.
    const readyCandidate=veve?Boolean(feed?.ready&&feed?.mounted):
-     (Date.now()-moduleStarted>=320 && !unresolvedImages(shell) && !busy);
+     (Date.now()-moduleStarted>=900 && !unresolvedImages(shell) && !busy);
    // Demand a brief stable ready interval so rapid auth/render mutations do not
    // reveal unfinished UI. Once revealed, never re-show the curtain on this
    // module mount, even if a later widget/network request becomes busy.
@@ -247,10 +247,13 @@
      }
    }
    const visible=moduleRevealedFor!==key&&viewAnywayFor!==key;
+   if(visible&&!modulePollTimer)modulePollTimer=setTimeout(()=>{modulePollTimer=0;schedule()},250);
    moduleCurtain.hidden=!visible;
    // Drive the top-left dots from the very same boolean as the module curtain.
    setModuleLoading(visible);
    if(visible)moduleCurtain.style.zIndex='1502';
+   const bypass=moduleCurtain.querySelector('.lwa-curtain-bypass');if(bypass){bypass.hidden=Date.now()-moduleStarted<1200;bypass.setAttribute('aria-label','Enter this page');}
+   if(shell.getAttribute('aria-busy')!==String(visible))shell.setAttribute('aria-busy',String(visible));
    shell.classList.toggle('lwa-curtain-veve-pending',veve&&visible);
    shell.classList.toggle('lwa-curtain-loading',visible);
    const progress=moduleCurtain.querySelector('.lwa-curtain-progress');
