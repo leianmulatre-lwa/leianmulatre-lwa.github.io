@@ -204,8 +204,8 @@
    'Continue to '+provider.name+' for live quote ↗';
   final.href=provider.url; // Set the route-specific URL only upon click.
   const pickup=from.closest('label'),dropoff=to.closest('label');
-  if(pickup?.firstChild?.nodeType===3)pickup.firstChild.textContent=mode==='rides'?'Pickup location':'From';
-  if(dropoff?.firstChild?.nodeType===3)dropoff.firstChild.textContent=mode==='rides'?'Dropoff location':'To';
+  if(pickup?.firstChild?.nodeType===3)pickup.firstChild.textContent=mode==='rides'?'📍 Pickup location':'📍 Start';
+  if(dropoff?.firstChild?.nodeType===3)dropoff.firstChild.textContent=mode==='rides'?'📍 Dropoff location':'📍 Destination';
   tripInfo.textContent=mode==='rides'?
    'Pickup now · For you · No live traffic or automatic location access.':
    mode==='food'?'Explore restaurants on the map without leaving BIG LWA. Orders happen with the provider.':

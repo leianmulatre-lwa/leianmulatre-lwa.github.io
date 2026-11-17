@@ -299,17 +299,17 @@ body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"]{
 }
 body:not(.night-mode) #studioApp #orbit::before,
 body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"]::before{
- background-image:radial-gradient(circle at 9px 13px,rgba(84,54,126,.82) 0 1.1px,transparent 2.1px),
- radial-gradient(circle at 33px 37px,rgba(151,85,129,.68) 0 .9px,transparent 1.8px)!important;
+ background-image:radial-gradient(circle at 9px 13px,#ffffff 0 1.1px,transparent 2.1px),
+ radial-gradient(circle at 33px 37px,#ffffff 0 .9px,transparent 1.8px)!important;
 }
 body:not(.night-mode) #studioApp #orbit::after,
 body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"]::after{
- background-image:radial-gradient(circle at 23px 19px,rgba(71,86,146,.68) 0 .85px,transparent 1.9px),
- radial-gradient(circle at 47px 59px,rgba(134,84,160,.68) 0 1px,transparent 1.9px)!important;
+ background-image:radial-gradient(circle at 23px 19px,#ffffff 0 .85px,transparent 1.9px),
+ radial-gradient(circle at 47px 59px,#ffffff 0 1px,transparent 1.9px)!important;
 }
 body:not(.night-mode) #studioApp :is(#orbit,#moduleWorkspace[data-module-key="orbit"])>.orbit-space-canvas{
- mix-blend-mode:multiply!important;
- filter:invert(1) sepia(.25) saturate(1.8) hue-rotate(210deg) brightness(.75)!important;
+ mix-blend-mode:screen!important;
+ filter:grayscale(1) brightness(1.8)!important;
  opacity:.59!important;
 }
 body:not(.night-mode) #studioApp #orbit{border-color:rgba(139,101,157,.53)!important;box-shadow:inset 0 0 0 1px rgba(255,255,255,.48),0 9px 24px rgba(94,71,111,.13)!important}

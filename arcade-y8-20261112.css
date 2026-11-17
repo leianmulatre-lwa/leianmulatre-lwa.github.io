@@ -154,3 +154,12 @@
   animation:none!important;transform:none!important;will-change:auto!important;
  }
 }
+
+/* Let the embed own a single aspect box; no inherited cabinet min-height. */
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen.module-game-viewport.is-embed{display:flex!important;flex-direction:column!important;height:auto!important;min-height:0!important;padding:0!important;aspect-ratio:auto!important}
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen.module-game-viewport.is-embed>iframe{display:block!important;position:relative!important;flex:none!important;inset:auto!important;width:100%!important;height:auto!important;min-height:0!important;aspect-ratio:var(--game-ratio,4 / 3)!important}
+#studioApp #map .studio-map-preview-slot .studio-map-still{height:auto!important;max-height:none!important;aspect-ratio:4/3;object-fit:contain!important;background:#a4cedc!important}
+#studioApp #map .studio-map-scene{display:none!important}
+
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen.module-game-viewport.is-embed{max-width:var(--game-max-width,100%)!important;margin-inline:auto!important}
+#studioApp #moduleWorkspace[data-module-key="games"] #arcadeScreen.module-game-viewport.is-embed:fullscreen{max-width:100vw!important}

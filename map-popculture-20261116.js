@@ -83,6 +83,19 @@
   const caption=el('p','map-culture-intro',
     'Follow the sounds, scenes and neighborhoods that shaped pop culture. Curated places, not live event listings.');
   host.append(title,caption);
+  const history=el('section','map-culture-history');
+  history.append(el('h3','','This day in pop culture'));
+  const news=el('p','','Loading the latest history entry…');history.append(news);host.append(history);
+  fetch('https://public-api.wordpress.com/rest/v1.1/sites/writerofpop.com/posts/?number=1&search=Pop%20Culture%20Flashback&fields=title,excerpt,URL,date', {signal:AbortSignal.timeout(9000)})
+   .then(r=>{if(!r.ok)throw Error();return r.json()})
+   .then(data=>{
+    const post=data.posts?.[0];if(!post)throw Error();
+    const url=new URL(post.URL);if(url.protocol!=='https:'||url.hostname!=='writerofpop.com')throw Error();
+    const plain=html=>new DOMParser().parseFromString(String(html),'text/html').body.textContent.trim();
+    const words=plain(post.title).split(/\s+/).slice(0,20);
+    const excerpt=plain(post.excerpt).split(/\s+/).slice(0,Math.max(0,25-words.length)).join(' ');
+    news.replaceChildren(el('strong','',words.join(' ')),el('p','',excerpt+'…'),source('Read the full story · Writer of Pop Culture ↗',url.href));
+   }).catch(()=>{news.textContent='History is temporarily unavailable. Try Culture again shortly.';});
   const tabs=el('div','map-culture-categories');tabs.setAttribute('role','group');
   tabs.setAttribute('aria-label','Cultural location categories');host.append(tabs);
   const gallery=el('div','map-culture-grid');host.append(gallery);

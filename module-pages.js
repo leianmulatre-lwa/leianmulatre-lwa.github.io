@@ -2802,7 +2802,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
        '<div class="module-launchers" id="trendingRooms">'+allRooms.map((r,i)=>chip(r,i)).join('')+'</div></section>'+
        '<section class="module-card wide lounge-im" aria-label="Lounge draft window">'+
        '<header class="lounge-im-title"><h2>'+esc(room.name)+' · Instant Message</h2></header>'+
-       '<div class="lounge-im-menubar"><span>Conversation</span><span>Private draft</span></div>'+
+       '<div class="lounge-im-menubar"><span>File　 Edit　 People</span><span>Private draft</span></div>'+
        '<div class="lounge-im-pane"><span class="lounge-im-avatar" aria-hidden="true">★</span><div class="module-chat" id="roomChat" aria-label="Draft messages">'+
        (messages.length?messages.map(m=>'<div class="module-bubble"><b>'+ (m.mine?'Me':'Draft') +':</b> '+esc(m.text)+'</div>').join(''):'<p>No messages yet.</p>')+'</div></div>'+
        '<form class="lounge-im-form" id="roomForm"><div class="lounge-im-pane"><span class="lounge-im-avatar lounge-im-self" aria-hidden="true">✦</span>'+
@@ -3260,6 +3260,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       emulatorScreen.classList.remove('is-launcher');
       emulatorScreen.classList.add('is-embed');
       emulatorScreen.dataset.gameRatio=game.provider==='Y8'?'4:3':'wide';
+      emulatorScreen.style.setProperty('--game-ratio',game.ratio||'4 / 3');
+      emulatorScreen.style.setProperty('--game-max-width',game.provider==='Y8'?'800px':'100%');
       emulatorScreen.classList.add('is-playing');
       emulatorTitle.textContent=(uri.origin===location.origin?'now playing · ':'web view · ')+game.title;
       const head=createPlayerHead(game);
@@ -4452,7 +4454,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       image=document.createElement('img');
       image.className='studio-map-still';
       image.src='/assets/studio-defaults/map-bikini-bottom-fallback.webp';
-      image.alt='Illustrated tropical island map preview';
+      image.alt='Bikini Bottom island map · open Map to explore';
       image.decoding='async';image.loading='lazy';
       image.draggable=false;
       slot.appendChild(image);

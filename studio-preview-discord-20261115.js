@@ -29,6 +29,14 @@
     #loginPage .login-mini-radio {position:relative}
     #loginPage .login-mini-radio::before {content:'FM • NOW PLAYING';position:absolute;top:12%;left:6%;font:700 clamp(4px,.48vw,7px)/1 monospace;color:#72c989;letter-spacing:.09em}
     #loginPage .login-mini-radio::after {content:'◀    ▶    ▶▶';position:absolute;bottom:9%;left:28%;right:28%;border:1px solid #40654b;border-radius:3px;text-align:center;color:#8cde9c;background:#192b21;font:700 clamp(5px,.6vw,9px)/1.4 monospace}
+    #loginPage .login-mini-main *{box-sizing:border-box;min-width:0}
+    #loginPage .login-mini-card{overflow:hidden}
+    #loginPage .login-mini-card header{gap:2px;overflow:hidden}
+    #loginPage .login-mini-window-dots{flex:none}
+    #loginPage .login-mini-heading{overflow:hidden}
+    #loginPage .login-mini-heading>b{overflow:hidden;text-overflow:ellipsis}
+    #loginPage .login-mini-top{gap:4px;overflow:hidden}
+    #loginPage .login-mini-top-right{flex-shrink:1;overflow:hidden;text-overflow:ellipsis}
     /* Laptop is a scaled Studio composition, not a separate desktop design. */
     #loginPage .login-studio-desktop {--mini-ink:#422b32;font-size:clamp(5px,.63vw,10px)!important}
     #loginPage .login-mini-top {min-height:0;height:8.8%;padding:.8% 2%;box-sizing:border-box}

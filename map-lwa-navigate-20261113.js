@@ -43,6 +43,7 @@
   '<div class="map-nav-actions">'+
     '<button type="button" id="mapNavGo" disabled>Go · start navigation</button>'+
     '<button type="button" id="mapNavStop" hidden>Stop navigation</button>'+
+    '<button type="button" id="mapNavHeading" aria-pressed="true">Heading up</button>'+
     '<button type="button" id="mapNavVoice" aria-pressed="false">🔇 Voice off</button>'+
     '<button type="button" id="mapNavSpeakDestination">🎙 Say destination</button>'+
     '<button type="button" id="mapNavReplan" hidden>Replan from my location</button>'+
@@ -62,6 +63,7 @@
  const nextText=get('mapNavNextText'),distanceLabel=get('mapNavDistance'),list=get('mapNavTurns');
  const learnStreets=get('mapNavLearnStreets'),streetGuide=get('mapNavStreetGuide');
  let planned=null,watchId=null,locMarker=null,voiceEnabled=false,offCount=0,lastFix=null;
+ let headingUp=true;
  let announced=new Set(),navigationToken=0;
  const showStatus=text=>{status.textContent=text;};
  function say(text){
@@ -84,6 +86,7 @@
   }
   try{window.speechSynthesis?.cancel();}catch{}
   const bridge=window.BigLWAMapBridge;
+  bridge?.map?.setBearing?.(0);
   if(locMarker&&bridge?.map){bridge.map.removeLayer(locMarker);locMarker=null;}
   go.hidden=false;stopButton.hidden=true;go.disabled=!planned;replan.hidden=true;
   if(!silent)showStatus('Navigation stopped. Location tracking is off.');
@@ -137,6 +140,10 @@
     }).addTo(bridge.map).bindTooltip('Your approximate position');
    }else locMarker.setLatLng(where);
    bridge.map.panTo(where,{animate:true,duration:0.45});
+   const heading=position.coords.heading;
+   if(headingUp&&Number.isFinite(heading)&&Number.isFinite(position.coords.speed)&&position.coords.speed>.5){
+    bridge.map.setBearing?.(-heading);
+   }
   }
   if(!Number.isFinite(accuracy)||accuracy>100){
    showStatus('GPS accuracy is low ('+Math.round(accuracy||0)+' m). Keep checking surroundings.');
@@ -215,6 +222,12 @@
  learnStreets?.addEventListener('change',()=>{
   streetGuide.hidden=!learnStreets.checked;
   if(learnStreets.checked)streetGuide.textContent='Street names come from the route instructions; confirm against road signs.';
+ });
+ get('mapNavHeading').addEventListener('click',()=>{
+  headingUp=!headingUp;
+  get('mapNavHeading').setAttribute('aria-pressed',String(headingUp));
+  get('mapNavHeading').textContent=headingUp?'Heading up':'North up';
+  if(!headingUp)window.BigLWAMapBridge?.map?.setBearing?.(0);
  });
  stopButton.addEventListener('click',()=>stop());
  voiceButton.addEventListener('click',()=>{
