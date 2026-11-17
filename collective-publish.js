@@ -25,8 +25,21 @@ async function postWriter(){
   throw new Error("The feed is still loading. Try again in a moment.");
 }
 
-async function uploadBlob(blob){if(!(blob instanceof Blob)||!blob.size)throw new Error("Choose or capture an image first.");const {auth}=await firebase(),user=auth.currentUser;if(!user)throw new Error("Sign in before uploading to the collective feed.");const token=await user.getIdToken();const type=clean(blob.type)||"image/jpeg";const res=await fetch(WORKER+"/media/feed-image",{method:"POST",headers:{"Authorization":"Bearer "+token,"Content-Type":type},body:blob});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||"The image could not be uploaded.");
-  try{
+let previewCapability=null;
+function previewServiceReady(){
+ if(previewCapability)return previewCapability;
+ previewCapability=fetch(WORKER+'/media/health',{
+  credentials:'omit',signal:AbortSignal.timeout?.(2400)
+ }).then(async response=>{
+  if(!response.ok)return false;
+  const data=await response.json().catch(()=>({}));
+  return data.configured===true&&Array.isArray(data.methods)&&
+   data.methods.some(name=>String(name).startsWith('POST /media/feed-image-variant'));
+ }).catch(()=>false);
+ return previewCapability;
+}
+async function uploadBlob(blob){if(!(blob instanceof Blob)||!blob.size)throw new Error("Choose or capture an image first.");const {auth}=await firebase(),user=auth.currentUser;if(!user)throw new Error("Sign in before uploading to the collective feed.");const token=await user.getIdToken();const previewSupported=previewServiceReady();const type=clean(blob.type)||"image/jpeg";const res=await fetch(WORKER+"/media/feed-image",{method:"POST",headers:{"Authorization":"Bearer "+token,"Content-Type":type},body:blob});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||"The image could not be uploaded.");
+  if(await previewSupported)try{
    const {uploadFeedPreview}=await import('./media-renditions.js?v=20261116-feed-webp-v1');
    const variant=await uploadFeedPreview(blob,data,{worker:WORKER,token});
    if(variant?.url)data.thumbnailUrl=variant.url;
