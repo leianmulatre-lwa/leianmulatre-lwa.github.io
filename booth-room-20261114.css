@@ -232,3 +232,12 @@ body.night-mode #studioApp #moduleWorkspace[data-module-key="rooms"] .room-role-
 #studioApp .lounge-im textarea{resize:vertical}
 #studioApp .lounge-im-actions button{border:1px solid #8c8b82!important;color:#111!important;background:linear-gradient(white,#e5e2d2)!important;border-radius:3px!important}
 @media(max-width:560px){#studioApp .lounge-im-pane{grid-template-columns:30px minmax(0,1fr)}#studioApp .lounge-im-avatar{padding:5px;font-size:17px}}
+
+/* Compact, opaque AIM window; the translucent module card rules must not win. */
+#studioApp #moduleWorkspace[data-module-key="rooms"] .lounge-im{width:min(100%,760px)!important;justify-self:center;background:#ece9d8!important;border:3px outset #d7d5c7!important;border-radius:0!important;box-shadow:4px 5px 0 #0003!important;color:#111!important}
+#studioApp #moduleWorkspace .lounge-im-title{background:linear-gradient(90deg,#07398c,#0874df)!important;color:white!important;border-radius:0!important}
+#studioApp #moduleWorkspace .lounge-im-title h2{color:white!important;-webkit-text-fill-color:white!important;font:700 13px Tahoma,Arial,sans-serif!important;text-transform:none!important}
+#studioApp #moduleWorkspace .lounge-im .module-chat{height:220px!important;min-height:0!important;font:14px/1.5 'Times New Roman',serif!important}
+#studioApp #moduleWorkspace .lounge-im textarea{height:100px!important;min-height:80px!important;font:14px/1.4 'Times New Roman',serif!important}
+#studioApp .lounge-im-avatar{background:radial-gradient(circle at 8px 8px,#fff9 1px,transparent 2px) 0 0/16px 16px,linear-gradient(#62c7ee,#2687bd)!important;border:2px inset #eee9d6}
+#studioApp .lounge-im-menubar{border-bottom:1px solid #aaa78f}

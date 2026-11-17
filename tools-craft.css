@@ -463,34 +463,5 @@
 }
 
 
-/* Nov 16 · carry established BIG LWA symbols onto the front of the
-   original stitched Workshop blocks, without changing their physical art.
-   paintR/fileR remain unchanged pending their final symbol choices. */
-#craftSuite .craft-tile[data-craft-card="image-desk"] .craft-block-main,
-#craftSuite .craft-tile[data-craft-card="visualizr"] .craft-block-main,
-#craftSuite .craft-tile[data-craft-card="photocraft"] .craft-block-main,
-#craftSuite .craft-tile[data-craft-card="effectcraft"] .craft-block-main{position:relative;isolation:isolate}
-#craftSuite .craft-tile:is([data-craft-card="image-desk"],[data-craft-card="visualizr"],[data-craft-card="photocraft"],[data-craft-card="effectcraft"]) .craft-block-main::before{
- content:"";position:absolute;left:24%;top:30%;width:43%;height:41%;
- z-index:2;pointer-events:none;box-sizing:border-box;
- background:#f7e7c5;border:1px solid #8a6c5b;border-radius:2px;
- box-shadow:inset 1px 1px 1px #ffffff4a;transform:skewY(-1deg)
-}
-#craftSuite .craft-tile:is([data-craft-card="image-desk"],[data-craft-card="visualizr"],[data-craft-card="photocraft"],[data-craft-card="effectcraft"]) .craft-block-main::after{
- content:"";position:absolute;left:28%;top:33%;width:35%;height:34%;z-index:3;
- pointer-events:none;display:grid;place-items:center;background-repeat:no-repeat;
- background-position:center;background-size:contain;color:#572b37;
- font:800 29px/1 Georgia,serif;text-align:center
-}
-#craftSuite .craft-tile[data-craft-card="image-desk"] .craft-block-main::after{
- background-image:url('/assets/quick-notes-symbol-generated.png')
-}
-#craftSuite .craft-tile[data-craft-card="visualizr"] .craft-block-main::after{
- background-image:url('/assets/projects-symbol.svg?v=20260924-projects-symbol-1')
-}
-#craftSuite .craft-tile[data-craft-card="photocraft"] .craft-block-main::after{
- content:"✺";color:#713b4d;font-size:27px
-}
-#craftSuite .craft-tile[data-craft-card="effectcraft"] .craft-block-main::after{
- content:"◇";color:#64315f;font-size:32px
-}
+
+#craftSuite .craft-block-pair{filter:drop-shadow(2px 4px 3px #291b2940)}

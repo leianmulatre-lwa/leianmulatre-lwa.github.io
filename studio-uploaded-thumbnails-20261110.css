@@ -11,7 +11,7 @@
   width:104%!important;
   container-type:inline-size;
   height:auto!important;
-  aspect-ratio:1672 / 1500!important;
+  aspect-ratio:1672 / 1000!important;
   padding:0!important;
   margin:0 -2% 10px!important;
   overflow:visible!important;
@@ -27,7 +27,9 @@
   inset:0;
   z-index:3;
   pointer-events:none;
-  background:transparent url('/assets/biglwa-myfeed-filmstrip-20261110.webp') center / 100% 100% no-repeat;
+  background:transparent url('/assets/biglwa-myfeed-filmstrip-20261110.webp') center 76% / 100% 150% no-repeat;
+  border-radius:24px;
+  filter:drop-shadow(0 5px 5px #29131b44);
 }
 /* Put the existing four media buttons exactly behind the PNG apertures
  * x=[74..423,468..815,859..1206,1250..1599], y=[481..723]. */
@@ -37,9 +39,9 @@
   display:grid!important;
   z-index:1!important;
   left:4.425%!important;
-  top:51.12%!important;
+  top:38.68%!important;
   width:91.23%!important;
-  height:25.72%!important;
+  height:38.58%!important;
   min-width:0!important;
   min-height:0!important;
   max-height:none!important;
@@ -102,7 +104,7 @@
 #studioApp #biglwaFeedHero .biglwa-feed-hero-head {
   position:absolute!important;
   z-index:4!important;
-  top:19%!important;
+  top:8%!important;
   left:8%!important;
   right:8%!important;
   gap:4px;
@@ -262,7 +264,7 @@ html.biglwa-preview-mode #studioApp #camera .booth-recent-film[data-samples-only
   position:absolute;
   z-index:5;
   left:50%;
-  top:44%;
+  top:42%;
   transform:translate(-50%,-50%) rotate(-2deg);
   display:grid;
   place-items:center;
@@ -282,3 +284,10 @@ html.biglwa-preview-mode #studioApp #diary .diary-page > .studio-journal-initial
  object-position:center!important;margin:5px auto 8px!important;
  border:0!important;background:transparent!important;box-shadow:none!important
 }
+
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-head{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:4px 12px!important}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-head h3{margin:0!important;font-size:clamp(12px,4.6cqi,22px)!important}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid{filter:drop-shadow(0 3px 3px #160c1090)}
+#studioApp #camera .contact-sheet.photobooth-reference-preview{clip-path:none!important;overflow:visible!important;filter:drop-shadow(0 4px 4px #29131b33)}
+#studioApp #camera .photobooth-reference-preview > img{transform:none!important}
+#studioApp #camera .contact-sheet .booth-recent-film{left:6.98%!important;top:9.35%!important;width:17.45%!important;height:80.73%!important}

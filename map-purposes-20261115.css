@@ -74,3 +74,11 @@ body.embedded .map-purpose-disclaimer{font-size:10px!important;margin-top:11px!i
  body.embedded .map-purpose-connections{grid-template-columns:1fr}
  body.embedded .map-purpose-heading small{font-size:9px}
 }
+
+.map-route-pin span{display:grid;place-items:center;width:30px;height:34px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);color:white;border:2px solid white;box-shadow:0 2px 4px #0005;font:bold 14px Arial}
+.map-side{min-width:0;scrollbar-gutter:stable}.map-side .map-purpose-buttons{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.map-side .map-nav-turns{max-height:180px;overflow:auto}.map-side .map-nav-caveat{font-size:11px}
+.map-side details{border:1px solid #b9aab0;border-radius:8px;padding:10px;margin:10px 0;background:#fff9f2;color:#342730}.map-side summary{cursor:pointer;font-weight:bold}.map-side select{max-width:100%;width:100%;margin:8px 0;padding:8px}.map-side .metro-fare{font-size:12px;line-height:1.5}
+.map-culture-history{border:2px inset #ddd;background:#fffef8;padding:12px;margin:12px 0}.map-culture-history article{padding:9px 0;border-bottom:1px solid #ddd}.map-culture-history a{color:#592a43}
+
+.metro-stations{max-height:180px;overflow:auto;padding-left:22px}.metro-stations button{font-size:12px;padding:4px;background:transparent;border:0;text-align:left;text-decoration:underline}

@@ -21,8 +21,8 @@
   planner.innerHTML=
     '<div class="map-plan-head"><h2>Where to, bookini?</h2><span aria-hidden="true">↗</span></div>'+
     '<div class="map-trip-fields">'+
-      '<label>From<input id="mapTripFrom" type="search" autocomplete="off" maxlength="180" placeholder="A place, venue, or saved pin"></label>'+
-      '<label>To<input id="mapTripTo" type="search" autocomplete="off" maxlength="180" placeholder="Where are we headed?"></label>'+
+      '<label>📍 Start<input id="mapTripFrom" type="search" autocomplete="off" maxlength="180" placeholder="A place, venue, or saved pin"></label>'+
+      '<label>📍 Destination<input id="mapTripTo" type="search" autocomplete="off" maxlength="180" placeholder="Where are we headed?"></label>'+
       '<button type="button" id="mapTripPlan">Explore trip</button>'+
     '</div>'+
     '<div class="map-mode-switch" role="group" aria-label="Travel mode">'+
@@ -190,6 +190,7 @@
       return point;
     }finally{clearTimeout(timer);}
   }
+  let endpointPins=null;
   const clearLine=()=>{const bridge=window.BigLWAMapBridge;
     if(routeLine&&bridge?.map){bridge.map.removeLayer(routeLine);}routeLine=null;};
   const travelLabel=()=>({'bicycling':'Bike','transit':'Transit','walking':'Walk','driving':'Drive'}[mode]||'Trip');
@@ -213,6 +214,12 @@
       const destination=await resolvePlace(byId('mapTripTo').value);
       lastResolvedOrigin=origin;lastResolvedDestination=destination;
       if(lastPlan!==stamp)return;
+      const bridge=window.BigLWAMapBridge;
+      if(endpointPins) endpointPins.remove();
+      if(bridge?.map){
+        endpointPins=bridge.L.layerGroup().addTo(bridge.map);
+        [origin,destination].forEach((p,i)=>bridge.L.marker([p.lat,p.lng],{icon:bridge.L.divIcon({className:'map-route-pin',html:'<span style="background:'+(i?'#a02e50':'#247453')+'">'+(i?'B':'A')+'</span>',iconSize:[30,40],iconAnchor:[15,40]})}).addTo(endpointPins).bindTooltip(i?'Destination':'Start'));
+      }
       if(kmBetween(origin,destination)<.02)throw Error('Those points are effectively the same place.');
       // The route remains in this widget. No Google Maps handoff.
       const aerial=kmBetween(origin,destination),shortDistance=(aerial<10?aerial.toFixed(1):Math.round(aerial))+' km';
@@ -225,6 +232,7 @@
         directions.href=url.href;directions.target='_blank';directions.rel='noopener noreferrer';
         directions.textContent='View transit directions in Apple Maps ↗';
         result.replaceChildren(directions);
+        document.getElementById('metroTransitDesk')?.setAttribute('open','');
         return;
       }
       const provider=window.BigLWAMapRouteProvider;

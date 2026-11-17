@@ -16,7 +16,7 @@ function runtime(){
   getAttribute(key){return this.attrs[key]}
  });
  const planner=make('mapTripPlanner'),mapEl=make('map');
- const ids=['mapNavGo','mapNavStop','mapNavVoice','mapNavSpeakDestination','mapNavReplan',
+ const ids=['mapNavHeading','mapNavGo','mapNavStop','mapNavVoice','mapNavSpeakDestination','mapNavReplan',
   'mapNavStatus','mapNavDistance','mapNavNextText','mapNavTurns','mapTripFrom','mapTripPlan','mapTripTo'];
  ids.forEach(id=>nodes.set(id,make(id)));
  const nextBox=make('.map-nav-next');nodes.set('.map-nav-next',nextBox);
@@ -28,7 +28,7 @@ function runtime(){
  const speech={spoken:[],cancel(){},speak(u){this.spoken.push(u.text)}};
  const window={
   BigLWAMapBridge:{map:{
-   panTo:()=>{},removeLayer:()=>{}
+   panTo:()=>{},removeLayer:()=>{},setBearing(value){this.bearing=value}
   },L:{circleMarker:()=>({addTo(){return this},bindTooltip(){return this},setLatLng(){}})}},
   SpeechSynthesisUtterance:class{constructor(text){this.text=text}},
   speechSynthesis:speech,
@@ -87,4 +87,18 @@ test('navigation geometry finds the closest road segment without a server call',
  assert(p&&p.index>0.9&&p.index<1.2);
  assert(p.distance<20);
  assert(r.window.BigLWAMapNavigationGeometry.metersBetween([34,-118],[34.001,-118])>100);
+});
+
+test('moving GPS headings rotate the map; north-up and Stop reset it',()=>{
+ const r=runtime();
+ r.listeners.get('biglwa:map-navigation-route')({detail:{mode:'walking',points:[[34,-118],[34.01,-118]],maneuvers:[{instruction:'Continue',shapeIndex:1}]}});
+ r.callbacks.get('mapNavGo:click')();
+ r.fix()({coords:{latitude:34,longitude:-118,accuracy:8,heading:90,speed:1}});
+ assert.equal(r.window.BigLWAMapBridge.map.bearing,-90);
+ r.callbacks.get('mapNavHeading:click')();
+ assert.equal(r.window.BigLWAMapBridge.map.bearing,0);
+ r.fix()({coords:{latitude:34,longitude:-118,accuracy:8,heading:180,speed:1}});
+ assert.equal(r.window.BigLWAMapBridge.map.bearing,0);
+ r.callbacks.get('mapNavStop:click')();
+ assert.equal(r.window.BigLWAMapBridge.map.bearing,0);
 });
