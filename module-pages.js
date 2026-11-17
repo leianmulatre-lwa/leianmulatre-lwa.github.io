@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news';
+        script.src = '/module-pages.js?v=20261106-studio-unified-v3&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1';
         document.head.appendChild(script);
       }, 250);
     }
@@ -701,17 +701,6 @@
     #studioApp #diary .studio-private-writing,
     #studioApp #diary .studio-public-journal-heading{display:block;position:relative;z-index:4;padding:15px;color:#5f4237;background:#f8eddfb5;font:800 12px/1.45 Georgia,serif}
     #studioApp #diary .studio-public-journal-excerpt{position:relative;z-index:4;text-align:left;padding:8px 20px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;font:600 12px/1.65 Georgia,serif;color:#3e342e}
-    #studioApp #diary .diary-page .studio-journal-initial{
-      position:absolute!important;z-index:9;left:50%!important;top:37%!important;
-      width:64px!important;height:64px!important;max-width:20%!important;
-      display:flex!important;align-items:center!important;justify-content:center!important;
-      box-sizing:border-box!important;padding:0!important;margin:0!important;
-      border:0!important;border-radius:0!important;background:transparent!important;color:#292323;
-      font-family:"CS Bergamot Stitched",Georgia,serif!important;font-weight:700!important;
-      font-size:clamp(25px,5vw,48px)!important;line-height:1!important;letter-spacing:0!important;text-align:center!important;
-      box-shadow:none!important;pointer-events:none!important;transform:translate(-50%,-50%) rotate(-2deg)!important
-    }
-    @media(max-width:520px){#studioApp #diary .diary-page .studio-journal-initial{width:52px!important;height:52px!important;font-size:36px!important}}
     #studioApp #diary .studio-diary-preview small{display:block;margin:0 0 6px;font:800 8px/1 Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#8a6d67}
     #studioApp #diary .studio-diary-preview p{display:-webkit-box;margin:0;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:5;white-space:pre-wrap;overflow-wrap:anywhere;font:600 14px/28px Georgia,"Times New Roman",serif}
     .calendar-shell{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(260px,.7fr);gap:14px;margin-top:20px}.calendar-board{border:1px solid #ddd3ca;background:rgba(255,255,255,.58);border-radius:18px;padding:16px}.calendar-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.calendar-toolbar h2{margin:0;font:600 20px Georgia,serif}.calendar-weekdays,.calendar-days{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.calendar-weekdays span{text-align:center;font:700 8px/1.2 system-ui;text-transform:uppercase;letter-spacing:.08em;color:#8b8179;padding:7px 2px}.calendar-day{position:relative;min-height:88px;border:1px solid #e0d7cf;border-radius:11px;background:rgba(255,255,255,.5);padding:7px;text-align:left;cursor:pointer;color:inherit}.calendar-day.other{opacity:.35}.calendar-day.today{box-shadow:inset 0 0 0 2px rgba(var(--aura-rgb,216,95,109),.55)}.calendar-day.selected{background:rgba(var(--aura-rgb,216,95,109),.12);border-color:rgba(var(--aura-rgb,216,95,109),.55)}.calendar-day-num{font:700 10px system-ui}.calendar-event-chip{display:block;margin-top:5px;padding:4px 5px;border-radius:7px;background:#eee1dc;font:700 8px/1.2 system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.calendar-mini{margin:11px 0 10px;padding:10px;border:1px solid rgba(117,92,79,.16);border-radius:12px;background:rgba(255,255,255,.26)}.calendar-mini-head{display:flex;justify-content:space-between;font:700 9px system-ui;margin-bottom:7px}.calendar-mini-weekdays,.calendar-mini-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}.calendar-mini-weekdays span{padding:2px 0;text-align:center;color:#8b8179;font:800 7px/1 system-ui;text-transform:uppercase}.calendar-mini-grid span{display:grid;place-items:center;min-height:24px;border-radius:6px;font:8px system-ui;background:rgba(255,255,255,.45)}.calendar-mini-grid .today{background:rgba(var(--aura-rgb,216,95,109),.18);box-shadow:inset 0 0 0 1px rgba(var(--aura-rgb,216,95,109),.5);font-weight:800}
@@ -4193,28 +4182,34 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     });
   }
 
-  let activeMap=null;
+  const mapAppUrl='/map-app.html?embed=1&v=20261116-studio-tour';
+  let disposeMap=null;
   function renderMap(){
     // The map is an isolated embedded app. If its data/API fails it must never
     // redirect the signed-in Studio or trigger a sign-out/navigation fallback.
     body.innerHTML=heading('map')+`<style>#biglwaMapApp{display:block;width:100%;height:1250px;border:0;border-radius:0;background:transparent;overflow:hidden}#biglwaMapStatus{margin:0 0 9px;font:600 12px/1.45 system-ui;color:#6b5448}#biglwaMapStatus[hidden],#biglwaMapRetry[hidden]{display:none!important}@media(max-width:760px){#biglwaMapApp{height:1550px}}</style>
       <section aria-label="BIG LWA map">
       <p id="biglwaMapStatus" role="status">Loading your map inside Studio…</p>
-      <iframe id="biglwaMapApp" src="/map-app.html?embed=1&v=20261113-openfreemap-transit-1" loading="eager" referrerpolicy="same-origin"
-       title="BIG LWA interactive map and saved pins" allow="geolocation 'self'; fullscreen" allowfullscreen></iframe>
-      <iframe id="biglwaMapApp" src="/map-app.html?embed=1&v=20261114-inline-pinning-1" loading="eager" referrerpolicy="same-origin"
+      <iframe id="biglwaMapApp" loading="eager" referrerpolicy="same-origin"
        title="BIG LWA interactive map and saved pins" allow="geolocation 'self'; microphone 'self'; fullscreen" allowfullscreen></iframe>
       <button type="button" class="module-action ghost" id="biglwaMapRetry">Reload map only</button>
       </section>`;
     const frame=$('#biglwaMapApp',body),status=$('#biglwaMapStatus',body);
     if(!frame||!status)return;
-    let ready=false;
-    const timer=setTimeout(()=>{
-      if(!frame.isConnected||ready)return;
-      status.textContent='Map is taking longer than expected. You can retry without leaving or signing out of Studio.';
-    },12000);
     const retry=$('#biglwaMapRetry',body);
-    if(retry)retry.hidden=true;
+    let timer;
+    const loadMap=()=>{
+      clearTimeout(timer);
+      status.hidden=false;
+      retry.hidden=true;
+      status.textContent='Loading your map inside Studio…';
+      timer=setTimeout(()=>{
+        status.textContent='Map is taking longer than expected. You can retry without leaving Studio.';
+        retry.hidden=false;
+      },12000);
+      frame.src=mapAppUrl;
+    };
+
     // Keep the map on this Studio page; its own document reports a natural
     // height so the pin editor doesn't become a nested scrolling website.
     const message=event=>{
@@ -4225,9 +4220,9 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         if(Number.isFinite(height)&&height>=420&&height<=4200&&
             Math.abs(frame.getBoundingClientRect().height-height)>8)frame.style.height=Math.ceil(height)+'px';
       }else if(data.type==='biglwa:map-ready'){
-        ready=true;clearTimeout(timer);status.hidden=true;if(retry)retry.hidden=true;
+        clearTimeout(timer);status.hidden=true;retry.hidden=true;
       }else if(data.type==='biglwa:map-failed'){
-        status.hidden=false;status.textContent='Map could not start. Reload just the map to retry.';
+        clearTimeout(timer);status.hidden=false;status.textContent='Map could not start. Reload just the map to retry.';
         if(retry)retry.hidden=false;
       }
     };
@@ -4237,12 +4232,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       status.textContent='The map could not load. Retry without leaving Studio.';
       if(retry)retry.hidden=false;
     });
-    if(retry)retry.onclick=()=>{
-      ready=false;status.hidden=false;retry.hidden=true;
-      status.textContent='Reloading the map inside Studio…';
-      frame.src='/map-app.html?embed=1&v=20261113-openfreemap-transit-1';
-      frame.src='/map-app.html?embed=1&v=20261113-inpage-navigation-go-5';
+    retry.addEventListener('click',loadMap);
+    disposeMap=()=>{
+      clearTimeout(timer);
+      window.removeEventListener('message',message);
     };
+    loadMap();
   }
 
   /* Wallpaper moderation. Reachable only from the member's own profile, and only the
@@ -4286,6 +4281,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
 
   let activeModuleKey='';
   function openModule(rawKey, context='', push=true){
+    if(disposeMap){disposeMap();disposeMap=null}
     stopCamera();let key=(rawKey||'').toLowerCase();if(key==='politic'||key==='politics')key='politc';
     if(activeModuleKey==='stream'&&key!=='stream')window.BigLWAStreamGuide?.parkInStudio?.();if(key==='room')key='rooms';if(key==='project'||key==='visualz'||key==='visualizr')key='projects';if(key==='lwazi')key='tools';if(key==='didyouknow')key='learn';if(!known.has(key))key='create';if(activeModuleKey==='orbit'&&key!=='orbit')window.BigLWAOrbitSpace?.detachPage?.();activeModuleKey=key;workspace.dataset.moduleKey=key;main.classList.add('module-view');workspace.hidden=false;routeName.textContent=labels[key]||key;
     if(window.BigLWAProfileModules?.render(key,body))return;
@@ -4345,7 +4341,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     if(activeModuleKey)closeModule();
     // Already on Studio home: stay here. This intentionally does not open Orbit or Veve.
   },true);
-  function closeModule(push=true){if(activeModuleKey==='stream')window.BigLWAStreamGuide?.parkInStudio?.();if(activeModuleKey==='orbit')window.BigLWAOrbitSpace?.detachPage?.();stopCamera();if(activeMap){try{activeMap.remove()}catch{}activeMap=null}activeModuleKey='';delete workspace.dataset.moduleKey;main.classList.remove('module-view');workspace.hidden=true;body.innerHTML='';routeName.textContent='Module';document.dispatchEvent(new CustomEvent('biglwa:module-close'));if(push){try{history.pushState({},'', '/studio')}catch{}}}
+  function closeModule(push=true){if(activeModuleKey==='stream')window.BigLWAStreamGuide?.parkInStudio?.();if(activeModuleKey==='orbit')window.BigLWAOrbitSpace?.detachPage?.();stopCamera();if(disposeMap){disposeMap();disposeMap=null}activeModuleKey='';delete workspace.dataset.moduleKey;main.classList.remove('module-view');workspace.hidden=true;body.innerHTML='';routeName.textContent='Module';document.dispatchEvent(new CustomEvent('biglwa:module-close'));if(push){try{history.pushState({},'', '/studio')}catch{}}}
   moduleBack.addEventListener('click',()=>closeModule());
   workspace.addEventListener('change',event=>{
     const control=event.target.closest('[data-silent-update]');if(!control)return;
@@ -4397,17 +4393,6 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       if(page)page.dataset.publicJournalViewer='1';
       return;
     }
-    const journalInitial=()=>{
-      const uid=String(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'').trim();
-      if(!uid)return '✦';
-      const identity=window.__biglwaIdentity;
-      let name=String(identity?.uid===uid?(identity?.name||identity?.displayName||''):'').trim();
-      if(!name)try{
-        const own=JSON.parse(localStorage.getItem('biglwaOwnProfileV1:'+uid)||'null');
-        name=String(own?.name||own?.displayName||'').trim();
-      }catch{}
-      return (Array.from(name)[0]||'✦').toLocaleUpperCase();
-    };
     // The R-series title controller owns Sqwibbl/r markup and font spans.
     // Never revert it to the old Sqwidz label during writing-preview hydration.
     const journalLabel=$('#studioApp #diary .card-head h2');
@@ -4433,14 +4418,6 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       if($('.studio-diary-preview',diaryPage))diaryPage.innerHTML=diaryPage._biglwaPlaceholderHTML||'';
       diaryPage.dataset.hasSavedEntries=String(Boolean(latestOwnedWriting('diary')));
       diaryPage.setAttribute('aria-label','Open Journal composition notebook');
-      let nametag=$('.studio-journal-initial',diaryPage);
-      if(!nametag){
-        nametag=document.createElement('span');
-        nametag.className='studio-journal-initial';
-        nametag.setAttribute('aria-label','Journal owner initial');
-        diaryPage.appendChild(nametag);
-      }
-      const initial=journalInitial();if(nametag.textContent!==initial)nametag.textContent=initial;
     }
   }
 

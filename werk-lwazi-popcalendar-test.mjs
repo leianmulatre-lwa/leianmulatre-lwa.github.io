@@ -64,12 +64,8 @@ test('L’wazi Jobs returns real catalog cards only after a verified published f
  await newer.window.BigLWAVisualLife.loadFeed();
  assert.equal(newer.window.BigLWAVisualLife.searchLwazi('creative').length,0);
 });
-test('L’wazi Jobs tab, original postings, and Werk Window are bound without remote iframe or LockDown code',()=>{
- assert.match(lwazi,/\['jobs','Jobs'\]/);
- assert.match(lwazi,/jobs:'Job postings'/);
- assert.match(lwazi,/section\('Job postings',jobCards\.map\(sourceJobCard\)/);
- assert.match(lwazi,/api\.searchLwazi\?\.\(clean,12\)/);
- assert.match(lwazi,/data-werk-preview-url/);
+test('Werk Window opens original postings outside L’wazi search',()=>{
+ assert.doesNotMatch(lwazi,/\['jobs','Jobs'\]|section\('Job postings'/);
  assert.match(werk,/data-werk-window-open/);
  assert.match(werk,/dataset\.werkPreviewUrl=url/);
  assert.match(windowCode,/window\.BigLWAJobWindow=Object\.freeze/);

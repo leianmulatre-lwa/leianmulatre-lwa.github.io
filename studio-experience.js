@@ -676,7 +676,7 @@
     const timeScale=document.createElement('div');timeScale.className='stereo-time-scale';
     const elapsed=document.createElement('span');elapsed.className='stereo-time-elapsed';elapsed.textContent='0:00';
     const durationLabel=document.createElement('span');durationLabel.className='stereo-time-duration';durationLabel.textContent='0:00';
-    timeScale.append(elapsed,progress,durationLabel);
+    timeScale.append(eq,elapsed,progress,durationLabel);
     const deck=document.createElement('div');deck.className='stereo-control-deck';
     const rewind=document.createElement('button');rewind.type='button';rewind.className='stereo-skip-button stereo-rewind';rewind.textContent='◀◀';rewind.title='Back 10 seconds';rewind.setAttribute('aria-label','Rewind 10 seconds');
     const forward=document.createElement('button');forward.type='button';forward.className='stereo-skip-button stereo-forward';forward.textContent='▶▶';forward.title='Forward 10 seconds';forward.setAttribute('aria-label','Forward 10 seconds');
@@ -684,7 +684,7 @@
     eject.textContent='⏏';eject.setAttribute('aria-label','Eject current track and choose a different song');eject.title='Replace track';
     const kicker=$('.card-kicker',card);
     if(kicker)kicker.insertAdjacentElement('afterend',shell);else card.prepend(shell);
-    shell.append(tuner,face,deck);face.append(leftSpeaker,display,rightSpeaker);display.append(nowPlaying,row,eq,timeScale);deck.append(rewind,play,forward,eject);
+    shell.append(tuner,face,deck);face.append(leftSpeaker,display,rightSpeaker);display.append(nowPlaying,row,timeScale);deck.append(rewind,play,forward,eject);
     art.id='studioAlbumArt';art.innerHTML='<span aria-hidden="true">♪</span><img alt="Album cover" hidden>';
     copy.classList.add('music-copy');const title=$('strong',copy),artist=$('span',copy);if(title)title.id='studioMusicTitle';if(artist)artist.id='studioMusicArtist';
     const audio=document.createElement('audio');audio.id='studioAudio';audio.preload='metadata';card.appendChild(audio);
@@ -701,6 +701,7 @@
     // Source analysis is opt-in for same-origin / uploaded media; cross-origin
     // media without CORS must keep playing directly without a WebAudio redirect.
     let musicAnalyser=null,musicAudioCtx=null,musicFrame=0;
+    let spectrum, bands, lastWaveTime;
     const eqBars=[...eq.querySelectorAll('i')];
     const waveLevels=new Float32Array(eqBars.length);
     const flatWave=()=>eqBars.forEach((bar,i)=>{waveLevels[i]=.04;bar.style.transform='scaleY(.04)'});
@@ -720,8 +721,14 @@
         musicAudioCtx=new AudioCtor();
         const source=musicAudioCtx.createMediaElementSource(audio);
         musicAnalyser=musicAudioCtx.createAnalyser();
-        musicAnalyser.fftSize=256;
-        musicAnalyser.smoothingTimeConstant=.97;
+        musicAnalyser.fftSize=2048;
+        musicAnalyser.smoothingTimeConstant=.35;
+        spectrum=new Float32Array(musicAnalyser.frequencyBinCount);
+        const hzPerBin=musicAudioCtx.sampleRate/musicAnalyser.fftSize;
+        const edges=[40,80,140,240,400,700,1200,2100,3600,6200,10500];
+        bands=edges.slice(0,-1).map((hz,i)=>[
+          Math.ceil(hz/hzPerBin),Math.min(spectrum.length,Math.ceil(edges[i+1]/hzPerBin))
+        ]);
         source.connect(musicAnalyser);
         musicAnalyser.connect(musicAudioCtx.destination);
         return true;
@@ -730,21 +737,21 @@
         flatWave();return false;
       }
     };
-    const frameWave=()=>{
+    const frameWave=timestamp=>{
       musicFrame=0;
       if(audio.paused||audio.ended||!card.isConnected){flatWave();return}
       if(!musicAnalyser){flatWave();return}
-      const bins=new Uint8Array(musicAnalyser.frequencyBinCount);
-      musicAnalyser.getByteFrequencyData(bins);
+      const elapsedMs=lastWaveTime===undefined ? 16 : Math.min(50,timestamp-lastWaveTime);
+      lastWaveTime=timestamp;
+      musicAnalyser.getFloatFrequencyData(spectrum);
       for(let i=0;i<eqBars.length;i++){
-        // Log-ish frequency slices keep bass and vocals readable at modest height.
-        const lo=Math.floor(Math.pow(i/eqBars.length,1.5)*(bins.length-1));
-        const hi=Math.max(lo+1,Math.floor(Math.pow((i+1)/eqBars.length,1.5)*bins.length));
-        let sum=0;for(let j=lo;j<hi;j++)sum+=bins[j];
-        const avg=sum/(hi-lo);
-        // Keep audio-reactive movement calm: modest amplitude and gradual change.
-        const target=Math.min(.34,Math.max(.035,.035+Math.pow(avg/255,1.55)*.305));
-        waveLevels[i]+=(target-waveLevels[i])*.065;
+        const [first,last]=bands[i];
+        let peak=-Infinity;
+        for(let bin=first;bin<last;bin++)peak=Math.max(peak,spectrum[bin]);
+        const level=Math.max(0,Math.min(1,(peak+72)/58));
+        const target=.04+.46*level**1.5;
+        const timeConstant=target>waveLevels[i] ? 130 : 260;
+        waveLevels[i]+=(target-waveLevels[i])*(1-Math.exp(-elapsedMs/timeConstant));
         eqBars[i].style.transform='scaleY('+waveLevels[i].toFixed(3)+')';
       }
       musicFrame=requestAnimationFrame(frameWave);
@@ -752,6 +759,7 @@
     const startWave=()=>{
       if(musicFrame)cancelAnimationFrame(musicFrame);
       if(!initAnalysis()){flatWave();return}
+      lastWaveTime=undefined;
       musicAudioCtx?.resume?.().catch(()=>{});
       musicFrame=requestAnimationFrame(frameWave);
     };

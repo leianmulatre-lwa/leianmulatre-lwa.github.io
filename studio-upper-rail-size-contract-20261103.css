@@ -462,51 +462,45 @@ body.night-mode #studioApp #minimizedWidgetDock .sidebar-route-icon img:is([src*
   width:94%!important;grid-template-columns:minmax(0,1fr) 32px minmax(0,1fr) 25px!important;
 }
 
-/* Tunes playback time now sits alongside the actual seek bar, never over it. */
-#studioApp .music-card.stereo-music-widget .stereo-display .stereo-time-scale{display:flex!important;align-items:center!important;gap:5px!important;margin-top:3px!important;min-width:0!important}
-#studioApp .music-card.stereo-music-widget .stereo-display .stereo-time-scale>.progress{flex:1 1 auto!important;width:auto!important;margin:0!important;min-width:10px!important}
-#studioApp .music-card.stereo-music-widget .stereo-display .stereo-time-scale>span{flex:0 0 auto!important;font-size:8px!important;line-height:1!important;font-variant-numeric:tabular-nums}
-
-
-/* 2026-11-15 — Put the actual seek timeline at the foot of the CRT screen,
-   instead of directly under the equalizer. Applies to long and square stereo.
-   No absolute positioning: never overlaps audio metadata or pointer controls. */
+/* Keep the meter and seek control together at the bottom of the radio display. */
 #studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display{
-  display:flex!important;flex-direction:column!important;align-items:stretch!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
   justify-content:flex-start!important;
 }
-#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display>.stereo-now-playing,
-#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display>.music-row{
-  flex:0 0 auto!important;
-}
-#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display>.stereo-eq{
-  flex:0 0 auto!important;min-height:6px!important;
-  margin-top:auto!important;margin-bottom:0!important;
-}
 #studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display>.stereo-time-scale{
-  flex:0 0 auto!important;align-self:stretch!important;
-  margin-top:2px!important;margin-bottom:0!important;
-  padding:1px 0 0!important;min-height:12px!important;
-  width:100%!important;position:relative!important;bottom:auto!important;
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:0 4px!important;
+  align-items:center!important;
+  margin-top:auto!important;
+  margin-bottom:0!important;
+  padding:0!important;
+  min-width:0!important;
+  flex:none!important;
 }
-#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display>.stereo-time-scale>.progress{
-  flex:1 1 auto!important;min-width:10px!important;
-  margin:0!important;position:relative!important;
+#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-time-scale>.stereo-eq{
+  grid-column:2;
+  grid-row:1;
+  height:12px!important;
+  min-height:12px!important;
+  max-height:12px!important;
+  margin:0!important;
 }
-#studioApp .music-card.stereo-music-widget.studio-upper-square .stereo-shell .stereo-display>.stereo-time-scale,
-#studioApp .music-card.stereo-music-widget.studio-music-square .stereo-shell .stereo-display>.stereo-time-scale{
-  min-height:10px!important;
+#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-time-scale>:is(span,.progress){
+  grid-row:2;
 }
-
-/* 2026-11-16: Keep the calm audio meter beside the seek rail, not floating above it. */
-#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display>.stereo-eq{
-  height:13px!important;min-height:13px!important;max-height:13px!important;
-  margin-top:auto!important;margin-bottom:0!important;padding-bottom:0!important;
-  align-self:stretch!important;transform:translateY(1px);
+#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-time-scale>.progress{
+  grid-column:2;
+  width:100%!important;
+  min-width:0!important;
+  margin:0!important;
 }
-#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display>.stereo-time-scale{
-  margin-top:0!important;padding-top:0!important;gap:4px!important;
-}
-#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-display>.stereo-eq i{
-  transition:transform .18s ease-out!important;
+#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-time-scale>.stereo-time-elapsed{grid-column:1}
+#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-time-scale>.stereo-time-duration{grid-column:3}
+#studioApp .music-card.stereo-music-widget .stereo-shell .stereo-time-scale>span{
+  font-size:8px!important;
+  line-height:1!important;
+  font-variant-numeric:tabular-nums;
 }

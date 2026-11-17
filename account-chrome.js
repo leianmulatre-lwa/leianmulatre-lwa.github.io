@@ -56,13 +56,6 @@ function renderJournalCoverInitial(name){
   }
   if(mark.textContent!==value)mark.textContent=value;
 }
-function installJournalCoverStyle(){
-  if(document.getElementById('biglwa-journal-cover-initial-style'))return;
-  const style=document.createElement('style');style.id='biglwa-journal-cover-initial-style';
-  style.textContent="#studioApp #diary .diary-page{position:relative!important;isolation:isolate}\n#studioApp #diary .studio-journal-initial{\n position:absolute!important;left:50%!important;top:51%!important;transform:translate(-50%,-50%)!important;\n display:grid;place-items:center;font:400 clamp(29px,4.5vw,67px)/1 \"CS Bergamot Stitched\",Georgia,serif!important;\n color:#543448!important;text-shadow:0 2px 0 #e7c7b3!important;pointer-events:none!important;\n z-index:2!important;min-width:35px!important}\nhtml.biglwa-preview-mode #studioApp #diary .studio-journal-initial{display:none!important}";
-  document.head.append(style);
-}
-
 export function renderIdentityChrome(profile) {
   const who = profile || identity() || {};
   const realName=clean(who.name);
@@ -73,8 +66,7 @@ export function renderIdentityChrome(profile) {
   // Banner and top-right greeting must paint the exact same photo URL and
   // name initial; the @handle is a separate identifier, never the letter.
   avatarTargets().forEach((el) => renderAvatar(el, who.avatarUrl, avatarName));
-  installJournalCoverStyle();
-  renderJournalCoverInitial(name);
+  renderJournalCoverInitial(who.uid ? realName : "");
   const welcome = document.querySelector(".profile-mini .welcome strong") || document.querySelector(".welcome strong");
   if (welcome) welcome.textContent = name ? name.charAt(0).toUpperCase() + name.slice(1) : "there";
   const avatar = document.querySelector(".profile-mini .mini-avatar");
@@ -110,8 +102,7 @@ export function startChrome() {
     requestAnimationFrame(()=>{
       pending=false;
       const who=previewOverride||identity()||{};
-      const real=clean(who.name),username=clean(who.username);
-      renderJournalCoverInitial(real&&real.toLowerCase()!==username.toLowerCase()?real:"");
+      renderJournalCoverInitial(who.uid ? who.name : "");
     });
   }).observe(document.getElementById('studioApp')||document.body,{childList:true,subtree:true});
   document.addEventListener("biglwa:identity-preview", () => { if (!previewOverride) renderIdentityChrome(identity()); });
