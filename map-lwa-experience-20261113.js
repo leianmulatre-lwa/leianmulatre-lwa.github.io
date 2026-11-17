@@ -33,10 +33,6 @@
     '</div>'+
     '<div class="map-trip-actions"><button type="button" id="mapTripLocate">Use my location for this trip</button>'+
       '<button type="button" id="mapTripSwap">Swap ↕</button>'+
-      '<a id="mapTripExternal" href="#" target="_blank" rel="noopener noreferrer" hidden>Live ETA & directions on Google Maps ↗</a></div>'+
-    '<p class="map-plan-result" id="mapTripResult" role="status">Pick two places to compare a trip. Location is never requested automatically.</p>'+
-    '<p>Map exploration stays here. Live traffic, bike-lane conditions and transit arrivals require dedicated routing/data providers.</p>';
-  brand.after(planner);
       '</div>'+
     '<p class="map-plan-result" id="mapTripResult" role="status">Pick two places to compare a trip. Location is never requested automatically.</p>'+
     '<p>Map exploration stays here. Live traffic, bike-lane conditions and transit arrivals require dedicated routing/data providers.</p>';
@@ -157,7 +153,6 @@
     requestAnimationFrame(reportHeight);
   }
   let mode='bicycling',fromGps=null,routeLine=null,lastPlan=null;
-  const result=byId('mapTripResult'),external=byId('mapTripExternal');
   const result=byId('mapTripResult');
   const centerOf=point=>[Number(point.lat),Number(point.lng)];
   const valid=p=>p&&Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng))&&
@@ -197,14 +192,6 @@
   const clearLine=()=>{const bridge=window.BigLWAMapBridge;
     if(routeLine&&bridge?.map){bridge.map.removeLayer(routeLine);}routeLine=null;};
   const travelLabel=()=>({'bicycling':'Bike','transit':'Transit','walking':'Walk','driving':'Drive'}[mode]||'Trip');
-  const navigationLink=(a,b)=>{
-    const u=new URL('https://www.google.com/maps/dir/');
-    u.searchParams.set('api','1');
-    u.searchParams.set('origin',String(a.lat)+','+String(a.lng));
-    u.searchParams.set('destination',String(b.lat)+','+String(b.lng));
-    u.searchParams.set('travelmode',mode);
-    return u.href;
-  };
 
   function drawLine(coords,options){
     const bridge=window.BigLWAMapBridge;
@@ -216,7 +203,6 @@
     bridge.map.fitBounds(routeLine.getBounds(),{padding:[40,40],maxZoom:14});
   }
   async function plan(){
-    result.textContent='Finding both places…';external.hidden=true;
     window.dispatchEvent(new Event('biglwa:map-navigation-reset'));
     result.textContent='Finding both places on BIG LWA…';
     clearLine();
@@ -227,7 +213,6 @@
       lastResolvedOrigin=origin;lastResolvedDestination=destination;
       if(lastPlan!==stamp)return;
       if(kmBetween(origin,destination)<.02)throw Error('Those points are effectively the same place.');
-      external.href=navigationLink(origin,destination);external.hidden=false;
       // The route remains in this widget. No Google Maps handoff.
       const aerial=kmBetween(origin,destination),shortDistance=(aerial<10?aerial.toFixed(1):Math.round(aerial))+' km';
       const provider=window.BigLWAMapRouteProvider;
@@ -243,7 +228,6 @@
               ' · '+Math.round(Number(route.durationMinutes))+' min':'';
             result.textContent=travelLabel()+' · '+String(route.distanceLabel||shortDistance)+eta+
               ' · '+String(route.provider||'Connected route provider')+
-              (route.trafficAware?' · Traffic-aware':' · Live traffic not included');
               (route.trafficAware?' · Traffic-aware':' · No live traffic');
             // A successful navigable road route (never a straight-line
             // fallback) unlocks Go. Data remains in page memory only.
@@ -276,12 +260,6 @@
   planner.querySelectorAll('[data-map-travel]').forEach(btn=>{
     btn.addEventListener('click',()=>{
       mode=btn.dataset.mapTravel;
-      planner.querySelectorAll('[data-map-travel]').forEach(b=>
-        b.setAttribute('aria-pressed',String(b===btn)));
-      if(lastPlan&&external&&!external.hidden){
-        const origin=lastResolvedOrigin,destination=lastResolvedDestination;
-        if(origin&&destination)external.href=navigationLink(origin,destination);
-        result.textContent='Travel mode changed. Select Explore trip for a fresh preview.';
       window.dispatchEvent(new Event('biglwa:map-navigation-reset'));
       planner.querySelectorAll('[data-map-travel]').forEach(b=>
         b.setAttribute('aria-pressed',String(b===btn)));
@@ -305,7 +283,6 @@
   byId('mapTripFrom').addEventListener('input',()=>{fromGps=null;});
   byId('mapTripSwap').addEventListener('click',()=>{
     const from=byId('mapTripFrom'),to=byId('mapTripTo'),value=from.value;
-    from.value=to.value;to.value=value;fromGps=null;external.hidden=true;
     from.value=to.value;to.value=value;fromGps=null;
     window.dispatchEvent(new Event('biglwa:map-navigation-reset'));
     clearLine();result.textContent='Places swapped. Explore trip to recalculate.';

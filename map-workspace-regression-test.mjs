@@ -7,10 +7,6 @@ const map=read('map-app.html');
 const studio=read('module-pages.js');
 const planner=read('map-lwa-experience-20261113.js');
 const css=read('map-lwa-experience-20261113.css');
-test('map source parses, preserves Leaflet marker and private pin flows',()=>{
-  for(const [name,src] of [
-    ['map-lwa-experience-20261113.js',planner],
-    ['module-pages.js',studio]
 const router=read('map-lwa-router-20261113.js');
 const extras=read('lwazi-discovery-extras.js');
 test('map source parses, preserves Leaflet marker and private pin flows',()=>{
