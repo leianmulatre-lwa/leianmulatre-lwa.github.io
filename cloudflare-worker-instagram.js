@@ -1,4 +1,30 @@
-import {PREVIEW_BYTES_MAX,PREVIEW_WIDTH,PREVIEW_MIME,validOriginalName,originalKey,derivativeKey,looksLikeWebp,verifyParent} from './media-derivative-policy.mjs';
+/* Self-contained Worker helper functions; parity checked against media-derivative-policy.mjs. */
+const PREVIEW_BYTES_MAX=512*1024;
+const PREVIEW_WIDTH=480;
+const PREVIEW_MIME='image/webp';
+const ORIGINAL_TYPES=new Set(['image/jpeg','image/png','image/webp']);
+function validOriginalName(name){
+ return typeof name==='string'&&/^[0-9]{9,15}-[A-Za-z0-9_-]{12,80}\.(?:jpg|jpeg|png|webp)$/.test(name);
+}
+function originalKey(uid,name){
+ if(!/^[A-Za-z0-9_-]{8,128}$/.test(String(uid)))throw Error('Invalid account scope.');
+ if(!validOriginalName(name))throw Error('Invalid original media name.');
+ return 'feed-images/'+uid+'/'+name;
+}
+function derivativeKey(uid,name){
+ originalKey(uid,name);
+ return 'feed-image-variants/'+uid+'/'+name+'.w'+PREVIEW_WIDTH+'.webp';
+}
+function looksLikeWebp(bytes){
+ if(!bytes||bytes.byteLength<16)return false;
+ const b=new Uint8Array(bytes.buffer||bytes,bytes.byteOffset||0,Math.min(bytes.byteLength,16));
+ return b[0]===82&&b[1]===73&&b[2]===70&&b[3]===70&&
+        b[8]===87&&b[9]===69&&b[10]===66&&b[11]===80;
+}
+function verifyParent(parent,uid){
+ return !!parent&&parent.customMetadata?.uid===uid&&
+        ORIGINAL_TYPES.has(String(parent.httpMetadata?.contentType||'').toLowerCase());
+}
 const INSTAGRAM_AUTHORIZE_URL = 'https://www.instagram.com/oauth/authorize';
 const INSTAGRAM_TOKEN_URL = 'https://api.instagram.com/oauth/access_token';
 const INSTAGRAM_GRAPH_URL = 'https://graph.instagram.com';
