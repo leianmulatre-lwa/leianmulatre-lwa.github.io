@@ -19,7 +19,10 @@
   }
   if(bio.parentElement!==line)line.prepend(bio);
   if(stats.parentElement!==line)line.append(stats);
+  const roles=profile.querySelector('.biglwa-community-badges');
+  if(roles&&line.nextElementSibling!==roles)line.after(roles);
   const highlights=profile.querySelector('.biglwa-stories-ribbon');
+  if(roles&&highlights&&roles.nextElementSibling!==highlights)roles.after(highlights);
   if(highlights?.parentElement===line)line.after(highlights);
   const rank=profile.querySelector(':scope > .real-rank');
   if(highlights&&rank&&(highlights.compareDocumentPosition(rank)&Node.DOCUMENT_POSITION_PRECEDING))rank.before(highlights);

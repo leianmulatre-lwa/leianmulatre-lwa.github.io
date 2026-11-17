@@ -166,8 +166,8 @@ function placeCards(){
  '<button class="bl-search-go bl-search-primary-action" type="submit">Show route on BIG LWA ↗</button>'+
  '</form><p class="bl-trip-note" role="status" aria-live="polite">Routes display here on BIG LWA. Live traffic and transit arrival feeds are not connected yet.</p>'+
  '</div></article>',
- '<article class="bl-search-card bl-widget-result"><div class="bl-widget-symbol" aria-hidden="true">⌖</div><div class="bl-search-card-body">'+
- '<span class="bl-search-kicker">BIG LWA · Map</span><h3>Open the full map</h3><p>Explore places, save pins and see the complete map tools.</p>'+
+ '<article class="bl-search-card bl-widget-result bl-fare-card"><div class="bl-widget-symbol" aria-hidden="true">⌖</div><div class="bl-search-card-body">'+
+ '<span class="bl-search-kicker">BIG LWA · Map</span><h3>Trip costs & tools</h3><p>Compare pricing information here; open the full map for saved places and navigation.</p>'+
  '<button type="button" class="bl-search-go bl-search-primary-action" data-lwazi-route="map">Open Map widget ↗</button>'+
  '</div></article>'
  ];
@@ -186,6 +186,8 @@ function watchOnStream(id){
 function attach(panel){
  if(!panel||panel.dataset.lwaziExtrasBound)return;
  panel.dataset.lwaziExtrasBound='true';
+ const mountFares=()=>{const host=panel.querySelector('.bl-fare-card .bl-search-card-body');if(host)window.BigLWASourceBrief?.fares(host);};
+ if(typeof MutationObserver!=='undefined'){const fareObserver=new MutationObserver(mountFares);fareObserver.observe(panel,{childList:true,subtree:true});}mountFares();
  panel.addEventListener('click',event=>{
   const rButton=event.target.closest('[data-bl-craft-app]');
   if(rButton&&panel.contains(rButton)){
@@ -248,6 +250,8 @@ function attach(panel){
   if(!frame||event.source!==frame.contentWindow)return;
   const note=panel.querySelector('.bl-lwazi-map-card .bl-trip-note');
   if(note)note.textContent=String(event.data.text||'').slice(0,450);
+  const fareHost=panel.querySelector('.bl-fare-card .bl-search-card-body');
+  if(fareHost)window.BigLWASourceBrief?.fares(fareHost);
  });
  panel.addEventListener('submit',event=>{
   const form=event.target.closest('.bl-lwazi-transit-form');

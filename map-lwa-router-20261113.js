@@ -9,7 +9,7 @@
   Math.abs(+p.lat)<=90&&Math.abs(+p.lng)<=180;
  const coordPattern=/^(-?\d{1,2}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)$/;
  const COST={bicycling:'bicycle',walking:'pedestrian',driving:'auto'};
- let budget=0,nextAllowed=0,activePreviewRoute=null,previewSerial=0;
+ let budget=0,nextAllowed=0,activePreviewRoute=null,previewEndpoints=null,previewSerial=0;
  const memo=new Map();
  const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  function polyline6(shape){
@@ -146,6 +146,9 @@
    if(seq!==previewSerial)return;
    const {map,L}=bridge;
    if(activePreviewRoute){map.removeLayer(activePreviewRoute);activePreviewRoute=null;}
+   if(previewEndpoints)map.removeLayer(previewEndpoints);
+   previewEndpoints=L.layerGroup().addTo(map);
+   [start,end].forEach((point,i)=>{if(point)L.marker([point.lat,point.lng],{icon:L.divIcon({className:'map-route-pin',html:'<span style="background:'+(i?'#a02e50':'#247453')+'">'+(i?'B':'A')+'</span>',iconSize:[30,40],iconAnchor:[15,40]})}).addTo(previewEndpoints).bindTooltip(i?'Destination':'Starting location');});
    if(!start){
      activePreviewRoute=L.circleMarker([end.lat,end.lng],{
       color:'#a93352',radius:9,fillColor:'#f7c2ce',fillOpacity:.9
