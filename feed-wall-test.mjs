@@ -42,7 +42,7 @@ console.log("\n=== A SAVED VIDEO PLAYS AS A VIDEO ===");
 check("a video file draws a video element, not a still", feed.includes("? looksLikeVideoFile(shown[0])") && feed.includes("data-feed-video src=\"' + esc(shown[0])"));
 check("the video keeps its poster as the stand-in", feed.includes('poster="\' + esc(fallbackSrc) + \'"') && feed.includes('preload="none" controls'));
 check("the video has a quiet frame", feed.includes(".biglwa-pin-img[data-feed-video]") && feed.includes("background:#171310;min-height:140px"));
-check("a picture file still draws an image", feed.includes("'<img class=\"biglwa-pin-img\" data-feed-media src=\"' + esc(shown[0])"));
+check("a picture file still draws an image, with small owned previews", feed.includes("const gridSrc=ownerPreview?fallbackSrc:shown[0];") && feed.includes("data-feed-media src=\"' + esc(gridSrc)") && feed.includes("data-feed-preview=\"' + esc(shown[0] || fallbackSrc)"));
 check("broken feed pictures are guarded after each draw", feed.includes("startSlideshows(list);") && feed.includes("guardFeedPictures(list);"));
 
 console.log("\n=== A POST WITH THIRTEEN PHOTOS IS A STACK ===");

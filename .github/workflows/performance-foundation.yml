@@ -21,8 +21,8 @@ concurrency:
 jobs:
   source-guardrails:
     name: Preserve routes and constrain source growth
-    runs-on: ubuntu-latest
-    timeout-minutes: 12
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,6 +33,97 @@ jobs:
         run: node scripts/performance/audit.mjs --check
       - name: Print read-only source audit
         run: node scripts/performance/audit.mjs --json > "${RUNNER_TEMP}/biglwa-performance-source-audit.json"
+      - name: Inventory release packaging (review-only, no deletion)
+        run: |
+          node --check scripts/performance/release-scope.mjs
+          node scripts/performance/release-scope.mjs --json > "${RUNNER_TEMP}/biglwa-pages-release-scope.json"
+      - name: Validate owner-scoped media and original-preserving image previews
+        run: |
+          node --check media-derivative-policy.mjs
+          node --check media-renditions.js
+          node --check media-renditions.test.mjs
+          node --check cloudflare-worker-instagram.js
+          node --check collective-publish.js
+          node --check feed-view.js
+          node --test media-renditions.test.mjs
+      - name: Recreate checksum-verified native editors without deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag=$(python3 -c 'import json;print(json.load(open(".github/native-release-lock.json"))["tag"])')
+          asset=$(python3 -c 'import json;print(json.load(open(".github/native-release-lock.json"))["archive"])')
+          expected=$(python3 -c 'import json;print(json.load(open(".github/native-release-lock.json"))["archive_sha256"])')
+          mkdir -p "${RUNNER_TEMP}/native-editors"
+          gh release download "$tag" --pattern "$asset" --dir "${RUNNER_TEMP}/native-editors"
+          printf '%s  %s\n' "$expected" "${RUNNER_TEMP}/native-editors/$asset" | sha256sum --check --status
+          BIGLWA_NATIVE_ARCHIVE="${RUNNER_TEMP}/native-editors/$asset" python3 .github/scripts/stage-craft-apps.py .
+          test -f bigapps/manifest.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          manifest=json.loads(Path('bigapps/manifest.json').read_text())
+          required={'lightR','paintR','keyframeR','fileR'}
+          for name in required:
+              folder=Path('bigapps')/name
+              assert (folder/'index.html').exists(),name
+              assert any(folder.rglob('*.wasm')),name
+              assert (folder/'upstream-licenses'/'SOURCE.txt').exists(),name
+          assert len(manifest['apps'])==4
+          print('Verified 4 original R editor bundles in the candidate release.')
+          PY
+      - name: Stage public-only release (no deploy)
+        run: |
+          node --check scripts/performance/build-public-site.mjs
+          node scripts/performance/build-public-site.mjs --dry-run > "${RUNNER_TEMP}/biglwa-public-release-dry-run.json"
+          node scripts/performance/build-public-site.mjs --build > "${RUNNER_TEMP}/biglwa-public-release-build.json"
+          test -f dist/public/index.html
+          test -f dist/public/studio/index.html
+          test -f dist/public/map-app.html
+          test -f dist/public/bigapps/manifest.json
+          test -f dist/public/bigapps/lightR/index.html
+          test -f dist/public/legal/index.html
+          test ! -e dist/public/third_party
+          test ! -e dist/public/docs
+          test ! -e dist/public/.github
+      - name: Upload release manifest only (not site or private files)
+        uses: actions/upload-artifact@v4
+        with:
+          name: public-release-build-report
+          path: ${{ runner.temp }}/biglwa-public-release-build.json
+          retention-days: 21
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install headless browser for actual route checks
+        run: |
+          npm install --no-save --no-package-lock playwright@1.57.0
+          npx playwright install chromium --with-deps
+      - name: Capture signed-out desktop/mobile routes and performance
+        run: |
+          python3 -m http.server 8765 --directory dist/public > "${RUNNER_TEMP}/biglwa-local-server.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" || true' EXIT
+          for i in $(seq 1 35); do
+            if curl -fsS http://127.0.0.1:8765/ -o /dev/null; then break; fi
+            sleep 1
+          done
+          node scripts/performance/browser-smoke.mjs --base=http://127.0.0.1:8765 --out="${RUNNER_TEMP}/biglwa-browser-snapshots"
+      - name: Keep public-only screenshots and performance report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-public-browser-snapshots
+          path: ${{ runner.temp }}/biglwa-browser-snapshots
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Upload release scope inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: review-only-pages-release-scope
+          path: ${{ runner.temp }}/biglwa-pages-release-scope.json
+          retention-days: 21
       - name: Upload source audit (no member data)
         uses: actions/upload-artifact@v4
         with:
