@@ -18,12 +18,35 @@
   month:1,day:20,source:'Writer of Pop Culture',
   url:SOURCE,category:'pop-culture-history',readOnly:true
  })));
+ // Each additional anniversary has its OWN dated primary/source article.
+ // These aren't live appointments, and an article publication date is not
+ // automatically treated as the date of the historical event.
+ const additions=Object.freeze([
+  {id:'afi-home-alone-1990',month:11,day:16,year:1990,
+   title:'Home Alone opens in cinemas',
+   description:'The holiday comedy was released in US theaters on November 16, 1990.',
+   source:'20th Century Studios',url:'https://family.20thcenturystudios.com/movies/home-alone'},
+  {id:'afi-harry-potter-2001',month:11,day:16,year:2001,
+   title:'The first Harry Potter film reaches cinemas',
+   description:'The first Harry Potter film opened in the United States on November 16, 2001.',
+   source:'American Film Institute',url:'https://catalog.afi.com/Catalog/moviedetails/53881'},
+  {id:'aj-english-launch-2006',month:11,day:15,year:2006,
+   title:'Al Jazeera English launches',
+   description:'Al Jazeera English began broadcasting on November 15, 2006, adding another international television-news voice.',
+   source:'Al Jazeera English',url:'https://www.aljazeera.com/news/2026/11/15/al-jazeera-english-marks-20-years-stories-that-shaped-the-journey'}
+ ].map(e=>Object.freeze({...e,category:'pop-culture-history',readOnly:true})));
+ const allEvents=Object.freeze([...events,...additions]);
  function onDay(key){
-  if(!/^\d{4}-01-20$/.test(String(key||'')))return [];
-  return events.map(e=>({...e,pop:true,meta:e.year+' · '+e.source}));
+  const match=/^\d{4}-(\d{2})-(\d{2})$/.exec(String(key||''));
+  if(!match)return [];
+  const month=Number(match[1]),day=Number(match[2]);
+  return allEvents.filter(e=>e.month===month&&e.day===day)
+   .map(e=>({...e,pop:true,meta:e.year+' · '+e.source}));
  }
  function forMonth(month){
-  return Number(month)===1?events.map(e=>({...e})): [];
+  return allEvents.filter(e=>e.month===Number(month)).map(e=>({...e}));
  }
- window.BigLWAPopCultureCalendar=Object.freeze({onDay,forMonth,source:SOURCE,version:'1.0.0'});
+ window.BigLWAPopCultureCalendar=Object.freeze({
+  onDay,forMonth,source:SOURCE,version:'1.1.0'
+ });
 })();
