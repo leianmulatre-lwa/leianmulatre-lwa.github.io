@@ -673,12 +673,15 @@ async function connect(){await run(async()=>{
     finally{syncingAll=false;render()}
   });
  }
- async function choose(id,more=false){if(!/^\d+$/.test(id)||!boards.some(b=>String(b.id)===String(id)))return;
-  await run(async()=>{
-    if(!more){activeSavedBoard='';originalView=false;scrollBoardAfterRender=true;rememberBoardSelection(id);boardId=id;pins=[];pinsNext='';selectedBoardPins.clear();render();void loadCovers()}
-    await loadPins(id,more);
-    if(!more)void hydrateBrowse({scope:'pins',uid:authUid,selected:id});
-  });
+ // Browsing must not wait for imports/sync in the mutation work queue.
+ async function choose(id,more=false){
+  if(!id)return;
+  const uid=authUid;
+  if(!more){activeSavedBoard='';originalView=false;scrollBoardAfterRender=true;rememberBoardSelection(id);boardId=id;pins=[];pinsNext='';selectedBoardPins.clear();message='Loading board…';render();void loadCovers()}
+  try{await loadPins(id,more);
+   if(uid!==authUid||String(boardId)!==String(id))return;
+   message='';render();if(!more)void hydrateBrowse({scope:'pins',uid,selected:id});
+  }catch(error){if(uid===authUid&&String(boardId)===String(id)){message=error?.message||'Board could not load. Try again.';render();}}
  }
  async function disconnect(){await run(async()=>{
   const token=await firebaseIdToken();

@@ -273,3 +273,14 @@ body.night-mode #bl-studio-search-results #bl-section-politics-public-life .bl-s
 body.night-mode #bl-studio-search-results #bl-section-herstory .bl-search-card{
   background:#342d3c!important;color:#f7ebf6!important;
 }
+
+/* Flat spine and narrow cover; the right face unfolds without tilting text. */
+#bl-studio-search-results .bl-search-book{border-left:0!important;border-radius:0 12px 12px 0!important;overflow:visible!important}
+#bl-studio-search-results .bl-book-jacket{position:relative;display:block;width:64px;height:190px;max-width:100%;overflow:hidden;border-radius:0 4px 4px 0;transition:width .35s ease;box-shadow:4px 4px 0 #32231e35;margin:12px 0}
+#bl-studio-search-results .bl-book-jacket:is(:hover,:focus),#bl-studio-search-results .bl-search-book:focus-within .bl-book-jacket{width:140px}
+#bl-studio-search-results .bl-book-jacket img{display:block!important;width:128px!important;max-width:none!important;height:190px!important;object-fit:cover!important;margin:0 0 0 12px!important;border-radius:0!important;transform:none!important}
+#bl-studio-search-results .bl-book-spine{position:absolute;left:0;top:0;bottom:0;width:12px;background:#85515c;border-right:1px dashed #f5daca;z-index:2}
+.lwa-source-brief{margin-top:14px;padding:12px;border:1px dashed #ad7c8b80;border-radius:8px}
+.lwa-source-refs{display:flex;gap:10px;flex-wrap:wrap;font-size:11px}.lwa-fare-comparison dl{display:grid;grid-template-columns:auto 1fr;gap:12px}.lwa-fare-comparison dd{margin:0}.lwa-fare-comparison{padding-top:12px}
+@media(prefers-reduced-motion:reduce){#bl-studio-search-results .bl-book-jacket{transition:none}}
+@media(hover:none){#bl-studio-search-results .bl-book-jacket{width:140px}}

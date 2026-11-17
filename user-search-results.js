@@ -84,7 +84,7 @@
         '" data-bl-book-year="'+esc(b.first_publish_year||'')+
         '" data-bl-book-cover="'+esc(cover)+'"'+
         (libraryUrl?' data-bl-destination="'+esc(libraryUrl)+'"':'')+'>'+
-        (cover?'<img class="bl-search-card-media" src="'+esc(cover)+'" alt="Cover of '+esc(b.title||'this book')+'" loading="lazy">':'')+
+        (cover?'<div class="bl-book-jacket" tabindex="0" aria-label="Preview book cover"><span class="bl-book-spine" aria-hidden="true"></span><img class="bl-search-card-media" src="'+esc(cover)+'" alt="Cover of '+esc(b.title||'this book')+'" loading="lazy"></div>':'')+
         '<div class="bl-search-card-body"><span class="bl-search-kicker veve-eyebrow">Book</span><h3>'+esc(b.title||'Untitled')+'</h3>'+
         '<p class="bl-search-muted">'+esc(meta)+'</p>'+
         '<button type="button" class="bl-search-go bl-search-route bl-search-primary-action" data-lwazi-route="library" data-lwazi-book-open="1">Open in Library &#8599;</button>'+

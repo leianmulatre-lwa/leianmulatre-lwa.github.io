@@ -142,6 +142,7 @@
      sourceUrl(host,item?.title||title));
     viewer.append(link,make('p','politc-research-license',
      'Source: Wikimedia community contributors. Excerpt may be edited or shortened; the original page lists authors, revisions and reuse conditions.'));
+    if(extract)window.BigLWASourceBrief?.mount(viewer,[{title:item?.title||title,url:sourceUrl(host,item?.title||title),snippet:extract}], 'Summarize this public record and distinguish the source’s claims from established facts.');
     display('Source excerpt loaded. Compare with primary records where claims are contested.');
     viewer.scrollIntoView({behavior:'smooth',block:'nearest'});
    }catch(error){
