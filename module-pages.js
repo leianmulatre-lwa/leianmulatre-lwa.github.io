@@ -4458,7 +4458,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       mini.className='studio-mini-map';mini.referrerPolicy='same-origin';
       mini.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;visibility:hidden';
       const retry=document.createElement('button');retry.type='button';retry.textContent='Retry interactive map';retry.hidden=true;
-      retry.style.cssText='position:absolute;top:8px;right:8px;z-index:2;font:600 11px system-ui;padding:5px 8px';
+      retry.style.cssText='position:absolute;top:8px;left:8px;z-index:2;font:600 11px system-ui;padding:5px 8px';
       slot.style.position='relative';slot.append(image,mini,retry);
       let timeout,ready=false;
       const fail=()=>{if(ready)return;mini.style.visibility='hidden';retry.hidden=false;};
