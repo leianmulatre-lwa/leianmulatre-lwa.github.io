@@ -1,0 +1,39 @@
+name: Calendar culture, reporting and profile alignment
+
+on:
+  push:
+    branches:
+      - feature/2026-11-16-calendar-culture-news-profile
+  pull_request:
+    paths:
+      - 'calendar-culture-news-profile-20261116.test.mjs'
+      - 'calendar-editorial-20261116.css'
+      - 'pop-culture-calendar-20261114.js'
+      - 'profile-stats-row-20261116.css'
+      - 'profile-stats-row-20261116.js'
+      - 'module-pages.js'
+      - 'index.html'
+      - 'studio/index.html'
+      - '404.html'
+      - 'live-studio-shell.html'
+
+permissions:
+  contents: read
+
+jobs:
+  source-and-calendar-regressions:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check source syntax
+        run: |
+          node --check module-pages.js
+          node --check pop-culture-calendar-20261114.js
+          node --check profile-stats-row-20261116.js
+          node --check calendar-culture-news-profile-20261116.test.mjs
+      - name: Check calendar, source attribution and profile layout
+        run: |
+          node --test calendar-culture-news-profile-20261116.test.mjs
+          node --test werk-lwazi-popcalendar-test.mjs
+          node --test community-profile-policy-regression-20261114.test.mjs

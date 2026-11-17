@@ -53,3 +53,39 @@
  #studioApp .profile-card .biglwa-profile-role-statline>.stats.stats>*{font-size:10px!important}
  #studioApp .profile-card .biglwa-profile-role-statline>.stats.stats b{font-size:14px!important}
 }
+
+/* Follow-up: profile stats must share the Roles line on desktop, rather than
+   forcing the next row at 940px because of a 420px flex basis. */
+@media(min-width:760px){
+ #studioApp .profile-card:not(.profile-is-editing) .profile-copy>.biglwa-profile-role-statline{
+  display:flex!important;flex-wrap:nowrap!important;align-items:center!important;
+  gap:clamp(7px,1.1vw,16px)!important;
+  margin:5px 0 9px!important;min-height:0!important;
+ }
+ #studioApp .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline>#biglwaCommunityRoleBadges{
+  flex:0 1 36%!important;max-width:36%!important;min-width:0!important;
+  align-items:center!important;gap:5px!important;
+ }
+ #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline>.stats.stats{
+  flex:1 1 auto!important;flex-basis:auto!important;
+  min-width:0!important;max-width:none!important;
+  display:flex!important;flex-wrap:wrap!important;
+  align-items:center!important;justify-content:flex-end!important;
+  gap:6px clamp(8px,1.2vw,18px)!important;
+  margin:0!important;
+ }
+ #studioApp .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline>.stats.stats>*{
+  white-space:nowrap!important;flex:0 0 auto!important;
+ }
+}
+@media(min-width:1100px){
+ #studioApp:not(.profile-editor-wallpaper) .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline>.stats.stats{
+  flex-wrap:nowrap!important;
+ }
+}
+#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-copy>.biglwa-stories-ribbon{
+ margin:8px 0 16px!important;padding-bottom:2px!important;min-height:55px!important;
+}
+#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank{
+ margin:7px 0 3px!important;padding-top:9px!important;
+}
