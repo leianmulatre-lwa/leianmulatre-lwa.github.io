@@ -4513,7 +4513,19 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
        });
      }
      const cameraCard=$('#camera'),cameraPreview=cameraCard&&$('.contact-sheet',cameraCard);
-    if(cameraPreview){cameraPreview.classList.add('photobooth-reference-preview');cameraPreview.setAttribute('aria-label','Photo booth curtain preview');cameraPreview.innerHTML='<img src="/assets/booth-light-20261029.webp" alt="Red curtain for photo booth" width="800" height="533" loading="lazy">'}
+    if(cameraPreview){
+      cameraPreview.classList.add('photobooth-reference-preview');
+      cameraPreview.setAttribute('aria-label','Photo booth curtain preview');
+      // Card enhancement runs again after navigation/imports. Preserve the
+      // capture/sample strip owned by studio-booth-preview.js on every pass.
+      if(!cameraPreview.querySelector(':scope > img')){
+        const artwork=document.createElement('img');
+        artwork.src='/assets/biglwa-booth-light-20261110.webp';
+        artwork.alt='Red curtain for photo booth';
+        artwork.width=1200;artwork.height=903;artwork.loading='lazy';
+        cameraPreview.prepend(artwork);
+      }
+    }
     const archiveCard=$('#archive');
     if(archiveCard){
       archiveCard.dataset.widgetRoute='archive';
