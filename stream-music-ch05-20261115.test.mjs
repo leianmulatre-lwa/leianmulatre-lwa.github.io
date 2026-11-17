@@ -42,8 +42,9 @@ test('Music has a five-column responsive layout with no fake player or links',()
 test('Stereo seek bar lives at bottom of CRT without an absolute overlay',()=>{
  assert.match(stereo,/stereo-display>\.stereo-time-scale\{/);
  assert.match(stereo,/margin-top:auto!important/);
- assert.match(stereo,/bottom:auto!important/);
- assert.match(stereo,/display:flex!important;flex-direction:column!important/);
+ assert.match(stereo,/stereo-time-scale>\.stereo-eq\{\s*grid-column:2;\s*grid-row:1;/);
+ assert.match(stereo,/stereo-time-scale>:is\(span,\.progress\)\{\s*grid-row:2;/);
+ assert.match(stereo,/display:flex!important;\s*flex-direction:column!important/);
  assert.match(loader,/timeline=20261115-bottom-v1/);
 });
 test('Every public Studio shell loads fresh Stream assets',()=>{

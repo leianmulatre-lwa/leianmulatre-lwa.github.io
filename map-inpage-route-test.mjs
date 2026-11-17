@@ -77,6 +77,6 @@ test('Map style source visible and never silently retains legacy default',()=>{
  assert.match(map,/mapProviderIndicator/);
  assert.match(map,/OpenFreeMap vector unavailable/);
  assert.match(map,/map-lwa-router-20261113\.js/);
- assert.match(studio,/20261113-inpage-navigation-go-5/);
+ assert.match(studio,/mapAppUrl='\/map-app\.html\?embed=1&v=/);
  assert.match(extras,/20261113-stay-2/);
 });

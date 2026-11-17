@@ -16,7 +16,7 @@ assert.match(avatar,/publishStudioAvatar\(f,uid,state\.avatar\)/,
  'Saving a real Avatar also publishes an owner-matched public reference');
 assert.match(avatar,/publishStudioAvatar\(f,user\.uid,state\.avatar,snap\)/,
  'Existing saved Avatars are backfilled for public profiles');
-assert.match(chrome,/renderJournalCoverInitial\(name\)/,'Journal initial uses display name');
+assert.match(chrome,/renderJournalCoverInitial\(who\.uid \? realName/,'Journal initial uses display name');
 assert.match(publicPage,/Avatar not shared/,'Missing character never falls back to an initial');
 assert.match(publicPage,/publicGuestEntriesVisibility/,'Only explicitly published Guest Check notes can be public');
 assert.match(curtain,/--lwa-loading-hero-height:clamp\(275px,43vh,355px\)/,

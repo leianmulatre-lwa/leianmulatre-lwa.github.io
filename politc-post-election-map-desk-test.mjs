@@ -23,7 +23,7 @@ test('both new interactive scripts parse and deployed pages load them',()=>{
  }
  assert.match(map,/map-lwa-experience-20261113\.js\?v=20261113-go-v5/);
  assert.match(map,/map-lwa-experience-20261113\.css\?v=20261114-wider-map-page-scroll-v7/);
- assert.match(mod,/20261113-inpage-navigation-go-5/);
+ assert.match(mod,/mapAppUrl='\/map-app\.html\?embed=1&v=/);
  assert.match(mod,/allow="geolocation 'self'; microphone 'self'; fullscreen"/);
 });
 test('post-election desk is compact by default; original form controls are preserved',()=>{

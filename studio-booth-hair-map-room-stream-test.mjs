@@ -56,7 +56,7 @@ test('OpenFreeMap preview keeps pan/zoom and now has real same-window private pi
  assert.match(map,/\$\('pinPublic'\)\.checked=false/,'Preview can only save private pins');
  assert.match(map,/\$\('pinForm'\)\.requestSubmit\(\)/,'Use existing validated pin-save flow');
  assert.match(map,/map-preview-pins-updated/);
- assert.match(studio,/map-app\.html\?embed=1&v=20261114-inline-pinning-1/);
+ assert.match(studio,/mapAppUrl='\/map-app\.html\?embed=1&v=/);
  assert.match(map,/body\.preview #studioMapPreviewTools/);
  assert.match(map,/body\.embedded\.preview #map\{/,'Embedded Studio thumbnails must override full-page map sizing');
  assert.match(map,/body\.embedded\.preview \.map-stage\{/,'Preview map stage must fill the iframe');

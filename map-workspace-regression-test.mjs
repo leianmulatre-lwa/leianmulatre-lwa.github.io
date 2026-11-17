@@ -36,7 +36,10 @@ test('OpenFreeMap is progressive and keeps safe classic fallback',()=>{
   assert.match(map,/Mapped bike lanes · not live/);
 });
 test('map stays in Studio, uses height messaging rather than another page',()=>{
-  assert.match(studio,/src="\/map-app\.html\?embed=1/);
+  assert.match(studio,/mapAppUrl='\/map-app\.html\?embed=1/);
+  assert.equal([...studio.matchAll(/<iframe id="biglwaMapApp"/g)].length,1);
+  assert.match(studio,/frame\.src=mapAppUrl/);
+  assert.match(studio,/retry\.addEventListener\('click',loadMap\)/);
   assert.match(studio,/data\.type==='biglwa:map-height'/);
   assert.match(studio,/data\.type==='biglwa:map-ready'/);
   assert.match(studio,/status\.hidden=true/);

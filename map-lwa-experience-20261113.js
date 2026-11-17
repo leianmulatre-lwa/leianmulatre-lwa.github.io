@@ -140,14 +140,15 @@
   tip.setAttribute('aria-hidden','true');
   mapSide.querySelector('.map-stage')?.appendChild(tip);
   // Studio expands with this document; only a height number is reported.
-  if(params.has('embed')&&window.parent!==window){
+  const mapContent=mapSide.closest('main');
+  if(mapContent&&params.has('embed')&&window.parent!==window){
     const reportHeight=()=>{
-      const height=Math.ceil(document.documentElement.scrollHeight);
+      const height=Math.ceil(mapContent.getBoundingClientRect().bottom+window.scrollY);
       if(height>420&&height<=4200){
         try{window.parent.postMessage({type:'biglwa:map-height',height},location.origin);}catch{}
       }
     };
-    if(typeof ResizeObserver==='function')new ResizeObserver(reportHeight).observe(document.body);
+    if(typeof ResizeObserver==='function')new ResizeObserver(reportHeight).observe(mapContent);
     window.addEventListener('load',reportHeight);
     window.addEventListener('resize',reportHeight);
     requestAnimationFrame(reportHeight);

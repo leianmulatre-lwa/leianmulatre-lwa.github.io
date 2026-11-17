@@ -11,7 +11,7 @@
   width:104%!important;
   container-type:inline-size;
   height:auto!important;
-  aspect-ratio:1672 / 941!important;
+  aspect-ratio:1672 / 1500!important;
   padding:0!important;
   margin:0 -2% 10px!important;
   overflow:visible!important;
@@ -257,21 +257,23 @@ html.biglwa-preview-mode #studioApp #camera .booth-recent-film[data-samples-only
 @media(prefers-reduced-motion:reduce){
   #studioApp #feed #biglwaFeedHero *{transition:none!important}
 }
-/* 2026-11-16 · prioritize full portrait visibility inside the four fixed
-   film apertures. Frame positions and original curtain illustration stay put. */
-#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-hero-preview{
- background:#1d1013!important;
+/* Both Studio views use the same stitched cover lettering. */
+#studioApp #diary .diary-page > :is(.studio-journal-initial,.biglwa-public-journal-initial) {
+  position:absolute;
+  z-index:5;
+  left:50%;
+  top:44%;
+  transform:translate(-50%,-50%) rotate(-2deg);
+  display:grid;
+  place-items:center;
+  min-width:1.2em;
+  font:400 clamp(32px,5vw,54px)/1 "CS Bergamot Stitched",Georgia,serif;
+  color:#492431;
+  text-shadow:0 1px 0 #f9e9d1;
+  pointer-events:none;
 }
-#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid>.biglwa-feed-hero-preview img {
- object-fit:cover!important;
- object-position:center center!important;
- background:radial-gradient(ellipse at center,#46303b,#13090b)!important;
-}
-/* Journal initials sit on the front face, not beneath the cover art. */
-#studioApp #diary .diary-page{isolation:isolate!important}
-#studioApp #diary .diary-page .studio-journal-initial{
- z-index:100!important;left:50%!important;top:51%!important;opacity:1!important;
- mix-blend-mode:normal!important;pointer-events:none!important
+html.biglwa-preview-mode #studioApp #diary .diary-page > .studio-journal-initial {
+  display:none!important;
 }
 /* LWA & ORDER art occupies its available Studio tile with no invented frame. */
 #studioApp #politc>.biglwa-politc-title-art{

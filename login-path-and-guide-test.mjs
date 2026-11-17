@@ -68,7 +68,7 @@ assert.ok(onboarding.includes('Orbit → Archive') && onboarding.includes('NOT p
   'tutorial explains private imports vs public publishing');
 assert.ok(onboarding.includes('observer.observe(document.documentElement,{subtree:true,childList:true})'),
   'tutorial reattaches after the Studio replaces its layout');
-assert.ok(modules.includes('left:50%!important;top:37%!important'),'Journal initial lowered');
+assert.match(read('studio-uploaded-thumbnails-20261110.css'),/\.diary-page > :is\(\.studio-journal-initial,\.biglwa-public-journal-initial\)[\s\S]*?top:44%/,'Both Journal covers position the stitched initial');
 assert.ok(home.includes('studio-onboarding.js?v='));
 assert.ok(/session-restore\.js\?v=20261112-bfcache-history-1/.test(home) && session.includes('let lastConfirmedUid=null'),'Initial signed-out auth resolves visibly');
 console.log('PASS · canonical auth origin, preserved login paths and Studio panels');

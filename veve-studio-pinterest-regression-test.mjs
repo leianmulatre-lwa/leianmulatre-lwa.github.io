@@ -22,7 +22,7 @@ const checks=[
  ['Studio tutorial optional and dismissible',onboarding.includes('data-tour-dismiss')&&onboarding.includes('is-tutorial-dismissed')],
  ['Tutorial dismissal stored per user',onboarding.includes('biglwaStudioTutorialDismissed:v1:')&&onboarding.includes('studioTutorialDismissed:true')],
  ['Tutorial can be reopened from Settings',settings.includes('/studio?tutorial=1')],
- ['Journal initial shifted down',modules.includes('top:37%!important')],
+ ['Journal cover initial is rendered from the signed-in display name',read('account-chrome.js').includes('renderJournalCoverInitial(who.uid ? realName')],
  ['Supporter carousel uses bare PNG logos',brand.includes('.supporter-logo img')&&brand.includes('background:transparent!important')],
  ['New scripts referenced',index.includes('studio-onboarding.js?v=')&&/pinterest-orbit\.js\?v=[\w.-]+/.test(index)],
  ['Board styles load for private collections',pinterest.includes('pinterest-boards.css?v=')&&boardsCss.includes('pn-board-view-actions')]
