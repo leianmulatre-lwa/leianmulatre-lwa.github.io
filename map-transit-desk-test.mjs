@@ -20,6 +20,9 @@ test('rail network loads only on request and shows real lines and stations',asyn
  assert.equal(await w.BigLWAMetroTransit.plan({lat:a[0],lng:a[1]},{lat:z[0],lng:z[1]},host),true);
  assert.match(host.textContent,/Rail route · LA Metro/);assert.match(host.textContent,/Metro B Line/);assert.doesNotMatch(host.textContent,/Transfer at/);
  assert.equal(await w.BigLWAMetroTransit.plan({lat:40,lng:-74},{lat:40.1,lng:-74},host),false);
+ host.replaceChildren();
+ assert.equal(await w.BigLWAMetroTransit.plan({lat:z[0],lng:z[1]},{lat:a[0],lng:a[1]},host),true);
+ assert.doesNotMatch(host.textContent,/Transfer at/);
  const before=host.textContent;
  assert.equal(await w.BigLWAMetroTransit.plan({lat:a[0],lng:a[1]},{lat:z[0],lng:z[1]},host,()=>false),false);
  assert.equal(host.textContent,before);

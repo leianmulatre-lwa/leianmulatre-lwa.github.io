@@ -45,11 +45,13 @@
   const fromPoint=[origin.lat,origin.lng],toPoint=[destination.lat,destination.lng];
   let first=nearest(fromPoint),last=nearest(toPoint);
   if(distance(first.point,fromPoint)>2||distance(last.point,toPoint)>2)return false;
-  const start=nodes.indexOf(first),end=nodes.indexOf(last),cost=nodes.map(()=>Infinity),previous=new Map(),pending=new Set(nodes.map((_,i)=>i));cost[start]=0;
+  let end=nodes.indexOf(last);
+  const start=nodes.indexOf(first),goals=new Set(nodes.map((n,i)=>distance(n.point,last.point)<.1?i:-1).filter(i=>i>=0)),cost=nodes.map(()=>Infinity),previous=new Map(),pending=new Set(nodes.map((_,i)=>i));cost[start]=0;
   nodes.forEach((node,i)=>{if(distance(node.point,first.point)<.1)cost[i]=0});
   while(pending.size){
    let current=-1;for(const i of pending)if(current<0||cost[i]<cost[current])current=i;
-   if(!Number.isFinite(cost[current])||current===end)break;pending.delete(current);
+   if(!Number.isFinite(cost[current]))break;
+   if(goals.has(current)){end=current;break;}pending.delete(current);
    const a=nodes[current];
    for(const i of pending){
     const b=nodes[i],same=a.route.id===b.route.id;
