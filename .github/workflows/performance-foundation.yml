@@ -37,6 +37,15 @@ jobs:
         run: |
           node --check scripts/performance/release-scope.mjs
           node scripts/performance/release-scope.mjs --json > "${RUNNER_TEMP}/biglwa-pages-release-scope.json"
+      - name: Validate owner-scoped media and original-preserving image previews
+        run: |
+          node --check media-derivative-policy.mjs
+          node --check media-renditions.js
+          node --check media-renditions.test.mjs
+          node --check cloudflare-worker-instagram.js
+          node --check collective-publish.js
+          node --check feed-view.js
+          node --test media-renditions.test.mjs
       - name: Stage public-only release (no deploy)
         run: |
           node --check scripts/performance/build-public-site.mjs
