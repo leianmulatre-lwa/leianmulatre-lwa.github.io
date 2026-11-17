@@ -47,7 +47,7 @@ function blockPair(item,primary){
  const key=CRAFT_ALTERNATE[item.id]||'sqwibblR';
  return '<div class="craft-block-pair">'+
  '<span class="craft-block-main">'+primary+'</span>'+
- '<span class="craft-mini-symbol-block"><img class="craft-block-alt" src="/assets/bigapps/blocks/'+key+'.svg?v=20261029-coded-pair-1" alt="" aria-hidden="true" width="48" height="48" loading="lazy"><span class="craft-mini-symbol">'+({'image-desk':'ᛉ',visualizr:'<img src="/assets/projects-symbol.svg" alt="">',photocraft:'☀',vectorcraft:'✎',effectcraft:'◇',pdfcraft:'▤'}[item.id]||'✦')+'</span></span>'+
+ '<img class="craft-block-alt" src="/assets/bigapps/blocks/'+key+'-icon.svg?v=20261117-face-icon-1" alt="" aria-hidden="true" width="48" height="48" loading="lazy">'+
  '</div>';
 }
 function weeklyBlock(){
