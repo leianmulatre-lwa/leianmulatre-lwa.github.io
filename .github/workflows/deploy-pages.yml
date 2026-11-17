@@ -108,12 +108,24 @@ jobs:
               assert (folder/'upstream-licenses'/'SOURCE.txt').is_file()
           print('BIG LWA four native R editor builds restored and verified for Pages.')
           PY
+      - name: Package only verified public site files
+        run: |
+          node --check scripts/performance/build-public-site.mjs
+          node scripts/performance/build-public-site.mjs --build > "${RUNNER_TEMP}/biglwa-pages-packaging.json"
+          test -f dist/public/index.html
+          test -f dist/public/studio/index.html
+          test -f dist/public/legal/index.html
+          test -f dist/public/map-app.html
+          test -f dist/public/bigapps/manifest.json
+          test ! -e dist/public/third_party
+          test ! -e dist/public/.github
+          test ! -e dist/public/docs
       - name: Setup Pages
         uses: actions/configure-pages@v5
-      - name: Upload artifact
+      - name: Upload public-only artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: dist/public
       # GitHub Pages sometimes cannot discover a freshly uploaded artifact
       # immediately. Rerunning a failed job may produce duplicate artifacts;
       # a new workflow run plus this guard avoids both races.
