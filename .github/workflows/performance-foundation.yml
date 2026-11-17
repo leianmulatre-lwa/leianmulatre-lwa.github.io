@@ -46,6 +46,33 @@ jobs:
           node --check collective-publish.js
           node --check feed-view.js
           node --test media-renditions.test.mjs
+      - name: Recreate checksum-verified native editors without deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag=$(python3 -c 'import json;print(json.load(open(".github/native-release-lock.json"))["tag"])')
+          asset=$(python3 -c 'import json;print(json.load(open(".github/native-release-lock.json"))["archive"])')
+          expected=$(python3 -c 'import json;print(json.load(open(".github/native-release-lock.json"))["archive_sha256"])')
+          mkdir -p "${RUNNER_TEMP}/native-editors"
+          gh release download "$tag" --pattern "$asset" --dir "${RUNNER_TEMP}/native-editors"
+          printf '%s  %s\n' "$expected" "${RUNNER_TEMP}/native-editors/$asset" | sha256sum --check --status
+          BIGLWA_NATIVE_ARCHIVE="${RUNNER_TEMP}/native-editors/$asset" python3 .github/scripts/stage-craft-apps.py .
+          test -f bigapps/manifest.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          manifest=json.loads(Path('bigapps/manifest.json').read_text())
+          required={'lightR','paintR','keyframeR','fileR'}
+          for name in required:
+              folder=Path('bigapps')/name
+              assert (folder/'index.html').exists(),name
+              assert any(folder.rglob('*.wasm')),name
+              assert (folder/'upstream-licenses'/'SOURCE.txt').exists(),name
+          assert len(manifest['apps'])==4
+          print('Verified 4 original R editor bundles in the candidate release.')
+          PY
       - name: Stage public-only release (no deploy)
         run: |
           node --check scripts/performance/build-public-site.mjs
@@ -54,6 +81,8 @@ jobs:
           test -f dist/public/index.html
           test -f dist/public/studio/index.html
           test -f dist/public/map-app.html
+          test -f dist/public/bigapps/manifest.json
+          test -f dist/public/bigapps/lightR/index.html
           test -f dist/public/legal/index.html
           test ! -e dist/public/third_party
           test ! -e dist/public/docs
