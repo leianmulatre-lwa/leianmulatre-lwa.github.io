@@ -268,7 +268,7 @@ export function mountToolsStudio(root,helper){
     <section class="module-card wide" id="craftSuite" aria-label="BIG LWA creative workshop"><p role="status">Opening the BIG LWA workshop…</p></section>
     <section class="tool-intake">
       <div class="tool-drop" id="toolDrop" tabindex="0" role="button" aria-label="Drop a file here or choose one">
-        <strong>Drop a file here</strong>
+        <strong>Drop a file here · rotate, crop & filter images</strong>
         <span>Video, audio, images, PDFs, archives, documents, anything.</span>
         <em>BIGLWA works out what it is and offers the conversions that suit it. Files up to 500 MB are accepted locally; large video trimming does not upload.</em>
         <button class="module-action" type="button" id="toolPick">Choose a file</button>
@@ -491,9 +491,9 @@ export function mountToolsStudio(root,helper){
       // Native Lwazi Tool Drop photo controls are in the same file intake.
       const pane=document.createElement('section');
       pane.id='lwaPhotoAdjustPanel';
-      pane.setAttribute('aria-label','Adjust and crop selected image');
+      pane.setAttribute('aria-label','Rotate, crop and filter the selected image');
       const container=groupsEl.querySelector('.tool-group');
-      if(container)container.appendChild(pane);
+      if(container){const facts=container.querySelector('.tool-facts');if(facts)facts.insertAdjacentElement('afterend',pane);else container.prepend(pane);}
       try{
         const {mountImageAdjuster}=await import('./tools-image-adjust-20261116.js?v=20261116-image-controls-1');
         if(current!==file)return;
