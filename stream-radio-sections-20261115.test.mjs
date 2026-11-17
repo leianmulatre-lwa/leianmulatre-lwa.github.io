@@ -4,11 +4,12 @@ import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 const read=p=>readFileSync(new URL('./'+p,import.meta.url),'utf8');
 const js=read('stream-guide.js'),css=read('stream-guide.css');
-test('all five Stream sections remain in the main selector',()=>{
+test('Radio owns Podcasts and Music while four main Stream sections remain',()=>{
  assert.doesNotThrow(()=>new vm.Script(js));
  const ids=['podcast','lwa-tv','live','sqwibz','music'];
  for(const id of ids)assert(js.includes("['"+id+"'"),id+' must stay in the navigation');
- assert.match(js,/categories\.map\(c=>'<button class="stream-tab"/);
+ assert.match(js,/programmedCategories\(\)\.map\(c=>'<button class="stream-tab"/);
+ assert.match(js,/data-radio-section="music"/);
  assert.match(js,/if\(grid\)grid\.hidden=false/);
  assert.match(css,/\.stream-nav \.stream-channels\{\s*display:grid!important/);
  assert.match(css,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)!important/);

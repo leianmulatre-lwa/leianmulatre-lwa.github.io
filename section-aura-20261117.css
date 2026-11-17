@@ -1,0 +1,35 @@
+/* Shared section controls follow Aura; R apps retain the color of their block. */
+html body #studioApp #moduleWorkspace{--section-rgb:var(--aura-rgb,216,95,109)}
+html body #studioApp #moduleWorkspace[data-module-key="notes"],html body #studioApp #notes{--section-rgb:56,137,103}
+html body #studioApp #moduleWorkspace[data-module-key="projects"],html body #studioApp #projects{--section-rgb:177,83,115}
+html body #studioApp [data-craft-engine="image-desk"],html body #studioApp [data-craft-card="image-desk"]{--section-rgb:56,137,103}
+html body #studioApp [data-craft-engine="photocraft"],html body #studioApp [data-craft-card="photocraft"]{--section-rgb:207,145,35}
+html body #studioApp [data-craft-engine="vectorcraft"],html body #studioApp [data-craft-card="vectorcraft"]{--section-rgb:42,118,184}
+html body #studioApp [data-craft-engine="effectcraft"],html body #studioApp [data-craft-card="effectcraft"]{--section-rgb:117,65,158}
+html body #studioApp [data-craft-engine="pdfcraft"],html body #studioApp [data-craft-card="pdfcraft"]{--section-rgb:188,58,51}
+html body #studioApp [data-craft-card="visualizr"]{--section-rgb:177,83,115}
+html body #studioApp #moduleWorkspace .module-heading.module-heading--with-versions .module-heading-versions,
+html body #studioApp #moduleWorkspace :is(.visualz-tabs,.stream-channels,.stream-radio-modes,.calendar-modes,.room-mode-tabs,.bookiniz-tabs,.diary-section-nav,.booth-tabs){
+ background:rgba(var(--section-rgb),.13)!important;background-image:none!important;
+ border:1px dashed rgba(var(--section-rgb),.48)!important;outline:1px solid rgba(var(--section-rgb),.12);outline-offset:3px;
+ box-shadow:0 3px 0 rgba(var(--section-rgb),.12)!important;border-radius:12px!important;padding:6px!important;
+}
+html body #studioApp #moduleWorkspace .module-heading.module-heading--with-versions .module-heading-versions button:is([aria-selected="true"],[aria-pressed="true"]),
+html body #studioApp #moduleWorkspace :is(.visualz-tabs,.stream-channels,.stream-radio-modes,.calendar-modes,.room-mode-tabs,.bookiniz-tabs,.diary-section-nav,.booth-tabs) button:is(.active,.is-active,[aria-selected="true"],[aria-pressed="true"]){
+ background:rgba(var(--section-rgb),.82)!important;background-image:none!important;color:#fffaf2!important;border-color:rgba(var(--section-rgb),.45)!important;box-shadow:none!important;
+}
+html body #studioApp .stream-radio-modes{display:flex;gap:5px;margin-bottom:20px;width:max-content}
+html body #studioApp .stream-radio-modes button{padding:9px 18px;border-radius:8px;background:#fff7e8;color:#342823;border:0;font:700 13px system-ui}
+html body #studioApp .biglwa-stream .stream-nav .stream-channels{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+html body #studioApp #craftSuite :is(.craft-tile,.craft-panel){border-color:rgba(var(--section-rgb,177,83,115),.55)!important;border-style:dashed!important;background-color:rgba(var(--section-rgb,177,83,115),.07)!important}
+html body #studioApp #notes,html body #studioApp #projects{border-color:rgba(var(--section-rgb),.5)!important;box-shadow:0 0 0 3px rgba(var(--section-rgb),.18)!important}
+html body #studioApp #moduleWorkspace.visual-life-active :is(.lwa-project-toolbar,.lwa-project-board,.lwa-project-tools,.lwa-project-foot,#lwaVisualSlides){display:none!important}
+html body #studioApp #moduleWorkspace.visual-life-active .visualz-tabs [data-visualz-mode]{background:#fff8ee!important;color:#593b42!important}
+html body #studioApp .module-shell.lwa-curtain-loading{isolation:isolate;min-height:min(780px,calc(100dvh - 135px))}
+html body #studioApp .module-shell.lwa-curtain-loading>:not(.lwa-curtain){visibility:hidden!important}
+html body #studioApp .module-shell.lwa-curtain-loading>.lwa-curtain{inset:0!important;height:100%!important;min-height:100%!important;pointer-events:auto}
+html body #studioApp .lwa-curtain-bypass[hidden]{display:none!important}
+#craftSuite .craft-mini-symbol-block{position:relative;display:block;width:34px;height:34px;flex:none;margin-left:-4px;margin-top:2px}
+#craftSuite .craft-mini-symbol-block .craft-block-alt{margin:0!important}
+#craftSuite .craft-mini-symbol{position:absolute;left:17%;top:38%;width:50%;height:45%;background:#f4d8aa;display:grid;place-items:center;color:#201910;font:800 15px/1 Georgia;overflow:hidden;border-radius:1px}
+#craftSuite .craft-mini-symbol img{width:100%;height:100%;object-fit:contain}

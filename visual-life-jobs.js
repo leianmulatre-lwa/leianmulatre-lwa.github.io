@@ -216,18 +216,15 @@ function setJobs(rows){
 }
 function install(){
  const project=document.querySelector('#moduleWorkspace[data-module-key="projects"]');
- const heading=project&&project.querySelector('.module-heading');
- if(heading&&!heading.querySelector('.visual-life-entry')){
+ const tabs=project?.querySelector('.visualz-tabs');
+ if(tabs&&!tabs.querySelector('[data-visual-life-open]')){
   const link=document.createElement('button');link.type='button';link.className='visual-life-entry';
-  link.textContent='Visual-Life · Jobs ↗';link.title='Find work through Visual-Life in L’wazi Workshop';
-  link.addEventListener('click',()=>{
-   pendingOpen=true;
-   if(typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('tools');
-   else window.location.hash='tools';
-   install();
-  });
-  heading.appendChild(link);
+  link.textContent='visual·life';link.dataset.visualLifeOpen='';link.setAttribute('aria-pressed','false');
+  link.addEventListener('click',()=>{project.classList.add('visual-life-active');tabs.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b===link)));open(project);});
+  tabs.append(link);
+  tabs.addEventListener('click',event=>{if(event.target.closest('[data-visualz-mode]')){project.classList.remove('visual-life-active');project.querySelector('#craftVisualLifePanel')?.remove();}});
  }
+ if(project&&!project.__lifeCloseBound){project.__lifeCloseBound=true;project.addEventListener('click',event=>{if(event.target.closest('[data-visual-life-close]')){project.classList.remove('visual-life-active');project.querySelector('[data-visualz-mode].active')?.click();}});}
  const root=document.querySelector('#craftSuite');if(!root)return;
  ensureCard(root);
  if(pendingOpen){pendingOpen=false;open(root)}

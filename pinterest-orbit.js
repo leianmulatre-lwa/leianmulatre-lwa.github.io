@@ -522,13 +522,17 @@ async function connect(){await run(async()=>{
     render();return null;
   }
  }
+ let pinsRequestKey="";
  async function loadPins(id,more){
   if(!id)return[];
-  if(pinsPromise)return pinsPromise;
-  pinsPromise=(async()=>{
+  const requestKey=authUid+":"+String(id)+":"+(more?pinsNext:"");
+  if(pinsPromise&&pinsRequestKey===requestKey)return pinsPromise;
+  const requestUid=authUid;
+  pinsRequestKey=requestKey;
+  const request=(async()=>{
    const data=await api('boards/'+encodeURIComponent(id)+'/pins'+(more&&pinsNext?'?bookmark='+encodeURIComponent(pinsNext):''));
    const nextItems=Array.isArray(data?.items)?data.items:Array.isArray(data?.pins)?data.pins:Array.isArray(data?.data?.items)?data.data.items:[];
-   if(String(boardId)!==String(id))return pins; // A prior board's response must not overwrite the new selection.
+   if(requestUid!==authUid||String(boardId)!==String(id))return pins; // A prior board's response must not overwrite the new selection.
    pins=more?[...pins,...nextItems]:nextItems;pinsNext=data?.bookmark||data?.next_bookmark||'';
    diagnostic=nextItems.length?'Pinterest returned '+nextItems.length+' Pins from the selected board.':'Pinterest returned zero Pins for board '+id+'. Check access and whether the board contains Pins.';
    document.dispatchEvent(new CustomEvent('biglwa:pinterest-preview-updated'));
@@ -538,7 +542,8 @@ async function connect(){await run(async()=>{
    render();
    return pins;
   })();
-  try{return await pinsPromise}finally{pinsPromise=null}
+  pinsPromise=request;
+  try{return await request}finally{if(pinsPromise===request){pinsPromise=null;pinsRequestKey=""}}
  }
  async function loadCreatedPins(more=false){
   if(createdPromise)return createdPromise;
@@ -670,7 +675,7 @@ async function connect(){await run(async()=>{
  }
  async function choose(id,more=false){if(!/^\d+$/.test(id)||!boards.some(b=>String(b.id)===String(id)))return;
   await run(async()=>{
-    if(!more){activeSavedBoard='';originalView=false;scrollBoardAfterRender=true;rememberBoardSelection(id);boardId=id;pins=[];pinsNext='';selectedBoardPins.clear();void loadCovers()}
+    if(!more){activeSavedBoard='';originalView=false;scrollBoardAfterRender=true;rememberBoardSelection(id);boardId=id;pins=[];pinsNext='';selectedBoardPins.clear();render();void loadCovers()}
     await loadPins(id,more);
     if(!more)void hydrateBrowse({scope:'pins',uid:authUid,selected:id});
   });
