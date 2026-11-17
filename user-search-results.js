@@ -5,7 +5,24 @@
     function plainSnippet(s){var el=document.createElement('textarea');el.innerHTML=String(s||'').replace(/<[^>]*>/g,' ');return el.value.replace(/\s+/g,' ').trim()}
     function localUsers(q){var out=[];try{var v=JSON.parse(localStorage.getItem('biglwaUserDirectory')||'[]');if(Array.isArray(v))out=out.concat(v)}catch(e){}if(Array.isArray(window.__biglwaUsers))out=out.concat(window.__biglwaUsers);var seen={};return out.filter(function(u){var key=String(u&&u.username||'').toLowerCase();if(seen[key]||!key||/private/i.test(String(u.accountVisibility||u.visibility||u.privacy||'')))return false;if(String(u.username||u.name||'').toLowerCase().indexOf(q)==-1)return false;seen[key]=1;return true}).slice(0,8)}
     async function searchUsers(q){var hits=[];try{if(window.BigLWAUserDirectory&&window.BigLWAUserDirectory.searchUsers)hits=await window.BigLWAUserDirectory.searchUsers(q)}catch(e){}if(!hits.length)hits=localUsers(q);return hits.slice(0,8)}
-    async function fetchJSON(url){var controller=new AbortController(),stop=setTimeout(function(){controller.abort()},7000);try{var response=await fetch(url,{signal:controller.signal,headers:{Accept:'application/json'}});if(!response.ok)throw Error('Search source unavailable');return await response.json()}finally{clearTimeout(stop)}}
+    // Coalesce concurrent identical public discovery fetches. No persistent,
+    // cross-user, credentialed or stale cache: clear immediately on settle.
+    var pendingSourceJSON=new Map();
+    function fetchJSON(url){
+      var key=String(url||'');
+      if(pendingSourceJSON.has(key))return pendingSourceJSON.get(key);
+      var work=(async function(){
+        var controller=new AbortController(),stop=setTimeout(function(){controller.abort()},7000);
+        try{
+          var response=await fetch(url,{signal:controller.signal,headers:{Accept:'application/json'}});
+          if(!response.ok)throw Error('Search source unavailable');
+          return await response.json();
+        }finally{clearTimeout(stop)}
+      })();
+      if(pendingSourceJSON.size<64)pendingSourceJSON.set(key,work);
+      return work.then(function(value){if(pendingSourceJSON.get(key)===work)pendingSourceJSON.delete(key);return value},
+       function(error){if(pendingSourceJSON.get(key)===work)pendingSourceJSON.delete(key);throw error});
+    }
     var sourceLibraryPromise=fetchJSON('/lwazi-source-library-v02.json?v=20261114-risk-context-v3').catch(function(){return null});
     function sourceLibraryMatches(library,q){if(!library||!Array.isArray(library.public_sources))return [];var needle=String(q||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();var stop={what:1,when:1,where:1,which:1,whose:1,can:1,could:1,would:1,should:1,help:1,explore:1,search:1,lwazi:1,please:1,about:1,with:1,from:1,that:1,there:1,these:1,those:1,does:1,have:1,more:1,just:1,thing:1,things:1,find:1,show:1,into:1,look:1};var words=needle.split(' ').filter(function(w){return w.length>2&&!stop[w]});if(!words.length)return [];return library.public_sources.map(function(source){var hay=[source.title,source.creator,source.topic,source.role,source.usage,source.notes].join(' ').toLowerCase();var score=words.reduce(function(total,word){return total+(hay.indexOf(word)!==-1?1:0)},0)+(hay.indexOf(needle)!==-1?4:0);return {source:source,score:score}}).filter(function(item){return item.score>0}).sort(function(a,b){return b.score-a.score||String(a.source.id).localeCompare(String(b.source.id))}).slice(0,6).map(function(item){return item.source})}
     function sourceLibraryCard(source){var access=String(source.access||'Public source').replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase()});return '<article class="bl-search-card bl-source-card"><div class="bl-search-card-body"><span class="bl-search-kicker">'+esc(/official|government|clinical|medical|legal|regulator/i.test(String(source.role||'')+' '+String(source.topic||''))?'Official or clinical reference':'Community and academic research')+'</span><h3>'+esc(source.title||'Research source')+'</h3><p class="bl-search-muted">'+esc(source.creator||'Community or academic source')+' \u00b7 '+esc(access)+'</p><p>'+esc(source.usage||source.topic||'')+'</p><a class="bl-search-go" href="'+esc(source.url)+'" target="_blank" rel="noopener noreferrer">Open source &#8594;</a></div></article>'}
