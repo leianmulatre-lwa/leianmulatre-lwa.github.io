@@ -100,7 +100,7 @@
 
     #studioApp #map .studio-map-preview-slot .studio-map-still{display:block;width:100%;height:205px;max-height:205px;object-fit:cover;object-position:center;border:1px solid #a4b8ac;border-radius:14px;box-shadow:2px 3px 0 #9faf9d;pointer-events:none;user-select:none}
 
-    #studioApp #map .studio-mini-map{display:block;width:100%;height:205px!important;min-height:205px;border:1px solid #a2b7ac;border-radius:14px;background:#d9e8dc;box-shadow:2px 3px 0 #9fae9b;overflow:hidden}
+    #studioApp #map .studio-mini-map{display:block;width:100%;height:100%!important;min-height:0;border:0;border-radius:0;background:transparent;box-shadow:none;overflow:hidden}
     #studioApp #map .studio-mini-map-caption{font:650 11px/1.4 system-ui,sans-serif;padding:5px 2px 1px;color:#6d736b}
     #studioApp #map .studio-mini-map-caption .studio-mini-map-open{display:inline-flex;padding:2px 5px;border:0;border-radius:5px;background:transparent;color:#8b3642;font:750 11px/1.3 system-ui,sans-serif;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
     #studioApp #map .studio-mini-map-caption .studio-mini-map-open:focus-visible{outline:2px solid #9f3546;outline-offset:2px}
@@ -4458,12 +4458,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       mini.className='studio-mini-map';mini.referrerPolicy='same-origin';
       mini.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;visibility:hidden';
       const retry=document.createElement('button');retry.type='button';retry.textContent='Retry interactive map';retry.hidden=true;
-      retry.style.cssText='position:absolute;bottom:8px;left:8px;z-index:2';
+      retry.style.cssText='position:absolute;top:8px;left:8px;z-index:2;font:600 11px system-ui;padding:5px 8px';
       slot.style.position='relative';slot.append(image,mini,retry);
       let timeout,ready=false;
       const fail=()=>{if(ready)return;mini.style.visibility='hidden';retry.hidden=false;};
       const load=()=>{ready=false;retry.hidden=true;mini.style.visibility='hidden';clearTimeout(timeout);
-        mini.src='/map-app.html?embed=1&preview=1&v=20261117-focused-map&retry='+Date.now();
+        mini.src='/map-app.html?embed=1&preview=1&v=20261117-preview-height2&retry='+Date.now();
         timeout=setTimeout(fail,18000);};
       const listener=event=>{
         if(!slot.isConnected){clearTimeout(timeout);window.removeEventListener('message',listener);return;}
@@ -4479,6 +4479,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       mini.dataset.pinCount=String(pins.length);
       mini.contentWindow?.postMessage({type:'biglwa:map-preview-refresh'},location.origin);
     }
+    const openMap=mapCard.querySelector('.card-cta');if(openMap){slot.append(openMap);openMap.style.cssText='position:absolute;top:8px;right:8px;z-index:3;margin:0;padding:5px 7px;min-height:28px;border-radius:7px;font:700 10px system-ui';}
     mapCard.querySelectorAll('.studio-mini-map-open').forEach(el=>el.remove());
   }
 

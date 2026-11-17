@@ -28,8 +28,8 @@
   z-index:3;
   pointer-events:none;
   background:transparent url('/assets/biglwa-myfeed-filmstrip-20261110.webp') center 76% / 100% 150% no-repeat;
-  border-radius:24px;
-  filter:drop-shadow(0 5px 5px #29131b44);
+  border-radius:0 0 24px 24px;
+  filter:none;
 }
 /* Put the existing four media buttons exactly behind the PNG apertures
  * x=[74..423,468..815,859..1206,1250..1599], y=[481..723]. */
@@ -287,7 +287,7 @@ html.biglwa-preview-mode #studioApp #diary .diary-page > .studio-journal-initial
 
 #studioApp #feed #biglwaFeedHero .biglwa-feed-hero-head{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:4px 12px!important}
 #studioApp #feed #biglwaFeedHero .biglwa-feed-hero-head h3{margin:0!important;font-size:clamp(12px,4.6cqi,22px)!important}
-#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid{filter:drop-shadow(0 3px 3px #160c1090)}
-#studioApp #camera .contact-sheet.photobooth-reference-preview{clip-path:none!important;overflow:visible!important;filter:drop-shadow(0 4px 4px #29131b33)}
-#studioApp #camera .photobooth-reference-preview > img{transform:none!important}
-#studioApp #camera .contact-sheet .booth-recent-film{left:6.98%!important;top:9.35%!important;width:17.45%!important;height:80.73%!important}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-hero-grid{filter:none}
+#studioApp #camera .contact-sheet.photobooth-reference-preview{clip-path:inset(1.4% 0 1.4% round 16px)!important;overflow:hidden!important;filter:none}
+#studioApp #camera .photobooth-reference-preview > img{transform:translateY(-.9%) scale(1.06,1.10)!important;margin:0!important;max-width:100%!important}
+#studioApp #camera .contact-sheet .booth-recent-film{left:4.4%!important;top:5.29%!important;width:18.5%!important;height:88.8%!important}

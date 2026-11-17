@@ -15,7 +15,7 @@ const inputs=make('div');inputs.id='mapJourneyInputs';
 planner.querySelector('.map-plan-head').after(inputs);inputs.append(fields,actions,modes);
 const transit=make('section');transit.id='mapTransitOptions';transit.hidden=true;inputs.append(transit);
 const fare=make('p','LA Metro · $1.75 regular fare · transfers included for 2 hours. Other agencies vary.');fare.className='map-fare-summary';transit.append(fare);
-const live=$('mapLiveTransit'),liveStatus=document.querySelector('.map-transit-status');if(live)transit.append(live);if(liveStatus)transit.append(liveStatus);
+const live=$('mapLiveTransit'),liveStatus=document.querySelector('.map-transit-status');if(live)transit.append(live);if(liveStatus)transit.append(liveStatus);const liveDetail=document.querySelector(".map-live-transit-detail");if(liveDetail)transit.append(liveDetail);
 const desk=$('metroTransitDesk');if(desk){desk.open=false;transit.append(desk);}
 const guide=make('details'),summary=make('summary','New to transit?');guide.append(summary);
 const guideText=make('p','Board = get on. Transfer = switch to another line. Check the train’s destination sign to confirm its direction, then count the stops in your route. TAP is LA Metro’s payment card/app. Live dots show vehicle locations, not guaranteed arrival times.');guide.append(guideText);transit.append(guide);
