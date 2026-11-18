@@ -4189,7 +4189,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     });
   }
 
-  const mapAppUrl='/map-app.html?embed=1&v=20261116-map-desk';
+  const mapAppUrl='/map-app.html?embed=1&v=20261116-map-desk&discovery=20261117-1';
   let disposeMap=null;
   function renderMap(){
     // The map is an isolated embedded app. If its data/API fails it must never
@@ -4464,7 +4464,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       let timeout,ready=false;
       const fail=()=>{if(ready)return;mini.style.visibility='hidden';retry.hidden=false;};
       const load=()=>{ready=false;retry.hidden=true;mini.style.visibility='hidden';clearTimeout(timeout);
-        mini.src='/map-app.html?embed=1&preview=1&v=20261117-preview-height2&retry='+Date.now();
+        mini.src='/map-app.html?embed=1&preview=1&v=20261117-preview-height2&discovery=20261117-1&retry='+Date.now();
         timeout=setTimeout(fail,18000);};
       const listener=event=>{
         if(!slot.isConnected){clearTimeout(timeout);window.removeEventListener('message',listener);return;}

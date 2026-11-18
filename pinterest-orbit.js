@@ -1262,8 +1262,9 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
   };
   previews.forEach(item=>add(item.url));
   // Use only the owner-approved temporary collection until real Pins arrive.
-  // Never mix temporary photos into a connected preview.
-  if(!photos.length)studioBoardsSamples.forEach(add);
+  // Fill every aperture; temporary inspiration is labeled separately from saved Pins.
+  const realPhotoCount=photos.length;
+  studioBoardsSamples.forEach(add);
   if(!photos.length)return;
   const signature=photos.join('|');
   if(gallery?.dataset.signature===signature)return;
@@ -1288,7 +1289,14 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
    }
    const img=document.createElement('img');img.src=src;
    img.className='biglwa-studio-board-photo';
-   img.alt='Pinterest board inspiration '+(i+1);
+   img.alt=i<realPhotoCount?'Saved board photo '+(i+1):'Temporary inspiration · not saved to your boards';
+   if(i>=realPhotoCount)tile.title='Temporary inspiration · not saved to your boards';
+   img.addEventListener('error',()=>{
+    const remaining=studioBoardsSamples.filter(url=>url!==src&&!img.dataset.tried?.split('|').includes(url));
+    const next=remaining[0];if(!next)return;
+    img.dataset.tried=(img.dataset.tried||'')+'|'+next;img.src=next;
+    img.alt='Temporary inspiration · original preview unavailable';
+   });
    img.loading='lazy';img.decoding='async';tile.append(img);
    gallery.append(tile);
   }

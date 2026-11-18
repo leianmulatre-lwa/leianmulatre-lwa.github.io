@@ -660,7 +660,18 @@
       }
     });
   }
-  window.BigLWAVeve=Object.freeze({mount,refresh,
+  async function searchMedia(query){
+    await restorePrefs();await load();
+    const match=window.BigLWADiscoveryCatalog?.score;
+    return state.items.filter(allowedPost).map(post=>({post,score:match?match(post,query):0}))
+      .filter(row=>row.score>0).sort((a,b)=>b.score-a.score||time(b.post.createdAt)-time(a.post.createdAt)).slice(0,24)
+      .map(({post})=>({id:String(post.id),title:String(post.title||post.caption||'Published media').slice(0,180),
+        image:picture(post),video:!!(video(post)||videoEmbed(post)),source:String(post.source||'Veve')})).filter(p=>p.image||p.video);
+  }
+  window.BigLWAVeve=Object.freeze({mount,refresh,searchMedia,
+    interests:()=>state.interests.slice(),
+    loadInterests:async()=>{await restorePrefs();return state.interests.slice()},
+    openPost(id){const post=state.items.find(p=>String(p.id)===String(id));if(post&&allowedPost(post))openMedia(post)},
     status(){return {ready:state.initialReady,loading:state.loading,stage:state.loadStage,
       error:state.loadError,postCount:state.items.length,notesCount:state.sqwibs.length,
       mounted:!!state.mounted?.isConnected}}

@@ -3,6 +3,10 @@ name: Stream programming integration
 on:
   pull_request:
     paths:
+      - 'discovery-catalog.js'
+      - 'discovery-programming-test.mjs'
+      - 'assets/discovery/latest.json'
+      - 'scripts/refresh-discovery.py'
       - 'stream-guide.js'
       - 'stream-guide.css'
       - 'stream-guide-test.mjs'
@@ -20,6 +24,10 @@ on:
   push:
     branches: [main]
     paths:
+      - 'discovery-catalog.js'
+      - 'discovery-programming-test.mjs'
+      - 'assets/discovery/latest.json'
+      - 'scripts/refresh-discovery.py'
       - 'stream-guide.js'
       - 'stream-guide.css'
       - 'stream-guide-test.mjs'
@@ -53,6 +61,10 @@ jobs:
           node --test stream-radio-world-20261115.test.mjs
           node --check module-pages.js
           node --input-type=module --check < cloudflare-worker-instagram.js
+      - name: Check weighted rotation, real audio and Stream interaction
+        run: |
+          npm install --prefix /tmp/biglwa-discovery-test jsdom@31.0.1
+          NODE_PATH=/tmp/biglwa-discovery-test/node_modules node --test discovery-programming-test.mjs
       - name: Exercise programming submissions and moderation
         run: node stream-guide-test.mjs
       - name: Verify locally hosted Spotify TikTok and YouTube custom players

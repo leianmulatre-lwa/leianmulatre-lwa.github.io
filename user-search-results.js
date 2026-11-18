@@ -123,6 +123,8 @@
     function sectionId(title){return 'bl-section-'+String(title).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
     // Use the same symbols as the Studio/Skeleton Key, not unrelated emoji or initials.
     function sectionSymbol(title){
+      const route=/^all$/i.test(title)?'veve':/images?/i.test(title)?'feed':/politic/i.test(title)?'politc':/research/i.test(title)?'tools':/stream|video/i.test(title)?'stream':/people|users/i.test(title)?'connect':/books|herstory/i.test(title)?'library':/sqwidz/i.test(title)?'notes':/songs/i.test(title)?'music':/place|map/i.test(title)?'map':/widget/i.test(title)?'studio':null;
+      if(route&&window.BigLWADiscoveryExtras?.symbol){const art=window.BigLWADiscoveryExtras.symbol(route);return /^herstory$/i.test(title)?'<span class="bl-herstory-symbol">'+art+'</span>':art;}
       if(/^all$/i.test(title))return '<span class="bl-veve-symbol" aria-hidden="true">✺</span>';
       if(/^images?$/i.test(title))return '<img src="/assets/feed-symbol-generated.png" alt="" loading="lazy">';
       if(/^herstory$/i.test(title))return '<span class="bl-herstory-symbol" aria-hidden="true">'+sectionSymbol('Books')+'</span>';
@@ -522,7 +524,7 @@
           if(active)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');
         });
         var sections=Array.from(current.querySelectorAll('.bl-search-section'));
-        var named={users:'BigLWA users',sqwidz:'Public Sqwidz',books:'Books',songs:'Songs',research:'Community-centered research sources',politics:'Politics & public life',stream:'Stream videos',widgets:'Studio widgets',places:'Places & Maps'};
+        var named={users:'BigLWA users',sqwidz:'Public Sqwidz',books:'Books',songs:'Songs',research:'Community-centered research sources',politics:'Politics & public life',widgets:'Studio widgets',places:'Places & Maps'};
         var sectionName=named[category];
         var matches=sections.filter(function(section){
           if(section.id===sectionId('SoundCloud'))return category==='songs';
@@ -534,7 +536,7 @@
         current.querySelectorAll('.bl-lwazi-map-promo').forEach(function(promo){promo.hidden=category!=='songs'});
         if(fromClick&&matches.length)matches[0].scrollIntoView({behavior:'smooth',block:'nearest'});
         // Categories are real search pages, not hidden redirects to widgets.
-        if(fromClick&&['songs','widgets','places','stream'].includes(category)){
+        if(fromClick&&['songs','widgets','places','stream','herstory','images'].includes(category)){
           renderDiscovery(discoveryParts);
         }
       }
@@ -576,7 +578,9 @@
 
       // Render each source as it becomes ready, not after the slowest
       // image/people/library request. One provider cannot hold up the others.
-      var discoveryParts=[[],[],[],[],[],[]],discoveryCompleted=0;
+      var discoveryParts=[[],[],[],[],[],[],[],[]],discoveryCompleted=0;
+      var catalogPromise=window.BigLWADiscoveryCatalog?.load().then(function(data){return data.stories})||Promise.resolve([]);
+      var vibePromise=isSocialGreeting?Promise.resolve([]):window.BigLWAVeve?.searchMedia(clean).catch(function(){return []})||Promise.resolve([]);
 
       function sourceJobCard(job){
         if(!job||!/^https:\/\//i.test(String(job.url||'')))return '';
@@ -606,6 +610,9 @@
           if(matchingFeatures.length)html=section('Explore this in BIG LWA',matchingFeatures,'all studio widgets games stream politics research places maps')+html;
           const matchingTools=extras.toolIntentCards?.(clean)||[];
           if(matchingTools.length)html=section('Free tools & creative alternatives',matchingTools,'all studio widgets games')+html;
+          html+=section('Veve image vibes',extras.mediaCards(parts[7].filter(function(p){return !p.video})),'images');
+          html+=section('Veve video vibes',extras.mediaCards(parts[7].filter(function(p){return p.video})),'stream videos');
+          html+=section('Herstory · women in STEM',extras.herstoryCards(parts[6],clean,activeCategory==='herstory'),'herstory');
           html+=section('Stream videos',extras.videoCards(clean,activeCategory==='stream'),'stream videos images');
           if(activeCategory==='widgets')html+=section('Studio widgets',extras.widgetCards(),'widgets studio');
           if(activeCategory==='places')html+=section('Places & Maps',extras.placeCards(),'places maps');
@@ -617,7 +624,7 @@
           if(loading){resultArea=document.createElement('div');resultArea.className='bl-search-discovery';loading.replaceWith(resultArea)}
         }
         if(resultArea){
-          resultArea.innerHTML=html||(isSocialGreeting?'':discoveryCompleted>=6?'<p class="bl-search-empty">No public results found.</p>':'');
+          resultArea.innerHTML=html||(isSocialGreeting?'':discoveryCompleted>=8?'<p class="bl-search-empty">No public results found.</p>':'');
         }if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.refresh(current);
         // Search always starts in All; preserve a user's later manual tab selection.
         activateCategory(activeCategory,false);
@@ -629,7 +636,7 @@
           goRoute(button.dataset.lwaziRoute);
         })});
       }
-      [userPromise,bookPromise,wikiPromise,libraryPromise,postPromise,songPromise].forEach(function(job,i){
+      [userPromise,bookPromise,wikiPromise,libraryPromise,postPromise,songPromise,catalogPromise,vibePromise].forEach(function(job,i){
         Promise.resolve(job).then(function(found){
           discoveryParts[i]=Array.isArray(found)?found:[];
         }).catch(function(){discoveryParts[i]=[]}).finally(function(){

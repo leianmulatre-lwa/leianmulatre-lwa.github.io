@@ -12,12 +12,16 @@ const names={
  trophies:'Trophies',tools:'Lwazi · Workshop',feed:'MyFeed',room:'Rooms',
  rooms:'Rooms',veve:'Veve',logs:'Logs',learn:'Learn',didyouknow:'Did You Know'
 };
-const icons={
- aura:'◉',avatar:'◎',music:'♫',diary:'▤',notes:'♧',camera:'◉',
- projects:'▥',closet:'▧',archive:'▤',library:'▥',calendar:'▦',
- stream:'◌',politic:'△',map:'⌖',games:'▣',orbit:'◎',boards:'▦',
- connect:'✣',trophies:'♛',tools:'✋',feed:'▧',room:'⌂',veve:'✺'
-};
+const icons={aura:'☥',avatar:'◎',music:'♫',diary:'⚘',notes:'♧',projects:'▥',closet:'⚯',archive:'▤',library:'▥',calendar:'▦',stream:'◌',politic:'△',politc:'△',map:'⌖',games:'♔',orbit:'◎',boards:'▦',connect:'⌘',trophies:'★',tools:'',feed:'',camera:'◉',room:'◇',veve:'✺'};
+function symbol(id){
+ const route=id==='politic'?'politc':id;
+ const source=document.querySelector('#studioApp [data-sidebar-route-row="'+route+'"] .sidebar-route-icon,#studioApp [data-shortcut-row="'+route+'"] .sidebar-route-icon,#studioApp #'+route+' .card-icon');
+ const artwork=source&&(source.matches('svg,img')?source:source.querySelector('svg,img'));
+ if(artwork){const copy=artwork.cloneNode(true);[copy,...copy.querySelectorAll('*')].forEach(n=>{n.removeAttribute('id');n.removeAttribute('style');n.removeAttribute('class')});return copy.outerHTML}
+ if(source?.textContent.trim())return esc(source.textContent.trim());
+ const assets={tools:'tools-hand-eye.svg',politc:'politc-nyame-baatanpa.svg',studio:'studio-tipi-symbol.svg',feed:'feed-symbol-generated.png',diary:'diary-symbol-generated.png',notes:'quick-notes-symbol-generated.png',projects:'projects-symbol.svg',closet:'closet-symbol.png'};
+ return assets[route]?'<img src="/assets/'+assets[route]+'" alt="">':esc(icons[route]||'◇');
+}
 function widgetCards(){
  const visible=new Map();
  document.querySelectorAll('#studioApp [data-sidebar-route-row],#studioApp [data-shortcut-row]').forEach(el=>{
@@ -29,7 +33,7 @@ function widgetCards(){
  Object.entries(names).forEach(([id,name])=>{if(!visible.has(id))visible.set(id,name)});
  return [...visible].map(([id,title])=>
   '<article class="bl-search-card bl-widget-result" data-bl-route="'+esc(id)+'">'+
-  '<div class="bl-widget-symbol" aria-hidden="true">'+esc(icons[id]||'◈')+'</div>'+
+  '<div class="bl-widget-symbol" aria-hidden="true">'+symbol(id)+'</div>'+
   '<div class="bl-search-card-body"><span class="bl-search-kicker">Skeleton Key · Widget</span>'+
   '<h3>'+esc(title)+'</h3><button type="button" class="bl-search-go bl-search-primary-action" data-lwazi-route="'+esc(id)+'">Open widget ↗</button>'+
   '</div></article>').concat([
@@ -124,9 +128,9 @@ function allVideos(){
 }
 function videoCards(q,all=false){
  const words=String(q||'').toLowerCase().match(/[a-z0-9]{3,}/g)||[];
- const videos=allVideos();
- const matches=videos.filter(v=>words.length&&words.some(w=>
-   [v.title,v.subtitle,v.creator,v.source].join(' ').toLowerCase().includes(w)));
+ const videos=[...new Map([...(window.BigLWADiscoveryCatalog?.data.videos||[]),...allVideos()].map(v=>[v.videoId,v])).values()];
+ const score=window.BigLWADiscoveryCatalog?.score;
+ const matches=score?videos.filter(v=>score(v,q)>0).sort((a,b)=>score(b,q)-score(a,q)):videos.filter(v=>words.some(w=>[v.title,v.subtitle,v.creator,v.source].join(' ').toLowerCase().includes(w)));
  const chosen=(matches.length?matches:all?videos.slice(0,10):[]).slice(0,8);
  return chosen.map(v=>{
   const src='https://i.ytimg.com/vi/'+v.videoId+'/hqdefault.jpg';
@@ -137,6 +141,15 @@ function videoCards(q,all=false){
    '<button class="bl-search-go bl-search-primary-action" type="button" data-bl-watch-stream="'+esc(v.id)+'">Watch on Stream ↗</button>'+
    '</div></article>';
  });
+}
+function mediaCards(items){return items.map(item=>'<article class="bl-search-card bl-media-card" data-bl-media-kind="'+(item.video?'video':'image')+'">'+(item.image?'<img class="bl-search-card-media" src="'+esc(item.image)+'" alt="" loading="lazy">':'')+'<div class="bl-search-card-body"><span class="bl-search-kicker">Public Veve · '+esc(item.source)+'</span><h3>'+esc(item.title)+'</h3><button type="button" data-bl-veve-view="'+esc(item.id)+'">'+(item.video?'Watch':'View')+' in Veve</button></div></article>')}
+function herstoryCards(items,query,all){
+ const score=window.BigLWADiscoveryCatalog?.score||(()=>0);
+ const chosen=items.filter(item=>all||score(item,query)>0).sort((a,b)=>{
+  const focus=x=>/black|brown|indigenous|native|latina|latinx|women of color/i.test(x.title+' '+x.excerpt)?1:0;
+  return focus(b)-focus(a)||String(b.publishedAt).localeCompare(String(a.publishedAt));
+ }).slice(0,10);
+ return chosen.map(item=>'<article class="bl-search-card"><div class="bl-search-card-body"><span class="bl-search-kicker">Herstory · '+esc(item.source)+'</span><h3>'+esc(item.title)+'</h3><p>'+esc(item.excerpt.replace(/&[^;]+;/g,' ').slice(0,220))+'</p><small>'+esc(item.publishedAt?new Date(item.publishedAt).toLocaleDateString():'Publisher date unavailable')+' · Recent source stories, not a popularity ranking</small><a class="bl-search-go bl-search-primary-action" href="'+esc(item.url)+'" target="_blank" rel="noopener noreferrer">Read original story ↗</a></div></article>');
 }
 function placePromo(){
  return '<aside class="bl-lwazi-map-promo" aria-label="Try Places and Maps">'+
@@ -177,6 +190,7 @@ function watchOnStream(id){
  window.__biglwaOpenSearchRoute?.('stream');
  let tried=0;
  const reveal=()=>{
+  if(window.BigLWAStreamGuide?.openFeature){window.BigLWAStreamGuide.openFeature(id);return;}
   const target=document.querySelector('[data-stream-feature="'+id+'"]');
   if(target){target.click();return}
   if(++tried<7)setTimeout(reveal,180);
@@ -189,6 +203,7 @@ function attach(panel){
  const mountFares=()=>{const host=panel.querySelector('.bl-fare-card .bl-search-card-body');if(host)window.BigLWASourceBrief?.fares(host);};
  if(typeof MutationObserver!=='undefined'){const fareObserver=new MutationObserver(mountFares);fareObserver.observe(panel,{childList:true,subtree:true});}mountFares();
  panel.addEventListener('click',event=>{
+  const media=event.target.closest('[data-bl-veve-view]');if(media){event.preventDefault();window.BigLWAVeve?.openPost(media.dataset.blVeveView);return;}
   const rButton=event.target.closest('[data-bl-craft-app]');
   if(rButton&&panel.contains(rButton)){
     event.preventDefault();
@@ -278,5 +293,5 @@ function attach(panel){
   }catch{frame.addEventListener('load',send,{once:true});}
  });
 }
-window.BigLWADiscoveryExtras={widgetCards,videoCards,placeCards,placePromo,toolIntentCards,discoveryIntentCards,attach};
+window.BigLWADiscoveryExtras={symbol,mediaCards,herstoryCards,widgetCards,videoCards,placeCards,placePromo,toolIntentCards,discoveryIntentCards,attach};
 })();

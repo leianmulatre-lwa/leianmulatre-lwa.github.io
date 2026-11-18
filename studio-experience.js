@@ -749,8 +749,8 @@
         let peak=-Infinity;
         for(let bin=first;bin<last;bin++)peak=Math.max(peak,spectrum[bin]);
         const level=Math.max(0,Math.min(1,(peak+72)/58));
-        const target=.04+.68*level**2.0;
-        const timeConstant=target>waveLevels[i] ? 210 : 360;
+        const target=.025+.925*level**1.35;
+        const timeConstant=target>waveLevels[i] ? 170 : 330;
         waveLevels[i]+=(target-waveLevels[i])*(1-Math.exp(-elapsedMs/timeConstant));
         eqBars[i].style.transform='scaleY('+waveLevels[i].toFixed(3)+')';
       }
@@ -819,7 +819,13 @@
     const audio=$('#studioAudio');if(!audio)return;
     audio.pause();revokeMusicUrls();audio.removeAttribute('src');audio.load();
     const result=loadPrivate?await loadPrivate():track.url;
-    if(typeof result==='string')audio.src=result;
+    if(typeof result==='string'){
+      // Account audio is served with CORS; set this BEFORE assigning src so the
+      // same element can be analysed without the browser returning silent bins.
+      const mediaURL=new URL(result,location.href);
+      if(mediaURL.origin===location.origin||mediaURL.hostname==='biglwa-instagram-api.leianmulatre-284.workers.dev')audio.crossOrigin='anonymous';
+      audio.src=result;
+    }
     else{musicUrl=URL.createObjectURL(result);audio.src=musicUrl}
     const title=$('#studioMusicTitle'),artist=$('#studioMusicArtist');
     if(title)title.textContent=track.title||'Your track';

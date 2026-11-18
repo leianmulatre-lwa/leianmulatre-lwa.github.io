@@ -483,9 +483,9 @@ body.night-mode #studioApp #minimizedWidgetDock .sidebar-route-icon img:is([src*
 #studioApp .music-card.stereo-music-widget .stereo-shell .stereo-time-scale>.stereo-eq{
   grid-column:2;
   grid-row:1;
-  height:12px!important;
-  min-height:12px!important;
-  max-height:12px!important;
+  height:clamp(28px,4vw,42px)!important;
+  min-height:28px!important;
+  max-height:42px!important;
   margin:0!important;
 }
 #studioApp .music-card.stereo-music-widget .stereo-shell .stereo-time-scale>:is(span,.progress){
@@ -504,3 +504,7 @@ body.night-mode #studioApp #minimizedWidgetDock .sidebar-route-icon img:is([src*
   line-height:1!important;
   font-variant-numeric:tabular-nums;
 }
+
+/* Compact stereo retains room for title and seek control. */
+html body #studioApp .music-card.stereo-music-widget.studio-upper-square .stereo-shell .stereo-time-scale>.stereo-eq{height:22px!important;min-height:22px!important;max-height:22px!important}
+html body #studioApp .music-card.stereo-music-widget .stereo-time-scale>.stereo-eq>i{height:100%!important;transform-origin:center bottom!important;animation:none!important;transition:none!important}

@@ -1138,8 +1138,9 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
       status.textContent=count?count+' saved pin(s) · map centered on your saved places.':'No saved pins yet. Drop one at the center of the map.';
     };
     $('miniMapLayers').onclick=()=>{
-      const target=document.querySelector('.leaflet-control-layers-toggle');
-      if(target)target.click();
+      const target=document.querySelector('.leaflet-control-layers');
+      if(target){target.hidden=false;target.classList.toggle('leaflet-control-layers-expanded');}
+
       status.textContent='Choose OpenFreeMap styles or alternate map layers.';
       setActive('miniMapLayers');
     };
@@ -1185,6 +1186,7 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
   draw();
   try{
     map=L.map('map',{worldCopyJump:true,rotate:true,bearing:0,rotateControl:false}).setView([20,0],2);
+    L.control.scale({position:'bottomleft',imperial:true,metric:true,maxWidth:100}).addTo(map);
     let previewTilesReady=false;
     const signalPreviewReady=()=>{previewTilesReady=true;try{if(window.parent!==window)window.parent.postMessage({type:'biglwa:map-ready'},location.origin)}catch{}};
     const watchTiles=(layer,label)=>{layer.once('tileload',signalPreviewReady);layer.on('tileerror',()=>{$('tileStatus').textContent=label+' tiles could not load completely. Your pins are safe; try another map mode or check your connection.';});layer.on('load',()=>{if(($('tileStatus').textContent||'').startsWith(label))$('tileStatus').textContent='';});return layer;};
@@ -1203,6 +1205,15 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
        attribution:'Mapped cycling data &copy; <a href="https://www.cyclosm.org/" target="_blank" rel="noopener">CyclOSM</a> · &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'}
     ),'Cycling');
     const baseLayers={Street:street,Satellite:satellite,Hybrid:hybrid,Terrain:terrain};
+    let layerRevision=0;
+    const selectBase=name=>{
+      const next=baseLayers[name];if(!next)return false;
+      layerRevision++;preferred=name;
+      Object.values(baseLayers).forEach(layer=>{if(layer!==next&&map.hasLayer(layer))map.removeLayer(layer)});
+      if(!map.hasLayer(next))next.addTo(map);
+      map.fire('baselayerchange',{name,layer:next});
+      return true;
+    };
     let preferred='LWA Streets';try{
       const savedMode=localStorage.getItem('biglwaMapMode');
       const valid=['LWA Streets','LWA Light','LWA Night','Street','Satellite','Hybrid','Terrain'];
@@ -1232,8 +1243,12 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
         'BIG LWA · Classic map · '+name;
     };
     sourceLabel('Street');
-    map.on('baselayerchange',event=>{try{localStorage.setItem('biglwaMapMode',event.name);}catch{}
+    map.on('baselayerchange',event=>{preferred=event.name;try{localStorage.setItem('biglwaMapMode',event.name);}catch{}
       sourceLabel(event.name);
+      const chosen=event.layer;
+      if(typeof chosen?.getMaplibreMap==='function'){const gl=chosen.getMaplibreMap();setTimeout(()=>{
+        if(map.hasLayer(chosen)&&gl&&!gl.loaded()){selectBase('Street');$('tileStatus').textContent=event.name+' could not finish loading. Street map restored; your pins and route are kept.';}
+      },12000);}
       $('mapStatus').textContent=event.name+' mode active. Search for a place or tap the map.';});
     const loadPublicScript=(src)=>new Promise((resolve,reject)=>{
       const script=document.createElement('script');script.src=src;script.crossOrigin='anonymous';
@@ -1256,12 +1271,14 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
             style:'https://tiles.openfreemap.org/styles/'+style,
             attribution:'Map © OpenFreeMap · © OpenStreetMap contributors'
           });
+          baseLayers[name]=vectors[name];
           layerControl.addBaseLayer(vectors[name],name);
         }
+        window.dispatchEvent(new Event('biglwa:map-layers-changed'));
         if(styles[preferred]){
           // An async vector load can fail after the JS bundle loads. Keep
           // classic tiles until MapLibre has rendered its actual map.
-          const vector=vectors[preferred];
+          const vector=vectors[preferred],requestedStyle=preferred,revision=layerRevision;
           vector.addTo(map);
           const gl=typeof vector.getMaplibreMap==='function'?vector.getMaplibreMap():null;
           if(gl&&typeof gl.once==='function'){
@@ -1273,7 +1290,7 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
             },11000);
             gl.once('load',()=>{
               clearTimeout(watchdog);
-              if(map.hasLayer(vector)){map.removeLayer(street);sourceLabel(preferred);}
+              if(map.hasLayer(vector)&&revision===layerRevision&&preferred===requestedStyle){map.removeLayer(street);sourceLabel(requestedStyle);window.dispatchEvent(new Event('biglwa:map-layers-changed'));}
             });
           }else{
             map.removeLayer(street);
@@ -1288,7 +1305,7 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
       }
     })();
     map.on('click',e=>stage(e.latlng.lat,e.latlng.lng));
-    window.BigLWAMapBridge={map,L};
+    window.BigLWAMapBridge={map,L,selectBase,get layers(){return Object.keys(baseLayers)},get activeLayer(){return Object.keys(baseLayers).find(name=>map.hasLayer(baseLayers[name]))||'Street'}};
     window.dispatchEvent(new Event('biglwa:map-ready-local'));
     $('drop').disabled=false;draw();if(pins.some(valid))$('fit').click();$('mapStatus').textContent='Search for a place or tap the map. Switch map modes in the upper-right.';
     // Tell the Studio container the map is actually interactive, not merely an iframe that loaded HTML.
@@ -1399,4 +1416,4 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
 <link rel="stylesheet" href="/map-lwa-discovery-20261114.css?v=20261114-public-neighborhood-v1"><script src="/map-lwa-navigate-20261113.js?v=20261113-go-v5&nov16=singlemap-streets-v1&tour=20261117-2"></script><link rel="stylesheet" href="/map-transport-hub-20261114.css?v=20261114-inapp-desk-v1&compact=20261115-1"><script src="/map-lwa-discovery-20261114.js?v=20261114-inapp-desk-v2&desk=20261116-2"></script><script src="/map-transport-hub-20261114.js?v=20261114-inapp-desk-v1&compact=20261115-1&desk=20261116-2&tour=20261117-2"></script><link rel="stylesheet" href="/map-purposes-20261115.css?v=20261115-map-1&tour=20261117-2&navigation=20261117-1"><link rel="stylesheet" href="/map-popculture-20261116.css?v=20261116-scene-1"><script src="/map-popculture-20261116.js?v=20261116-scene-1&tour=20261117-2"></script><script src="/map-purposes-20261115.js?v=20261116-culture-1"></script>
 <script src="/map-live-transit.js?detail=20261117-2&v=20261116-1&focus=20261117-1"></script>
 <script src="/map-transit-desk.js?v=20261117-3&focus=20261117-1"></script>
-<link rel="stylesheet" href="/map-focused.css?v=20261117-1"><script src="/map-focused.js?thumbs=20261117-2&v=20261117-1"></script><script src="/map-3d.js?v=20261117-1"></script></body></html>
+<link rel="stylesheet" href="/map-focused.css?v=20261117-1"><script src="/map-focused.js?thumbs=20261117-2&v=20261117-1&discovery=20261117-1"></script><script src="/map-3d.js?v=20261117-1"></script></body></html>
