@@ -48,6 +48,8 @@ jobs:
           node --test studio-booth-hair-map-room-stream-test.mjs
           node --check studio-booth-preview.js
           node --test booth-thumbnail-board-samples-20261116.test.mjs
+          node --check games-wallpaper-rotation-20261118.js
+          node --test games-wallpaper-rotation-20261118.test.mjs
           node --check community-profile-roles-20261114.js
           node --test community-profile-policy-regression-20261114.test.mjs
           node --check map-lwa-discovery-20261114.js
