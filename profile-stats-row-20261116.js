@@ -26,6 +26,8 @@
   const highlights=profile.querySelector('.biglwa-stories-ribbon');
   if(highlights&&line.nextElementSibling!==highlights)line.after(highlights);
   if(highlights?.parentElement===line)line.after(highlights);
+  const rankLabel=profile.querySelector('.real-rank .rank-label');
+  if(rankLabel&&rankLabel.textContent.trim()!=='REAL ✦ RANK')rankLabel.textContent='REAL ✦ RANK';
   const rank=profile.querySelector(':scope > .real-rank');
   if(highlights&&rank&&(highlights.compareDocumentPosition(rank)&Node.DOCUMENT_POSITION_PRECEDING))rank.before(highlights);
  }
