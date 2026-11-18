@@ -1264,7 +1264,9 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
   // Use only the owner-approved temporary collection until real Pins arrive.
   // Fill every aperture; temporary inspiration is labeled separately from saved Pins.
   const realPhotoCount=photos.length;
-  studioBoardsSamples.forEach(add);
+  // Temporary art belongs to the empty-account state only. As soon as a
+  // real Pin exists, never pin decorative samples beside it or persist them.
+  if(!realPhotoCount)studioBoardsSamples.forEach(add);
   if(!photos.length)return;
   const signature=photos.join('|');
   if(gallery?.dataset.signature===signature)return;
@@ -1292,6 +1294,12 @@ window.addEventListener('biglwa:orbit-connection-save-error',event=>{
    img.alt=i<realPhotoCount?'Saved board photo '+(i+1):'Temporary inspiration · not saved to your boards';
    if(i>=realPhotoCount)tile.title='Temporary inspiration · not saved to your boards';
    img.addEventListener('error',()=>{
+    if(i<realPhotoCount){
+     // A broken remote Pin does not silently become decorative fake content.
+     tile.classList.add('biglwa-board-image-unavailable');
+     img.removeAttribute('src');img.alt='Board photo unavailable';
+     return;
+    }
     const remaining=studioBoardsSamples.filter(url=>url!==src&&!img.dataset.tried?.split('|').includes(url));
     const next=remaining[0];if(!next)return;
     img.dataset.tried=(img.dataset.tried||'')+'|'+next;img.src=next;
