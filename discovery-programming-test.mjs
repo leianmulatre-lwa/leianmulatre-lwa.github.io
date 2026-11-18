@@ -56,12 +56,27 @@ test('Stream joins catalogs, opens News, searches a creator and keeps radio manu
  const dom=new JSDOM('<main id="studioApp"><div id="streamTest"></div></main>',{url:'https://biglwa.com/studio/stream',runScripts:'outside-only',pretendToBeVisual:true});
  t.after(()=>dom.window.close());
  const w=dom.window;w.HTMLElement.prototype.scrollIntoView=function(){};w.console={...console,warn(){}};w.fetch=async url=>({ok:true,json:async()=>String(url).includes('latest.json')?JSON.parse(read('./assets/discovery/latest.json')):{items:[]}});w.AbortSignal=AbortSignal;
- w.HTMLMediaElement.prototype.load=function(){};w.HTMLMediaElement.prototype.pause=function(){};w.HTMLMediaElement.prototype.play=function(){return Promise.resolve()};
+ let clock=Date.parse('2026-11-17T08:00:00'),hourly;
+ const RealDate=w.Date;w.Date=class extends RealDate{constructor(...args){super(...(args.length?args:[clock]))}static now(){return clock}};
+ const interval=w.setInterval.bind(w);w.setInterval=(callback,delay)=>delay===30000?(hourly=callback,1):interval(callback,delay);
+ const playing=new WeakSet();Object.defineProperty(w.HTMLMediaElement.prototype,'paused',{get(){return !playing.has(this)}});
+ w.HTMLMediaElement.prototype.load=function(){};w.HTMLMediaElement.prototype.pause=function(){playing.delete(this)};w.HTMLMediaElement.prototype.play=function(){playing.add(this);return Promise.resolve()};
  w.eval(read('./discovery-catalog.js'));w.eval(read('./stream-guide.js'));
  w.BigLWAStreamGuide.mount(w.document.querySelector('#streamTest'));
  await w.BigLWADiscoveryCatalog.load();await new Promise(r=>setTimeout(r,40));
  assert(w.BigLWAStreamGuide.stations.length>60);
  assert(w.document.querySelector('.stream-programming-math').textContent.includes('weight 2'));
+ w.document.querySelector('[data-follow-radio]').click();
+ w.document.querySelector('[data-radio-play]').click(); // pause
+ w.document.querySelector('[data-radio-play]').click(); // resume scheduled listening
+ clock+=3600000;hourly();
+ const expected=w.BigLWAStreamGuide.getDailyGuide('2026-11-17').find(row=>row.category==='podcast').slots[9];
+ assert.equal(w.BigLWAStreamGuide.lastWatchedTitle,expected.title,'Play/pause preserves the hourly schedule');
+ assert.equal(w.document.querySelector('#streamRadioAudio').paused,false,'Scheduled listening resumes at the next hour');
+ w.document.querySelector('[data-stream-station]').click();
+ const manualTitle=w.BigLWAStreamGuide.lastWatchedTitle;
+ clock+=3600000;hourly();
+ assert.equal(w.BigLWAStreamGuide.lastWatchedTitle,manualTitle,'Manual selection remains on the chosen station');
  w.document.querySelector('[data-stream-tab="lwa-tv"]').click();
  w.document.querySelector('[data-tv-section="news"]').click();
  assert.equal(w.document.querySelector('#streamCategoryCopy h2').textContent,'lwa news');

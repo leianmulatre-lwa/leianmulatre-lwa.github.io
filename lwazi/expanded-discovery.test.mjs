@@ -36,7 +36,7 @@ test('Songs use real licensed previews on-site without auto-playing search or do
 test('SoundCloud search is only mounted when the Songs tab is open',()=>{
  assert.match(search,/activeCategory==='songs'&&!isSocialGreeting&&window\.BigLWAMusicDiscovery/);
  assert.match(search,/if\(section\.id===sectionId\('SoundCloud'\)\)return category==='songs'/);
- assert.match(search,/fromClick&&\['songs','widgets','places','stream'\]\.includes\(category\)/);
+ assert.match(search,/fromClick&&\['songs','widgets','places','stream','herstory','images'\]\.includes\(category\)/);
  assert.doesNotMatch(search,/if\(!isSocialGreeting&&window\.BigLWAMusicDiscovery&&/);
 });
 test('Vinyl record becomes prominent, with no loss of artwork accuracy',()=>{
@@ -63,7 +63,7 @@ test('Widget directory, curated Stream video cards and route planning expose rea
  const window={BigLWAStreamGuide:{featured:[{
    id:'markiplier-scary',title:'Markiplier',subtitle:'3 SCARY GAMES #9',creator:'Markiplier',videoId:'abHGyg4LKn4',source:'Gaming',url:'https://www.youtube.com/watch?v=abHGyg4LKn4'
  }]}};
- const document={querySelectorAll:()=>[]};
+ const document={querySelector:()=>null,querySelectorAll:()=>[]};
  vm.runInNewContext(extras,{window,document,URL,console,setTimeout});
  const api=window.BigLWADiscoveryExtras;
  assert(api);

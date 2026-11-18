@@ -58,7 +58,8 @@ assert.ok(studioThumb.includes('grid-template-columns:minmax(0,1.24fr) repeat(2,
   'Studio Boards has the requested portrait-and-four layout');
 assert.ok(!pages.includes("tiles.slice(0,6).map((item,i)=>"),'Old six-tile Studio renderer stays removed');
 assert.ok(frontend.includes("const previews=window.__biglwaPinterest?.getPreview?.()||[]"),'the canonical thumbnail reads current Pinterest previews');
-assert.ok(frontend.includes('if(!photos.length)studioBoardsSamples.forEach(add)'),'approved temporary photos appear only until connected Pins are available');
+assert.ok(frontend.includes('const realPhotoCount=photos.length;')&&frontend.includes('studioBoardsSamples.forEach(add)'),'approved temporary photos fill missing slots after connected Pins');
+assert.ok(frontend.includes('Temporary inspiration · not saved to your boards'),'temporary supplements are identified separately from saved Pins');
 assert.ok(frontend.includes("card.querySelectorAll('.board-collage,#biglwaStudioBoardsPreview').forEach(el=>el.remove())"),'retired previews cannot stack above the canonical gallery');
 assert.ok(pages.includes("studio-map-still"),'Studio Map shows a stable no-flicker poster instead of nested map tiles');
 assert.ok(pages.includes("mapCard.querySelectorAll('.studio-mini-map-open').forEach(el=>el.remove())"),'old duplicate map control is removed');

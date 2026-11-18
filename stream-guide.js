@@ -1336,7 +1336,7 @@
   if(button.matches('[data-discovery-prev]')){browseDiscovery(-1);return;}
   if(button.matches('[data-discovery-next]')){browseDiscovery(1);return;}
   if(button.matches('[data-discovery-play]')){playDiscovery(Number(button.dataset.discoveryPlay));return;}
-  if(button.matches('[data-radio-play]')){state.followGuide=false;saveLastPlayed(state.selected);const audio=mediaPortal?.querySelector('#streamRadioAudio');if(!audio)return;if(audio.paused)playRadio(audio,button);else{audio.pause();button.textContent='▶ Play';const status=mediaPortal.querySelector('#streamRadioStatus');if(status)status.textContent='Paused';}return;}
+  if(button.matches('[data-radio-play]')){saveLastPlayed(state.selected);const audio=mediaPortal?.querySelector('#streamRadioAudio');if(!audio)return;if(audio.paused)playRadio(audio,button);else{audio.pause();button.textContent='▶ Play';const status=mediaPortal.querySelector('#streamRadioStatus');if(status)status.textContent='Paused';}return;}
   if(button.matches('[data-stream-episode]')){state.followGuide=false;saveLastPlayed(state.selected);changeArchiveEpisode(Number(button.dataset.streamEpisode));return;}
   if(button.matches('[data-follow-radio]')){state.category='podcast';state.radioSection='music';tuneCurrent();const audio=mediaPortal?.querySelector('#streamRadioAudio');if(audio)playRadio(audio,mediaPortal.querySelector('[data-radio-play]'));state.followGuide=true;return;}
   if(button.matches('[data-tv-section]')){state.tvSection=button.dataset.tvSection;state.selected=null;renderGrid();renderCategory();tuneCurrent();return;}
