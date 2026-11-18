@@ -49,7 +49,16 @@ const originallyPresent=new Set(list.map(f=>f.path));
 const essential=['index.html','studio/index.html','404.html','CNAME','robots.txt','sitemap.xml',
  'legal/index.html','about/index.html','privacy/index.html','terms/index.html',
  'rights/index.html','affidavit/index.html','map-app.html',
- 'assets/studio-defaults/map-bikini-bottom-fallback.webp'];
+ 'assets/studio-defaults/map-bikini-bottom-fallback.webp',
+ // Never ship the Games rotator without its original image collection.
+ 'games bg/098fd5e1084e9f1d04223dcaa42387b9.jpg',
+ 'games bg/3unsgny5oup81.jpg',
+ 'games bg/860645.png',
+ 'games bg/ce4cuf5c0pp51.png',
+ 'games bg/games bg.jpg',
+ 'games bg/gta-homepage-icon.avif',
+ 'games bg/playstation_background_by_wintendo558_dhfen5k-fullview.jpg',
+ 'games bg/xbox-360-nxe-wallpapers-ai-upscaled-v0-aavwiqz5oup81.jpg'];
 const missingEssential=essential.filter(p=>!included.has(p));
 const missingRefs=[];
 const preexistingMissingRefs=[];
