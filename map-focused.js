@@ -68,10 +68,20 @@ $('mapActionTabs')?.addEventListener('click',()=>{document.body.classList.remove
 function layers(){
  const native=document.querySelector('.leaflet-control-layers');if(!native)return;
  const box=make('div');box.className='map-layer-picker';const caption=make('label','Map view '),select=make('select');select.setAttribute('aria-label','Map view');caption.append(select);box.append(caption);document.querySelector('.map-stage')?.append(box);
- const update=()=>{const old=select.value;select.replaceChildren();for(const row of native.querySelectorAll('.leaflet-control-layers-base label')){const option=make('option',row.textContent.trim());option.value=option.textContent;option.selected=!!row.querySelector('input:checked');select.append(option);}select.append(new Option('3D buildings','3d'));if(old==='3d')select.value=old;};
- update();new MutationObserver(update).observe(native,{childList:true,subtree:true});
- select.addEventListener('change',()=>{if(select.value==='3d'){window.BigLWAMap3D?.open();return;}window.BigLWAMap3D?.close();for(const row of native.querySelectorAll('.leaflet-control-layers-base label'))if(row.textContent.trim()===select.value)row.querySelector('input')?.click();});
- window.addEventListener('biglwa:map-3d-closed',()=>{select.value='';update();});
+ const update=()=>{
+  const bridge=window.BigLWAMapBridge,was3D=select.value==='3d';
+  select.replaceChildren();
+  for(const name of bridge.layers||[]){const option=make('option',name);option.value=name;option.selected=name===bridge.activeLayer;select.append(option)}
+  select.append(new Option('3D buildings','3d'));if(was3D)select.value='3d';
+ };
+ update();window.addEventListener('biglwa:map-layers-changed',update);
+ window.BigLWAMapBridge.map.on('baselayerchange',update);
+ select.addEventListener('change',()=>{
+  const choice=select.value;
+  if(choice==='3d'){window.BigLWAMap3D?.open();return;}
+  window.BigLWAMap3D?.close();window.BigLWAMapBridge.selectBase(choice);select.value=choice;
+ });
+ window.addEventListener('biglwa:map-3d-closed',()=>{select.value='';update()});
  const overlays=native.querySelector('.leaflet-control-layers-overlays');if(overlays){const more=make('details');more.append(make('summary','Map overlays'),overlays);box.append(more);}
  native.hidden=true;
 }

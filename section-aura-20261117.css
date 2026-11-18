@@ -37,3 +37,17 @@ html body #studioApp .lwa-curtain-bypass[hidden]{display:none!important}
 /* Keep page titles above the loading artwork, including the Veve backing layer. */
 html body #studioApp .module-shell.lwa-curtain-loading>.module-heading{visibility:visible!important;position:relative;z-index:1503}
 html body #studioApp .module-shell.lwa-curtain-veve-pending::after{inset:var(--lwa-loading-top,16px) 0 0!important;min-height:0!important}
+
+/* Keep subnavigation beside the title; place search directly under the copy. */
+html body #studioApp #streamCategoryCopy>.stream-radio-modes{float:right;margin:0 0 8px 16px;max-width:100%}
+html body #studioApp #streamCategoryCopy>.stream-eyebrow{display:block;padding-top:10px}
+html body #studioApp #streamCategoryCopy>h2{margin-top:8px}
+html body #studioApp #streamCategoryCopy>.stream-program-search{clear:both;margin:16px 0 20px;padding:12px;border:1px dashed color-mix(in srgb,var(--accent,#a33c55) 40%,transparent);border-radius:10px;font:14px system-ui}
+.stream-program-search label{display:block;font-weight:700;margin-bottom:7px}
+.stream-program-search>div:first-of-type{display:flex;gap:6px}
+.stream-program-search input{min-width:0;flex:1;padding:10px;background:#fff8ec;color:#302623;border:1px solid #a69786;border-radius:7px}
+.stream-program-search button{padding:9px 12px;border-radius:7px;cursor:pointer}
+.stream-program-search small{display:block;margin-top:7px;font-size:11px}
+.stream-program-results>button{display:block;width:100%;text-align:left;margin-top:7px}
+.stream-programming-math{padding:14px;border:1px dashed #9d725d;margin:12px 0 20px;line-height:1.55}
+@media(max-width:540px){html body #studioApp #streamCategoryCopy>.stream-radio-modes{float:none;margin-left:auto;margin-bottom:10px}}

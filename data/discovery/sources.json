@@ -1,0 +1,134 @@
+{
+  "channels": [
+    {
+      "id": "bernie",
+      "name": "Bernie Sanders",
+      "channelId": "UCH1dpzjCEiGAt8CXkryhkZg",
+      "section": "news",
+      "tags": "politics organizing economic justice"
+    },
+    {
+      "id": "markiplier",
+      "name": "Markiplier",
+      "channelId": "UC7_YxT-KID8kRbqZo7MyscQ",
+      "section": "entertainment",
+      "tags": "gaming horror comedy"
+    },
+    {
+      "id": "cory",
+      "name": "CoryxKenshin",
+      "channelId": "UCiYcA0gJzg855iSKMrX3oHg",
+      "section": "entertainment",
+      "tags": "gaming horror comedy"
+    },
+    {
+      "id": "larray",
+      "name": "Larray",
+      "channelId": "UCt_DaLB_NDqPVxezyvcfRtg",
+      "section": "entertainment",
+      "tags": "comedy creator culture vlogs"
+    },
+    {
+      "id": "quenlin",
+      "name": "Quenlin Blackwell",
+      "channelId": "UCRE2zmVNW9wG2dndMoV4JKQ",
+      "section": "entertainment",
+      "tags": "comedy cooking culture"
+    },
+    {
+      "id": "teaspill",
+      "name": "Tea Spill",
+      "channelId": "UCj-qit6AuiqQnHUnY3qLc3g",
+      "section": "entertainment",
+      "tags": "creator culture commentary"
+    },
+    {
+      "id": "cupquake",
+      "name": "iHasCupquake",
+      "channelId": "UCqg2eLFNUu3QN3dttNeOWkw",
+      "section": "entertainment",
+      "tags": "gaming art diy"
+    },
+    {
+      "id": "cartoonnetwork",
+      "name": "Cartoon Network",
+      "channelId": "UCMsgXPD3wzzt8RxHJmXH7hQ",
+      "section": "entertainment",
+      "tags": "cartoons animation"
+    },
+    {
+      "id": "olandria",
+      "name": "Olandria Carthen",
+      "channelId": "UCCrMtZZu7njEbDo9s35TKCQ",
+      "section": "entertainment",
+      "tags": "fashion style modeling vlog culture"
+    },
+    {
+      "id": "jacksepticeye",
+      "name": "Jacksepticeye",
+      "channelId": "UCYzPXprvl5Y-Sf0g4vX-m6g",
+      "section": "entertainment",
+      "tags": "gaming horror comedy"
+    },
+    {
+      "id": "dream",
+      "name": "Dream",
+      "channelId": "UCTkXRDQl0luXxVQrRQvWS6w",
+      "section": "entertainment",
+      "tags": "gaming minecraft"
+    },
+    {
+      "id": "alissa",
+      "name": "Alissa Violet",
+      "channelId": "UCK1cdF6-oYMrrfPkGfXwTmQ",
+      "section": "entertainment",
+      "tags": "vlogs creator culture"
+    },
+    {
+      "id": "steyeuh",
+      "name": "Stei Campbell",
+      "channelId": "UCjX3-aWTOYq2r0n6CnKVRdw",
+      "section": "entertainment",
+      "tags": "vlogs comedy humor"
+    },
+    {
+      "id": "lofi",
+      "name": "Lofi Girl",
+      "channelId": "UCSJ4gkVC6NrvII8umztf0Ow",
+      "section": "entertainment",
+      "tags": "lofi study calm ambient"
+    },
+    {
+      "id": "aljazeera",
+      "name": "Al Jazeera English",
+      "channelId": "UCNye-wNBqNL5ZzHSJj3l8Bg",
+      "section": "news",
+      "tags": "news world politics reporting"
+    },
+    {
+      "id": "democracynow",
+      "name": "Democracy Now!",
+      "channelId": "UCzuqE7-t13O4NIDYJfakrhw",
+      "section": "news",
+      "tags": "news politics organizing justice"
+    }
+  ],
+  "feeds": [
+    {
+      "id": "awis",
+      "name": "Association for Women in Science",
+      "url": "https://awis.org/feed/"
+    },
+    {
+      "id": "aises",
+      "name": "AISES \u00b7 Indigenous STEM",
+      "url": "https://aises.org/feed/",
+      "pattern": "woman|women|girl|she |her |sister"
+    },
+    {
+      "id": "ncwit",
+      "name": "National Center for Women & Information Technology",
+      "url": "https://ncwit.org/feed/"
+    }
+  ]
+}

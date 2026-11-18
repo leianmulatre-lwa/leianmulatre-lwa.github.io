@@ -34,6 +34,26 @@
   7:'https://kzsu-streams.stanford.edu/kzsu-1-128.mp3',
   11:'https://floyd.wcbn.org:8443/wcbn-hi.mp3'
  };
+ let catalogReady=false;
+ function recentVideos(){return window.BigLWADiscoveryCatalog?.data.videos||[]}
+ function tvSources(){
+  const recent=recentVideos(),creators=new Set(recent.map(v=>v.creator.toLowerCase()));
+  return [...recent,...featured.filter(v=>!creators.has(String(v.creator||'').toLowerCase())),...ballroomChannels];
+ }
+ async function loadCatalog(){
+  const service=window.BigLWADiscoveryCatalog;if(!service)return;
+  const data=await service.load();
+  window.BigLWAVeve?.loadInterests?.().then(()=>{if(root?.isConnected)renderFeaturedSlots()}).catch(()=>[]);
+  for(const station of data.radio){
+   const normalized=value=>String(value||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+   const existing=stations.findIndex(row=>normalized(row[3])===normalized(station.homepage)&&station.homepage||normalized(row[0])===normalized(station.name));
+   const index=existing<0?stations.length:existing;
+   if(existing<0)stations.push([station.name,station.school||'World radio',station.state,station.homepage||station.stream]);
+   if(station.stream&&/^https:\/\//.test(station.stream)&&!audioStreams[index])audioStreams[index]=station.stream;
+  }
+  catalogReady=true;
+  if(root?.isConnected){renderGrid();if(!root.querySelector('#streamProgramQuery')?.value)renderCategory();else{renderStations(root.querySelector('#streamStationSearch')?.value||'');renderFeaturedSlots();}}
+ }
  const categories=[['podcast','lwa radio','CH 01'],['lwa-tv','lwa tv','CH 02'],['live','live','CH 03'],['sqwibz','sqwidz','CH 04'],['music','music','CH 05']];
  const programmedCategories=()=>categories.filter(([id])=>id!=='music');
  // These are integration destinations, not connected OAuth sessions.
@@ -123,7 +143,7 @@
   const d=new Date(day+'T12:00:00');
   return Number.isFinite(d.valueOf())?d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}):day;
  };
- const state={category:'podcast',radioSection:'music',day:localDay(),shuffleOffset:0,programs:[],myRequests:[],editorial:[],isEditor:false,requestPrefill:'',selected:null,followGuide:true,discoveryMood:'all'};
+ const state={category:'podcast',radioSection:'music',tvSection:'entertainment',day:localDay(),shuffleOffset:0,programs:[],myRequests:[],editorial:[],isEditor:false,requestPrefill:'',selected:null,followGuide:true,discoveryMood:'all'};
  let discoveryCursor=Object.create(null);
  let root=null;
  let mediaPortal=null,mediaTarget=null,studioTarget=null;
@@ -423,6 +443,7 @@
   };
   state.followGuide=!persistentPlayback;
   paintCategories();renderGrid();renderCategory();
+  loadCatalog();
   if(!persistentPlayback&&!restoreLastPlayed())tuneCurrent();
   renderFeaturedSlots();
   scheduleMediaPosition();
@@ -436,7 +457,7 @@
    lastGuideHour=current;
    if(state.day===oldDay){state.day=localDay();date.value=state.day;}
    renderGrid();
-   if(state.followGuide)tuneCurrent();
+   if(state.followGuide){const playing=mediaPortal?.querySelector('#streamRadioAudio');const resume=playing&&!playing.paused;tuneCurrent();if(resume){const next=mediaPortal?.querySelector('#streamRadioAudio');if(next)playRadio(next,mediaPortal.querySelector('[data-radio-play]'));}}
   },30000);
   refreshPublic();
  }
@@ -603,7 +624,8 @@
  function discoveryPreference(items,category){
   // Playable, manually curated sources only. Never claim this is a harvested
   // YouTube watch history or a real-time verified stream status.
-  if(category==='podcast'||state.discoveryMood==='all')return items;
+  if(category==='podcast')return items;
+  if(state.discoveryMood==='all'){const interests=window.BigLWAVeve?.interests?.()||[];if(!interests.length)return items;const score=window.BigLWADiscoveryCatalog?.score;if(!score)return items;return items.slice().sort((a,b)=>score(b,interests.join(' '))-score(a,interests.join(' ')));}
   if(state.discoveryMood==='surprise')return items.filter((_,index)=>index%3===0);
   const matches={
    gaming:/markiplier|cory|dream|games|gaming|jacksepticeye|cupquake|pokimane|kaicenat|fuslie/i,
@@ -628,9 +650,9 @@
   if(category==='lwa-tv'){
    // Channel directory URLs are NOT playable TV programs. Exclude them until an
    // actual video ID or directly playable archive file is available.
-   const videos=[...featured.filter(item=>item.category==='lwa-tv'),...ballroomChannels]
+   const videos=tvSources().filter(item=>item.category==='lwa-tv'&&(item.section||'entertainment')===state.tvSection)
     .filter(playableFeature).map(item=>({
-     kind:'feature',id:item.id,title:item.title,subtitle:item.subtitle,
+     kind:'feature',id:item.id,title:item.title,subtitle:item.publishedAt?item.creator+' · '+new Date(item.publishedAt).toLocaleDateString():item.subtitle||item.creator,tags:item.tags,
      status:item.provider==='archive-video'?'CARTOONS · WATCH':'▶ WATCH VIDEO'
     }));
    return discoveryPreference(shuffled(videos,day,category,offset),category);
@@ -644,6 +666,7 @@
  }
  function guidePick(category,hour,day=state.day,offset=state.shuffleOffset){
   const queue=dailyPlaylist(category,day,offset);
+  if(category==='podcast'&&state.radioSection==='music'&&window.BigLWADiscoveryCatalog){return window.BigLWADiscoveryCatalog.radioPick(queue.map(p=>({...p,id:stations[p.index][0]})),day,hour)}
   return queue.length?queue[hour%queue.length]:null;
  }
  function renderGrid(){
@@ -681,14 +704,14 @@
      pick.kind==='feature'?' data-stream-feature="'+escapeHTML(pick.id)+'"':
      pick.kind==='twitch'?' data-stream-twitch="'+escapeHTML(pick.id)+'"':
       ' data-stream-slot-fallback="'+hour+'"';
-    const context=show?'Approved broadcast':'Daily discovery pick, not scheduled airtime';
+    const context=show?'Approved broadcast':cat[0]==='podcast'?'Radio rotation slot':'Daily discovery pick, not scheduled airtime';
     return '<button type="button" class="'+classes+'" data-stream-slot="'+key+'"'+attrs+
      ' aria-label="'+escapeHTML(title+', '+context+', '+cat[1]+' guide at '+labelHour(hour))+'">'+text+'</button>';
    }).join('');
    return heading+squares;
   }).join('');
   const stamp=root.querySelector('#streamGuideClock');
-  if(stamp)stamp.textContent='DAILY SHUFFLE · '+niceDate(state.day)+(state.shuffleOffset?' · MIX '+(state.shuffleOffset+1):'');
+  if(stamp)stamp.textContent='RADIO ROTATION / TV DISCOVERY · '+niceDate(state.day)+(state.shuffleOffset?' · MIX '+(state.shuffleOffset+1):'');
   const grid=root.querySelector('#streamGrid');
   grid.innerHTML=first+hours+rows;
   const count=items.filter(x=>localDay(new Date(x.scheduledAt))===state.day).length;
@@ -702,7 +725,7 @@
  function discoveryThumb(pick){
   if(!pick)return '/assets/station-radio-room.webp';
   if(pick.kind==='station')return '/assets/station-radio-room.webp';
-  const item=[...featured,...ballroomChannels,...youtubeLive].find(source=>source.id===pick.id);
+  const item=[...tvSources(),...featured,...youtubeLive].find(source=>source.id===pick.id);
   if(item?.videoId)return 'https://i.ytimg.com/vi/'+item.videoId+'/hqdefault.jpg';
   if(item?.provider==='archive-video')return 'https://archive.org/services/img/BettyBoopCartoons';
   if(pick.kind==='twitch'){
@@ -728,7 +751,7 @@
    const label=pick.kind==='station'?'▶ LISTEN':pick.kind==='twitch'?'▶ TUNE IN':'▶ WATCH';
    return '<button type="button" class="stream-discovery-select" data-discovery-play="'+position+'" aria-label="'+escapeHTML(label+' '+pick.title)+'">'+
     '<img src="'+escapeHTML(discoveryThumb(pick))+'" alt="'+escapeHTML(pick.title)+' thumbnail" loading="eager" decoding="async">'+
-    '<span class="stream-discovery-info"><b>'+escapeHTML(pick.title)+'</b><small>'+label+'</small></span></button>';
+    '<span class="stream-discovery-info"><b>'+escapeHTML(pick.title)+'</b><small>'+escapeHTML(pick.subtitle||'')+'</small><small>'+label+'</small></span></button>';
   }).join('');
   panel.innerHTML='<div class="stream-discovery-eyebrow"><span>DAILY DISCOVERY</span><span>'+String(start+1).padStart(2,'0')+' / '+String(queue.length).padStart(2,'0')+'</span></div>'+
    '<div class="stream-discovery-gallery">'+cards+'</div>'+
@@ -1015,7 +1038,7 @@
   if(audio&&!options.silent)playRadio(audio,mediaPortal.querySelector('[data-radio-play]'));
  }
  function selectFeature(id,options={}){
-  const source=[...featured,...ballroomChannels,...youtubeLive].find(item=>item.id===id);
+  const source=[...tvSources(),...featured,...youtubeLive].find(item=>item.id===id);
   if(!source||!source.url||!playableFeature(source))return;
   showSource(source,options);
  }
@@ -1070,6 +1093,30 @@
      }).join('')+'</div>'+
     '<div class="stream-music-coming"><b>Next stage</b><p>Provider OAuth on Cloudflare, approved scopes, private account-scoped tokens, playlist matching and opt-in importing. The existing Tunes CSV / JSON transfer and private music uploads stay separate.</p></div></div>';
  }
+ function mountStreamSearch(copy){
+  const form=document.createElement('form');form.className='stream-program-search';
+  form.innerHTML='<label for="streamProgramQuery">Find your frequency</label><div><input id="streamProgramQuery" type="search" maxlength="180" placeholder="A campus, podcast, creator or vibe…" required><button type="submit">Find</button></div><small>Search the dial first; L’wazi can help route an unfamiliar request.</small><div class="stream-program-results" role="status" aria-live="polite"></div>';
+  copy.querySelector('p').after(form);
+  let request=0;
+  form.addEventListener('submit',async event=>{
+   event.preventDefault();const query=form.querySelector('input').value.trim(),serial=++request,results=form.querySelector('.stream-program-results');if(!query)return;
+   results.textContent='Finding your frequency…';await loadCatalog();if(!form.isConnected||serial!==request)return;
+   const score=window.BigLWADiscoveryCatalog?.score||((item,q)=>String(item.title).toLowerCase().includes(q.toLowerCase())?1:0);
+   const candidates=stations.map((s,index)=>({title:s[0],school:s[1],state:s[2],kind:'station',index})).concat([...tvSources(),...featured.filter(s=>s.category==='podcast'),...youtubeLive].map(s=>({...s,kind:'feature'})));
+   const seen=new Set();const matches=candidates.map(item=>({item,score:score(item,query)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).filter(x=>{const key=x.item.id||'station-'+x.item.index;if(seen.has(key))return false;seen.add(key);return true}).slice(0,8);
+   results.replaceChildren();
+   for(const {item} of matches){const button=document.createElement('button');button.type='button';button.textContent=item.title+(item.creator?' · '+item.creator:'')+(item.kind==='station'&&!audioStreams[item.index]?' · source pending':'');button.addEventListener('click',()=>{
+    state.category=item.kind==='station'?'podcast':item.category||'lwa-tv';state.radioSection=item.kind==='station'?'music':state.category==='podcast'?'podcast':state.radioSection;state.tvSection=item.section||'entertainment';paintCategories();renderGrid();renderCategory();state.followGuide=false;
+    if(item.kind==='station'){if(audioStreams[item.index])selectStation(item.index);else{const input=root.querySelector('#streamStationSearch');if(input){input.value=item.title;renderStations(item.title);input.scrollIntoView({block:'center',behavior:'smooth'});}}}else selectFeature(item.id);
+   });results.append(button)}
+   if(matches.length)return;
+   let category=/podcast|episode|interview/i.test(query)?'podcast':/radio|college|campus|station|music/i.test(query)?'radio':/news|bernie|politic/i.test(query)?'news':/live|rain|asmr/i.test(query)?'live':/tv|video|cartoon|gaming|comedy/i.test(query)?'entertainment':'';
+   if(!category&&window.__biglwaAskLwazi){try{results.textContent='Asking L’wazi which Stream shelf fits…';const reply=await window.__biglwaAskLwazi('Classify this Stream search as exactly one word: radio, podcast, entertainment, news, live. Query: '+query,[], '',null,{mode:'auto'});const value=String(reply?.answer||reply?.text||reply).trim().toLowerCase();if(/^(radio|podcast|entertainment|news|live)$/.test(value))category=value;}catch{}}
+   if(!form.isConnected||serial!==request)return;
+   results.textContent=category?'No exact program matched. Explore '+category+' programming:':'No catalog match yet. Try a creator, campus, podcast or mood.';
+   if(category){const button=document.createElement('button');button.type='button';button.textContent='Open '+category;button.onclick=()=>{state.category=['radio','podcast'].includes(category)?'podcast':['news','entertainment'].includes(category)?'lwa-tv':'live';state.radioSection=category==='podcast'?'podcast':'music';state.tvSection=category==='news'?'news':'entertainment';paintCategories();renderGrid();renderCategory();tuneCurrent()};results.append(button)}
+  });
+ }
  function renderCategory(){
   if(!root)return;
   const copy=root.querySelector('#streamCategoryCopy');
@@ -1078,7 +1125,7 @@
    podcast:['CH 01 / THE CAMPUS DIAL','lwa radio',
     'Play campus radio directly inside Big LWA. Only stations with a configured audio stream are radio ready.'],
    'lwa-tv':['CH 02 / THE PICTURE','lwa tv',
-    'Real creator channels and video picks—from Olandria and Tea Spill to gaming, animation and interviews. New selections every day.'],
+    'Recent creator uploads, community favorites and original programming. Choose Entertainment or News.'],
    live:['CH 03 / YOUTUBE + TWITCH','live',
     'Watch YouTube music, ASMR and frequency recordings alongside Twitch channels. Current live availability is not guaranteed.'],
    sqwibz:['CH 04 / THE TIMELINE','sqwidz',
@@ -1089,6 +1136,8 @@
   copy.innerHTML=((state.category==='podcast'||state.category==='music')?'<nav class="stream-radio-modes" aria-label="Radio listening"><button type="button" data-radio-section="podcast" aria-pressed="'+(state.category==='podcast'&&state.radioSection==='podcast')+'">Podcasts</button><button type="button" data-radio-section="music" aria-pressed="'+(state.category==='music'||state.radioSection==='music')+'">Music</button></nav>':'')+'<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p>'+
    '<div id="streamDiscoveryPicker" class="stream-discovery-picker" aria-label="Daily Discovery playable choices"></div>';
   if(state.category==='podcast'&&state.radioSection==='podcast'){copy.querySelector('h2').textContent='podcasts';copy.querySelector('p').textContent='Conversations, stories and episodes from their original creators.';copy.querySelector('.stream-eyebrow').textContent='LWA RADIO / PODCASTS';}
+  if(state.category==='lwa-tv'){const modes=document.createElement('nav');modes.className='stream-radio-modes';modes.setAttribute('aria-label','TV programming');modes.innerHTML=['entertainment','news'].map(id=>'<button type="button" data-tv-section="'+id+'" aria-pressed="'+(state.tvSection===id)+'">'+(id==='news'?'News':'Entertainment')+'</button>').join('');copy.prepend(modes);if(state.tvSection==='news')copy.querySelector('h2').textContent='lwa news';}
+  mountStreamSearch(copy);
   if(state.category==='sqwibz')sqRight(sqCurrent(),null);
   if(state.category==='music'){
    detail.innerHTML=musicSetupMarkup();
@@ -1097,12 +1146,16 @@
   }else if(state.category==='podcast'&&state.radioSection==='podcast'){
    detail.innerHTML='<h3>podcasts</h3><p>Conversations, stories and original episodes.</p><div id="streamRadioExtras" class="stream-radio-extras-grid"></div>';renderRadioExtras();
   }else if(state.category==='podcast'){
-   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA RADIO / COLLEGE DIAL</span><h3>all 16 campus stations</h3><p>Press Play to listen directly in Big LWA. The complete campus directory is kept below; stations still missing an in-site audio source are marked pending rather than removed.</p></div><label>Find a station <input id="streamStationSearch" type="search" placeholder="School or call letters" autocomplete="off"></label></div><div class="stream-stations" id="streamStations"></div><p class="stream-directory-note">Audio streams remain hosted by their original broadcasters or listed stream relays. No partnership is implied.</p><section class="stream-radio-extras" aria-label="More LWA radio programs and mixtapes"><div class="stream-section-head"><div><span class="stream-eyebrow">LWA RADIO / EXTRA TUNES</span><h3>mixtapes, podcasts &amp; DJ sets</h3><p>Our additional original-source listening directory. Tracks with playable clips can tune into Stream; other entries open their credited publisher.</p></div></div><div id="streamRadioExtras" class="stream-radio-extras-grid"></div></section>';
+   detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA RADIO / COLLEGE DIAL</span><h3>college & world radio</h3><p>Press Play to listen directly in Big LWA. Includes all 16 campus stations, the 50-state directory and world stations share this dial; stations still missing an in-site audio source are marked pending rather than removed.</p></div><label>Find a station <input id="streamStationSearch" type="search" placeholder="School or call letters" autocomplete="off"></label></div><div class="stream-stations" id="streamStations"></div><p class="stream-directory-note">Audio streams remain hosted by their original broadcasters or listed stream relays. No partnership is implied.</p><section class="stream-radio-extras" aria-label="More LWA radio programs and mixtapes"><div class="stream-section-head"><div><span class="stream-eyebrow">LWA RADIO / EXTRA TUNES</span><h3>mixtapes, podcasts &amp; DJ sets</h3><p>Our additional original-source listening directory. Tracks with playable clips can tune into Stream; other entries open their credited publisher.</p></div></div><div id="streamRadioExtras" class="stream-radio-extras-grid"></div></section>';
    const filter=detail.querySelector('#streamStationSearch');
    filter.oninput=()=>renderStations(filter.value);
    renderStations('');
    renderRadioExtras();
-   window.BigLWARadioDirectory?.mount?.(root,{play:playDirectoryRadio});
+   window.BigLWARadioDirectory?.mount?.(root,{play:playDirectoryRadio,unified:true});
+   const math=document.createElement('details');math.className='stream-programming-math';
+   const count=Object.keys(audioStreams).length,weight=count+1;
+   math.innerHTML='<summary>How the radio rotation works · UCLA bias included 🤎</summary><p>'+count+' playable stations · one hour per slot. Each station gets weight 1; UCLA gets weight 2 ('+(200/weight).toFixed(1)+'% of slots; everyone else '+(100/weight).toFixed(1)+'%). Morning 6am–noon, midday noon–6pm, night 6pm–6am, in your device’s timezone.</p><p>For an unchanged playable lineup, separate rotating counters for each daypart cover every station within '+Math.ceil(weight/6)+' days. Over '+weight+' days each station gets the same morning, midday and night share within its weight. This schedules which original stream we tune to; it does not alter the station’s own shows. Manual picks interrupt guide following.</p><p>World starter selection: one recently directory-checked HTTPS stream from each of Haiti, Jamaica, Mexico, Brazil, France, UK, Ghana, Nigeria, Senegal, South Africa, India and Japan, ranked within each country by Radio Browser clicks. This is a disclosed editorial starting set, not global popularity. Unavailable sources remain listed, outside the playable rotation.</p><button type="button" data-follow-radio>Follow scheduled radio</button>';
+   detail.prepend(math);
    const services=document.createElement('details');services.innerHTML='<summary>Music services & playlists</summary>'+musicSetupMarkup();detail.append(services);
   }else if(state.category==='lwa-tv'){
    detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">LWA TV / READY TO WATCH</span><h3>pick a video, stay here</h3><p>Use the thumbnail and arrows above to browse playable clips and cartoons. Channel-page links without a playable video are not shown as TV programs. Ballroom / CCTV remains within LWA TV.</p></div></div><p class="stream-directory-note">Original publishers control their own embedding permissions; this does not imply a Big LWA partnership.</p>';
@@ -1283,8 +1336,10 @@
   if(button.matches('[data-discovery-prev]')){browseDiscovery(-1);return;}
   if(button.matches('[data-discovery-next]')){browseDiscovery(1);return;}
   if(button.matches('[data-discovery-play]')){playDiscovery(Number(button.dataset.discoveryPlay));return;}
-  if(button.matches('[data-radio-play]')){state.followGuide=false;saveLastPlayed(state.selected);const audio=mediaPortal?.querySelector('#streamRadioAudio');if(!audio)return;if(audio.paused)playRadio(audio,button);else{audio.pause();button.textContent='▶ Play';const status=mediaPortal.querySelector('#streamRadioStatus');if(status)status.textContent='Paused';}return;}
+  if(button.matches('[data-radio-play]')){saveLastPlayed(state.selected);const audio=mediaPortal?.querySelector('#streamRadioAudio');if(!audio)return;if(audio.paused)playRadio(audio,button);else{audio.pause();button.textContent='▶ Play';const status=mediaPortal.querySelector('#streamRadioStatus');if(status)status.textContent='Paused';}return;}
   if(button.matches('[data-stream-episode]')){state.followGuide=false;saveLastPlayed(state.selected);changeArchiveEpisode(Number(button.dataset.streamEpisode));return;}
+  if(button.matches('[data-follow-radio]')){state.category='podcast';state.radioSection='music';tuneCurrent();const audio=mediaPortal?.querySelector('#streamRadioAudio');if(audio)playRadio(audio,mediaPortal.querySelector('[data-radio-play]'));state.followGuide=true;return;}
+  if(button.matches('[data-tv-section]')){state.tvSection=button.dataset.tvSection;state.selected=null;renderGrid();renderCategory();tuneCurrent();return;}
   if(button.matches('[data-radio-section]')){state.category='podcast';state.radioSection=button.dataset.radioSection;state.selected=null;paintCategories();renderGrid();renderCategory();tuneCurrent();return;}
   if(button.matches('[data-stream-tab]')){
    const changing=state.category!==button.dataset.streamTab;
@@ -1299,7 +1354,7 @@
   if(button.matches('[data-stream-twitch]')){state.followGuide=false;selectTwitch(button.dataset.streamTwitch);return}
   if(button.matches('[data-stream-program]')){state.followGuide=false;selectProgram(button.dataset.streamProgram);return}
  }
- window.BigLWAStreamGuide={mount,parkInStudio,dock:dockStream,undock:undockStream,showNoSignal,prefillRequest,get lastWatchedTitle(){return state.selected?.title||''},get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return featured.map(f=>({...f}))},get ballroom(){return ballroomChannels.map(item=>({...item}))},get guideSlots(){return programmedCategories().map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour))}))},get twitch(){return twitchChannels.map(x=>({...x}))},get playlist(){return programmedCategories().map(([category])=>({category,slots:dailyPlaylist(category).map(x=>({...x}))}))},getDailyGuide(day,offset=0){return programmedCategories().map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour,day,offset))}))}};
+ window.BigLWAStreamGuide={mount,async openFeature(id){await loadCatalog();const source=[...tvSources(),...featured,...youtubeLive].find(item=>item.id===id);if(!source||!root)return false;state.category=source.category;state.tvSection=source.section||'entertainment';if(state.category==='podcast')state.radioSection='podcast';paintCategories();renderGrid();renderCategory();state.followGuide=false;selectFeature(id);return true;},parkInStudio,dock:dockStream,undock:undockStream,showNoSignal,prefillRequest,get lastWatchedTitle(){return state.selected?.title||''},get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return [...recentVideos(),...featured].map(f=>({...f}))},get ballroom(){return ballroomChannels.map(item=>({...item}))},get guideSlots(){return programmedCategories().map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour))}))},get twitch(){return twitchChannels.map(x=>({...x}))},get playlist(){return programmedCategories().map(([category])=>({category,slots:dailyPlaylist(category).map(x=>({...x}))}))},getDailyGuide(day,offset=0){return programmedCategories().map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour,day,offset))}))}};
 })();
 
 /* The approved illustration is reserved for the movable Dock.

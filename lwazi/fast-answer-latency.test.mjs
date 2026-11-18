@@ -19,7 +19,7 @@ test('entrypoint loads new version of optimized search code',()=>{
 });
 
 test('search sources render independently as each category resolves',()=>{
- assert.match(source,/var discoveryParts=\[\[\],\[\],\[\],\[\],\[\],\[\]\],discoveryCompleted=0/);
+ assert.match(source,/var discoveryParts=\[\[\],\[\],\[\],\[\],\[\],\[\],\[\],\[\]\],discoveryCompleted=0/);
  assert.match(source,/function renderDiscovery\(parts\)/);
  assert.match(source,/discoveryCompleted\+\+/);
  assert.match(source,/renderDiscovery\(discoveryParts\)/);

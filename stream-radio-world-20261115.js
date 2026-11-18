@@ -135,6 +135,7 @@ function mount(root,options={}){
  '<div class="biglwa-radio-cards" data-radio-world-list></div>'+
  '<p class="biglwa-radio-credit">Station data: <a href="https://www.radio-browser.info/" target="_blank" rel="noopener noreferrer">Radio Browser</a>, a community-maintained directory. Your search contacts its public API; catalog entries and stream availability may change.</p></section>';
  target.append(section);
+ if(options.unified){section.querySelector('.biglwa-radio-switch').hidden=true;section.querySelector('[data-radio-usa]').hidden=true;section.querySelector('[data-radio-world]').hidden=false;section.querySelector('h3').textContent='Explore more world stations';}
  const record={root,section,play:typeof options.play==='function'?options.play:null,us:[],req:0,worldOptionsRequested:false};
  mounts.set(section,record);
  section.addEventListener('click',event=>onClick(event,record));
@@ -144,7 +145,8 @@ function mount(root,options={}){
   if(event.target.matches('[data-radio-country],[data-radio-language]')){const el=$('[data-radio-world-status]',section);el.textContent='Selections changed. Choose Discover stations for current results.';}
  });
  setupWorldSelectors(record);
- collegeCatalog().then(rows=>{
+ if(options.unified)$('[data-radio-country]',section).addEventListener('focus',()=>enrichWorldSelectors(record).catch(()=>{}),{once:true});
+ if(!options.unified)collegeCatalog().then(rows=>{
   if(!section.isConnected)return;
   record.us=rows.slice().sort((a,b)=>a.state.localeCompare(b.state));
   const select=$('[data-radio-state]',section);

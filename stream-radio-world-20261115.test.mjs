@@ -77,7 +77,7 @@ test('World Radio is filterable, ranks only by directory activity and keeps Musi
  assert.match(js,/stations\/search\?/);
  assert.match(js,/https:\/\/de1\.api\.radio-browser\.info/);
  assert.match(css,/biglwa-radio-world-area/);
- assert.match(guide,/window\.BigLWARadioDirectory\?\.mount\?\.\(root,\{play:playDirectoryRadio\}\)/);
+ assert.match(guide,/window\.BigLWARadioDirectory\?\.mount\?\.\(root,\{play:playDirectoryRadio,unified:true\}\)/);
  assert.match(guide,/function retryCollegeRadio\(index\)/);
  assert.match(guide,/data-stream-radio-retry/);
  assert.match(guide,/\['music','music','CH 05'\]/);
