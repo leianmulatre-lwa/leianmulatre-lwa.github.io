@@ -484,7 +484,7 @@ body.night-mode #studioApp #minimizedWidgetDock .sidebar-route-icon img:is([src*
   grid-column:2;
   grid-row:1;
   height:clamp(28px,4vw,42px)!important;
-  min-height:28px!important;
+  min-height:clamp(28px,4vw,42px)!important;
   max-height:42px!important;
   margin:0!important;
 }
