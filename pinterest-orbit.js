@@ -1353,8 +1353,8 @@ window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,saveVe
    const recent=recentBoardIds[0];
    const saved=savedLibrary.boards.find(board=>String(board.id)===String(recent));
    if(saved){
-    saved.pins.forEach(pin=>include(pin.id,(hostedPinUrls.get(String(pin.id))||[])[0]||pin.image||''));
-    return out;
+    [...saved.pins].reverse().forEach(pin=>include(pin.id,(hostedPinUrls.get(String(pin.id))||[])[0]||pin.image||''));
+    if(out.length>=5)return out;
    }
    if(recent&&boards.some(board=>String(board.id)===String(recent))){
     if(String(boardId)===String(recent))pins.forEach(pin=>include(pin.id,(hostedPinUrls.get(String(pin.id))||[])[0]||image(pin)||pin.image||''));
@@ -1363,9 +1363,9 @@ window.__biglwaPinterest={connect,restore,syncAllBoards,disconnect,render,saveVe
      const urls=Array.isArray(cover?.images)?cover.images:[cover?.url||cover];
      urls.filter(Boolean).forEach(url=>include(recent,url));
     }
-    return out;
+    if(out.length>=5)return out;
    }
-   pins.forEach(pin=>include(pin.id,(hostedPinUrls.get(String(pin.id))||[])[0]||image(pin)||pin.image||''));
+   [...pins].reverse().forEach(pin=>include(pin.id,(hostedPinUrls.get(String(pin.id))||[])[0]||image(pin)||pin.image||''));
    orderedBoards().forEach(board=>{
     const cover=covers[board.id];
     const urls=Array.isArray(cover?.images)?cover.images:[cover?.url||cover];
