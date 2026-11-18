@@ -17,12 +17,14 @@
    line=document.createElement('div');line.className='biglwa-profile-role-statline';
    bio.before(line);
   }
-  if(bio.parentElement!==line)line.prepend(bio);
+  let left=line.querySelector(':scope > .biglwa-profile-bio-roles');
+  if(!left){left=document.createElement('div');left.className='biglwa-profile-bio-roles';line.prepend(left);}
+  if(bio.parentElement!==left)left.prepend(bio);
   if(stats.parentElement!==line)line.append(stats);
   const roles=profile.querySelector('.biglwa-community-badges');
-  if(roles&&line.nextElementSibling!==roles)line.after(roles);
+  if(roles&&roles.parentElement!==left)left.append(roles);
   const highlights=profile.querySelector('.biglwa-stories-ribbon');
-  if(roles&&highlights&&roles.nextElementSibling!==highlights)roles.after(highlights);
+  if(highlights&&line.nextElementSibling!==highlights)line.after(highlights);
   if(highlights?.parentElement===line)line.after(highlights);
   const rank=profile.querySelector(':scope > .real-rank');
   if(highlights&&rank&&(highlights.compareDocumentPosition(rank)&Node.DOCUMENT_POSITION_PRECEDING))rank.before(highlights);
