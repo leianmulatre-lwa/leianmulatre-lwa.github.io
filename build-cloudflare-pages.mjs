@@ -12,7 +12,7 @@ import {generateOgImage} from './build-og-image.mjs';
 const root=resolve(fileURLToPath(new URL('.',import.meta.url)));
 const dest=join(root,'dist');
 const publishDirs=new Set([
-  'MiiEditor','about','affidavit','arcade','archive','assets','boards temp thumbnail','avatar','leian-mulatre',
+  'MiiEditor','about','affidavit','arcade','archive','assets','boards temp thumbnail','games bg','avatar','leian-mulatre',
   'cedarville-pnkfun1-cursive-font','cuteness-font','data-deletion',
   // Independently indexable, deliberately public, static feature guides.
   'discover','online-games','fare-checker','live-shows','free-knowledge',
@@ -23,7 +23,7 @@ const publishDirs=new Set([
 const topPublic=new Set(['404.html','index.html','robots.txt','sitemap.xml',
   'favicon.ico','apple-touch-icon.png']);
 const allowedExt=new Set(['.html','.js','.css','.svg','.png','.webp','.jpg',
-  '.jpeg','.gif','.ico','.ttf','.otf','.woff','.woff2','.txt','.xml',
+  '.jpeg','.gif','.avif','.ico','.ttf','.otf','.woff','.woff2','.txt','.xml',
   '.json','.webmanifest','.swf','.wasm','.data','.mp3','.wav','.ogg',
   '.mp4','.webm','.b64','.bin']);
 const internalFiles=new Set([
@@ -88,7 +88,16 @@ for(const required of ['index.html','404.html','assets/login-curtain-film-grain-
   'boards temp thumbnail/b8ce4928ebccf42c9ecc749fe0b347e9.jpg',
   'boards temp thumbnail/e642fae88aa023fc8124ead156cff138.jpg',
   'boards temp thumbnail/eecc0dabc950626bd32c902f28c4e7fa.jpg',
-  'boards temp thumbnail/fb0612c7df6af82845036d2e3e06e32a.jpg']){
+  'boards temp thumbnail/fb0612c7df6af82845036d2e3e06e32a.jpg',
+  // Publish and verify actual repository Games wallpapers, never external imagery.
+  'games bg/098fd5e1084e9f1d04223dcaa42387b9.jpg',
+  'games bg/3unsgny5oup81.jpg',
+  'games bg/860645.png',
+  'games bg/ce4cuf5c0pp51.png',
+  'games bg/games bg.jpg',
+  'games bg/gta-homepage-icon.avif',
+  'games bg/playstation_background_by_wintendo558_dhfen5k-fullview.jpg',
+  'games bg/xbox-360-nxe-wallpapers-ai-upscaled-v0-aavwiqz5oup81.jpg']){
   if(!existsSync(join(dest,required)))throw Error('Missing required public asset: '+required);
 }
 for(const hidden of ['cloudflare-worker-instagram.js','new-orbit-oauth.js','public-tiktok-snapshot-worker.js','wrangler.toml','firestore.rules','.github']){
