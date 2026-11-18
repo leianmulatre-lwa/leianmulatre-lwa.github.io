@@ -1,0 +1,23 @@
+/* Journal night artwork, 2026-11-18. Keep day mode unchanged. */
+body.night-mode #studioApp #diary .diary-page,
+html.night-mode #studioApp #diary .diary-page {
+  position:relative!important;
+  isolation:isolate;
+  background:#d12a77 url('/assets/journal-burn-book-night-20261118.avif') center/cover no-repeat!important;
+}
+body.night-mode #studioApp #diary .diary-page > img,
+html.night-mode #studioApp #diary .diary-page > img{
+  opacity:0!important;visibility:hidden!important;
+}
+body.night-mode #studioApp #diary .diary-page > :is(.studio-journal-initial,.biglwa-public-journal-initial),
+html.night-mode #studioApp #diary .diary-page > :is(.studio-journal-initial,.biglwa-public-journal-initial){
+  position:absolute!important;z-index:5!important;
+  left:50%!important;top:48%!important;
+  transform:translate(-50%,-50%) rotate(-2deg)!important;
+  display:grid!important;place-items:center!important;
+  font-family:"CS Bergamot Stitched",Georgia,serif!important;
+  font-size:clamp(32px,5vw,54px)!important;font-weight:400!important;
+  color:#a30516!important;text-shadow:0 1px 1px #30030b99!important;
+  pointer-events:none!important;
+}
+html.biglwa-preview-mode #studioApp #diary .diary-page > .studio-journal-initial{display:none!important}
