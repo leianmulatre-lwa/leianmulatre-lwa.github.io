@@ -66,7 +66,8 @@ const report={generatedAt:new Date().toISOString(),kind:'source-audit-not-page-s
    landingJsRawBytes:2900000,landingCssRawBytes:930000,
    studioJsRefs:114,studioCssRefs:92,
    studioJsRawBytes:2900000,studioCssRawBytes:930000,
-   trackedBytes:145000000}};
+   // Includes the first-party imported Highlights media cache (~76 MB).
+    trackedBytes:230000000}};
 const warnings=[];
 if(missingRoutes.length)warnings.push('Required source routes missing: '+missingRoutes.join(', '));
 for(const [key,limits] of [['landing',['landingJsRefs','landingCssRefs','landingJsRawBytes','landingCssRawBytes']],['studio',['studioJsRefs','studioCssRefs','studioJsRawBytes','studioCssRawBytes']]]){

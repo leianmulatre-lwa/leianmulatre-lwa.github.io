@@ -8,6 +8,8 @@ on:
       - 'firebase-directory.js'
       - 'profile-highlight-editor-test.mjs'
       - 'imported-profile-highlights-test.mjs'
+      - 'imported-highlight-cache-test.mjs'
+      - 'assets/highlights/leianstanley.json'
       - 'studio-media-adjust-test.mjs'
       - 'archive-highlights-space-regression-test.mjs'
       - 'index.html'
@@ -34,5 +36,6 @@ jobs:
           node --check firebase-directory.js
           node profile-highlight-editor-test.mjs
           node imported-profile-highlights-test.mjs
+          node imported-highlight-cache-test.mjs
           node studio-media-adjust-test.mjs
           node archive-highlights-space-regression-test.mjs
