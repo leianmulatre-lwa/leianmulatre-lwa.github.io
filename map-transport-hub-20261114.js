@@ -17,6 +17,18 @@
  const navGo=document.getElementById('mapNavGo');
  const travelButtons=Array.from(planner.querySelectorAll('[data-map-travel]'));
  if(!from||!to||!plan)return;
+ // Illustrative only. These coefficients are BIG LWA planning assumptions,
+ // not tariffs, quotes, offers or scraped provider data.
+ const ESTIMATE_MODELS={
+  uber:{name:'Uber',base:4.75,km:1.12,minute:0.31,url:'https://m.uber.com/'},
+  lyft:{name:'Lyft',base:4.25,km:1.08,minute:0.32,url:'https://www.lyft.com/rider'},
+  waymo:{name:'Waymo',base:5.5,km:1.35,minute:0.3,url:'https://waymo.com/',
+   note:'No public quote API; service area and vehicle availability vary.'}
+ };
+ const ESTIMATE_NOTE='Illustrative BIG LWA planning estimate from route distance and time only. '+
+  'Not a provider quote, offer or prediction. Excludes demand/surge pricing, wait time, '+
+  'fees, tolls, taxes, tips, promotions, vehicle class and driver availability. '+
+  'The provider discloses the actual price before booking.';
  const SERVICES={
   rides:[
    {id:'uber',name:'Uber',icon:'🚘',type:'ride',url:'https://m.uber.com/',
@@ -114,11 +126,18 @@
   // The destination is transmitted only after the explicit external handoff.
   final.href=providerUrl(currentProvider());
  });
+ const estimates=el('section','map-fare-estimates');
+ estimates.id='mapFareEstimates';
+ estimates.setAttribute('aria-label','BIG LWA ride cost planning estimates');
+ const estimateTitle=el('h3','', 'Ride cost · BIG LWA planning model');
+ const estimateNote=el('p','map-fare-estimates-note');
+ const estimateRows=el('div','map-fare-estimate-list');
+ estimates.append(estimateTitle,estimateNote,estimateRows);
  const warning=el('p','map-service-note',
-  'BIG LWA shows road-model travel time when a route is available—not Uber fares, food prices, live driver pickup times, delivery charges or courier availability. Final quotes and transactions remain with each provider.');
+  'BIG LWA shows a clearly labelled planning model from road distance and time—not provider quotes, live fares, food prices, driver pickup times, delivery charges or courier availability. Final quotes and transactions remain with each provider.');
  controls.append(explore,directions,browse,final);
  providerInfo.append(providerTitle,providerText,routeStatus,controls);
- services.append(providerList,providerInfo,warning);
+ services.append(providerList,providerInfo,estimates,warning);
  const before=tripFields;
  before.parentNode?.insertBefore(switcher,before);
  switcher.parentNode?.insertBefore(intro,switcher);
@@ -160,6 +179,81 @@
   url.searchParams.set('dropoff[nickname]','Destination');
   return url.href;
  }
+ function distanceKm(route){
+  const label=String(route?.distanceLabel||'');
+  const match=label.match(/([0-9][0-9,]*(?:\.[0-9]+)?)/);
+  if(match){
+   const value=Number(match[1].replace(/,/g,''));
+   if(Number.isFinite(value)&&value>0)
+    return /\bmi(?:les?)?\b/i.test(label)?value*1.609344:value;
+  }
+  const points=route?.points;
+  if(Array.isArray(points)&&points.length>1){
+   let total=0;
+   for(let i=1;i<points.length;i++){
+    const a=points[i-1],b=points[i];
+    if(!Array.isArray(a)||!Array.isArray(b)||
+       !Number.isFinite(Number(a[0]))||!Number.isFinite(Number(a[1]))||
+       !Number.isFinite(Number(b[0]))||!Number.isFinite(Number(b[1])))continue;
+    total+=Math.hypot((Number(b[0])-Number(a[0]))*111.2,
+     (Number(b[1])-Number(a[1]))*92.2);
+   }
+   if(total>0)return total;
+  }
+  if(valid(route?.origin)&&valid(route?.destination)){
+   const a=route.origin,b=route.destination;
+   const direct=Math.hypot((Number(b.lat)-Number(a.lat))*111.2,
+    (Number(b.lng)-Number(a.lng))*92.2);
+   if(direct>0)return direct;
+  }
+  return null;
+ }
+ function quoteUrlFor(id){
+  if(id==='uber')return providerUrl(SERVICES.rides.find(p=>p.id==='uber'));
+  if(id==='lyft')return providerUrl(SERVICES.rides.find(p=>p.id==='lyft'));
+  return ESTIMATE_MODELS[id]?.url||'';
+ }
+ function estimateFor(route){
+  if(!route||!valid(route.origin)||!valid(route.destination))return [];
+  const km=distanceKm(route);
+  const minutes=Number(route.durationMinutes);
+  const span=Number.isFinite(minutes)&&minutes>0?minutes:
+   (Number.isFinite(km)&&km>0?Math.round(km*1.4):null);
+  if(!Number.isFinite(km)||km<=0||!Number.isFinite(span)||span<=0)return [];
+  return Object.entries(ESTIMATE_MODELS).map(([id,model])=>{
+   const mid=model.base+km*model.km+span*model.minute;
+   const low=Math.max(3,Math.round(mid*0.82));
+   const high=Math.max(low+2,Math.round(mid*1.18));
+   return {id,name:model.name,low,high,range:'$'+low+'–$'+high,currency:'USD',
+    basis:Number(km.toFixed(1))+' km · '+Math.round(span)+' min',
+    note:model.note||'',quoteUrl:quoteUrlFor(id),disclaimer:ESTIMATE_NOTE};
+  });
+ }
+ function renderEstimates(){
+  const rows=mode==='rides'?estimateFor(planned):[];
+  estimateRows.replaceChildren();
+  if(!rows.length){
+   estimateNote.textContent=mode==='rides'?
+    'Add pickup and dropoff, then Explore trip to see BIG LWA planning estimates.':
+    'Ride planning estimates are available on the Ride tab after a road route.';
+   return;
+  }
+  estimateNote.textContent=ESTIMATE_NOTE;
+  for(const row of rows){
+   const item=el('div','map-fare-estimate');
+   const copy=el('span','map-fare-estimate-copy');
+   copy.append(el('strong','',row.name),el('small','',row.basis));
+   const value=el('strong','map-fare-estimate-value',row.range);
+   const link=el('a','map-fare-estimate-link',row.id==='waymo'?'Check availability ↗':'Check quote ↗');
+   link.href=row.quoteUrl;
+   link.setAttribute('target','_top');
+   link.setAttribute('rel','noreferrer');
+   link.addEventListener('click',()=>{link.href=row.quoteUrl});
+   item.append(copy,value,link);
+   if(row.note)item.append(el('small','map-fare-estimate-caveat',row.note));
+   estimateRows.append(item);
+  }
+ }
  function displayRoute(){
   if(mode==='rides'){
    if(planned&&valid(planned.origin)&&valid(planned.destination)){
@@ -174,6 +268,7 @@
   }else{
    routeStatus.textContent='Courier API quotes are not connected. Business partner credentials and approved production access are required before BIG LWA can request real delivery estimates.';
   }
+  renderEstimates();
  }
  function render(){
   for(const [key,button] of Object.entries(switchButtons))
@@ -221,6 +316,12 @@
   }
   render();
  }
+ function openRideOptions(id){
+  chooseMode('rides');
+  if(id&&SERVICES.rides.some(p=>p.id===id)){selected=id;render();}
+  services.open=true;
+  services.scrollIntoView?.({block:'nearest'});
+ }
  window.addEventListener('biglwa:map-navigation-route',event=>{
   const route=event.detail;
   planned=valid(route?.origin)&&valid(route?.destination)?route:null;
@@ -231,7 +332,9 @@
  });
  // The first-party UI does not rely on any external provider API at launch.
  // A future approved adapter can populate quotes without changing this panel.
- window.BigLWATransportHub=Object.freeze({chooseMode,getMode:()=>mode,getSelected:()=>selected,
+ window.BigLWATransportHub=Object.freeze({chooseMode,openRideOptions,
+  getMode:()=>mode,getSelected:()=>selected,
+  getEstimates:override=>estimateFor(override||planned),
   getProviderUrl:()=>providerUrl(currentProvider())});
  const driving=travelButtons.find(button=>button.dataset.mapTravel==='driving');
  if(driving&&driving.getAttribute('aria-pressed')!=='true')driving.click();

@@ -1,5 +1,9 @@
 /* Opt-in public vehicle positions. No location or account data is sent. */
 (() => {
+  const railMeta = new Map();
+  window.addEventListener('biglwa:metro-rail-loaded', event => {
+    for (const route of event.detail?.routes || []) railMeta.set(String(route.id), route);
+  });
   const toolbar = document.querySelector('body:not(.preview) .map-side > .toolbar');
   if (!toolbar) return;
   const button = document.createElement('button');
@@ -14,7 +18,7 @@
   toolbar.after(status);
   const detail=document.createElement('section');detail.hidden=true;detail.className='map-live-transit-detail';
   detail.style.cssText='padding:10px;border:1px dashed #916d78;border-radius:10px;background:#fff8ee;font:13px/1.5 system-ui';
-  detail.innerHTML='<b>Live transit key</b><div><span style="color:#166d53">●</span> Bus · <span style="color:#873c9a">●</span> Rail · ○ Stop · dashed line: stop sequence</div><p>Tap a vehicle to see its line, direction and named stops. GPS positions do not identify a driving lane.</p><label>Filter line <input aria-label="Filter live transit line" placeholder="e.g. 720" style="width:90px"></label><div class="transit-line-detail" role="status"></div>';
+  detail.innerHTML='<b>Live transit key</b><div class="transit-key-row"><span class="transit-key-dot bus">●</span> Bus · <span class="transit-key-dot rail">●</span> Rail · ○ Stop · dashed line: stop sequence</div><p class="transit-key-caveat">Line badges show the route number. Tap a vehicle to see its line, direction and named stops. GPS positions do not identify a driving lane.</p><label>Filter line <input aria-label="Filter live transit line" placeholder="e.g. 720" style="width:90px"></label><div class="transit-line-detail" role="status"></div>';
   status.after(detail);
   const filter=detail.querySelector('input'),lineDetail=detail.querySelector('.transit-line-detail');
   let stopLayer=null,selection=0;
@@ -29,8 +33,18 @@
       const info=Array.isArray(overview)?overview[0]:overview;
       const stops=(Array.isArray(rows)?rows:[]).filter(r=>direction==null||String(r.direction_id)===String(direction));
       const seen=new Set(),unique=stops.sort((a,b)=>a.stop_sequence-b.stop_sequence).filter(r=>{const key=r.direction_id+':'+r.stop_id;if(seen.has(key))return false;seen.add(key);return true});
-      lineDetail.replaceChildren();const title=document.createElement('h4');title.textContent='Line '+route+' · '+(info?.route_long_name||agency);lineDetail.append(title);
-      const desc=document.createElement('p');desc.textContent=[info?.route_desc,info?.['travel_direction_'+direction],info?.['description_'+direction]].filter(Boolean).join(' · ');lineDetail.append(desc);
+      lineDetail.replaceChildren();
+      const meta=railMeta.get(String(route));
+      const head=document.createElement('div');head.className='transit-line-head';
+      const badge=document.createElement('span');badge.className='transit-line-badge';badge.textContent=route;
+      if(meta){badge.style.backgroundColor='#'+meta.color;badge.title=meta.name;}
+      const title=document.createElement('h4');title.textContent='Line '+route+' · '+(meta?.name||info?.route_long_name||agency);
+      head.append(badge,title);lineDetail.append(head);
+      const terminal=unique.at(-1)?.stop_name;
+      const directionName=[info?.route_desc,info?.['travel_direction_'+direction],info?.['description_'+direction]].filter(Boolean).join(' · ');
+      const desc=document.createElement('p');desc.className='transit-direction-line';
+      desc.textContent=[direction==null?'':'Direction '+direction,directionName,terminal?'toward '+terminal:''].filter(Boolean).join(' · ')||
+       'Direction and terminal not published for this vehicle.';lineDetail.append(desc);
       const {L,map}=window.BigLWAMapBridge;stopLayer=L.featureGroup().addTo(map);const groups=new Map();
       const list=document.createElement('ol');list.style.cssText='max-height:180px;overflow:auto;padding-left:24px';lineDetail.append(list);
       for(const stop of unique){
@@ -70,7 +84,7 @@
     }
     const count = markers.size;
     status.textContent = count
-      ? count + ' LA Metro vehicles on the map · Source: LA Metro'
+      ? count + ' LA Metro vehicles on the map · Tap a line for direction and stops · Source: LA Metro'
       : 'No current LA Metro positions received. Check again shortly.';
   }
 
@@ -113,11 +127,16 @@
           fillColor:label === 'Rail' ? '#873c9a' : '#166d53', fillOpacity:1, weight:2
         }).addTo(layer);
         marker.setLatLng([latitude,longitude]);
-        const description = document.createElement('span');
         const route = String(response.route_code ?? vehicle.trip?.routeId ?? vehicle.trip?.route_id ?? '').split('-')[0].slice(0,24);
         const direction=vehicle.trip?.direction_id ?? vehicle.trip?.directionId;
+        const headsign=String(vehicle.trip?.trip_headsign || vehicle.trip?.tripHeadsign || '').slice(0,80);
+        const meta=railMeta.get(route);
+        const description = document.createElement('span');
         marker.off('click');marker.on('click',()=>showLine(agency,route,direction));
-        description.textContent = 'LA Metro ' + label + (route ? ' · ' + route : '');
+        description.textContent = (meta?.name || 'LA Metro ' + label) +
+          (route ? ' · Line ' + route : '') +
+          (headsign ? ' · toward ' + headsign : '') +
+          (direction == null ? '' : ' · Direction ' + direction);
         if (existing) marker.setTooltipContent(description);
         else marker.bindTooltip(description);
         markers.set(key,{marker,updated,route});

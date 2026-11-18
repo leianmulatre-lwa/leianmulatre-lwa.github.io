@@ -9,6 +9,6 @@ test('live vehicle selection loads its named stops, direction and line without i
  w.eval(readFileSync('map-live-transit.js','utf8'));w.document.querySelector('#mapLiveTransit').click();
  sockets[0].message({data:JSON.stringify({id:'bus1',vehicle:{timestamp:Date.now()/1000,position:{latitude:34.05,longitude:-118.24},trip:{route_id:'720-13172',direction_id:1}}})});
  marks[0].click();await new Promise(r=>setTimeout(r,10));
- assert(paths.some(p=>p.endsWith('route_stops/720')));assert.match(w.document.querySelector('.transit-line-detail').textContent,/Westbound/);assert.match(w.document.querySelector('.transit-line-detail').textContent,/Wilshire \/ Westwood/);assert.match(w.document.querySelector('.map-live-transit-detail').textContent,/do not identify a driving lane/);
+ assert(paths.some(p=>p.endsWith('route_stops/720')));assert.match(w.document.querySelector('.transit-line-detail').textContent,/Westbound/);assert.match(w.document.querySelector('.transit-line-detail').textContent,/Wilshire \/ Westwood/);assert.match(w.document.querySelector('.transit-line-badge').textContent,/^720$/);assert.match(w.document.querySelector('.transit-direction-line').textContent,/toward Wilshire \/ Westwood/);assert.match(w.document.querySelector('.transit-key-row').textContent,/Bus/);assert.match(w.document.querySelector('.map-live-transit-detail').textContent,/do not identify a driving lane/);
  w.document.querySelector('#mapLiveTransit').click();assert(w.document.querySelector('.map-live-transit-detail').hidden);w.close();
 });

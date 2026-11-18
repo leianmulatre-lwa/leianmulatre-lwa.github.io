@@ -26,6 +26,25 @@ test('planning hides navigation; Transit exposes its desk beside the mode; selec
  assert.equal(d.getElementById('mapJourneyInputs').hidden,false);assert.equal(d.getElementById('mapNavControls').hidden,true);assert(d.getElementById('mapNavGo').disabled);
  w.close();
 });
+test('drive choices show labelled ride model ranges and rail data builds a line key',()=>{
+ const w=runtime(),d=w.document;
+ const drive={mode:'driving',points:[[34.02,-118.48],[34.06,-118.44]],maneuvers:[{instruction:'Drive north',shapeIndex:0}],durationMinutes:18,distanceLabel:'5.6 km',origin:{lat:34.02,lng:-118.48},destination:{lat:34.06,lng:-118.44}};
+ w.dispatchEvent(new w.CustomEvent('biglwa:map-navigation-route',{detail:drive}));
+ const preview=d.querySelector('#mapRouteChoices .map-ride-estimate-preview');
+ assert(preview,'Drive route offers ride estimates without leaving the map');
+ assert.match(preview.textContent,/BIG LWA model estimates/);
+ assert.match(preview.textContent,/\$\d+–\$\d+/);
+ assert.match(preview.textContent,/not provider quotes/i);
+ [...preview.querySelectorAll('button')].find(b=>b.textContent==='Open ride options').click();
+ assert.equal(d.getElementById('mapServiceLinks').open,true);
+ const rail=JSON.parse(readFileSync('data/metro-rail-map.json','utf8'));
+ w.dispatchEvent(new w.CustomEvent('biglwa:metro-rail-loaded',{detail:rail}));
+ const key=d.getElementById('mapMetroLineKey');
+ assert.equal(key.hidden,false);
+ assert.equal(key.querySelectorAll('.map-metro-line-badge').length,6);
+ assert.match(key.textContent,/toward/);
+ w.close();
+});
 test('unsupported 3D returns to usable 2D with explanation',async()=>{
  const w=runtime();w.maplibregl={supported:()=>false};await w.BigLWAMap3D.open();
  assert.equal(w.document.querySelector('.map-3d-canvas'),null);assert.match(w.document.querySelector('.map-3d-notice').textContent,/2D map is still ready/);w.close();

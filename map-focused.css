@@ -32,6 +32,26 @@ body.map-focused .map-side>.toolbar{gap:6px!important}
 body.map-focused .map-side>.toolbar button{padding:8px!important;min-height:34px!important;font-size:12px!important}
 body.map-focused.map-route-focused .map-purpose-rail{display:none!important}
 body.map-focused #mapTripResult:empty{display:none}
+/* Live guide: line/direction key and clearly labelled ride cost ranges. */
+body.map-focused #mapMetroLineKey{padding:7px 9px;margin:6px 0;border:1px solid #dac7bb;border-radius:9px;background:#fffaf4}
+body.map-focused #mapMetroLineKey small{display:block;font:600 10px/1.4 system-ui,sans-serif;color:#765d6a}
+body.map-focused .map-metro-line-row{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
+body.map-focused .map-metro-line-badge,body.map-focused .transit-line-badge,body.map-focused .metro-line-badge{display:inline-grid;place-items:center;min-width:24px;padding:3px 6px;border-radius:6px;background:#6d5361;color:#fff;font:800 10px/1.2 system-ui,sans-serif;text-shadow:0 1px 1px #0004}
+body.map-focused .map-ride-estimate-preview{padding:9px 10px;margin:8px 0;border:1px solid #d9c2cd;border-radius:10px;background:#fffaf8}
+body.map-focused .map-ride-estimate-preview strong{font:700 12px/1.3 system-ui,sans-serif;color:#4b3541}
+body.map-focused .map-ride-estimate-row{display:flex;flex-wrap:wrap;gap:6px;margin:5px 0}
+body.map-focused .map-ride-estimate-row span{padding:4px 7px;border:1px solid #e3d0d9;border-radius:7px;background:#fff;color:#3e2c37;font:750 11px/1.25 system-ui,sans-serif;white-space:nowrap}
+body.map-focused .map-ride-estimate-preview small{display:block;font:500 9px/1.4 system-ui,sans-serif;color:#806775}
+body.map-focused #mapRouteChoices .map-ride-estimate-preview button{width:auto;min-height:30px;margin-top:6px;padding:5px 9px;font-size:11px}
+body.map-focused .map-live-transit-detail .transit-key-row{font:600 11px/1.5 system-ui,sans-serif;color:#5c4753}
+body.map-focused .transit-key-dot.bus{color:#166d53}
+body.map-focused .transit-key-dot.rail{color:#873c9a}
+body.map-focused .transit-key-caveat{font:500 10px/1.45 system-ui,sans-serif;color:#765d6a}
+body.map-focused .transit-line-head{display:flex;align-items:center;gap:8px}
+body.map-focused .transit-line-head h4{margin:0;font:700 13px/1.3 Georgia,serif;color:#453039}
+body.map-focused .transit-direction-line{font:750 11px/1.4 system-ui,sans-serif;color:#6b3f57}
+body.map-focused .metro-itinerary .metro-line-badge{margin-right:3px}
+body.map-focused .metro-direction-key{font:500 10px/1.45 system-ui,sans-serif;color:#705f6a}
 .map-3d-canvas{position:absolute;inset:0;z-index:700;background:#e9e2d7}
 .map-3d-notice{position:absolute;bottom:28px;left:12px;z-index:801;background:#fffaf2;padding:8px;max-width:290px;border-radius:8px;font-size:12px}
 @media(max-width:850px){body.map-focused main{display:flex!important;flex-direction:column!important}body.map-focused .map-stage{height:48dvh!important;min-height:300px}body.map-focused main>aside{max-height:none!important;width:auto!important}body.map-focused .map-action-tabs{grid-template-columns:repeat(4,1fr)!important}}

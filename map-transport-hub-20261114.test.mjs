@@ -87,8 +87,8 @@ test('Preview skips transport desk; full Map mounts provider tabs without extern
  assert.equal(e.calls.food,0);
  assert.equal(e.driving.getAttribute('aria-pressed'),'true');
  assert.match(js,/if\(qs.has\('preview'\)/);
- assert.match(html,/map-transport-hub-20261114\.js\?v=20261114-inapp-desk-v1/);
- assert.match(html,/map-transport-hub-20261114\.css\?v=20261114-inapp-desk-v1/);
+ assert.match(html,/map-transport-hub-20261114\.js\?v=20261118-ride-estimates-v1/);
+ assert.match(html,/map-transport-hub-20261114\.css\?v=20261118-ride-estimates-v1/);
  assert(html.indexOf('map-lwa-discovery-20261114.js')<html.indexOf('map-transport-hub-20261114.js'));
 });
 
@@ -146,6 +146,34 @@ test('Rides use existing road route and foreground navigation without inventing 
  assert.equal(e.calls.navigation,1,'The explicit Go button delegates to real map navigation');
  e.events['biglwa:map-navigation-reset']({});
  assert.match(route.textContent,/Live fares and driver ETAs require provider approval/);
+});
+
+test('Ride cost ranges are individual BIG LWA models with quote links and clear caveats',()=>{
+ const e=harness(),api=e.win.BigLWATransportHub;
+ assert.equal(api.getEstimates().length,0);
+ e.events['biglwa:map-navigation-route']({detail:{
+  origin:{lat:34.02,lng:-118.48},destination:{lat:34.06,lng:-118.44},
+  distanceLabel:'5.6 km',durationMinutes:18,mode:'driving'
+ }});
+ const rows=api.getEstimates();
+ assert.equal(rows.map(r=>r.id).join(','),'uber,lyft,waymo');
+ assert(rows.every(r=>/^\$\d+–\$\d+$/.test(r.range)));
+ assert(rows.every(r=>/Illustrative BIG LWA planning estimate/i.test(r.disclaimer)));
+ assert.notEqual(rows[0].range,rows[1].range,'Each provider has its own labelled model');
+ assert.match(rows[0].quoteUrl,/^https:\/\/m\.uber\.com\/ul\//);
+ assert.match(rows[1].quoteUrl,/^https:\/\/ride\.lyft\.com/);
+ assert.equal(rows[2].quoteUrl,'https://waymo.com/');
+ assert.match(rows[2].note,/No public quote API/);
+ const panel=e.byClass(e.services,'map-fare-estimates');
+ const list=e.byClass(panel,'map-fare-estimate-list');
+ assert.equal(list.children.length,3);
+ assert.match(e.byClass(panel,'map-fare-estimates-note').textContent,/Not a provider quote/);
+ api.openRideOptions('lyft');
+ assert.equal(api.getSelected(),'lyft');
+ assert.equal(e.services.open,true);
+ assert.equal(e.services.scrolled,true);
+ e.events['biglwa:map-navigation-reset']({});
+ assert.equal(api.getEstimates().length,0);
 });
 
 test('Only the final provider handoff navigates away, in the same tab, with optional route coordinates',()=>{

@@ -316,3 +316,67 @@ body.embedded.map-workspace-split .map-service-links summary:focus-visible{
   body.embedded.map-workspace-split .map-nav-actions{grid-template-columns:1fr!important}
   body.embedded.map-workspace-split .map-service-links .map-service-head small{display:none}
 }
+
+/* Clearly labelled BIG LWA planning model — never presented as a provider quote. */
+body.embedded.map-workspace-split .map-fare-estimates{
+  margin:9px 9px 0!important;padding:9px 10px!important;
+  border:1px solid #d8c3cc!important;border-radius:9px!important;background:#fffdfb!important
+}
+body.embedded.map-workspace-split .map-fare-estimates h3{
+  margin:0 0 5px!important;font:700 14px/1.3 Georgia,serif!important;color:#47313f!important
+}
+body.embedded.map-workspace-split .map-fare-estimates-note{
+  margin:0 0 7px!important;font:500 10px/1.45 system-ui,sans-serif!important;color:#705f6a!important
+}
+body.embedded.map-workspace-split .map-fare-estimate-list{display:grid;gap:5px}
+body.embedded.map-workspace-split .map-fare-estimate{
+  display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px;
+  padding:6px 8px;border:1px solid #e7d9df;border-radius:8px;background:#fff!important
+}
+body.embedded.map-workspace-split .map-fare-estimate-copy{display:grid;gap:1px;min-width:0}
+body.embedded.map-workspace-split .map-fare-estimate-copy strong{
+  font:750 11px/1.2 system-ui,sans-serif!important;color:#3c2b35!important
+}
+body.embedded.map-workspace-split .map-fare-estimate-copy small{
+  font:600 9px/1.25 system-ui,sans-serif!important;color:#8a707c!important
+}
+body.embedded.map-workspace-split .map-fare-estimate-value{
+  font:800 12px/1.2 system-ui,sans-serif!important;color:#34232e!important;white-space:nowrap
+}
+body.embedded.map-workspace-split .map-fare-estimate-link{
+  font:750 10px/1.2 system-ui,sans-serif!important;color:#8a4564!important;
+  text-decoration:underline!important;white-space:nowrap
+}
+body.embedded.map-workspace-split .map-fare-estimate-caveat{
+  grid-column:1/-1;font:500 9px/1.35 system-ui,sans-serif!important;color:#8a707c!important
+}
+body.night-mode.embedded.map-workspace-split .map-fare-estimates,
+body.dark-mode.embedded.map-workspace-split .map-fare-estimates{
+  background:#2d2535!important;border-color:#785e77!important
+}
+body.night-mode.embedded.map-workspace-split .map-fare-estimates h3,
+body.dark-mode.embedded.map-workspace-split .map-fare-estimates h3,
+body.night-mode.embedded.map-workspace-split .map-fare-estimate-copy strong,
+body.dark-mode.embedded.map-workspace-split .map-fare-estimate-copy strong,
+body.night-mode.embedded.map-workspace-split .map-fare-estimate-value,
+body.dark-mode.embedded.map-workspace-split .map-fare-estimate-value{
+  color:#f8effb!important
+}
+body.night-mode.embedded.map-workspace-split .map-fare-estimate,
+body.dark-mode.embedded.map-workspace-split .map-fare-estimate{
+  background:#3b3045!important;border-color:#8c728e!important
+}
+body.night-mode.embedded.map-workspace-split .map-fare-estimates-note,
+body.dark-mode.embedded.map-workspace-split .map-fare-estimates-note,
+body.night-mode.embedded.map-workspace-split .map-fare-estimate-copy small,
+body.dark-mode.embedded.map-workspace-split .map-fare-estimate-copy small,
+body.night-mode.embedded.map-workspace-split .map-fare-estimate-caveat,
+body.dark-mode.embedded.map-workspace-split .map-fare-estimate-caveat{
+  color:#e5cadc!important
+}
+body.night-mode.embedded.map-workspace-split .map-fare-estimate-link,
+body.dark-mode.embedded.map-workspace-split .map-fare-estimate-link{color:#f0b5d0!important}
+@container (max-width:430px){
+  body.embedded.map-workspace-split .map-fare-estimate{grid-template-columns:minmax(0,1fr) auto}
+  body.embedded.map-workspace-split .map-fare-estimate-link{grid-column:1/-1;text-align:right}
+}

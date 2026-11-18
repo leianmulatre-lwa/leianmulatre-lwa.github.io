@@ -12,6 +12,8 @@
   const response=await fetch('/data/metro-rail-map.json');if(!response.ok)throw Error('Rail map unavailable.');
   data=await response.json();
   for(const r of data.routes){const option=document.createElement('option');option.value=r.id;option.textContent=r.name;select.append(option);}
+  // Lets the focused map draw a compact line/direction key without a second request.
+  window.dispatchEvent(new CustomEvent('biglwa:metro-rail-loaded',{detail:data}));
   return data;
  }
  async function show(){
@@ -72,12 +74,23 @@
   const note=document.createElement('p');note.textContent='Rail-only suggestion from published station data. Walking distances are approximate straight-line distances; check pedestrian access, service alerts and departure times before travelling.';summary.append(note);
   const steps=document.createElement('ol');summary.append(steps);
   const step=text=>{const li=document.createElement('li');li.textContent=text;steps.append(li)};
+  const lineStep=(route,text)=>{
+   const li=document.createElement('li');
+   const badge=document.createElement('span');badge.className='metro-line-badge';
+   badge.style.backgroundColor='#'+route.color;badge.style.color='#fff';
+   badge.textContent=route.id;
+   li.append(badge,document.createTextNode(' '+route.name+': '+text));
+   steps.append(li);
+  };
+  const key=document.createElement('p');key.className='metro-direction-key';
+  key.textContent='Line badge shows the published route number and map colour. “toward” names the terminal from published stop order—confirm the destination sign before boarding.';
+  summary.append(key);
   step('Start near '+first.name+' · about '+Math.round(distance(first.point,fromPoint)*1000)+' m from your starting point.');
   let begin=0;
   for(let j=1;j<=path.length;j++){
    if(j<path.length&&path[j].route.id===path[begin].route.id)continue;
    const a=path[begin],b=path[j-1];
-   if(j-begin>1){const terminal=b.index>a.index?a.route.stops.at(-1):a.route.stops[0];step(a.route.name+': board at '+a.name+' toward '+terminal.name+' → get off at '+b.name+' · '+(j-begin-1)+' stops');}
+   if(j-begin>1){const terminal=b.index>a.index?a.route.stops.at(-1):a.route.stops[0];lineStep(a.route,'board at '+a.name+' toward '+terminal.name+' → get off at '+b.name+' · '+(j-begin-1)+' stops');}
    if(j<path.length)step('Transfer at '+b.name+' to '+path[j].route.name+'.');
    begin=j;
   }

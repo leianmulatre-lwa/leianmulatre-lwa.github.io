@@ -15,6 +15,22 @@ const inputs=make('div');inputs.id='mapJourneyInputs';
 planner.querySelector('.map-plan-head').after(inputs);inputs.append(fields,actions,modes);
 const transit=make('section');transit.id='mapTransitOptions';transit.hidden=true;inputs.append(transit);
 const fare=make('p','LA Metro · $1.75 regular fare · transfers included for 2 hours. Other agencies vary.');fare.className='map-fare-summary';transit.append(fare);
+const railKey=make('div');railKey.id='mapMetroLineKey';railKey.className='map-metro-line-key';railKey.hidden=true;
+if(fare.parentNode)fare.after(railKey);else transit.append(railKey);
+window.addEventListener('biglwa:metro-rail-loaded',event=>{
+ const routes=event.detail?.routes||[];railKey.replaceChildren();
+ if(!routes.length){railKey.hidden=true;return}
+ railKey.hidden=false;
+ railKey.append(make('small','Metro line key · colour and toward terminal'));
+ const row=make('div');row.className='map-metro-line-row';
+ for(const route of routes){
+  const badge=make('span',String(route.name||'').replace(/^Metro\s+/,''));
+  badge.className='map-metro-line-badge';badge.style.backgroundColor='#'+route.color;badge.style.color='#fff';
+  badge.title=route.name+' · toward '+((route.stops||[]).at(-1)?.name||'terminal');
+  row.append(badge);
+ }
+ railKey.append(row,make('small','Badge colour matches the rail map. Check the train destination sign before boarding.'));
+});
 const live=$('mapLiveTransit'),liveStatus=document.querySelector('.map-transit-status');if(live)transit.append(live);if(liveStatus)transit.append(liveStatus);const liveDetail=document.querySelector(".map-live-transit-detail");if(liveDetail)transit.append(liveDetail);
 const desk=$('metroTransitDesk');if(desk){desk.open=false;transit.append(desk);}
 const guide=make('details'),summary=make('summary','New to transit?');guide.append(summary);
@@ -34,9 +50,27 @@ const result=$('mapTripResult'),choices=make('section');choices.id='mapRouteChoi
 const journey=make('section');journey.id='mapChosenJourney';journey.hidden=true;inputs.before(journey);
 let route=null,serial=0;
 const label={walking:'Walk',bicycling:'Bike',driving:'Drive'};
+function rideEstimatePreview(forRoute=route){
+ const api=window.BigLWATransportHub;
+ if(!api||!forRoute||forRoute.mode!=='driving')return null;
+ const rows=(api.getEstimates?.(forRoute)||[]).filter(row=>['uber','lyft','waymo'].includes(row.id));
+ if(!rows.length)return null;
+ const box=make('div');box.className='map-ride-estimate-preview';
+ box.append(make('strong','Ride cost · BIG LWA model estimates'));
+ const values=make('div');values.className='map-ride-estimate-row';
+ for(const row of rows)values.append(make('span',row.name+' '+row.range));
+ box.append(values,make('small','Planning ranges only — not provider quotes or offers.'),
+  button('Open ride options',()=>api.openRideOptions?.()));
+ return box;
+}
 function reset(){if(transit.parentElement!==inputs)inputs.append(transit);serial++;route=null;choices.replaceChildren();choices.hidden=true;journey.hidden=true;inputs.hidden=false;nav.hidden=true;document.body.classList.remove('map-route-focused');}
 function choose(){if(!route)return;inputs.hidden=true;choices.hidden=true;journey.hidden=false;nav.hidden=false;document.body.classList.add('map-route-focused');journey.replaceChildren(make('h3',label[route.mode]+' to your destination'),make('p',(route.durationMinutes??'—')+' min estimated · '+route.distanceLabel),button('Change trip',()=>{window.dispatchEvent(new Event('biglwa:map-navigation-reset'));}));}
-function offer(r){route=r;result.textContent=label[r.mode]+' · '+(r.durationMinutes??'—')+' min estimated · '+r.distanceLabel+' · No live traffic';choices.replaceChildren(make('h3','Your route'),make('p',label[r.mode]+' · '+(r.durationMinutes??'—')+' min estimated · '+r.distanceLabel),make('small','Estimated travel time excludes live traffic and stops.'),button('Use this route',choose),button('Compare walk, bike & drive',compare));choices.hidden=false;nav.hidden=true;}
+function offer(r){
+ route=r;result.textContent=label[r.mode]+' · '+(r.durationMinutes??'—')+' min estimated · '+r.distanceLabel+' · No live traffic';
+ choices.replaceChildren(make('h3','Your route'),make('p',label[r.mode]+' · '+(r.durationMinutes??'—')+' min estimated · '+r.distanceLabel),make('small','Estimated travel time excludes live traffic and stops.'));
+ const preview=rideEstimatePreview(r);if(preview)choices.append(preview);
+ choices.append(button('Use this route',choose),button('Compare walk, bike & drive',compare));choices.hidden=false;nav.hidden=true;
+}
 async function compare(){
  const token=++serial,original=route;if(!original)return;
  choices.replaceChildren(make('p','Comparing available routes…'));
@@ -46,8 +80,11 @@ async function compare(){
  }
  if(token!==serial)return;
  rows.sort((a,b)=>(a.durationMinutes??Infinity)-(b.durationMinutes??Infinity));
- choices.replaceChildren(make('h3','Compare your trip'),make('small','Fastest among available estimates. No live traffic; rideshare prices are quoted by providers.'));
- for(const [i,r] of rows.entries())choices.append(button((i===0?'Fastest estimate · ':'')+label[r.mode]+' · '+(r.durationMinutes??'—')+' min · '+r.distanceLabel,()=>{window.dispatchEvent(new CustomEvent('biglwa:map-route-select',{detail:r}));choose();}));
+ choices.replaceChildren(make('h3','Compare your trip'),make('small','Fastest among available estimates. No live traffic; ride cost ranges are BIG LWA planning estimates, not provider quotes.'));
+ for(const [i,r] of rows.entries()){
+  choices.append(button((i===0?'Fastest estimate · ':'')+label[r.mode]+' · '+(r.durationMinutes??'—')+' min · '+r.distanceLabel,()=>{window.dispatchEvent(new CustomEvent('biglwa:map-route-select',{detail:r}));choose();}));
+  if(r.mode==='driving'){const preview=rideEstimatePreview(r);if(preview)choices.append(preview);}
+ }
  if(!rows.length)choices.append(make('p','Route comparison unavailable. Try again shortly.'));
 }
 window.addEventListener('biglwa:map-navigation-reset',reset);
