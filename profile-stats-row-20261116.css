@@ -87,3 +87,112 @@ body.night-mode #studioApp .profile-card .biglwa-profile-role-statline>.biglwa-p
  #studioApp .profile-card .biglwa-profile-role-statline>.biglwa-profile-scoreboard{gap:3px!important;padding:5px!important}
  #studioApp .profile-card .biglwa-profile-role-statline>.biglwa-profile-scoreboard>.stats.stats>span{padding:4px 2px!important}
 }
+
+
+/* Aura gym scoreboard · five live account metrics, four corners + center.
+ * This is the actual existing stats node, not a screenshot or separate feed counter.
+ * UNiDAYS / campus customization can later replace only the neutral gym plate. */
+#studioApp .profile-card .biglwa-profile-role-statline>.biglwa-profile-scoreboard{
+ --score-aura:rgb(var(--aura-rgb,216,95,109));
+ position:relative!important;display:block!important;
+ box-sizing:border-box!important;min-width:0!important;width:min(100%,458px)!important;
+ max-width:100%!important;padding:8px 9px 10px!important;gap:0!important;
+ border:2px solid color-mix(in srgb,var(--score-aura) 55%,#9baec2)!important;
+ border-radius:12px!important;
+ background:linear-gradient(160deg,#182f53 0%,#0d2340 42%,#08182e 100%)!important;
+ box-shadow:inset 0 0 0 2px rgba(6,12,25,.85),inset 0 1px 0 rgba(255,255,255,.18),
+   0 2px 0 rgba(5,10,19,.55),0 4px 13px rgba(var(--aura-rgb,216,95,109),.18)!important;
+ isolation:isolate!important;
+}
+#studioApp .profile-card .biglwa-profile-scoreboard>.biglwa-scoreboard-header{
+ position:relative;min-height:19px;padding:1px 45px 7px;text-align:center;
+ color:#f2f3f6;font:800 10px/1.1 Inter,system-ui,sans-serif;
+ letter-spacing:.16em;text-transform:uppercase;text-shadow:0 1px 1px #050d1c;
+ white-space:nowrap;
+}
+#studioApp .profile-card .biglwa-profile-scoreboard>.biglwa-scoreboard-header::before{
+ content:"";position:absolute;left:7px;top:5px;width:21px;height:3px;
+ border-radius:2px;background:var(--score-aura);box-shadow:0 0 7px rgba(var(--aura-rgb,216,95,109),.66);
+}
+#studioApp .profile-card .biglwa-profile-scoreboard>.biglwa-scoreboard-header::after{
+ content:"";position:absolute;right:34px;top:1px;width:8px;height:8px;
+ border-radius:50%;background:#e24850;box-shadow:14px 0 #e7b333,28px 0 #38be72;
+}
+#studioApp .profile-card .biglwa-profile-role-statline>.biglwa-profile-scoreboard>.stats.stats{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) minmax(0,.91fr) minmax(0,1fr)!important;
+ grid-template-rows:repeat(2,minmax(56px,auto))!important;
+ grid-template-areas:"followers connections reach" "following connections likes"!important;
+ align-items:stretch!important;width:100%!important;max-width:none!important;
+ gap:5px!important;margin:0!important;padding:0!important;
+ color:#e2e8f0!important;
+}
+#studioApp .profile-card .biglwa-profile-role-statline>.biglwa-profile-scoreboard>.stats.stats>[data-profile-stat]{
+ display:flex!important;flex-direction:column!important;justify-content:center!important;
+ align-items:center!important;min-height:56px!important;min-width:0!important;
+ padding:7px 3px 5px!important;margin:0!important;box-sizing:border-box!important;
+ background:linear-gradient(180deg,#090d14,#02050a)!important;
+ border:1px solid rgba(var(--aura-rgb,216,95,109),.48)!important;
+ border-radius:5px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),
+   inset 0 0 0 2px #050a12,0 1px 0 rgba(255,255,255,.1)!important;
+ font:600 clamp(8px,.78vw,10px)/1.18 Inter,system-ui,sans-serif!important;
+ letter-spacing:.005em!important;text-transform:uppercase!important;
+ color:#e1e7f2!important;text-align:center!important;white-space:nowrap!important;
+ overflow:hidden!important;
+}
+#studioApp .profile-card .biglwa-profile-scoreboard [data-profile-stat="followers"]{grid-area:followers}
+#studioApp .profile-card .biglwa-profile-scoreboard [data-profile-stat="following"]{grid-area:following}
+#studioApp .profile-card .biglwa-profile-scoreboard [data-profile-stat="connections"]{
+ grid-area:connections;min-height:116px!important;
+ border-color:color-mix(in srgb,var(--score-aura) 70%,#adbcc8)!important;
+ box-shadow:inset 0 0 0 2px #03070c,inset 0 0 0 3px rgba(var(--aura-rgb,216,95,109),.4),
+  0 0 9px rgba(var(--aura-rgb,216,95,109),.12)!important;
+}
+#studioApp .profile-card .biglwa-profile-scoreboard [data-profile-stat="reach"]{grid-area:reach}
+#studioApp .profile-card .biglwa-profile-scoreboard [data-profile-stat="likes"]{grid-area:likes}
+#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard .stats [data-profile-stat] b{
+ display:block!important;max-width:100%!important;margin:0 0 4px!important;
+ font-family:"BIGLWA Alarm Clock","Alarm Clock","AlarmClock",monospace!important;
+ font-weight:700!important;font-size:clamp(16px,1.55vw,24px)!important;
+ line-height:1.05!important;letter-spacing:.01em!important;
+ font-variant-numeric:tabular-nums lining-nums!important;white-space:nowrap!important;
+ color:color-mix(in srgb,var(--score-aura) 78%,white)!important;
+ text-shadow:0 0 7px rgba(var(--aura-rgb,216,95,109),.7)!important;
+}
+#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard .stats [data-profile-stat="connections"] b{
+ font-size:clamp(23px,2.4vw,35px)!important;margin-bottom:7px!important;
+}
+body.night-mode #studioApp .profile-card .biglwa-profile-role-statline>.biglwa-profile-scoreboard{
+ background:linear-gradient(160deg,#152743,#09172b 90%)!important;
+ border-color:color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 55%,#8394a9)!important;
+ box-shadow:inset 0 0 0 2px #040912,0 4px 13px rgba(var(--aura-rgb,216,95,109),.18)!important;
+}
+body.night-mode #studioApp .profile-card .biglwa-profile-role-statline>.biglwa-profile-scoreboard>.stats.stats>[data-profile-stat]{
+ background:linear-gradient(#090e17,#02050a)!important;
+ border-color:rgba(var(--aura-rgb,216,95,109),.58)!important;
+}
+@media(max-width:1100px){
+ #studioApp .profile-card .biglwa-profile-role-statline>.biglwa-profile-scoreboard{
+  width:min(100%,458px)!important;
+ }
+}
+@media(max-width:560px){
+ #studioApp .profile-card .biglwa-profile-role-statline>.biglwa-profile-scoreboard{
+  padding:7px!important;border-radius:9px!important;
+ }
+ #studioApp .profile-card .biglwa-profile-role-statline>.biglwa-profile-scoreboard>.stats.stats{
+  gap:3px!important;grid-template-rows:repeat(2,minmax(51px,auto))!important;
+ }
+ #studioApp .profile-card .biglwa-profile-scoreboard [data-profile-stat="connections"]{min-height:105px!important}
+ #studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard .stats [data-profile-stat] b{
+  font-size:clamp(13px,4vw,19px)!important;
+ }
+ #studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard .stats [data-profile-stat="connections"] b{
+  font-size:clamp(21px,6vw,31px)!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ #studioApp .profile-card .biglwa-profile-role-statline>.biglwa-profile-scoreboard{
+  transition:none!important;animation:none!important;
+ }
+}
