@@ -7,6 +7,7 @@ const pop=get('pop-culture-calendar-20261114.js');
 const pages=get('module-pages.js');
 const css=get('calendar-editorial-20261116.css');
 const profileCss=get('profile-stats-row-20261116.css');
+const recovery=get('studio-recovery.js');
 const shells=['index.html','studio/index.html','404.html','live-studio-shell.html'];
 
 test('existing and additional pop culture anniversaries are dated and attributed',()=>{
@@ -58,6 +59,25 @@ test('Crush Day headings use exact Politic Stars and Stripes font but body remai
  assert(existsSync(new URL('./stars-and-stripes-font/StarsAndStripes-A4XM.ttf',import.meta.url)));
 });
 
+test('both two-week calendar previews expose the MCM, TCT and WCW day colors',()=>{
+  for(const pattern of [
+   /function calendarCrushOnDay\(key\)/,
+   /data-calendar-crush=/,
+   /class="calendar-crush-chip"/,
+   /\.calendar-mini-grid span\[data-calendar-crush\]/,
+   /--crush-dark-tint:#5a3045/
+  ])assert.match(pages,pattern,'module preview keeps '+pattern);
+  for(const pattern of [
+   /const crushByDay = \{/,
+   /1:\{id:'mcm',short:'MCM',title:'Man Crush Monday'\}/,
+   /2:\{id:'tct',short:'TCT',title:'Tea Crush Tuesday'\}/,
+   /3:\{id:'wcw',short:'WCW',title:'Woman Crush Wednesday'\}/,
+   /data-calendar-crush=/,
+   /class="calendar-crush-chip"/,
+   /--crush-dark-tint:#5a3045/
+  ])assert.match(recovery,pattern,'recovery preview keeps '+pattern);
+});
+
 test('profile statistics share the biography line, with highlights beneath',()=>{
  const layout=get('profile-stats-row-20261116.js');
  const highlight=get('profile-social-showcase.js');
@@ -69,12 +89,13 @@ test('profile statistics share the biography line, with highlights beneath',()=>
  assert(!/setDoc|localStorage|sessionStorage/.test(layout));
 });
 
-test('all Studio shells bust cached culture, editorial CSS and profile assets',()=>{
+test('all Studio shells bust cached culture, editorial CSS, previews and profile assets',()=>{
  for(const path of shells){
   const html=get(path);
   assert.match(html,/calendar-editorial-20261116\.css\?v=20261116-stars-history-news-v1/,path);
   assert.match(html,/pop-culture-calendar-20261114\.js\?v=20261116-sourced-history-v2/,path);
-  assert.match(html,/profile-stats-row-20261116\.css\?v=20261116-roles-stats-row-v2/,path);
-  assert.match(html,/module-pages\.js\?v=[^"']+&calendar=20261116-events-news/,path);
+  assert.match(html,/profile-stats-row-20261116\.css\?v=20261116-roles-stats-row-v2&scoreboard=20261118-1/,path);
+  assert.match(html,/module-pages\.js\?v=[^"']+&calendar=20261116-events-news&crushpreview=20261118-1/,path);
+  assert.match(html,/studio-recovery\.js\?v=[^"']+&crush=20261118-1/,path);
  }
 });

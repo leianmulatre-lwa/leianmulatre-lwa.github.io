@@ -1,0 +1,53 @@
+/* BIG LWA · unique build 20261118-symbol-header-ink-1
+ * Symbols and widget headers follow the theme: black in day mode, white at
+ * night. Numeric profile stats keep the established Alarm Clock family and
+ * gain a restrained scoreboard frame without changing their counts or storage.
+ */
+#studioApp .card :is(.card-head h1,.card-head h2,.card-head h3,.widget-heading h2,.widget-heading h3),
+#studioApp .card-head>.card-icon,
+#studioApp .card .studio-symbol-mark,
+#studioApp .hero-action-bar .hero-shortcut-icon,
+#studioApp .sidebar .sidebar-route-icon,
+#studioApp .biglwa-skeleton-hub .tour-symbol-mark{color:#171514!important}
+
+#studioApp .card-head>.card-icon img,
+#studioApp .card-head>.card-icon svg,
+#studioApp .card .studio-symbol-mark img,
+#studioApp .card .studio-symbol-mark svg,
+#studioApp .hero-action-bar .hero-shortcut-icon img,
+#studioApp .hero-action-bar .hero-shortcut-icon svg,
+#studioApp .sidebar .sidebar-route-icon img,
+#studioApp .sidebar .sidebar-route-icon svg{filter:brightness(0)!important}
+
+body.night-mode #studioApp .card :is(.card-head h1,.card-head h2,.card-head h3,.widget-heading h2,.widget-heading h3),
+body.night-mode #studioApp .card-head>.card-icon,
+body.night-mode #studioApp .card .studio-symbol-mark,
+body.night-mode #studioApp .hero-action-bar .hero-shortcut-icon,
+body.night-mode #studioApp .sidebar .sidebar-route-icon,
+body.night-mode #studioApp .biglwa-skeleton-hub .tour-symbol-mark{color:#fff!important}
+
+body.night-mode #studioApp .card-head>.card-icon img,
+body.night-mode #studioApp .card-head>.card-icon svg,
+body.night-mode #studioApp .card .studio-symbol-mark img,
+body.night-mode #studioApp .card .studio-symbol-mark svg,
+body.night-mode #studioApp .hero-action-bar .hero-shortcut-icon img,
+body.night-mode #studioApp .hero-action-bar .hero-shortcut-icon svg,
+body.night-mode #studioApp .sidebar .sidebar-route-icon img,
+body.night-mode #studioApp .sidebar .sidebar-route-icon svg{filter:brightness(0) invert(1)!important}
+
+/* Scoreboard-style profile counts. Values keep the existing numbers and font
+ * stack; only the frame and digit presentation are added here. */
+#studioApp .profile-card .biglwa-profile-role-statline>.stats.stats>span{
+  min-width:74px!important;padding:6px 10px!important;text-align:center!important;
+  border:1px solid rgba(62,50,45,.18)!important;border-radius:8px!important;
+  background:rgba(255,255,255,.34)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),0 1px 0 rgba(62,50,45,.08)!important
+}
+#studioApp .profile-card .biglwa-profile-role-statline>.stats.stats b{
+  font-family:"Alarm Clock","AlarmClock","alarm clock",monospace!important;
+  letter-spacing:.03em!important;font-variant-numeric:tabular-nums lining-nums!important
+}
+body.night-mode #studioApp .profile-card .biglwa-profile-role-statline>.stats.stats>span{
+  border-color:rgba(255,255,255,.22)!important;background:rgba(255,255,255,.06)!important
+}
+@media(prefers-reduced-motion:reduce){#studioApp .profile-card .biglwa-profile-role-statline>.stats.stats>span{box-shadow:none!important}}

@@ -91,12 +91,35 @@ window.addEventListener('biglwa:map-navigation-reset',reset);
 window.addEventListener('biglwa:map-navigation-route',event=>offer(event.detail));
 window.addEventListener('biglwa:map-transit-route',()=>{if(desk)desk.open=false;choices.hidden=false;choices.replaceChildren(button('Use this rail route',()=>{inputs.hidden=true;choices.hidden=true;journey.hidden=false;document.body.classList.add('map-route-focused');journey.replaceChildren(make('h3','Your rail journey'),make('p','LA Metro · $1.75 regular fare. Check departures before boarding.'),button('Change trip',()=>window.dispatchEvent(new Event('biglwa:map-navigation-reset'))));journey.append(transit);}));});
 modes.addEventListener('click',()=>{transit.hidden=!modes.querySelector('[data-map-travel="transit"][aria-pressed="true"]');if(!transit.hidden&&desk)desk.open=false;});
-// Places search is relevant only when requested, rather than covering the map.
+// Places search stays out of the way until Nearby or the Places purpose asks
+// for it, then reappears in the same pane without taking over the map canvas.
 const discover=$('mapDiscover');if(discover){discover.hidden=true;$('mapPublicPane')?.prepend(discover);}
-$('mapTabnearby')?.addEventListener('click',()=>{if(discover)discover.hidden=false;});
+const revealDiscover=()=>{if(discover)discover.hidden=false;};
+$('mapTabnearby')?.addEventListener('click',revealDiscover);
+window.addEventListener('biglwa:map-discover-open',revealDiscover);
 // Keep culture/music/connect content beside the map, never above its canvas.
 const panel=$('mapPurposePanel');if(panel){document.querySelector('main>aside')?.append(panel);}
-const rail=$('mapPurposeRail');rail?.addEventListener('click',()=>{
+const rail=$('mapPurposeRail');
+const purposeBar=rail?.querySelector('.map-purpose-buttons');
+if(purposeBar){
+ const select=make('select');select.className='map-purpose-select';
+ select.setAttribute('aria-label','Map tools');
+ for(const source of purposeBar.querySelectorAll('button')){
+  const option=make('option',source.textContent.trim());
+  option.value=source.dataset.mapPurpose||'';select.append(option);
+ }
+ const syncPurpose=()=>{
+  const key=purposeBar.querySelector('[aria-pressed="true"]')?.dataset.mapPurpose;
+  if(key)select.value=key;
+ };
+ select.addEventListener('change',()=>{
+  purposeBar.querySelector('[data-map-purpose="'+select.value+'"]')?.click();
+  syncPurpose();
+ });
+ purposeBar.addEventListener('click',syncPurpose);
+ purposeBar.after(select);syncPurpose();
+}
+rail?.addEventListener('click',()=>{
  const purpose=rail.querySelector('[aria-pressed="true"]')?.textContent||'';
  document.body.classList.toggle('map-browse-panel',/Culture|Music|Connect/.test(purpose));
 });

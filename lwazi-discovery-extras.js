@@ -59,8 +59,14 @@ function toolIntentCards(query){
  const visual=/(?:free\s+adobe|photoshop|illustrator|after\s*effects|photo\s*editor|image\s*editor|vector\s*editor|pdf\s*editor|free\s*design\s*tools?|creative\s*software)/i.test(q);
  const slides=/(?:powerpoint|power\s*point|google\s*slides?|slides?\s*(?:maker|editor|alternative)|presentation\s*(?:maker|editor|software)|visualslidez)/i.test(q);
  const games=/(?:free\s+(?:browser\s+|online\s+)?games?|browser\s+games?|arcade\s+games?|2048|play\s+games?)/i.test(q);
- if(!visual&&!slides&&!games)return [];
+ const transfer=/(?:storage\s+transfer|transfer\s+(?:files?|data)|file\s+transfer|cloud\s+storage|data\s+migration)/i.test(q);
+ const convert=/(?:file\s+(?:type\s+)?changer|file\s+converter|change\s+(?:a\s+)?file\s+type|convert\s+(?:a\s+)?(?:file|pdf|image|video|audio|document))/i.test(q);
+ const videoEdit=/(?:online\s+video\s+editor|video\s+editor|video\s+editing|clip\s+editor|keyframeR)/i.test(q);
+ if(!visual&&!slides&&!games&&!transfer&&!convert&&!videoEdit)return [];
  const result=[];
+ const guide=(title,description,href)=>'<article class="bl-search-card bl-widget-result bl-free-tool-result"><div class="bl-search-card-body">'+
+  '<span class="bl-search-kicker">BIG LWA · guide</span><h3>'+esc(title)+'</h3><p>'+esc(description)+'</p>'+
+  '<a class="bl-search-go bl-search-primary-action" href="'+esc(href)+'">Read guide ↗</a></div></article>';
  const make=(title,description,type,id)=>{
   const attribute=type==='app'?'data-bl-craft-app':'data-lwazi-route';
   return '<article class="bl-search-card bl-widget-result bl-free-tool-result"><div class="bl-search-card-body">'+
@@ -77,6 +83,9 @@ function toolIntentCards(query){
  }
  if(slides)result.push(make('visualslidez · presentations','Build and edit slide decks inside visualize/r; PowerPoint import is supported.','route','projects'));
  if(games)result.push(make('Games · browser arcade','Open BIG LWA’s playable games, including the in-Studio arcade.','route','games'));
+ if(transfer)result.push(guide('Storage transfer boundaries','BIG LWA is not a general cloud-migration service. Use the original provider for account moves; supported local file work stays in the free-tools guide.','/free-tools/'));
+ if(convert)result.push(guide('File type changer boundaries','fileR handles PDF work and the other R tools serve specific image, vector and slide tasks; none is a universal file converter.','/free-tools/'));
+ if(videoEdit)result.push(make('keyframeR · motion & timeline','A creative timeline and effects workspace, not a full online video editor.','app','effectcraft'));
  result.push('<article class="bl-search-card bl-widget-result bl-free-tool-result"><div class="bl-search-card-body">'+
   '<span class="bl-search-kicker">BIG LWA · guide</span><h3>Free tools & alternatives</h3>'+
   '<p>What each editor can do, what it cannot, and where to begin.</p>'+
@@ -93,6 +102,8 @@ function discoveryIntentCards(query){
    name:'Online games & multiplayer discovery',text:'BIG LWA arcade, external multiplayer listings and actual provider limits.',guide:'/online-games/',route:'games'},
   {test:/(?:fare\s+(?:checker|compare|comparison|estimate)|uber\s+(?:estimate|price|fare)|lyft\s+(?:fare|price)|ride\s+price|rideshare\s+compare|food\s+delivery\s+fees)/i,
    name:'Routes & fare-checking guide',text:'Map routes and provider choices; live fares require approved connections.',guide:'/fare-checker/',route:'map'},
+  {test:/(?:gt6|gta\s*(?:6|vi)|grand\s+theft\s+auto\s*(?:6|vi)|watch\s+gt6\s+lives?)/i,
+   name:'GT6 live-preview guide',text:'Source-linked gaming content and recently seen items; BIG LWA does not verify who is live.',guide:'/gt6-live-preview/',route:'stream'},
   {test:/(?:live\s+(?:shows?|streams?|programming|music)|watch\s+live|streaming\s+shows?)/i,
    name:'Live shows & Stream',text:'Curated live-source broadcasts and music, with schedules controlled by their creators.',guide:'/live-shows/',route:'stream'},
   {test:/(?:eat\s+the\s+rich|wealth\s+inequality|political\s+power|income\s+distribution)/i,

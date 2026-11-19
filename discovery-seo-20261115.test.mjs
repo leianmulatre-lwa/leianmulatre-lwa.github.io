@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {existsSync,readFileSync} from 'node:fs';
 const read=path=>readFileSync(new URL('./'+path,import.meta.url),'utf8');
-const topics=['discover','online-games','fare-checker','live-shows','free-knowledge','power-and-politics','connect-social-platforms'];
+const topics=['discover','online-games','gt6-live-preview','fare-checker','live-shows','free-knowledge','power-and-politics','connect-social-platforms'];
 const url=slug=>'https://biglwa.com/'+slug+'/';
 const title=page=>page.match(/<title>([^<]+)<\/title>/)?.[1]||'';
 const attr=(page,key,kind='name')=>page.match(new RegExp('<meta\\s+[^>]*'+kind+'="'+key+'"[^>]*>','i'))?.[0].match(/content="([^"]+)"/)?.[1]||'';
@@ -69,6 +69,10 @@ test('Feature guides do not contain broken public-page links',()=>{
 
 test('Pages explicitly state native multiplayer, live-fare and live-show limitations',()=>{
  assert.match(read('online-games/index.html'),/not currently offer a universal native multiplayer server/);
+ const gt6=read('gt6-live-preview/index.html');
+ assert.match(gt6,/watch gt6 lives with people online/i);
+ assert.match(gt6,/does not have a trustworthy GT6 live-status feed/);
+ assert.match(gt6,/not a ranking, viewer count or live-status check/);
  assert.match(read('fare-checker/index.html'),/not receive authorized live quote data yet/);
  assert.match(read('live-shows/index.html'),/not a guarantee that a channel is currently live/);
  const book=read('free-knowledge/index.html');
@@ -108,6 +112,8 @@ test('Lwazi directs only relevant search intents to genuine public guides and St
   ['online multiplayer games','online-games'],
   ['fare checker uber lyft','fare-checker'],
   ['watch live shows','live-shows'],
+  ['watch gt6 lives with people online','gt6-live-preview'],
+  ['gta vi live stream','gt6-live-preview'],
   ['eat the rich','power-and-politics'],
   ['free encyclopedia','free-knowledge'],
   ['free knowledge books','free-knowledge'],

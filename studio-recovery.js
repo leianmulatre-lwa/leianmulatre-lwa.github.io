@@ -4,6 +4,12 @@
   if (window.__biglwaStudioRecoveryV1) return;
   window.__biglwaStudioRecoveryV1 = true;
   const iso = d => [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
+  // Keep the recovery preview on the same weekly Crush model as the full Calendar.
+  const crushByDay = {
+    1:{id:'mcm',short:'MCM',title:'Man Crush Monday'},
+    2:{id:'tct',short:'TCT',title:'Tea Crush Tuesday'},
+    3:{id:'wcw',short:'WCW',title:'Woman Crush Wednesday'}
+  };
   const calendar = () => {
     const now = new Date(),start = new Date(now.getFullYear(),now.getMonth(),now.getDate()-now.getDay());
     const days = Array.from({length:14},(_,i) => new Date(start.getFullYear(),start.getMonth(),start.getDate()+i));
@@ -11,7 +17,12 @@
     return '<div class="calendar-mini biglwa-two-week-recovered" aria-label="Two week calendar preview">'+
       '<div class="calendar-mini-head"><span>'+month+'</span><span>2 weeks</span></div>'+
       '<div class="calendar-mini-weekdays">'+['S','M','T','W','T','F','S'].map(x=>'<span>'+x+'</span>').join('')+'</div>'+
-      '<div class="calendar-mini-grid">'+days.map(d=>'<span class="'+(iso(d)===iso(now)?'today':'')+'" aria-label="'+d.toDateString()+'">'+d.getDate()+'</span>').join('')+'</div></div>';
+      '<div class="calendar-mini-grid">'+days.map(d=>{
+        const key=iso(d),crush=crushByDay[d.getDay()];
+        const classes=key===iso(now)?'today':'';
+        const label=d.toDateString()+(crush?' · '+crush.title:'');
+        return '<span class="'+classes+'"'+(crush?' data-calendar-crush="'+crush.id+'" title="'+crush.title+'"':'')+' aria-label="'+label+'">'+d.getDate()+(crush?'<small class="calendar-crush-chip">'+crush.short+'</small>':'')+'</span>';
+      }).join('')+'</div></div>';
   };
   const ensure = () => {
     const root=document.querySelector('#studioApp');
@@ -82,6 +93,7 @@
   };
   const style=document.createElement('style');
   style.textContent='#studioApp #calendar .biglwa-two-week-recovered{display:grid;gap:6px;margin:10px 0;padding:12px;border:1px solid rgba(130,100,90,.22);border-radius:12px;background:rgba(255,255,255,.12)}#studioApp #calendar .calendar-mini-head{display:flex;justify-content:space-between;font:600 11px system-ui}#studioApp #calendar .calendar-mini-weekdays,#studioApp #calendar .calendar-mini-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}#studioApp #calendar .calendar-mini-weekdays span{text-align:center;font:700 9px system-ui}#studioApp #calendar .calendar-mini-grid span{display:grid;place-items:center;min-height:25px;border-radius:5px;background:rgba(150,140,130,.08);font:12px system-ui}#studioApp #calendar .calendar-mini-grid span.today{outline:2px solid currentColor;font-weight:800}';
+  style.textContent+='#studioApp #calendar .calendar-mini-grid span[data-calendar-crush=mcm]{--crush-ink:#174b68;--crush-tint:#d7eaf7;--crush-dark-ink:#b8e6ff;--crush-dark-tint:#254359}#studioApp #calendar .calendar-mini-grid span[data-calendar-crush=tct]{--crush-ink:#285337;--crush-tint:#dfefce;--crush-dark-ink:#d0f2b2;--crush-dark-tint:#31492c}#studioApp #calendar .calendar-mini-grid span[data-calendar-crush=wcw]{--crush-ink:#702344;--crush-tint:#f8dbe9;--crush-dark-ink:#ffd2e6;--crush-dark-tint:#5a3045}#studioApp #calendar .calendar-mini-grid span[data-calendar-crush]{--crush-color:var(--crush-ink);--crush-bg:var(--crush-tint);background:var(--crush-bg)!important;color:var(--crush-color)!important}body.night-mode #studioApp #calendar .calendar-mini-grid span[data-calendar-crush]{--crush-color:var(--crush-dark-ink);--crush-bg:var(--crush-dark-tint)}#studioApp #calendar .calendar-mini-grid span[data-calendar-crush]{place-content:center;gap:1px;padding:1px!important}#studioApp #calendar .calendar-mini-grid .calendar-crush-chip{margin:0;font:800 6px/1 system-ui,sans-serif;letter-spacing:0}';
   style.textContent+='#studioApp #politc .politc-studio-symbol{display:inline-flex!important;width:38px!important;height:38px!important;align-items:center;justify-content:center}#studioApp #politc .politc-studio-symbol img{display:block;width:34px;height:34px;object-fit:contain}body.night-mode #studioApp #politc .politc-studio-symbol img{filter:invert(1)}';
   style.textContent+='#studioApp #politc>.biglwa-politc-title-art{display:block!important;box-sizing:content-box!important;width:240px!important;max-width:100%!important;height:auto!important;aspect-ratio:auto!important;min-height:0!important;max-height:none!important;margin:4px auto 6px!important;padding:0!important;border:0!important;border-radius:0!important;outline:0!important;overflow:visible!important;cursor:inherit!important;background:none!important;box-shadow:none!important;object-fit:contain!important;object-position:center!important;transform:none!important;filter:none!important}';
   document.head.appendChild(style);

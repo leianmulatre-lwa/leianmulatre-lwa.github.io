@@ -1,0 +1,69 @@
+{
+  "v": "20261118-1",
+  "note": "Local matching rules only. No arbitrary URLs, no viewer counts, no ranking, and no claim that a broadcaster is live.",
+  "topics": [
+    {
+      "id": "gt6-live",
+      "label": "GT6 / GTA VI live viewing",
+      "guide": "/gt6-live-preview/",
+      "sourceIds": ["markiplier", "cory", "jacksepticeye", "dream", "cupquake"],
+      "terms": [
+        "\\bgt6\\b",
+        "\\bgta\\s*(?:6|vi)\\b",
+        "grand\\s+theft\\s+auto\\s+(?:6|vi)",
+        "(?:watch|live|stream|gameplay).{0,40}(?:gt6|gta\\s*(?:6|vi))"
+      ]
+    },
+    {
+      "id": "live-gaming",
+      "label": "Live gaming and playthroughs",
+      "guide": "/live-shows/",
+      "sourceIds": ["markiplier", "cory", "jacksepticeye", "dream", "cupquake"],
+      "terms": [
+        "\\blive\\s+stream\\b",
+        "\\blive\\s+gameplay\\b",
+        "\\bplaythrough\\b",
+        "\\bstreaming\\b",
+        "\\bgameplay\\b"
+      ]
+    },
+    {
+      "id": "storage-transfer",
+      "label": "Storage transfer and file movement",
+      "guide": "/free-tools/",
+      "sourceIds": ["*"],
+      "terms": [
+        "\\bstorage\\s+transfer\\b",
+        "\\btransfer\\s+(?:files?|data)\\b",
+        "\\bcloud\\s+storage\\b",
+        "\\bfile\\s+transfer\\b",
+        "\\bmigrat(?:e|ion|ing)\\b"
+      ]
+    },
+    {
+      "id": "file-type-changers",
+      "label": "File type changes and converters",
+      "guide": "/free-tools/",
+      "sourceIds": ["*"],
+      "terms": [
+        "\\bfile\\s+(?:type\\s+)?changer\\b",
+        "\\bfile\\s+converter\\b",
+        "\\bchange\\s+(?:a\\s+)?file\\s+type\\b",
+        "\\bconvert\\b.{0,40}\\b(?:file|pdf|image|video|audio|document)\\b"
+      ]
+    },
+    {
+      "id": "online-video-editors",
+      "label": "Online video editors and clipped video work",
+      "guide": "/free-tools/",
+      "sourceIds": ["*"],
+      "terms": [
+        "\\bonline\\s+video\\s+editor\\b",
+        "\\bvideo\\s+editor\\b",
+        "\\bvideo\\s+editing\\b",
+        "\\bclip\\s+editor\\b",
+        "\\bkeyframe(?:s|r)?\\b"
+      ]
+    }
+  ]
+}

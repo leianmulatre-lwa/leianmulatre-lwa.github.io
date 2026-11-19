@@ -7,6 +7,11 @@ on:
       - 'discovery-programming-test.mjs'
       - 'assets/discovery/latest.json'
       - 'scripts/refresh-discovery.py'
+      - 'scripts/test_refresh_discovery_topics.py'
+      - 'data/discovery/topics.json'
+      - 'gt6-live-preview-20261118.js'
+      - 'gt6-live-preview-seo-20261118.test.mjs'
+      - 'gt6-live-preview/**'
       - 'stream-guide.js'
       - 'stream-guide.css'
       - 'stream-guide-test.mjs'
@@ -20,6 +25,15 @@ on:
       - 'cloudflare-worker-instagram.js'
       - 'module-pages.js'
       - 'index.html'
+      - 'studio/index.html'
+      - '404.html'
+      - 'live-studio-shell.html'
+      - 'lwazi-discovery-extras.js'
+      - 'sitemap.xml'
+      - 'about/index.html'
+      - 'discover/index.html'
+      - 'online-games/index.html'
+      - 'build-cloudflare-pages.mjs'
       - '.github/workflows/stream-checks.yml'
   push:
     branches: [main]
@@ -28,6 +42,11 @@ on:
       - 'discovery-programming-test.mjs'
       - 'assets/discovery/latest.json'
       - 'scripts/refresh-discovery.py'
+      - 'scripts/test_refresh_discovery_topics.py'
+      - 'data/discovery/topics.json'
+      - 'gt6-live-preview-20261118.js'
+      - 'gt6-live-preview-seo-20261118.test.mjs'
+      - 'gt6-live-preview/**'
       - 'stream-guide.js'
       - 'stream-guide.css'
       - 'stream-guide-test.mjs'
@@ -41,6 +60,15 @@ on:
       - 'cloudflare-worker-instagram.js'
       - 'module-pages.js'
       - 'index.html'
+      - 'studio/index.html'
+      - '404.html'
+      - 'live-studio-shell.html'
+      - 'lwazi-discovery-extras.js'
+      - 'sitemap.xml'
+      - 'about/index.html'
+      - 'discover/index.html'
+      - 'online-games/index.html'
+      - 'build-cloudflare-pages.mjs'
   workflow_dispatch:
 
 permissions:
@@ -65,6 +93,10 @@ jobs:
         run: |
           npm install --prefix /tmp/biglwa-discovery-test jsdom@31.0.1
           NODE_PATH=/tmp/biglwa-discovery-test/node_modules node --test discovery-programming-test.mjs
+          python3 -m py_compile scripts/refresh-discovery.py
+          python3 -m unittest discover -s scripts -p test_refresh_discovery_topics.py
+          node --check gt6-live-preview-20261118.js
+          NODE_PATH=/tmp/biglwa-discovery-test/node_modules node --test gt6-live-preview-seo-20261118.test.mjs
       - name: Exercise programming submissions and moderation
         run: node stream-guide-test.mjs
       - name: Verify locally hosted Spotify TikTok and YouTube custom players

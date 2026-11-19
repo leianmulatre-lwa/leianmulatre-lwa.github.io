@@ -612,8 +612,8 @@
     markup(key){
       const known=navigationCatalog.get(key)?.symbolHTML;if(known)return known;
       const app=$('#studioApp');if(!app)return '';
-      // Veve has a dedicated launcher; Trophies is intentionally not in the
-      // shortcut catalog. Read their existing artwork, not a fallback glyph.
+      // Veve has a dedicated launcher. Trophies now has its own canonical
+      // widget id and red-dock route, so read real artwork when available.
       if(key==='veve')return $('.studio-veve-mark,.skeleton-veve-mark',app)?.innerHTML||'';
       const safe=String(key||'').replace(/[^a-z0-9_-]/g,'');
       const widget=$('[data-widget-route="'+safe+'"]',app)||$('#'+safe,app);
@@ -682,6 +682,7 @@
     ['tools','lwazi','<img src="/assets/tools-hand-eye.svg" alt="">'],
     ['calendar','Calendar','▦'],
     ['map','Map','⌖'],
+    ['trophies','Trophies','♛'],
     ['projects','Projects','<img src="/assets/projects-symbol.svg?v=20260924-projects-symbol-1" alt="">'],
     ['diary','Journal','▱'],
     ['notes','Sqwidz','<img src="/assets/quick-notes-symbol-generated.png" alt="">'],

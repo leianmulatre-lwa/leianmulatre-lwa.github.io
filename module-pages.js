@@ -733,12 +733,14 @@
     :is([data-calendar-crush="wcw"],.calendar-crushes [data-politc-season="wcw"]){--crush-ink:#702344;--crush-tint:#f8dbe9;--crush-dark-ink:#ffd2e6;--crush-dark-tint:#5a3045}
     :is([data-calendar-crush],.calendar-crushes [data-politc-season]){--crush-color:var(--crush-ink);--crush-bg:var(--crush-tint)}
     body.night-mode :is([data-calendar-crush],.calendar-crushes [data-politc-season]){--crush-color:var(--crush-dark-ink);--crush-bg:var(--crush-dark-tint)}
-    .calendar-day[data-calendar-crush],.calendar-crushes [data-politc-season],.calendar-crush-agenda[data-calendar-crush]{
+    .calendar-day[data-calendar-crush],.calendar-crushes [data-politc-season],.calendar-crush-agenda[data-calendar-crush],.calendar-mini-grid span[data-calendar-crush]{
       background:var(--crush-bg);color:var(--crush-color);border-color:color-mix(in srgb,var(--crush-color) 35%,var(--crush-bg))
     }
-    .night-mode .calendar-day[data-calendar-crush],.night-mode .calendar-crush-agenda[data-calendar-crush]{background:var(--crush-bg);color:var(--crush-color)}
+    .night-mode .calendar-day[data-calendar-crush],.night-mode .calendar-crush-agenda[data-calendar-crush],body.night-mode #studioApp .calendar-mini-grid span[data-calendar-crush]{background:var(--crush-bg)!important;color:var(--crush-color)!important}
     .calendar-day.selected[data-calendar-crush]{outline:2px solid currentColor;outline-offset:-2px}
     .calendar-crush-chip{display:block;margin-top:4px;font:800 clamp(9px,1.3vw,12px)/1.15 system-ui,sans-serif;letter-spacing:.025em}
+    .calendar-mini-grid span[data-calendar-crush]{place-content:center;gap:1px;padding:1px!important}
+    .calendar-mini-grid .calendar-crush-chip{margin:0;font:800 6px/1 system-ui,sans-serif;letter-spacing:0}
     .calendar-crushes>h2,.calendar-crushes .politc-panel h3{
       font:700 clamp(22px,2.7vw,34px)/1.05 Georgia,serif;text-align:left;letter-spacing:.065em;text-transform:uppercase;border-bottom:3px double currentColor;border-top:0;padding:0 0 8px
     }
@@ -1109,7 +1111,12 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const geez=window.BigLWAGeezCalendar;
     const alt=geez?.supported&&localStorage.getItem('biglwaCalendarSystemV1')==='geez';
     const end=dates[13],monthLabel=alt?(geez.parts(start).name===geez.parts(end).name?geez.parts(start).name:geez.parts(start).name+' – '+geez.parts(end).name):start.getMonth()===end.getMonth()?start.toLocaleString(undefined,{month:'long'}):`${start.toLocaleString(undefined,{month:'short'})} – ${end.toLocaleString(undefined,{month:'short'})}`;
-    const cells=dates.map(d=>`<span class="${[0,6].includes(d.getDay())?'weekend ':''}${dayKey(d)===dayKey(now)?'today':''}" aria-label="${alt?geez.display(d)+' · ':''}${d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}">${alt?geez.parts(d).day:d.getDate()}</span>`).join('');
+    const cells=dates.map(d=>{
+      const key=dayKey(d),crush=calendarCrushOnDay(key);
+      const classes=[...([0,6].includes(d.getDay())?['weekend']:[]),...(key===dayKey(now)?['today']:[])];
+      const label=d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+      return `<span class="${classes.join(' ')}"${crush?' data-calendar-crush="'+crush.id+'" title="'+esc(crush.title)+'"':''} aria-label="${alt?geez.display(d)+' · ':''}${label}${crush?' · '+esc(crush.title):''}">${alt?geez.parts(d).day:d.getDate()}${crush?'<small class="calendar-crush-chip">'+crush.short+'</small>':''}</span>`;
+    }).join('');
     return `<div class="calendar-mini" aria-label="Two week ${alt?'Ge’ez':'Gregorian'} calendar preview"><div class="calendar-mini-head"><span>${monthLabel}</span><span>${alt?'Ge’ez · ':''}2 weeks</span></div><div class="calendar-mini-weekdays">${['S','M','T','W','T','F','S'].map((day,i)=>`<span class="${i===0||i===6?'weekend':''}">${day}</span>`).join('')}</div><div class="calendar-mini-grid">${cells}</div></div>`;
   }
 

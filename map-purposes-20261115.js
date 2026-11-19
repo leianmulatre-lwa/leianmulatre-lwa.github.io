@@ -57,7 +57,11 @@
   if(next==='routes'){jump('plan');}
   else if(next==='places'){
    jump('nearby');
-   // Do not request a place lookup until the visitor uses Nearby search.
+   // Places is an explicit opt-in: reveal the existing discovery panel and
+   // mark stores, cafés and mapped locations in one combined nearby layer.
+   if(typeof window.dispatchEvent==='function'&&typeof Event==='function')
+    window.dispatchEvent(new Event('biglwa:map-discover-open'));
+   window.BigLWAMapDiscover?.load?.('auto');
   }else if(next==='saved'){jump('saved');}
   else if(next==='culture'){
    if(window.BigLWAMapCulture?.render){

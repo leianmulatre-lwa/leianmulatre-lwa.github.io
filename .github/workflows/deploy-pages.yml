@@ -75,6 +75,13 @@ jobs:
           node --test free-tools-seo-20261114.test.mjs
           node --check lwazi-discovery-extras.js
           node --test discovery-seo-20261115.test.mjs
+          node --check gt6-live-preview-20261118.js
+          node --test gt6-live-preview-seo-20261118.test.mjs
+          python3 -m py_compile scripts/refresh-discovery.py
+          python3 -m unittest discover -s scripts -p test_refresh_discovery_topics.py
+          node --check map-focused.js
+          node --test map-places-auto-fare-20261118.test.mjs
+          node --test trophy-skeleton-red-ink-20261118.test.mjs
           node --check geez-calendar-20261114.js
           node --test geez-calendar-mode-test.mjs
           node booth-vanity-preflight-test.mjs

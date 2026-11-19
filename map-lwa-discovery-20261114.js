@@ -7,6 +7,12 @@
  if(qs.has('preview')||(window.parent!==window&&window.parent.__biglwaPublicStorageView))return;
  if(window.BigLWAMapDiscover)return;
  const CATEGORIES={
+  auto:{label:'Nearby places',icon:'⌖',tags:[
+   '["name"]["shop"]',
+   '["name"]["amenity"~"^(restaurant|cafe|fast_food|food_court)$"]',
+   '["name"]["tourism"~"^(museum|attraction|gallery|viewpoint|artwork)$"]',
+   '["name"]["place"~"^(neighbourhood|suburb|quarter)$"]'
+  ]},
   shops:{label:'Shops',icon:'🛍',tag:'["shop"]["name"]'},
   food:{label:'Food',icon:'🍜',tag:'["amenity"~"^(restaurant|cafe|fast_food|food_court)$"]["name"]'},
   landmarks:{label:'Landmarks',icon:'🏛',tag:'["tourism"~"^(museum|attraction|gallery|viewpoint|artwork)$"]["name"]'},
@@ -14,7 +20,7 @@
  };
  const CACHE_MS=10*60*1000,MAX_MARKERS=80;
  const memo=new Map();
- let bridge=null,active='landmarks',controller=null,requestId=0,nextRequestAt=0,rateLimitedUntil=0;
+ let bridge=null,active='auto',controller=null,requestId=0,nextRequestAt=0,rateLimitedUntil=0;
  let activeLayer=null,found=[],markerList=[];
  const valid=p=>p&&Number.isFinite(Number(p.lat))&&Number.isFinite(Number(p.lng))&&
   Math.abs(Number(p.lat))<=90&&Math.abs(Number(p.lng))<=180;
@@ -40,7 +46,7 @@
   buttons[key]=button;choices.append(button);
  }
  panel.append(choices);
- const help=el('p','map-discover-help','Choose a category to show places around the visible map center. Map data may be incomplete.');
+ const help=el('p','map-discover-help','Auto shows stores, cafés and mapped places together. Choose a category to show places around the visible map center. Map data may be incomplete.');
  const status=el('p','map-discover-status','Zoom to a neighborhood, then choose a category.');
  status.setAttribute('role','status');
  const list=el('div','map-discover-results');
@@ -94,8 +100,15 @@
     to.value=entry.lat.toFixed(6)+', '+entry.lng.toFixed(6);
     document.getElementById('mapTabplan')?.click();
     to.focus();marker.closePopup();
-    setStatus('Destination selected: '+entry.name+'. Choose a starting point and Explore trip.');
-    if(!from?.value)from?.focus();
+    if(from?.value?.trim()){
+     // A place lookup with a starting point plans the trip as well, so the
+     // labelled BIG LWA ride estimates appear without a second button press.
+     document.getElementById('mapTripPlan')?.click();
+     setStatus('Destination selected: '+entry.name+'. Route and ride estimates updated.');
+    }else{
+     setStatus('Destination selected: '+entry.name+'. Choose a starting point to see the route and ride estimates.');
+     from?.focus();
+    }
    });
    actions.append(trip);
    const yelp=new URL('https://www.yelp.com/search');
@@ -118,9 +131,10 @@
    button.type='button';button.addEventListener('click',()=>focus(i));
    list.append(button);
   });
+  const placeLabel=key==='auto'?'stores, cafés and places':CATEGORIES[key].label.toLowerCase();
   setStatus(found.length?
-   found.length+' mapped '+CATEGORIES[key].label.toLowerCase()+' nearby. Select a pin or name for details.':
-   'No mapped '+CATEGORIES[key].label.toLowerCase()+' here. Try another nearby area.');
+   found.length+' mapped '+placeLabel+' nearby. Select a pin or name for details.':
+   'No mapped '+placeLabel+' here. Try another nearby area.');
  }
  function parse(data){
   if(!Array.isArray(data?.elements))throw Error('OpenStreetMap returned an invalid place list.');
@@ -145,7 +159,8 @@
   const latSize=.008,lonSize=Math.min(.03,.008/Math.max(.35,Math.cos(lat*Math.PI/180)));
   const box=[lat-latSize,lng-lonSize,lat+latSize,lng+lonSize]
    .map(number=>Number(number).toFixed(5)).join(',');
-  return '[out:json][timeout:12];(nwr'+CATEGORIES[key].tag+'('+box+'););out center 140;';
+  const config=CATEGORIES[key],filters=config.tags||[config.tag];
+  return '[out:json][timeout:12];('+filters.map(tag=>'nwr'+tag+'('+box+')').join(';')+');out center 140;';
  }
  async function load(key){
   if(!CATEGORIES[key])return;
