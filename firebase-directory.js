@@ -224,6 +224,8 @@ async function savePublicLook(custom={}){
       widgetOpacity:safeNumber(appearance.opacity,100),
       widgetBlur:safeNumber(appearance.blur,0),
       auraColor:safeText(appearance.aura,32),
+      scoreboardTextColor:/^#[0-9a-f]{6}$/i.test(String(appearance.scoreboardTextColor||''))?appearance.scoreboardTextColor:'',
+      scoreboardPlate:appearance.scoreboardPlate==='clear'?'clear':'maroon',
       layout:account.accountVisibility==='private'?{}:sanitizeLayout(custom.layout),
       highlights:account.accountVisibility==='private'?{version:1,imported:{},custom:[]}:sanitizeHighlightEdits(custom.session?.highlightEdits),
       wallpaper:{
@@ -348,7 +350,9 @@ async function loadPublicProfile(rawUsername){
           widgetRadius:safeNumber(look.widgetRadius,0),
           widgetOpacity:safeNumber(look.widgetOpacity,100),
           widgetBlur:safeNumber(look.widgetBlur,0),
-          auraColor:clean(look.auraColor)
+          auraColor:clean(look.auraColor),
+          scoreboardTextColor:/^#[0-9a-f]{6}$/i.test(String(look.scoreboardTextColor||''))?clean(look.scoreboardTextColor):'',
+          scoreboardPlate:look.scoreboardPlate==='clear'?'clear':'maroon'
         },
         wallpaper:{
           fit:clean(look.wallpaper&&look.wallpaper.fit),

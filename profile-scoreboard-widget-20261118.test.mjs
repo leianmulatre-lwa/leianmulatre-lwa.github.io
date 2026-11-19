@@ -93,3 +93,41 @@ test('gym scoreboard paints real five-count stats at four corners + center in cu
   assert.match(read(path),/profile-stats-row-20261116\.css[^"']*gym=20261118-aura-gym-fivepoint-1/);
  }
 });
+
+
+test('compact gym redesign keeps labels ABOVE small Alarm Clock number windows',()=>{
+ const compact=read('profile-scoreboard-compact-20261118.css');
+ const script=read('profile-scoreboard-compact-20261118.js');
+ assert.match(compact,/grid-template-areas:"followers connections reach" "following lwa likes"/);
+ assert.match(compact,/\.stats\.stats::after\{\s*content:"LWA";grid-area:lwa/);
+ assert.match(compact,/order:2!important;display:inline-flex/);
+ assert.match(compact,/width:max-content!important;min-width:2\.2ch!important/);
+ assert.match(compact,/font:650 clamp\(9px,.82vw,12px\)\/1\.2 Inter/);
+ assert.match(compact,/font-family:"BIGLWA Alarm Clock"/);
+ assert.match(compact,/background:linear-gradient\(155deg,#551b2e/);
+ assert.match(compact,/data-scoreboard-plate="clear"/);
+ assert.match(compact,/biglwa-scoreboard-ready:has\(>\.profile-card:not\(\.profile-is-editing\)\)/);
+ assert.match(script,/hero\.classList\.add\('biglwa-scoreboard-ready'\)/);
+ assert.doesNotMatch(script,/cloneNode|localStorage\.setItem|setDoc|replaceChildren/);
+});
+test('Skeleton Key changes scoreboard color on the account and restores public preview',()=>{
+ const compact=read('profile-scoreboard-compact-20261118.css');
+ const script=read('profile-scoreboard-compact-20261118.js');
+ const directory=read('firebase-directory.js');
+ const preview=read('studio-preview.js');
+ assert.match(script,/skeletonScoreboardColor/);
+ assert.match(script,/skeletonScoreboardUseAura/);
+ assert.match(script,/skeletonScoreboardPlate/);
+ assert.match(script,/BigLWAUserDirectory\.saveCustomizations\(\{appearance:/);
+ assert.match(script,/biglwa:customization-remote/);
+ assert.match(script,/auraHex\(\)/);
+ assert.match(directory,/scoreboardTextColor:/);
+ assert.match(directory,/scoreboardPlate:/);
+ assert.match(preview,/mirror\.scoreboardTextColor/);
+ assert.match(compact,/--biglwa-score-ink,rgb\(var\(--aura-rgb/);
+ for(const path of shells){
+  const html=read(path);
+  assert.match(html,/profile-scoreboard-compact-20261118\.css\?v=20261118-compact-maroon-1/,path);
+  assert.match(html,/profile-scoreboard-compact-20261118\.js\?v=20261118-compact-maroon-1/,path);
+ }
+});
