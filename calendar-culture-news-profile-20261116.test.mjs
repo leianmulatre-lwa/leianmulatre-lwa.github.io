@@ -83,7 +83,8 @@ test('profile statistics share the biography line, with highlights beneath',()=>
  const highlight=get('profile-social-showcase.js');
  assert.match(layout,/let left=line\.querySelector\(':scope > \.biglwa-profile-bio-roles'\)/);
  assert.match(layout,/left\.prepend\(bio\)/);
- assert.match(layout,/line\.append\(stats\)/);
+ assert.match(layout,/biglwa-profile-scoreboard/);
+ assert.match(layout,/board\.append\(stats\)/);
  assert.match(layout,/line\.after\(highlights\)/);
  assert.match(profileCss,/grid-template-columns:minmax\(0,1fr\) auto/);
  assert.match(profileCss,/justify-content:flex-end!important/);

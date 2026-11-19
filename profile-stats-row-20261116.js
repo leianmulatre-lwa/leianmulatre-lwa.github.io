@@ -20,7 +20,14 @@
   let left=line.querySelector(':scope > .biglwa-profile-bio-roles');
   if(!left){left=document.createElement('div');left.className='biglwa-profile-bio-roles';line.prepend(left);}
   if(bio.parentElement!==left)left.prepend(bio);
-  if(stats.parentElement!==line)line.append(stats);
+  let board=line.querySelector(':scope > .biglwa-profile-scoreboard');
+  if(!board){
+   board=document.createElement('section');
+   board.className='biglwa-profile-scoreboard';
+   board.setAttribute('aria-label','Profile scoreboard');
+   line.append(board);
+  }
+  if(stats.parentElement!==board)board.append(stats);
   const roles=profile.querySelector('.biglwa-community-badges');
   if(roles&&roles.parentElement!==left)left.append(roles);
   const highlights=profile.querySelector('.biglwa-stories-ribbon');

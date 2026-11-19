@@ -22,10 +22,12 @@ on:
       - 'policy-card-cohesion.js'
       - 'module-pages.js'
       - 'calendar-culture-news-profile-20261116.test.mjs'
+      - 'calendar-external-overview-20261118.test.mjs'
       - 'calendar-editorial-20261116.css'
       - 'profile-social-showcase.js'
       - 'profile-stats-row-20261116.js'
       - 'profile-stats-row-20261116.css'
+      - 'profile-scoreboard-widget-20261118.test.mjs'
       - 'community-profile-roles-20261114.js'
       - 'community-profile-roles-20261114.css'
       - 'community-profile-policy-regression-20261114.test.mjs'
@@ -46,10 +48,14 @@ on:
       - 'map-focused.js'
       - 'map-focused.css'
       - 'map-places-auto-fare-20261118.test.mjs'
+      - 'map-first-paint-stable-20261118.test.mjs'
       - 'map-login-seo-20261115.test.mjs'
       - 'login-archive-player.js'
+      - 'studio-preview-discord-20261115.js'
+      - 'alarm clock 2.ttf'
       - 'login-laptop-floating-preview-test.mjs'
       - 'login-curtain-controls-20261115.test.mjs'
+      - 'login-preview-scoreboard-20261118.test.mjs'
       - 'orbit-map-provider-regression-20261115.test.mjs'
       - 'config/orbit-provider-apps-20261115.json'
       - 'google-orbit.js'
@@ -73,6 +79,7 @@ on:
       - 'werk-browser-window-20261114.css'
       - 'user-search-results.js'
       - 'werk-lwazi-popcalendar-test.mjs'
+      - 'werk-source-read-compact-20261118.test.mjs'
       - 'scripts/visual_life_ats.py'
       - 'scripts/test_visual_life_ats.py'
       - 'data/visual-life/ats-boards.json'
@@ -165,6 +172,7 @@ jobs:
           node --check pop-culture-calendar-20261114.js
           node --check werk-browser-window-20261114.js
           node --test werk-lwazi-popcalendar-test.mjs
+          node --test werk-source-read-compact-20261118.test.mjs
           node --check lwazi-hair-visuals-20261114.js
           node --check room-discovery-signals-20261114.js
           node --check stream-guide.js
@@ -183,7 +191,9 @@ jobs:
           node --test map-transport-hub-20261114.test.mjs
           node --check map-purposes-20261115.js
           node --check login-archive-player.js
+          node --check studio-preview-discord-20261115.js
           node --test login-curtain-controls-20261115.test.mjs
+          node --test login-preview-scoreboard-20261118.test.mjs
           node --test map-login-seo-20261115.test.mjs
           node --check google-orbit.js
           node --test orbit-map-provider-regression-20261115.test.mjs
@@ -218,8 +228,12 @@ jobs:
           python3 -m unittest discover -s scripts -p test_refresh_discovery_topics.py
           node --check map-focused.js
           NODE_PATH=/tmp/biglwa-preflight-test/node_modules node --test map-places-auto-fare-20261118.test.mjs
+          node --test map-first-paint-stable-20261118.test.mjs
           node --test trophy-skeleton-red-ink-20261118.test.mjs
           node --test calendar-culture-news-profile-20261116.test.mjs
+          node --check profile-stats-row-20261116.js
+          node --test profile-scoreboard-widget-20261118.test.mjs
+          node --test calendar-external-overview-20261118.test.mjs
           node active-route-build-regression-test.mjs
           node orbit-inline-links-regression-test.mjs
           node pinterest-owned-feed-regression-test.mjs

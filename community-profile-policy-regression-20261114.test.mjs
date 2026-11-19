@@ -229,6 +229,8 @@ test('Rules protect account documents; policy discloses cloud persistence and se
   assert.match(s,/stitched-crest\.css\?v=20261114-policy-mask-fix-1/);
   assert.match(s,/policy-standalone-repair-20261114\.css\?v=20261114-important-layout-1/);
   assert.match(s,/<main[\s>]/);
+  assert.match(s,/<section class="policy-page[^"]*" id="[^"]+" aria-label="[^"]+">\s*<div class="policy-shell">\s*<header class="policy-top"><a class="login-brand" href="\/" aria-label="BIG LWA home"><span class="biglwa-policy-emblem" aria-hidden="true"><\/span><\/a><a class="policy-back" href="\/studio">/);
+  assert.match(s,/<div class="window-lights" aria-hidden="true"><i class="window-light"><\/i><i class="window-light yellow"><\/i><i class="window-light green"><\/i><\/div>/);
  }
  assert.match(read('stitched-crest.css'),/:root\{--biglwa-stitched-crest-mask:url\("data:image\/png;base64,/);
  assert.match(policyCss,/mask-image:var\(--biglwa-stitched-crest-mask,none\)!important/);

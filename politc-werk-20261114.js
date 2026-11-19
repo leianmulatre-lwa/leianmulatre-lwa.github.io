@@ -48,6 +48,8 @@
   const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=label;return a;
  }
  function status(panel,message){text($('#politcWerkStatus',panel),message);}
+ function sourceHost(raw){try{return new URL(String(raw)).hostname.replace(/^www\./,'')}catch{return 'source'}}
+ function readNote(lines){const note=document.createElement('p');note.className='politc-werk-read';note.textContent='Read first · '+lines.filter(Boolean).join(' · ');return note;}
  function renderSaved(panel){
   const list=$('#politcWerkSavedList',panel);
   if(!list)return;
@@ -89,7 +91,7 @@
    const card=document.createElement('article');card.className='politc-werk-source';
    const link=makeLink(target.url,target.label+' ↗');
    const about=document.createElement('p');about.textContent=target.description;
-   card.append(link,about);grid.append(card);
+   card.append(link,about,readNote([sourceHost(target.url)+' destination',target.description,'No third-party page was fetched; verify details after opening']));grid.append(card);
   }
   section.append(grid);results.append(section);
  }
@@ -110,6 +112,13 @@
     const date=document.createElement('small');date.className='politc-werk-job-posted';
     date.textContent='Posted '+posted;card.append(date);
   }
+  card.append(readNote([
+   clean(job.source,65)||'JobSpy source',
+   clean(job.company,160)||'Employer not supplied',
+   clean(job.location,120)||'Location not supplied',
+   posted?'Posted '+posted:'Posting date not supplied',
+   'Source page not fetched by BIG LWA'
+  ]));
   const preview=document.createElement('button');
   preview.type='button';preview.dataset.werkPreviewUrl=url;
   preview.textContent='Preview in Werk Window';
@@ -144,7 +153,16 @@
   const details=document.createElement('p');details.className='politc-werk-snapshot-meta';
   details.textContent='JobSpy snapshot'+(info.generatedAt?' · '+new Date(info.generatedAt).toLocaleDateString():'')+
     (info.sources?.length?' · '+info.sources.join(', '):'')+' · Not a live vacancy check';
-  heading.append(count,details);results.append(heading);
+  heading.append(count,details);
+  const context=document.createElement('section');context.className='politc-werk-source-context';
+  context.append(readNote([
+   'Published BIG LWA snapshot',
+   info.generatedAt?'generated '+new Date(info.generatedAt).toLocaleDateString():'generation date unavailable',
+   info.sources?.length?'sources: '+info.sources.join(', '):'source list unavailable',
+   jobs.length+' records checked locally',
+   'not a live vacancy check'
+  ]));
+  results.append(heading,context);
   const grid=document.createElement('div');grid.className='politc-werk-source-grid politc-werk-jobs';
   let displayed=0;
   for(const job of jobs.slice(0,20))if(appendJobCard(grid,job))displayed++;

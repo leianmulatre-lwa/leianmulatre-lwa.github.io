@@ -24,14 +24,13 @@
     const projects=mark('/assets/projects-symbol.svg?v=20260924-projects-symbol-1','projects');
     const lwazi=mark('/assets/tools-hand-eye.svg','lwazi');
     const archive='<svg class="login-mini-symbol" viewBox="0 0 26 34" fill="none" aria-hidden="true"><g stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="3" y="4" width="5" height="25" rx="1.5"/><rect x="11" y="6" width="5" height="24" rx="1.5"/><rect x="19" y="3" width="4" height="26" rx="1.4"/></g></svg>';
-    const windowDots='<span class="login-mini-window-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
-    const miniHead=(symbol,label)=>'<header><span class="login-mini-heading">'+symbol+'<b>'+label+'</b></span>'+windowDots+'</header>';
+    const miniHead=(symbol,label)=>'<header><span class="login-mini-heading">'+symbol+'<b>'+label+'</b></span></header>';
     desktop.innerHTML=
       '<div class="login-mini-top"><span class="login-mini-brand">✳ BIG LWA</span><button type="button" class="login-mini-explore-toggle" aria-controls="loginScreenExploreLinks" aria-expanded="false">⌕ search people, ideas, projects...</button><span class="login-mini-top-right">☀︎ city　●</span></div>'+
       '<div class="login-mini-content">'+
       '<aside class="login-mini-key"><div class="login-mini-key-tip">'+tips+'</div><span>'+aura+'</span><span>'+feed+'</span><span>'+politic+'</span><span>'+projects+'</span><span>◎</span><span>♧</span></aside>'+
       '<main class="login-mini-main">'+
-      '<section class="login-mini-profile"><div class="login-mini-profile-pic">L</div><div class="login-mini-profile-info"><strong>your studio, your rules.</strong><small>a bigger you, on your terms.</small><div class="login-mini-metrics"><span>your audience</span><span>your connections</span><span>your reach</span></div><div class="login-mini-stories"><i></i><i></i><i></i><i></i><i></i><i>+</i></div></div></section>'+
+      '<section class="login-mini-profile"><div class="login-mini-profile-pic">L</div><div class="login-mini-profile-info"><strong>your studio, your rules.</strong><small>a bigger you, on your terms.</small><div class="login-mini-scoreboard" aria-label="Example profile scoreboard; no account data"><span><b>00</b><small>your audience</small></span><span><b>00</b><small>your connections</small></span><span><b>00</b><small>your reach</small></span></div><div class="login-mini-stories"><i></i><i></i><i></i><i></i><i></i><i>+</i></div></div></section>'+
       '<div class="login-mini-upper">'+
       '<article class="login-mini-card login-mini-journal">'+miniHead('▱','journal')+'<div class="login-mini-journal-paper"><span>WHO WUZ HERE? · NOTE</span><em></em><em></em><em></em><em></em></div></article>'+
       '<article class="login-mini-card login-mini-aura">'+miniHead(aura,'aura')+'<div class="login-mini-aura-art"><span class="login-mini-sun"></span>Focused</div></article>'+

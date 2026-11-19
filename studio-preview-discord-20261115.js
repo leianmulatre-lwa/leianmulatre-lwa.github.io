@@ -5,6 +5,7 @@
   const style = document.createElement('style');
   style.id = 'studio-preview-discord-polish';
   style.textContent = `
+    @font-face{font-family:"BIGLWA Alarm Clock";src:url("/alarm%20clock%202.ttf") format("truetype");font-display:swap}
     /* Keep the curtain/laptop composition. Only polish the UI *inside* the screen. */
     #loginPage .login-studio-desktop {background:#d7bca9;color:#382b2a}
     #loginPage .login-mini-top {padding:1.35% 2.4%;background:#f6f0e7;gap:2%}
@@ -55,7 +56,11 @@
     #loginPage .login-mini-profile-info {flex:1;display:flex;flex-direction:column;gap:6%;min-width:0}
     #loginPage .login-mini-profile-info>strong {font:400 clamp(9px,1.28vw,18px)/1.05 "CS Bergamot Stitched",Georgia,serif}
     #loginPage .login-mini-profile-info>small {font:600 clamp(5px,.64vw,9px)/1 system-ui,sans-serif}
-    #loginPage .login-mini-metrics {display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #64493b40;padding-top:1.4%;gap:3%;font-size:clamp(5px,.55vw,8px)}
+    #loginPage .login-mini-scoreboard {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2%;padding:1% 1.4%;border:1px solid #64493b55;border-radius:5px;background:#fff8ef91;box-shadow:inset 0 1px 0 #fff9,0 1px 3px #3d231b21}
+    #loginPage .login-mini-scoreboard>span {display:grid;place-items:center;min-width:0;border-right:1px solid #64493b2e}
+    #loginPage .login-mini-scoreboard>span:last-child {border-right:0}
+    #loginPage .login-mini-scoreboard b {font:700 clamp(9px,1.08vw,16px)/1 "BIGLWA Alarm Clock","Alarm Clock",monospace;font-variant-numeric:tabular-nums lining-nums;color:#4b1f32;letter-spacing:.04em}
+    #loginPage .login-mini-scoreboard small {font:700 clamp(4px,.48vw,7px)/1.05 system-ui,sans-serif;color:#62444b;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
     #loginPage .login-mini-stories {display:flex;align-items:center;justify-content:space-around;gap:6px;flex:1;min-height:0}
     #loginPage .login-mini-stories i {display:grid;place-items:center;aspect-ratio:1;width:clamp(12px,2.1vw,31px);height:auto;max-height:100%;border-radius:50%;border:2px solid #ca7a57;background:radial-gradient(circle at 40% 40%,#b8907c,#46383b 76%);font-style:normal}
     #loginPage .login-mini-stories i:nth-child(2n) {background:radial-gradient(circle,#e7b47f,#82656f 72%)}
@@ -102,7 +107,7 @@
     #loginPage .login-mini-feed p {flex:0 0 auto}
     #loginPage .login-mini-dock {height:4.7%;box-sizing:border-box}
     #loginPage .login-mini-radio::before,#loginPage .login-mini-radio::after {display:none}
-    @media(max-width:650px){#loginPage .login-mini-metrics span:nth-child(3),#loginPage .login-mini-shortcuts>span:nth-child(2),#loginPage .login-mini-shortcuts>span:nth-child(6){display:none}}
+    @media(max-width:650px){#loginPage .login-mini-scoreboard small{font-size:clamp(3px,.85vw,5px)}#loginPage .login-mini-shortcuts>span:nth-child(2),#loginPage .login-mini-shortcuts>span:nth-child(6){display:none}}
     #studioApp .biglwa-skeleton-hub .biglwa-discord-invite {margin:3px 0 7px;justify-self:start}
     #studioApp #moduleWorkspace[data-module-key="rooms"] .biglwa-discord-invite {margin:12px 0 16px}
     #studioApp .biglwa-discord-invite {display:flex;align-items:center;gap:9px;max-width:100%;width:fit-content;margin:12px 0;padding:9px 13px;border:1px solid #916a7b;border-radius:10px;background:#fbecdd;color:#602b43;font:700 12px/1.3 system-ui,sans-serif;text-decoration:none;box-shadow:0 2px 0 #68334821}

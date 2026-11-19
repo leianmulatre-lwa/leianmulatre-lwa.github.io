@@ -762,6 +762,22 @@ body.preview #mapSafetyKey,body.preview .map-safety-overlay{display:none!importa
 @media(max-width:540px){.map-safety-overlay{padding:8px}.map-safety-dialog{padding:12px}.map-safety-dialog h2{font-size:20px}.map-safety-dialog p{font-size:11px}.map-safety-checkbox{margin:5px 0 9px}}
 </style><link rel="stylesheet" href="/assets/biglwa-dialog.css?v=20261025-shared-popups-1"><script src="/account-storage-policy.js?v=20261023-private-shelf-2"></script><script src="/account-storage.js?v=20261023-private-shelf-2"></script></head><body>
 <header><h1>Map</h1><a href="/studio">Back to Studio</a></header>
+<style id="biglwaMapFirstPaint">
+/* Stable first paint: the body class and map box are known before Leaflet,
+ * account storage, discovery data, or transport widgets can settle. */
+html,body{width:100%;height:100%;margin:0}
+body.embedded main{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important;padding:10px 12px!important}
+body.embedded .map-side{width:100%!important;min-width:0!important;max-width:100%!important}
+body.embedded .map-stage{position:relative;width:100%!important;height:390px!important;min-height:320px!important;max-width:100%!important;overflow:hidden!important}
+body.embedded #map{position:absolute;inset:0;width:100%!important;height:100%!important;min-height:0!important;margin:0!important;background:#d9e8df}
+body.embedded.preview,body.embedded.preview main{width:100%!important;height:100dvh!important;min-height:0!important;max-height:100dvh!important;overflow:hidden!important;margin:0!important;padding:0!important}
+body.embedded.preview .map-side,
+body.embedded.preview .map-stage{position:relative!important;width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;margin:0!important;padding:0!important;overflow:hidden!important}
+body.embedded.preview #map{height:100%!important;min-height:0!important}
+@media(max-width:760px){
+ body.embedded .map-stage{height:300px!important;min-height:270px!important}
+}
+</style>
 <style id="biglwaMapStudioLayout">
 /* Map first, working tools beneath it, with saved pins alongside the form. */
 body.embedded main{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important;padding:10px 12px!important}
@@ -891,12 +907,14 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
 </script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
 <script>
-(async () => {
+(() => {
   'use strict';
-  await window.BigLWAAccountStorage.ready;
-  if(window.parent!==window&&window.parent.__biglwaPublicStorageView){document.body.replaceChildren(Object.assign(document.createElement('p'),{textContent:'Open Map to see this member’s shared locations.'}));return;}
+  const publicView=window.parent!==window&&window.parent.__biglwaPublicStorageView;
+  if(publicView){document.body.classList.add('embedded');document.body.replaceChildren(Object.assign(document.createElement('p'),{textContent:'Open Map to see this member’s shared locations.'}));return;}
   document.body.classList.add('embedded');
   if(new URLSearchParams(location.search).has('preview'))document.body.classList.add('preview');
+  window.BigLWAAccountStorage.ready.then(()=>startMap());
+  async function startMap(){
   const $=id=>document.getElementById(id),key='biglwaMapPins',categories=['Place','Memory','Project','Event','Resource'];
   const GEOCODER_BASE='https://photon.komoot.io';
   const escape=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1365,6 +1383,8 @@ body.embedded.preview .leaflet-container{touch-action:pinch-zoom}
       try{if(previewTilesReady)window.parent?.postMessage({type:'biglwa:map-ready',pins:pins.filter(valid).length},location.origin)}catch{}
     }
   }catch(error){$('mapStatus').textContent='Map display is unavailable. You can still save pins using the address search or latitude and longitude.';try{if(window.parent!==window)window.parent.postMessage({type:'biglwa:map-failed'},location.origin)}catch{}}
+  }
+  }
 })();
 </script>
 <script>
