@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {Script} from 'node:vm';
 const read=path=>readFileSync(new URL('./'+path,import.meta.url),'utf8');
 const map=read('map-app.html');
 
@@ -11,6 +12,15 @@ test('map body class and preview mode are decided before account storage can del
  assert.match(boot,/preview/);
  assert(boot.indexOf("classList.add('embedded')")<boot.indexOf('BigLWAAccountStorage.ready'),'embedded must not wait for account storage');
  assert(boot.indexOf('classList.add(\'preview\')')<boot.indexOf('BigLWAAccountStorage.ready'),'preview must not wait for account storage');
+});
+
+test('deferred Map startup remains a parseable inline script',()=>{
+ const i=map.indexOf('window.BigLWAAccountStorage.ready.then(()=>startMap())');
+ assert(i>0);
+ const start=map.lastIndexOf('<script>',i),end=map.indexOf('</script>',i);
+ assert(start>=0&&end>i);
+ const code=map.slice(start+'<script>'.length,end);
+ assert.doesNotThrow(()=>new Script(code,{filename:'map-app-deferred-startup.js'}));
 });
 
 test('map stage uses stable deterministic box geometry before Leaflet loads',()=>{
