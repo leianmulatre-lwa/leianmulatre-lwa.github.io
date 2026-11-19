@@ -130,8 +130,17 @@
   });
   if(typeof ResizeObserver!=='undefined'){
    const observed=new ResizeObserver(()=>requestAnimationFrame(verifyOnscreen));
-   const hero=$('#studioApp .hero');
+   const app=$('#studioApp'),hero=app?.querySelector('.hero');
    if(hero)observed.observe(hero);
+   const card=app?.querySelector('.profile-card');
+   if(card)observed.observe(card);
+   const board=card?.querySelector('.biglwa-profile-scoreboard');
+   if(board)observed.observe(board);
+   // The existing profile script may add the board after first paint.
+   window.addEventListener('biglwa:profile-updated',()=>{
+    const current=$('#studioApp .profile-card .biglwa-profile-scoreboard');
+    if(current)observed.observe(current);
+   });
   }
 
   const host=$('#studioApp')||document.body;
