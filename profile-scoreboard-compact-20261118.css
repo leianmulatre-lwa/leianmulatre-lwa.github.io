@@ -206,9 +206,13 @@ body.night-mode #studioApp .hero.biglwa-scoreboard-ready .profile-card .biglwa-p
   grid-column:1/-1!important;grid-row:2!important;min-width:0!important;
   width:100%!important;margin:0!important;
  }
+ /* The fallback expands the banner only if its external scoreboard was displaced. */
+ #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero.biglwa-scoreboard-onscreen-fallback>.profile-card:not(.profile-is-editing){
+  grid-column:1/-1!important;grid-row:1!important;width:100%!important;
+ }
  /* Fail open if another runtime stylesheet overrides the card split.
     Keep the real scoreboard visible INSIDE the banner rather than offscreen. */
- #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero.biglwa-scoreboard-onscreen-fallback .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard{
+ #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero.biglwa-scoreboard-onscreen-fallback .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard{
   position:absolute!important;left:auto!important;right:16px!important;
   top:16px!important;bottom:auto!important;
   width:min(430px,37%)!important;height:auto!important;min-height:0!important;
