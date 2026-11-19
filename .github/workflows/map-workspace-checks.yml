@@ -13,6 +13,7 @@ on:
       - 'map-go-navigation-test.mjs'
       - 'map-lwa-experience-20261113.css'
       - 'map-workspace-regression-test.mjs'
+      - 'account-storage-regression-test.mjs'
       - 'module-pages.js'
       - '.github/workflows/map-workspace-checks.yml'
   push:
@@ -29,6 +30,7 @@ on:
       - 'map-go-navigation-test.mjs'
       - 'map-lwa-experience-20261113.css'
       - 'map-workspace-regression-test.mjs'
+      - 'account-storage-regression-test.mjs'
       - 'module-pages.js'
       - '.github/workflows/map-workspace-checks.yml'
 permissions:
