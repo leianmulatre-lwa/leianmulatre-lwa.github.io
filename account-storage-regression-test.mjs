@@ -42,5 +42,5 @@ restored.window.__biglwaPublicStorageView=true;assert.equal(restored.localStorag
 assert.equal(a.window.BigLWAStoragePolicy.validValue('data:image/png;base64,abc'),false);
 console.log('PASS account isolation, owner-verified opt-in migration, refusal of unowned data, credential exclusion, cross-device restore, conflict preservation, tombstones, retry and visitor write protection');
 const dir=readFileSync('firebase-directory.js','utf8');assert.ok(!dir.includes('await autoSyncSignedInAccount();'));assert.ok(dir.includes("where('state','==','approved')"));
-const map=readFileSync('map-app.html','utf8');assert.ok(map.includes("(async () => {\n  'use strict';\n  await window.BigLWAAccountStorage.ready;"));assert.ok(!map.includes('await window.BigLWAAccountStorage.ready;this._cancel'));
+const map=readFileSync('map-app.html','utf8');assert.match(map,/\(\(\) => \{\r?\n  'use strict';\r?\n  const publicView=window\.parent!==window&&window\.parent\.__biglwaPublicStorageView/);assert.ok(map.includes('window.BigLWAAccountStorage.ready.then(()=>startMap())'),'map hydration still waits for storage readiness');assert.ok(!map.includes('await window.BigLWAAccountStorage.ready;this._cancel'));
 console.log('PASS startup avoids stale profile upload, public archive filtered fallback and map hydration order');
