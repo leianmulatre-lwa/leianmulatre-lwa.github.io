@@ -161,3 +161,70 @@ body.night-mode #studioApp .hero.biglwa-scoreboard-ready .profile-card .biglwa-p
   font-size:clamp(14px,3.7vw,20px)!important;padding:3px 4px!important;min-height:30px!important;
  }
 }
+
+
+/* 20261119 scoreboard visibility repair.
+   The profile card could remain full-width after late widget/profile CSS updates,
+   while the scoreboard sat at left:100%+16px entirely outside the viewport.
+   Drive the split using the ACTUAL board descendant rather than a JS-only class.
+   Keep both banner and scoreboard at equal height above the lower widget row. */
+@media (min-width:1201px){
+ #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard){
+  display:grid!important;
+  grid-template-columns:minmax(0,2fr) minmax(0,1fr)!important;
+  grid-template-rows:auto auto!important;
+  column-gap:16px!important;row-gap:14px!important;
+  align-items:start!important;
+ }
+ #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)>.profile-card:not(.profile-is-editing){
+  position:relative!important;inset:auto!important;
+  grid-column:1!important;grid-row:1!important;
+  width:100%!important;min-width:0!important;max-width:none!important;
+  height:322px!important;min-height:322px!important;max-height:322px!important;
+  margin:0!important;overflow:visible!important;z-index:4!important;
+ }
+ #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)>.profile-card:not(.profile-is-editing) .profile-copy{
+  position:static!important;min-width:0!important;overflow:visible!important;
+  padding:18px 12px 12px 0!important;
+ }
+ #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard) .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline{
+  position:static!important;display:block!important;
+  grid-template-columns:minmax(0,1fr)!important;min-width:0!important;
+  margin:7px 0!important;
+ }
+ #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard) .profile-card:not(.profile-is-editing) .biglwa-profile-bio-roles{
+  width:100%!important;min-width:0!important;max-width:100%!important;
+ }
+ #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard) .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard{
+  position:absolute!important;inset:0 auto auto calc(100% + 16px)!important;
+  width:calc(50% - 16px)!important;min-width:0!important;max-width:none!important;
+  height:100%!important;min-height:0!important;
+  display:flex!important;flex-direction:column!important;justify-content:center!important;
+  margin:0!important;z-index:5!important;visibility:visible!important;opacity:1!important;
+ }
+ #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)>.hero-widget-rail{
+  grid-column:1/-1!important;grid-row:2!important;min-width:0!important;
+  width:100%!important;margin:0!important;
+ }
+ /* The fallback expands the banner only if its external scoreboard was displaced. */
+ #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero.biglwa-scoreboard-onscreen-fallback>.profile-card:not(.profile-is-editing){
+  grid-column:1/-1!important;grid-row:1!important;width:100%!important;
+ }
+ /* Fail open if another runtime stylesheet overrides the card split.
+    Keep the real scoreboard visible INSIDE the banner rather than offscreen. */
+ #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero.biglwa-scoreboard-onscreen-fallback .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard{
+  position:absolute!important;left:auto!important;right:16px!important;
+  top:16px!important;bottom:auto!important;
+  width:min(430px,37%)!important;height:auto!important;min-height:0!important;
+  z-index:10!important;visibility:visible!important;opacity:1!important;
+ }
+}
+/* Narrow screens never use off-card positioning; stack underneath the bio. */
+@media (max-width:1200px){
+ #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard{
+  position:relative!important;inset:auto!important;
+  width:min(100%,440px)!important;max-width:100%!important;
+  height:auto!important;min-height:0!important;
+  visibility:visible!important;opacity:1!important;
+ }
+}

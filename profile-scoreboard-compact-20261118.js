@@ -64,7 +64,29 @@
   ensurePrefs();
   repaint();
  }
- function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;synchronize()})}
+
+ // Guard against late profile styles stretching the banner back to full width.
+ // Never put the live data or scoreboard offscreen; do not duplicate counts.
+ function verifyOnscreen(){
+  const app=$('#studioApp'),hero=app?.querySelector('.hero'),
+        card=hero?.querySelector('.profile-card:not(.profile-is-editing)'),
+        board=card?.querySelector('.biglwa-profile-scoreboard');
+  if(!hero||!board)return;
+  const desktop=(window.innerWidth||document.documentElement.clientWidth)>1200;
+  if(!desktop){hero.classList.remove('biglwa-scoreboard-onscreen-fallback');return}
+  if(hero.classList.contains('biglwa-scoreboard-onscreen-fallback'))return;
+  const frame=hero.getBoundingClientRect?.(),box=board.getBoundingClientRect?.();
+  if(!frame||!box||!frame.width)return;
+  if(box.width<80||box.left>=frame.right-30||box.right>Math.min(frame.right,window.innerWidth||frame.right)+12){
+   hero.classList.add('biglwa-scoreboard-onscreen-fallback');
+   console.warn('[BIG LWA] Scoreboard layout fell outside Studio; using safe on-banner position.');
+  }
+ }
+ function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{
+  scheduled=false;synchronize();
+  requestAnimationFrame(verifyOnscreen);
+ })}
+
  function update(setting,value){
   if(preview()||!uid()||!window.BigLWAUserDirectory?.saveCustomizations)return;
   const previousInk=acceptedInk,previousPlate=acceptedPlate,owner=uid();
@@ -102,6 +124,25 @@
   window.addEventListener('biglwa:customization-remote',event=>{hydrate(event.detail);schedule()});
   document.addEventListener('biglwa:community-profile-updated',schedule);
   document.addEventListener('biglwa:profile-updated',schedule);
+  window.addEventListener('resize',()=>{
+   $('#studioApp .hero')?.classList.remove('biglwa-scoreboard-onscreen-fallback');
+   schedule();
+  });
+  if(typeof ResizeObserver!=='undefined'){
+   const observed=new ResizeObserver(()=>requestAnimationFrame(verifyOnscreen));
+   const app=$('#studioApp'),hero=app?.querySelector('.hero');
+   if(hero)observed.observe(hero);
+   const card=app?.querySelector('.profile-card');
+   if(card)observed.observe(card);
+   const board=card?.querySelector('.biglwa-profile-scoreboard');
+   if(board)observed.observe(board);
+   // The existing profile script may add the board after first paint.
+   window.addEventListener('biglwa:profile-updated',()=>{
+    const current=$('#studioApp .profile-card .biglwa-profile-scoreboard');
+    if(current)observed.observe(current);
+   });
+  }
+
   const host=$('#studioApp')||document.body;
   const observer=new MutationObserver(records=>{
    if(records.some(x=>x.addedNodes?.length&&[...x.addedNodes].some(n=>n.nodeType===1&&(n.matches?.('.profile-card,.biglwa-profile-scoreboard,#biglwaSkeletonHub')||n.querySelector?.('.biglwa-profile-scoreboard,.skeleton-analytics-details')))))schedule();
