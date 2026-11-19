@@ -77,3 +77,19 @@ test('all Studio shells bust the first-party scoreboard font cache',()=>{
   assert.match(html,/alarm%20clock%202\.ttf|scoreboard=20261118-1/,path);
  }
 });
+
+test('gym scoreboard paints real five-count stats at four corners + center in current Aura',()=>{
+ assert.match(js,/biglwa-scoreboard-header/);
+ assert.match(js,/header\.textContent='PROFILE STATS'/);
+ assert.match(css,/grid-template-areas:"followers connections reach" "following connections likes"/);
+ assert.match(css,/grid-area:connections;min-height:116px/);
+ assert.match(css,/--score-aura:rgb\(var\(--aura-rgb,216,95,109\)\)/);
+ assert.match(css,/rgb\(var\(--aura-rgb,216,95,109\)\)/);
+ assert.match(css,/biglwa-scoreboard-header::after/);
+ assert.match(css,/background:#e24850;box-shadow:14px 0 #e7b333,28px 0 #38be72/);
+ assert.match(css,/font-family:"BIGLWA Alarm Clock"/);
+ assert.doesNotMatch(js,/cloneNode|localStorage\.setItem|setDoc/);
+ for(const path of shells){
+  assert.match(read(path),/profile-stats-row-20261116\.css[^"']*gym=20261118-aura-gym-fivepoint-1/);
+ }
+});

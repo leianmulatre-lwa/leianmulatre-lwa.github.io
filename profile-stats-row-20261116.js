@@ -27,6 +27,14 @@
    board.setAttribute('aria-label','Profile scoreboard');
    line.append(board);
   }
+  let header=board.querySelector(':scope > .biglwa-scoreboard-header');
+  if(!header){
+   header=document.createElement('div');
+   header.className='biglwa-scoreboard-header';
+   header.setAttribute('aria-hidden','true');
+   header.textContent='PROFILE STATS';
+   board.prepend(header);
+  }
   if(stats.parentElement!==board)board.append(stats);
   const roles=profile.querySelector('.biglwa-community-badges');
   if(roles&&roles.parentElement!==left)left.append(roles);
