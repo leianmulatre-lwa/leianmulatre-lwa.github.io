@@ -324,6 +324,14 @@ function applyLook(look){
     blur:settings.blur==null?0:settings.blur,
     overlay:settings.overlay==null?0:settings.overlay
   };
+  const scoreApp=document.querySelector('#studioApp');
+  if(scoreApp){
+    const ink=/^#[0-9a-f]{6}$/i.test(String(mirror.scoreboardTextColor||''))?mirror.scoreboardTextColor:'';
+    if(ink)scoreApp.style.setProperty('--biglwa-score-ink',ink);
+    else scoreApp.style.removeProperty('--biglwa-score-ink');
+    const board=scoreApp.querySelector('.biglwa-profile-scoreboard');
+    if(board)board.dataset.scoreboardPlate=mirror.scoreboardPlate==='clear'?'clear':'maroon';
+  }
   snapshotAppearance();
   // Remove the last browser's media before using the owner's published image.
   if(!media?.url)window.BIGLWAStudioAppearance?.clearMedia?.();
