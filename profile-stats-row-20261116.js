@@ -10,8 +10,16 @@
   const profile=document.querySelector('#studioApp .profile-card:not(.profile-is-editing) .profile-copy');
   if(!profile)return;
   const bio=profile.querySelector('.bio');
-  const stats=profile.querySelector('.stats');
-  if(!bio||!stats)return;
+  let stats=profile.querySelector('.stats');
+  if(!bio)return;
+  // The profile's stats may arrive after profile hydration. Keep the live
+  // metrics renderer as the single owner of all five counts.
+  if(!stats){
+   stats=document.createElement('div');
+   stats.className='stats';
+   profile.append(stats);
+   window.__biglwaSyncProfileMetrics?.();
+  }
   let line=profile.querySelector(':scope > .biglwa-profile-role-statline');
   if(!line){
    line=document.createElement('div');line.className='biglwa-profile-role-statline';
@@ -36,6 +44,10 @@
    board.prepend(header);
   }
   if(stats.parentElement!==board)board.append(stats);
+  // The profile grid was sometimes left at full width, sending an absolutely
+  // positioned scoreboard entirely offscreen. Mark its ancestor at the same
+  // moment we create the board; the CSS also has a :has fallback.
+  profile.closest('.hero')?.classList.add('biglwa-scoreboard-ready');
   const roles=profile.querySelector('.biglwa-community-badges');
   if(roles&&roles.parentElement!==left)left.append(roles);
   const highlights=profile.querySelector('.biglwa-stories-ribbon');
@@ -61,6 +73,7 @@
   document.addEventListener('biglwa:community-profile-updated',schedule);
   document.addEventListener('biglwa:profile-updated',schedule);
   window.addEventListener('biglwa:profile-updated',schedule);
+  window.addEventListener('resize',schedule);
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
