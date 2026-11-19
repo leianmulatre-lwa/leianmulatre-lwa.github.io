@@ -111,10 +111,10 @@ body.night-mode #studioApp .hero.biglwa-scoreboard-ready .profile-card .biglwa-p
   display:grid!important;grid-template-columns:repeat(12,minmax(0,1fr))!important;
   grid-template-rows:auto auto!important;column-gap:16px!important;row-gap:14px!important;
  }
- #studioApp:not(.profile-editor-wallpaper) .hero.biglwa-scoreboard-ready>.profile-card:not(.profile-is-editing){
+ #studioApp#studioApp:not(.profile-editor-wallpaper) .hero.biglwa-scoreboard-ready>.profile-card:not(.profile-is-editing){
   position:relative!important;grid-column:1/span 8!important;grid-row:1!important;
   inset:auto!important;width:100%!important;min-width:0!important;max-width:none!important;
-  height:288px!important;min-height:288px!important;max-height:none!important;overflow:visible!important;
+  height:auto!important;min-height:300px!important;max-height:none!important;overflow:visible!important;
  }
  #studioApp:not(.profile-editor-wallpaper) .hero.biglwa-scoreboard-ready .profile-card:not(.profile-is-editing) .profile-copy{
   position:static!important;padding:16px 12px 12px 0!important;
@@ -139,7 +139,7 @@ body.night-mode #studioApp .hero.biglwa-scoreboard-ready .profile-card .biglwa-p
  #studioApp:not(.profile-editor-wallpaper) .hero.biglwa-scoreboard-ready{
   grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto!important;
  }
- #studioApp:not(.profile-editor-wallpaper) .hero.biglwa-scoreboard-ready>.profile-card:not(.profile-is-editing){
+ #studioApp#studioApp:not(.profile-editor-wallpaper) .hero.biglwa-scoreboard-ready>.profile-card:not(.profile-is-editing){
   grid-column:1!important;grid-row:1!important;width:100%!important;
   height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;
  }
