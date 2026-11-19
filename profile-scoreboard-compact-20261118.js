@@ -7,8 +7,14 @@
  const uid=()=>String(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'').trim();
  const preview=()=>!!window.__biglwaPublicStorageView||!!document.documentElement?.classList?.contains('biglwa-preview-mode');
  const hex=x=>typeof x==='string'&&/^#[0-9a-f]{6}$/i.test(x)?x.toLowerCase():'';
- let appliedUid='',ink='',plate='maroon',writes=Promise.resolve(),scheduled=false;
+ let appliedUid='',ink='',plate='maroon',acceptedInk='',acceptedPlate='maroon',writes=Promise.resolve(),scheduled=false;
  const DEFAULT_AURA='#d85f6d';
+ function auraHex(){
+  const app=$('#studioApp');
+  if(!app||typeof getComputedStyle!=='function')return DEFAULT_AURA;
+  const rgb=getComputedStyle(app).getPropertyValue('--aura-rgb').trim().split(',').map(Number);
+  return rgb.length===3&&rgb.every(x=>Number.isInteger(x)&&x>=0&&x<=255)?'#'+rgb.map(x=>x.toString(16).padStart(2,'0')).join(''):DEFAULT_AURA;
+ }
  function repaint(){
   if(preview())return;
   const app=$('#studioApp');if(!app)return;
@@ -17,7 +23,7 @@
   const board=$('.biglwa-profile-scoreboard',app);
   if(board)board.dataset.scoreboardPlate=plate;
   const input=$('#skeletonScoreboardColor');
-  if(input)input.value=ink||DEFAULT_AURA;
+  if(input&&document.activeElement!==input)input.value=ink||auraHex();
   const select=$('#skeletonScoreboardPlate');
   if(select)select.value=plate;
   const status=$('#skeletonScoreboardStatus');
@@ -30,6 +36,7 @@
   const s=remote?.customization?.appearance||{};
   ink=hex(s.scoreboardTextColor);
   plate=s.scoreboardPlate==='clear'?'clear':'maroon';
+  acceptedInk=ink;acceptedPlate=plate;
   repaint();
  }
  function ensurePrefs(){
@@ -51,7 +58,7 @@
   const hero=profile?.closest('.hero');
   if(hero&&board)hero.classList.add('biglwa-scoreboard-ready');
   if(uid()!==appliedUid){
-   ink='';plate='maroon';appliedUid=uid();
+   ink='';plate='maroon';acceptedInk='';acceptedPlate='maroon';appliedUid=uid();
    if(uid()&&window.__biglwaRemoteCustomization?.uid===uid())hydrate(window.__biglwaRemoteCustomization);
   }
   ensurePrefs();
@@ -60,7 +67,7 @@
  function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{scheduled=false;synchronize()})}
  function update(setting,value){
   if(preview()||!uid()||!window.BigLWAUserDirectory?.saveCustomizations)return;
-  const previousInk=ink,previousPlate=plate,owner=uid();
+  const previousInk=acceptedInk,previousPlate=acceptedPlate,owner=uid();
   if(setting==='scoreboardTextColor')ink=hex(value);
   else plate=value==='clear'?'clear':'maroon';
   repaint();
@@ -70,6 +77,7 @@
   writes=writes.catch(()=>{}).then(async()=>{
    const ok=await window.BigLWAUserDirectory.saveCustomizations({appearance:{[setting]:sent}});
    if(!ok||uid()!==owner)throw Error('Account scoreboard setting was not saved');
+   if(setting==='scoreboardTextColor')acceptedInk=sent;else acceptedPlate=sent;
    if(status?.isConnected){delete status.dataset.saving;status.textContent='Saved to your account'}
   }).catch(err=>{
    if(uid()===owner){ink=previousInk;plate=previousPlate;repaint()}
