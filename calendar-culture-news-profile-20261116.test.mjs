@@ -81,8 +81,10 @@ test('both two-week calendar previews expose the MCM, TCT and WCW day colors',()
 test('profile statistics share the biography line, with highlights beneath',()=>{
  const layout=get('profile-stats-row-20261116.js');
  const highlight=get('profile-social-showcase.js');
- assert.match(layout,/line\.prepend\(bio\)/);
+ assert.match(layout,/let left=line\.querySelector\(':scope > \.biglwa-profile-bio-roles'\)/);
+ assert.match(layout,/left\.prepend\(bio\)/);
  assert.match(layout,/line\.append\(stats\)/);
+ assert.match(layout,/line\.after\(highlights\)/);
  assert.match(profileCss,/grid-template-columns:minmax\(0,1fr\) auto/);
  assert.match(profileCss,/justify-content:flex-end!important/);
  assert.match(highlight,/stats\.closest\('.biglwa-profile-role-statline'\)/);

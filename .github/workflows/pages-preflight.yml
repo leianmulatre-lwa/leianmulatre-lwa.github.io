@@ -21,6 +21,11 @@ on:
       - 'brand-policy.css'
       - 'policy-card-cohesion.js'
       - 'module-pages.js'
+      - 'calendar-culture-news-profile-20261116.test.mjs'
+      - 'calendar-editorial-20261116.css'
+      - 'profile-social-showcase.js'
+      - 'profile-stats-row-20261116.js'
+      - 'profile-stats-row-20261116.css'
       - 'community-profile-roles-20261114.js'
       - 'community-profile-roles-20261114.css'
       - 'community-profile-policy-regression-20261114.test.mjs'
@@ -214,6 +219,7 @@ jobs:
           node --check map-focused.js
           NODE_PATH=/tmp/biglwa-preflight-test/node_modules node --test map-places-auto-fare-20261118.test.mjs
           node --test trophy-skeleton-red-ink-20261118.test.mjs
+          node --test calendar-culture-news-profile-20261116.test.mjs
           node active-route-build-regression-test.mjs
           node orbit-inline-links-regression-test.mjs
           node pinterest-owned-feed-regression-test.mjs

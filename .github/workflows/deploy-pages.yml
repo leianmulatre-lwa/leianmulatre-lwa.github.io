@@ -83,6 +83,7 @@ jobs:
           node --check map-focused.js
           NODE_PATH=/tmp/biglwa-deploy-test/node_modules node --test map-places-auto-fare-20261118.test.mjs
           node --test trophy-skeleton-red-ink-20261118.test.mjs
+          node --test calendar-culture-news-profile-20261116.test.mjs
           node --check geez-calendar-20261114.js
           node --test geez-calendar-mode-test.mjs
           node booth-vanity-preflight-test.mjs
