@@ -106,7 +106,7 @@ body.night-mode #studioApp .hero.biglwa-scoreboard-ready .profile-card .biglwa-p
 }
 /* Profile remains the metric data owner; the board overhangs into its own
    upper-right tile. No second number source and no loss of stats listeners. */
-@media(min-width:1201px){
+@media(min-width:901px){
  #studioApp:not(.profile-editor-wallpaper) .hero.biglwa-scoreboard-ready:has(>.profile-card:not(.profile-is-editing)){
   display:grid!important;grid-template-columns:repeat(12,minmax(0,1fr))!important;
   grid-template-rows:auto auto!important;column-gap:16px!important;row-gap:14px!important;
@@ -135,7 +135,7 @@ body.night-mode #studioApp .hero.biglwa-scoreboard-ready .profile-card .biglwa-p
   grid-column:1/-1!important;grid-row:2!important;width:100%!important;min-width:0!important;
  }
 }
-@media(max-width:1200px){
+@media(max-width:900px){
  #studioApp:not(.profile-editor-wallpaper) .hero.biglwa-scoreboard-ready{
   grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto!important;
  }
@@ -168,7 +168,7 @@ body.night-mode #studioApp .hero.biglwa-scoreboard-ready .profile-card .biglwa-p
    while the scoreboard sat at left:100%+16px entirely outside the viewport.
    Drive the split using the ACTUAL board descendant rather than a JS-only class.
    Keep both banner and scoreboard at equal height above the lower widget row. */
-@media (min-width:1201px){
+@media(min-width:901px){
  #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard){
   display:grid!important;
   grid-template-columns:minmax(0,2fr) minmax(0,1fr)!important;
@@ -180,7 +180,7 @@ body.night-mode #studioApp .hero.biglwa-scoreboard-ready .profile-card .biglwa-p
   position:relative!important;inset:auto!important;
   grid-column:1!important;grid-row:1!important;
   width:100%!important;min-width:0!important;max-width:none!important;
-  height:322px!important;min-height:322px!important;max-height:322px!important;
+  height:246px!important;min-height:246px!important;max-height:246px!important;
   margin:0!important;overflow:visible!important;z-index:4!important;
  }
  #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)>.profile-card:not(.profile-is-editing) .profile-copy{
@@ -206,21 +206,10 @@ body.night-mode #studioApp .hero.biglwa-scoreboard-ready .profile-card .biglwa-p
   grid-column:1/-1!important;grid-row:2!important;min-width:0!important;
   width:100%!important;margin:0!important;
  }
- /* The fallback expands the banner only if its external scoreboard was displaced. */
- #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero.biglwa-scoreboard-onscreen-fallback>.profile-card:not(.profile-is-editing){
-  grid-column:1/-1!important;grid-row:1!important;width:100%!important;
- }
- /* Fail open if another runtime stylesheet overrides the card split.
-    Keep the real scoreboard visible INSIDE the banner rather than offscreen. */
- #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero.biglwa-scoreboard-onscreen-fallback .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard{
-  position:absolute!important;left:auto!important;right:16px!important;
-  top:16px!important;bottom:auto!important;
-  width:min(430px,37%)!important;height:auto!important;min-height:0!important;
-  z-index:10!important;visibility:visible!important;opacity:1!important;
- }
+ /* Never place the scoreboard over the member's profile banner. */
 }
 /* Narrow screens never use off-card positioning; stack underneath the bio. */
-@media (max-width:1200px){
+@media(max-width:900px){
  #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard{
   position:relative!important;inset:auto!important;
   width:min(100%,440px)!important;max-width:100%!important;
@@ -262,9 +251,9 @@ body.night-mode #studioApp .hero.biglwa-scoreboard-ready .profile-card .biglwa-p
 
 /* Compact the profile banner and its original, off-banner scoreboard in the
    same desktop grid row, without moving/recreating any account metric nodes. */
-@media(min-width:1201px){
+@media(min-width:901px){
  #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)>.profile-card:not(.profile-is-editing){
-  height:252px!important;min-height:252px!important;max-height:252px!important;
+  height:246px!important;min-height:246px!important;max-height:246px!important;
  }
  #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard) .profile-card:not(.profile-is-editing) .profile-copy{
   padding:12px 12px 48px 0!important;
@@ -289,7 +278,7 @@ body.night-mode #studioApp .hero.biglwa-scoreboard-ready .profile-card .biglwa-p
 /* Preserve responsive stacking and enough room for variable-length profiles. */
 @media(min-width:901px) and (max-width:1200px){
  #studioApp#studioApp:not(.profile-editor-wallpaper) .hero>.profile-card:not(.profile-is-editing){
-  min-height:252px!important;
+  min-height:246px!important;
  }
 }
 #studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.biglwa-scoreboard-header{
@@ -319,6 +308,64 @@ body.night-mode #studioApp .hero.biglwa-scoreboard-ready .profile-card .biglwa-p
 /* Visual Avatar dot order only: leave existing remove/enlarge handlers and
    their accessible labels attached to the correct colored buttons. */
 #studioApp #studioAvatarCard .avatar-window-controls{flex-direction:row!important}
-#studioApp #studioAvatarCard .avatar-window-controls>.window-light.green{order:1!important}
+#studioApp #studioAvatarCard .avatar-window-controls>.window-light.green{order:3!important}
 #studioApp #studioAvatarCard .avatar-window-controls>.window-light.yellow{order:2!important}
-#studioApp #studioAvatarCard .avatar-window-controls>.window-light.red{order:3!important}
+#studioApp #studioAvatarCard .avatar-window-controls>.window-light.red{order:1!important}
+
+/* Scoreboard must be a distinct right-hand tile, never an overlay. */
+@media(min-width:901px){
+ #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper)
+ .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard){
+  display:grid!important;
+  grid-template-columns:minmax(0,2fr) minmax(0,1fr)!important;
+  grid-template-rows:246px 246px auto!important;
+  column-gap:16px!important;row-gap:14px!important;
+  align-items:start!important;
+  overflow:visible!important;
+ }
+ #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper)
+ .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)>.profile-card:not(.profile-is-editing){
+  grid-column:1!important;grid-row:1!important;
+  position:relative!important;inset:auto!important;
+  height:246px!important;min-height:246px!important;max-height:246px!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  overflow:visible!important;
+ }
+ #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper)
+ .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)
+ .profile-card:not(.profile-is-editing) :is(.profile-copy,.biglwa-profile-role-statline){
+  position:static!important;overflow:visible!important;
+ }
+ #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper)
+ .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)
+ .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard{
+  box-sizing:border-box!important;
+  position:absolute!important;top:0!important;right:auto!important;bottom:auto!important;
+  left:calc(100% + 16px)!important;
+  width:50%!important;max-width:none!important;min-width:0!important;
+  height:246px!important;min-height:246px!important;max-height:246px!important;
+  margin:0!important;
+  display:flex!important;flex-direction:column!important;justify-content:center!important;
+  z-index:5!important;visibility:visible!important;opacity:1!important;
+ }
+ #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper)
+ .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)>.hero-widget-rail{
+  grid-column:1/-1!important;grid-row:2!important;
+  width:100%!important;align-self:start!important;
+ }
+ #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper)
+ .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)>.hero-action-bar{
+  grid-column:1/-1!important;grid-row:3!important;
+  align-self:start!important;justify-self:center!important;
+  position:relative!important;inset:auto!important;
+ }
+}
+@media(max-width:900px){
+ /* A narrow screen intentionally stacks widgets. Unlike the previous fallback,
+    this never floats the scoreboard on top of profile details. */
+ #studioApp#studioApp .hero .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard{
+  position:relative!important;inset:auto!important;
+  width:min(100%,440px)!important;height:auto!important;max-height:none!important;
+  margin:8px 0!important;
+ }
+}
