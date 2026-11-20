@@ -65,22 +65,24 @@
   repaint();
  }
 
- // Guard against late profile styles stretching the banner back to full width.
- // Never put the live data or scoreboard offscreen; do not duplicate counts.
+ // Keep the live scoreboard a right-hand tile instead of falling back on top
+ // of the profile whenever layout CSS arrives a frame after the DOM.
  function verifyOnscreen(){
   const app=$('#studioApp'),hero=app?.querySelector('.hero'),
         card=hero?.querySelector('.profile-card:not(.profile-is-editing)'),
         board=card?.querySelector('.biglwa-profile-scoreboard');
   if(!hero||!board)return;
-  const desktop=(window.innerWidth||document.documentElement.clientWidth)>1200;
-  if(!desktop){hero.classList.remove('biglwa-scoreboard-onscreen-fallback');return}
-  if(hero.classList.contains('biglwa-scoreboard-onscreen-fallback'))return;
-  const frame=hero.getBoundingClientRect?.(),box=board.getBoundingClientRect?.();
-  if(!frame||!box||!frame.width)return;
-  if(box.width<80||box.left>=frame.right-30||box.right>Math.min(frame.right,window.innerWidth||frame.right)+12){
-   hero.classList.add('biglwa-scoreboard-onscreen-fallback');
-   console.warn('[BIG LWA] Scoreboard layout fell outside Studio; using safe on-banner position.');
-  }
+  // Clear the old class for sessions retaining previously applied JS state.
+  hero.classList.remove('biglwa-scoreboard-onscreen-fallback');
+  if((window.innerWidth||document.documentElement.clientWidth)<901)return;
+  const profileRect=card.getBoundingClientRect?.(),boardRect=board.getBoundingClientRect?.();
+  if(!profileRect||!boardRect||!profileRect.width)return;
+  if(boardRect.left<profileRect.right+6){
+   if(hero.dataset.biglwaScoreboardWarning!=='1'){
+    hero.dataset.biglwaScoreboardWarning='1';
+    console.warn('[BIG LWA] Scoreboard failed to occupy the right tile; check Studio grid styles.');
+   }
+  }else{delete hero.dataset.biglwaScoreboardWarning}
  }
  function schedule(){if(scheduled)return;scheduled=true;requestAnimationFrame(()=>{
   scheduled=false;synchronize();
