@@ -228,3 +228,97 @@ body.night-mode #studioApp .hero.biglwa-scoreboard-ready .profile-card .biglwa-p
   visibility:visible!important;opacity:1!important;
  }
 }
+
+
+/* Studio hero balance · 2026-11-19 · profile / scoreboard / upper row */
+/* Keep the saved weekly mood data available to its existing editor, but
+   remove the visible paper note from every Studio profile banner. */
+#studioApp .profile-card #weeklyMoodCard{display:none!important}
+
+/* The existing Aura/Avatar, Guest Check, and Music Box size contract owns
+   all upper widget heights. Adjust its variable, not each widget separately. */
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>.hero-widget-rail.hero-widget-rail{
+ --studio-upper-card-height:246px!important;
+}
+
+/* Real Studio shortcut links stay connected to the existing shortcut manager.
+   Center the rail below the widgets rather than leaving it off to one side. */
+#studioApp#studioApp .hero:has(>.hero-widget-rail)>.mobile-dock.hero-action-bar{
+ position:relative!important;
+ grid-column:1/-1!important;grid-row:3!important;
+ width:min(100%,1020px)!important;max-width:100%!important;
+ margin:8px auto 0!important;justify-self:center!important;
+ left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+ box-sizing:border-box!important;
+}
+@media(max-width:700px){
+ #studioApp#studioApp .hero:has(>.hero-widget-rail)>.mobile-dock.hero-action-bar{
+  width:100%!important;overflow-x:auto!important;overscroll-behavior-x:contain!important;
+ }
+ #studioApp#studioApp .hero:has(>.hero-widget-rail)>.mobile-dock.hero-action-bar{
+  grid-template-columns:repeat(var(--studio-action-count,9),minmax(64px,1fr))!important;
+ }
+}
+
+/* Compact the profile banner and its original, off-banner scoreboard in the
+   same desktop grid row, without moving/recreating any account metric nodes. */
+@media(min-width:1201px){
+ #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)>.profile-card:not(.profile-is-editing){
+  height:252px!important;min-height:252px!important;max-height:252px!important;
+ }
+ #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard) .profile-card:not(.profile-is-editing) .profile-copy{
+  padding:12px 12px 48px 0!important;
+ }
+ #studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard) .profile-card:not(.profile-is-editing) .profile-identity-rail{
+  justify-content:center!important;gap:8px!important;
+ }
+ #studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard) .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline{
+  margin:4px 0!important;
+ }
+ #studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard) .profile-card:not(.profile-is-editing) .biglwa-profile-bio-roles{
+  gap:5px!important;
+ }
+ #studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard) .profile-card:not(.profile-is-editing) .biglwa-stories-ribbon{
+  margin:6px 0 4px!important;
+ }
+ #studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard) .profile-card:not(.profile-is-editing) .real-rank{
+  bottom:10px!important;
+ }
+}
+
+/* Preserve responsive stacking and enough room for variable-length profiles. */
+@media(min-width:901px) and (max-width:1200px){
+ #studioApp#studioApp:not(.profile-editor-wallpaper) .hero>.profile-card:not(.profile-is-editing){
+  min-height:252px!important;
+ }
+}
+#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.biglwa-scoreboard-header{
+ min-height:19px!important;padding:0 43px 5px!important;
+}
+#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.biglwa-scoreboard-header::after{
+ right:38px!important;top:6px!important;
+}
+#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.stats.stats{
+ grid-template-rows:repeat(2,minmax(52px,auto))!important;
+ row-gap:5px!important;
+}
+#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.stats.stats>[data-profile-stat]{
+ min-height:50px!important;gap:3px!important;
+}
+#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.stats.stats [data-profile-stat] b{
+ min-height:31px!important;padding:2px 6px 3px!important;
+}
+/* LWA uses the same first-party Stitch face as the Studio headings;
+   only this word changes, never the numeric Alarm Clock font. */
+#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.stats.stats::after{
+ font-family:"CS Bergamot Stitched",Georgia,"Times New Roman",serif!important;
+ font-style:normal!important;font-size:17px!important;font-weight:400!important;
+ letter-spacing:.025em!important;
+}
+
+/* Visual Avatar dot order only: leave existing remove/enlarge handlers and
+   their accessible labels attached to the correct colored buttons. */
+#studioApp #studioAvatarCard .avatar-window-controls{flex-direction:row!important}
+#studioApp #studioAvatarCard .avatar-window-controls>.window-light.green{order:1!important}
+#studioApp #studioAvatarCard .avatar-window-controls>.window-light.yellow{order:2!important}
+#studioApp #studioAvatarCard .avatar-window-controls>.window-light.red{order:3!important}
