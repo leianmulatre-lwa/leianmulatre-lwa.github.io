@@ -1,0 +1,20 @@
+# Safe local-only Stalwart sandbox on a Windows desktop with Docker Desktop.
+# NEVER use this file for production Firebase Authentication or public email delivery.
+services:
+  stalwart-local:
+    image: stalwartlabs/stalwart:v1
+    container_name: biglwa-stalwart-local
+    init: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080" # First-run wizard only (localhost)
+      - "127.0.0.1:8443:443"  # Optional local HTTPS diagnostics (self-signed until configured)
+      - "127.0.0.1:1465:465" # Local SMTP submission test, never internet-exposed
+    volumes:
+      - biglwa-mail-local-etc:/etc/stalwart
+      - biglwa-mail-local-data:/var/lib/stalwart
+    stop_grace_period: 60s
+
+volumes:
+  biglwa-mail-local-etc:
+  biglwa-mail-local-data:
