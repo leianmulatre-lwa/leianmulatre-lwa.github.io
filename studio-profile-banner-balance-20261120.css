@@ -196,3 +196,55 @@
    animation:none!important;
  }
 }
+
+
+/* 2026-11-21 · scoreboard header placement from annotated owner screenshot.
+   The FIVE real stat nodes and the independent 246px right tile do not move,
+   nor do the lower Aura/Avatar/Tunes/Guest Check widgets. Raise only the
+   decorative header contents and floating loading-screen globe. */
+#studioApp#studioApp#studioApp .profile-card
+.biglwa-profile-scoreboard>.biglwa-scoreboard-header {
+  position:relative!important;
+  transform:translateY(-13px)!important;
+}
+#studioApp#studioApp#studioApp .profile-card
+.biglwa-profile-scoreboard::before {
+  top:23px!important;
+}
+#studioApp#studioApp#studioApp .profile-card
+.biglwa-profile-scoreboard>.biglwa-scoreboard-header::before {
+  left:11px!important;
+  top:-3px!important;
+}
+#studioApp#studioApp#studioApp .profile-card
+.biglwa-profile-scoreboard>.biglwa-scoreboard-header::after {
+  top:1px!important;
+  right:39px!important;
+  background:#38be72!important;
+  box-shadow:14px 0 #e7b333,28px 0 #e24850!important;
+}
+
+/* Avatar title+symbol tuck into the same left-edge grid as neighboring
+   widget headings, with the same padding for collapsed and regular widths.
+   Keep the existing controls and drag handle clickable. */
+#studioApp#studioApp #heroWidgetRail #biglwaAuraAvatarPair
+>#studioAvatarCard:not(.avatar-is-expanded) .biglwa-avatar-head>.card-kicker {
+  margin-left:-6px!important;
+}
+#studioApp#studioApp #heroWidgetRail #biglwaAuraAvatarPair
+>#studioAvatarCard:not(.avatar-is-expanded) .biglwa-avatar-head .studio-heading-image-symbol {
+  width:23px!important;height:23px!important;
+  flex:0 0 23px!important;
+}
+#studioApp#studioApp #heroWidgetRail #biglwaAuraAvatarPair
+>#studioAvatarCard:not(.avatar-is-expanded) .avatar-window-controls {
+  top:1px!important;right:0!important;
+}
+@media(max-width:560px){
+  #studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.biglwa-scoreboard-header {
+    transform:translateY(-7px)!important;
+  }
+  #studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard::before {
+    top:26px!important;
+  }
+}
