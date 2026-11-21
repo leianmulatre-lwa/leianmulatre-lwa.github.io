@@ -276,7 +276,7 @@
   }
   #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper)
   .hero .profile-card:not(.profile-is-editing) .profile-identity-rail>.profile-avatar{
-    display:block!important;flex:0 0 108px!important;
+    display:grid!important;place-items:center!important;flex:0 0 108px!important;
     width:108px!important;height:108px!important;
     min-width:108px!important;min-height:108px!important;
     max-width:108px!important;max-height:108px!important;
