@@ -94,8 +94,8 @@ test('clicking Chopped opens the existing Trophies module, including keyboard ac
 test('profile rail photo, Edit Profile and location stay separate; Highlights never wrap across Real Rank',()=>{
   const social=read('profile-social-showcase.js');
   const stats=read('profile-stats-row-20261116.js');
-  assert.doesNotMatch(social,/grid-template-columns:repeat\\(auto-fit,minmax\\(58px,1fr\\)\\)/);
-  assert.match(social,/biglwa-stories-track\\{display:flex!important;flex-wrap:nowrap!important/);
+  assert.doesNotMatch(social,/grid-template-columns:repeat\(auto-fit,minmax\(58px,1fr\)\)/);
+  assert.match(social,/biglwa-stories-track\{display:flex!important;flex-wrap:nowrap!important/);
   assert.match(css,/profile overlap repair/);
   for(const selector of [
     '.profile-identity-rail>.profile-avatar',
@@ -105,10 +105,10 @@ test('profile rail photo, Edit Profile and location stay separate; Highlights ne
     '.profile-copy>.real-rank.real-rank'
   ])assert(css.includes(selector),selector+' is included in the profile layout contract');
   assert.match(css,/flex-flow:row nowrap!important/);
-  assert.match(css,/grid-template-columns:140px minmax\\(0,1fr\\)!important/);
+  assert.match(css,/grid-template-columns:140px minmax\(0,1fr\)!important/);
   assert.match(css,/margin:auto 0 0!important/);
   assert.match(css,/content:"★"!important/);
-  assert.match(stats,/header\\.textContent='REAL RANKINGS'/);
+  assert.match(stats,/header\.textContent='REAL RANKINGS'/);
   for(const shell of shells){
     const html=read(shell);
     for(const asset of ['profile-social-showcase.js','profile-stats-row-20261116.js','profile-scoreboard-compact-20261118.js','studio-profile-banner-balance-20261120.css']){
