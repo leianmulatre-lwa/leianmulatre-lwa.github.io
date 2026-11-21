@@ -6,7 +6,7 @@ if(window.BigLWANavigationCommands)return;
 const pages={
  studio:'/studio',home:'/studio',homepage:'/studio',dashboard:'/studio',
  settings:'/settings/',preferences:'/settings/',account:'/settings/',
- legal:'/legal/', 'legal pages':'/legal/', 'important pages':'/legal/',
+ legal:'/legal/', 'lwa & order':'/legal/', 'lwa and order':'/legal/', 'legal pages':'/legal/', 'important pages':'/legal/',
  'about us':'/about/',about:'/about/','about big lwa':'/about/',
  privacy:'/privacy/','privacy policy':'/privacy/',
  terms:'/terms/','terms of service':'/terms/',
@@ -21,7 +21,7 @@ const categories={
 };
 const widgets={
  'aura':'aura','avatar':'avatar','journal':'diary','diary':'diary',
- 'stream':'stream','orbit':'orbit','calendar':'calendar','politic':'politic',
+ 'stream':'stream','orbit':'orbit','calendar':'calendar','politque':'politic','politic':'politic',
  'politics widget':'politic','politics':'politic','map':'map','map widget':'map',
  'my map':'map','booth':'camera','photo booth':'camera',
  'tunes':'music','jam':'music','music box':'music','archive':'archive',
