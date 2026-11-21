@@ -1,0 +1,117 @@
+/* BIG LWA · 2026-11-20 · profile banner, dedicated scoreboard and shortcut shelf.
+   Visual-only changes: keep the existing account stats, saved mood, and shortcuts. */
+
+/* The mood remains saved for the editor, but is no longer rendered on the
+   non-editing profile banner. Target its live ID independently of nesting. */
+#studioApp .hero:has(>.profile-card:not(.profile-is-editing)) #weeklyMoodCard,
+#studioApp .hero .profile-card:not(.profile-is-editing) .weekly-mood-card {
+  display:none!important;
+  visibility:hidden!important;
+}
+
+/* Make the banner and its adjacent scoreboard one shorter upper row.
+   Keep the second row's Aura/Avatar/Guest Check/Tunes sizing untouched. */
+@media (min-width:901px) {
+  #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper)
+  .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard) {
+    grid-template-rows:224px 246px auto!important;
+  }
+  #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper)
+  .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)
+  >.profile-card:not(.profile-is-editing) {
+    height:224px!important;min-height:224px!important;max-height:224px!important;
+  }
+  #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper)
+  .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)
+  .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard {
+    height:224px!important;min-height:224px!important;max-height:224px!important;
+  }
+  #studioApp#studioApp:not(.profile-editor-wallpaper)
+  .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)
+  .profile-card:not(.profile-is-editing) .profile-copy {
+    padding-bottom:30px!important;
+  }
+}
+/* Preserve the flexible native profile/scoreboard stacking on narrow screens. */
+@media (max-width:900px) {
+  #studioApp .hero .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard {
+    height:auto!important;min-height:0!important;max-height:none!important;
+  }
+}
+
+/* Top-centre treatment: PROFILE STATS, then the existing animated loading art.
+   Pseudo-elements are decorative; no new image, stats node or click target. */
+#studioApp#studioApp#studioApp .hero.biglwa-scoreboard-ready
+.profile-card .biglwa-profile-scoreboard {
+  justify-content:flex-start!important;
+  padding-top:10px!important;
+}
+#studioApp#studioApp#studioApp .profile-card
+.biglwa-profile-scoreboard>.biglwa-scoreboard-header {
+  flex:0 0 72px!important;
+  box-sizing:border-box!important;
+  width:100%!important;min-height:72px!important;height:72px!important;
+  margin:0!important;padding:0 40px!important;
+  text-align:center!important;
+}
+#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard::before,
+#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard::after {
+  content:"";position:absolute;top:32px;
+  width:41px;height:41px;
+  background-repeat:no-repeat;background-position:center;
+  background-size:contain;
+  image-rendering:pixelated;
+  pointer-events:none;user-select:none;
+  filter:drop-shadow(2px 3px 0 rgba(14,0,9,.35));
+  animation:biglwa-score-pixel-float 3.2s steps(3,end) infinite;
+}
+#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard::before {
+  left:calc(50% - 46px);
+  background-image:url("/assets/loading-globe-pixel-20261029.png");
+}
+#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard::after {
+  left:calc(50% + 5px);
+  background-image:url("/assets/loading-blocks-pixel-20261029.png");
+  animation-delay:-1.35s;
+}
+@keyframes biglwa-score-pixel-float {
+  0%,100% {transform:translateY(0)}
+  50% {transform:translateY(-4px)}
+}
+@media (prefers-reduced-motion:reduce) {
+  #studioApp .profile-card .biglwa-profile-scoreboard::before,
+  #studioApp .profile-card .biglwa-profile-scoreboard::after {
+    animation:none!important;
+  }
+}
+/* Reuse the actual Stitch face for LWA, never for the live Alarm Clock digits. */
+#studioApp#studioApp#studioApp .profile-card
+.biglwa-profile-scoreboard>.stats.stats::after {
+  font-family:"CS Bergamot Stitched",Georgia,serif!important;
+  font-weight:400!important;font-style:normal!important;
+  letter-spacing:.015em!important;
+}
+
+/* The real nine-link dock is centered across the complete Studio, not the
+   profile's left tile. Keep the same DOM, shortcuts and reorder handlers. */
+#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper)
+.hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)
+>.mobile-dock.hero-action-bar {
+  position:relative!important;
+  grid-column:1/-1!important;grid-row:3!important;
+  left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+  transform:none!important;
+  width:min(980px,calc(100% - 28px))!important;
+  max-width:100%!important;min-width:0!important;
+  margin:0 auto!important;
+  justify-self:center!important;align-self:start!important;
+  box-sizing:border-box!important;
+}
+@media (max-width:900px) {
+  #studioApp#studioApp .hero:has(>.hero-widget-rail)>.mobile-dock.hero-action-bar {
+    width:calc(100% - 16px)!important;
+    min-width:0!important;
+    margin:0 auto!important;
+    overflow-x:auto!important;
+  }
+}
