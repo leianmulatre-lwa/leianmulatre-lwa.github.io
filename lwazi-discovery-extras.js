@@ -7,7 +7,7 @@ const esc=value=>String(value==null?'':value).replace(/[&<>"']/g,c=>({'&':'&amp;
 const names={
  aura:'Aura',avatar:'Avatar',music:'Jam · Tunes',diary:'Journal',notes:'Sqwidz',
  camera:'Booth',projects:'Projects',closet:'Closet',archive:'Archive',
- library:'Library',calendar:'Calendar',stream:'Stream',politic:'Politic',
+ library:'Library',calendar:'Calendar',stream:'Stream',politic:'Politque',
  map:'Map',games:'Games',orbit:'Orbit',boards:'Boards',connect:'Connect',
  trophies:'Trophies',tools:'Lwazi · Workshop',feed:'MyFeed',room:'Rooms',
  rooms:'Rooms',veve:'Veve',logs:'Logs',learn:'Learn',didyouknow:'Did You Know'
