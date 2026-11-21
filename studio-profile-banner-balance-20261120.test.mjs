@@ -90,3 +90,30 @@ test('clicking Chopped opens the existing Trophies module, including keyboard ac
  listeners.keydown[0]({...event,type:'keydown',key:'Enter'});
  assert.deepEqual(opened,['trophies','trophies']);
 });
+
+test('profile rail photo, Edit Profile and location stay separate; Highlights never wrap across Real Rank',()=>{
+  const social=read('profile-social-showcase.js');
+  const stats=read('profile-stats-row-20261116.js');
+  assert.doesNotMatch(social,/grid-template-columns:repeat\\(auto-fit,minmax\\(58px,1fr\\)\\)/);
+  assert.match(social,/biglwa-stories-track\\{display:flex!important;flex-wrap:nowrap!important/);
+  assert.match(css,/profile overlap repair/);
+  for(const selector of [
+    '.profile-identity-rail>.profile-avatar',
+    '.profile-identity-rail>#editProfileBtn',
+    '.profile-identity-rail>.profile-rail-location',
+    '.profile-copy>.biglwa-stories-ribbon .biglwa-stories-track',
+    '.profile-copy>.real-rank.real-rank'
+  ])assert(css.includes(selector),selector+' is included in the profile layout contract');
+  assert.match(css,/flex-flow:row nowrap!important/);
+  assert.match(css,/grid-template-columns:140px minmax\\(0,1fr\\)!important/);
+  assert.match(css,/margin:auto 0 0!important/);
+  assert.match(css,/content:"★"!important/);
+  assert.match(stats,/header\\.textContent='REAL RANKINGS'/);
+  for(const shell of shells){
+    const html=read(shell);
+    for(const asset of ['profile-social-showcase.js','profile-stats-row-20261116.js','profile-scoreboard-compact-20261118.js','studio-profile-banner-balance-20261120.css']){
+      assert(html.includes(asset+'?'),shell+': '+asset+' remains loaded');
+    }
+    assert.equal(html.split('&profilefit=20261121-3').length-1,4,shell+' has all 4 fresh asset versions');
+  }
+});
