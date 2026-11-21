@@ -37,7 +37,7 @@ test('center scoreboard emblem is the animated pixel blocks, not stitched LWA te
   assert.match(css,/\.biglwa-profile-scoreboard>\.stats\.stats::after \{\s*content:""!important/);
   assert.match(css,/background:transparent url\("\/assets\/loading-blocks-pixel-20261029\.png"\)/);
   assert.match(css,/\.biglwa-profile-scoreboard::after \{\s*display:none!important/);
-  assert.match(css,/\.biglwa-scoreboard-header::before \{\s*content:"✦"!important/);
+  assert.match(css,/\.biglwa-scoreboard-header::before \{\s*content:"★"!important/);
   assert.match(existing,/font-family:"BIGLWA Alarm Clock"/);
 });
 
