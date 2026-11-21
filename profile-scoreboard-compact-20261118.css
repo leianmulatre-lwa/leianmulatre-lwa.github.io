@@ -308,9 +308,9 @@ body.night-mode #studioApp .hero.biglwa-scoreboard-ready .profile-card .biglwa-p
 /* Visual Avatar dot order only: leave existing remove/enlarge handlers and
    their accessible labels attached to the correct colored buttons. */
 #studioApp #studioAvatarCard .avatar-window-controls{flex-direction:row!important}
-#studioApp #studioAvatarCard .avatar-window-controls>.window-light.green{order:3!important}
+#studioApp #studioAvatarCard .avatar-window-controls>.window-light.green{order:1!important}
 #studioApp #studioAvatarCard .avatar-window-controls>.window-light.yellow{order:2!important}
-#studioApp #studioAvatarCard .avatar-window-controls>.window-light.red{order:1!important}
+#studioApp #studioAvatarCard .avatar-window-controls>.window-light.red{order:3!important}
 
 /* Scoreboard must be a distinct right-hand tile, never an overlay. */
 @media(min-width:901px){
