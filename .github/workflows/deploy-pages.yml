@@ -87,6 +87,7 @@ jobs:
           node --test calendar-culture-news-profile-20261116.test.mjs
           node --check profile-stats-row-20261116.js
           node --test profile-scoreboard-widget-20261118.test.mjs
+          node --test studio-profile-banner-balance-20261120.test.mjs
           node --test map-first-paint-stable-20261118.test.mjs
           node --test calendar-external-overview-20261118.test.mjs
           node --test werk-source-read-compact-20261118.test.mjs
