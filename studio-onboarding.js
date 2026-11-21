@@ -29,7 +29,7 @@
   {label:'Studio',key:'studio',detail:'Return to your Studio home',fallbackAsset:'/assets/studio-tipi-symbol.svg?v=20261026-1'},
   {label:'Visualizr',key:'projects',detail:'Your creative work',fallbackAsset:'/assets/projects-symbol.svg?v=20260924-projects-symbol-1'},
   {label:'Trophies',key:'trophies',detail:'Your real rank, earned achievements and trophy case',fallback:'♛'},
-  {label:'Politic',key:'politc',detail:'Civic life and global context',fallbackAsset:'/assets/politc-nyame-baatanpa.svg?v=20261014-1'},
+  {label:'Politque',key:'politc',detail:'Civic life and global context',fallbackAsset:'/assets/politc-nyame-baatanpa.svg?v=20261014-1'},
   {label:'Arcade',key:'games',detail:'Games and puzzles',fallback:'♟'},
   {label:'Journal',key:'diary',detail:'Entries and writing',fallback:'▱'},
   {label:'Map',key:'map',detail:'Pinned places',fallback:'⌖'},
@@ -683,7 +683,7 @@
    (window.BigLWAShadowKey?.render?.('skeleton')||'<p class="skeleton-shadow-explanation">Platform preview is loading.</p>')+
    '</div></details>'+
    '<details class="skeleton-symbol-details skeleton-symbol-visibility-details"><summary>Symbol &amp; visibility key</summary><p class="skeleton-visibility-note">Choose the lock beside a symbol to manage who can see its widget preview.</p><ul class="tour-symbol-key" id="biglwaSkeletonSymbols" aria-label="Studio symbols and widget visibility"></ul></details>'+
-   '<details class="skeleton-legal"><summary>Important / Legal</summary><nav><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/rights">Rights</a><a href="/data-deletion">Data deletion</a></nav></details>'+
+   '<details class="skeleton-legal"><summary>LWA &amp; Order</summary><nav><a href="/legal/">LWA &amp; Order</a><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/rights">Rights</a><a href="/data-deletion">Data deletion</a></nav></details>'+
    '<label class="skeleton-hint-setting"><input type="checkbox" id="skeletonHideHints"> Hide hover hints and previews</label>';
   hub.querySelectorAll(':scope > details').forEach(section=>section.addEventListener('toggle',()=>{if(section.open)hub.querySelectorAll(':scope > details').forEach(other=>{if(other!==section)other.open=false})}));
   $('.skeleton-analytics-details',hub).addEventListener('toggle',event=>{if(event.target.open)window.BigLWAAccountInsights?.refresh?.()});
