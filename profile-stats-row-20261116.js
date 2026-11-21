@@ -32,7 +32,7 @@
   if(!board){
    board=document.createElement('section');
    board.className='biglwa-profile-scoreboard';
-   board.setAttribute('aria-label','Profile scoreboard');
+   board.setAttribute('aria-label','Real rankings scoreboard');
    line.append(board);
   }
   let header=board.querySelector(':scope > .biglwa-scoreboard-header');
@@ -40,9 +40,11 @@
    header=document.createElement('div');
    header.className='biglwa-scoreboard-header';
    header.setAttribute('aria-hidden','true');
-   header.textContent='PROFILE STATS';
+   header.textContent='REAL RANKINGS';
    board.prepend(header);
   }
+  if(header.textContent!=='REAL RANKINGS')header.textContent='REAL RANKINGS';
+  board.setAttribute('aria-label','Real rankings scoreboard');
   if(stats.parentElement!==board)board.append(stats);
   // The profile grid was sometimes left at full width, sending an absolutely
   // positioned scoreboard entirely offscreen. Mark its ancestor at the same
