@@ -21,7 +21,7 @@ const categories={
 };
 const widgets={
  'aura':'aura','avatar':'avatar','journal':'diary','diary':'diary',
- 'stream':'stream','orbit':'orbit','calendar':'calendar','politque':'politic','politic':'politic',
+ 'stream':'stream','orbit':'orbit','calendar':'calendar','politque':'politc','politic':'politic',
  'politics widget':'politic','politics':'politic','map':'map','map widget':'map',
  'my map':'map','booth':'camera','photo booth':'camera',
  'tunes':'music','jam':'music','music box':'music','archive':'archive',
