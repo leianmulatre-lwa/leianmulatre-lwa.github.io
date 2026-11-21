@@ -147,8 +147,8 @@ test('scoreboard uses an independent right tile with responsive stacking',()=>{
  assert.match(controller,/boardRect\.left<profileRect\.right\+6/);
  assert.match(controller,/window\.addEventListener\('resize'/);
  // Keep the banner and scoreboard short without changing the lower row.
- assert.match(balance,/grid-template-rows:224px 246px auto!important/);
- assert.match(balance,/\.biglwa-profile-scoreboard \{\s*height:224px!important/);
+ assert.match(balance,/grid-template-rows:246px 206px auto!important/);
+ assert.match(balance,/\.biglwa-profile-scoreboard \{\s*height:246px!important/);
  // Late account hydration reuses live metrics.
  assert.match(js,/if\(!stats\)\{/);
  assert.match(js,/window\.__biglwaSyncProfileMetrics\?\.\(\)/);
@@ -158,6 +158,6 @@ test('scoreboard uses an independent right tile with responsive stacking',()=>{
   for(const asset of ['profile-stats-row-20261116.js','profile-scoreboard-compact-20261118.css','profile-scoreboard-compact-20261118.js']){
    assert.match(html,new RegExp(asset.replace(/\./g,'\\.')+'\\?v='),path+' '+asset);
   }
-  assert.match(html,/studio-profile-banner-balance-20261120\.css\?v=20261120-globe-banner-shortcuts-1/,path);
+  assert.match(html,/studio-profile-banner-balance-20261120\.css\?v=20261120-globe-banner-shortcuts-1&ranklayout=20261121-1/,path);
  }
 });
