@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
+import vm from 'node:vm';
 
 const read=path=>readFileSync(new URL('./'+path,import.meta.url),'utf8');
 const css=read('studio-profile-banner-balance-20261120.css');
@@ -52,4 +53,40 @@ test('each Studio entry loads the cache-busted stylesheet',()=>{
     const html=read(shell);
     assert.equal(html.split('studio-profile-banner-balance-20261120.css?v=20261120-globe-banner-shortcuts-1&ranklayout=20261121-1').length-1,1,shell);
   }
+});
+
+test('clicking Chopped opens the existing Trophies module, including keyboard access',()=>{
+ const source=read('profile-stats-row-20261116.js');
+ assert.match(source,/rankTitle\.setAttribute\('role','link'\)/);
+ assert.match(source,/rankTitle\.setAttribute\('tabindex','0'\)/);
+ assert.match(source,/rank\.insertBefore\(rankLabel,rankTitle\|\|rank\.firstChild\)/);
+ const listeners={}; const opened=[]; let prevented=0;
+ const profile={querySelector(){return null}};
+ const document={
+  readyState:'complete',
+  body:{},
+  querySelector(selector){
+   if(selector==='#studioApp')return {};
+   if(selector.includes('.profile-card:not(.profile-is-editing) .profile-copy'))return profile;
+   return null;
+  },
+  addEventListener(type,callback){(listeners[type]??=[]).push(callback)}
+ };
+ const scope={
+  window:{addEventListener(){},openBIGLWAModule(key){opened.push(key)}},
+  document,
+  MutationObserver:class{observe(){}},
+  requestAnimationFrame(cb){cb()},
+  Node:{DOCUMENT_POSITION_PRECEDING:4}
+ };
+ vm.runInNewContext(source,scope,{timeout:1500});
+ const target={closest(selector){return selector.includes('real-rank strong[role="link"]')?{}:null}};
+ const event={type:'click',target,preventDefault(){prevented++}};
+ listeners.click[0](event);
+ assert.deepEqual(opened,['trophies']);
+ assert.equal(prevented,1);
+ listeners.keydown[0]({...event,type:'keydown',key:'Escape'});
+ assert.equal(opened.length,1);
+ listeners.keydown[0]({...event,type:'keydown',key:'Enter'});
+ assert.deepEqual(opened,['trophies','trophies']);
 });
