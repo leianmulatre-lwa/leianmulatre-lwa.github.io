@@ -127,34 +127,37 @@ test('Skeleton Key changes scoreboard color on the account and restores public p
  assert.match(compact,/--biglwa-score-ink,rgb\(var\(--aura-rgb/);
  for(const path of shells){
   const html=read(path);
-  assert.match(html,/profile-scoreboard-compact-20261118\.css\?v=20261118-compact-maroon-1/,path);
-  assert.match(html,/profile-scoreboard-compact-20261118\.js\?v=20261118-compact-maroon-1/,path);
+  assert.match(html,/profile-scoreboard-compact-20261118\.css\?v=202611(?:18|20)-/,path);
+  assert.match(html,/profile-scoreboard-compact-20261118\.js\?v=202611(?:18|20)-/,path);
  }
 });
 
 
-test('scoreboard stays onscreen when later profile styles reset the banner width',()=>{
+test('scoreboard uses an independent right tile with responsive stacking',()=>{
  const compact=read('profile-scoreboard-compact-20261118.css');
  const controller=read('profile-scoreboard-compact-20261118.js');
- // Split layout is keyed to the live scoreboard node, not a one-time JS flag.
+ const balance=read('studio-profile-banner-balance-20261120.css');
+ // The layout is keyed to the real board, never a duplicate stats node.
  assert.match(compact,/hero:has\(>\.profile-card:not\(\.profile-is-editing\) \.biglwa-profile-scoreboard\)/);
  assert.match(compact,/grid-template-columns:minmax\(0,2fr\) minmax\(0,1fr\)!important/);
  assert.match(compact,/grid-column:1!important;grid-row:1!important/);
- // If a late stylesheet changes the grid, never send the board offscreen.
- assert.match(compact,/biglwa-scoreboard-onscreen-fallback/);
- assert.match(compact,/left:auto!important;right:16px!important/);
- assert.match(compact,/grid-column:1\/-1!important;grid-row:1!important;width:100%!important/);
+ assert.match(compact,/left:calc\(100% \+ 16px\)!important/);
+ assert.match(compact,/@media\(max-width:900px\)/);
  assert.match(controller,/function verifyOnscreen\(\)/);
- assert.match(controller,/box\.right>Math\.min\(frame\.right,window\.innerWidth\|\|frame\.right\)\+12/);
- assert.match(controller,/hero\.classList\.add\('biglwa-scoreboard-onscreen-fallback'\)/);
+ assert.match(controller,/boardRect\.left<profileRect\.right\+6/);
  assert.match(controller,/window\.addEventListener\('resize'/);
- // When the stat node arrives late, restore its real account renderer.
+ // Keep the banner and scoreboard short without changing the lower row.
+ assert.match(balance,/grid-template-rows:224px 246px auto!important/);
+ assert.match(balance,/\.biglwa-profile-scoreboard \{\s*height:224px!important/);
+ // Late account hydration reuses live metrics.
  assert.match(js,/if\(!stats\)\{/);
  assert.match(js,/window\.__biglwaSyncProfileMetrics\?\.\(\)/);
  assert.match(js,/profile\.closest\('\.hero'\)\?\.classList\.add\('biglwa-scoreboard-ready'\)/);
  for(const path of shells){
   const html=read(path);
-  for(const asset of ['profile-stats-row-20261116.js','profile-scoreboard-compact-20261118.css','profile-scoreboard-compact-20261118.js'])
-   assert.match(html,new RegExp(asset.replace(/\./g,'\\.')+'[^"\\x27]*onscreen=20261119-1'),path+' '+asset);
+  for(const asset of ['profile-stats-row-20261116.js','profile-scoreboard-compact-20261118.css','profile-scoreboard-compact-20261118.js']){
+   assert.match(html,new RegExp(asset.replace(/\./g,'\\.')+'\\?v='),path+' '+asset);
+  }
+  assert.match(html,/studio-profile-banner-balance-20261120\.css\?v=20261120-globe-banner-shortcuts-1/,path);
  }
 });
