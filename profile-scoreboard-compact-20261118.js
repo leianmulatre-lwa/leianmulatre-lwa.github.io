@@ -45,7 +45,7 @@
   if(!area||area.querySelector('.skeleton-scoreboard-prefs'))return;
   const block=document.createElement('div');block.className='skeleton-scoreboard-prefs';
   block.setAttribute('aria-label','Scoreboard appearance');
-  block.innerHTML='<strong>Profile scoreboard · colors</strong>'+
+  block.innerHTML='<strong>Real rankings · colors</strong>'+
     '<label>LED text <input id="skeletonScoreboardColor" type="color" aria-label="Scoreboard LED text color" value="#d85f6d"></label>'+
     '<button type="button" id="skeletonScoreboardUseAura">Use current Aura</button>'+
     '<label>Outer frame <select id="skeletonScoreboardPlate" aria-label="Scoreboard outer frame"><option value="maroon">Maroon red</option><option value="clear">Clear</option></select></label>'+
