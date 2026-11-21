@@ -53,16 +53,42 @@
   const highlights=profile.querySelector('.biglwa-stories-ribbon');
   if(highlights&&line.nextElementSibling!==highlights)line.after(highlights);
   if(highlights?.parentElement===line)line.after(highlights);
-  const rankLabel=profile.querySelector('.real-rank .rank-label');
-  if(rankLabel&&rankLabel.textContent.trim()!=='REAL ✦ RANK')rankLabel.textContent='REAL ✦ RANK';
   const rank=profile.querySelector(':scope > .real-rank');
+  // Hydrated profiles could leave REAL RANK above the Edit Profile button.
+  // Keep the ONE real label beside the existing title, progress and next rank.
+  const rankLabel=rank?.querySelector('.rank-label')||
+    profile.closest('.profile-card')?.querySelector('.profile-identity-rail .rank-label,.biglwa-rank-rail-label');
+  const rankTitle=rank?.querySelector('strong');
+  if(rank&&rankLabel&&rankLabel.parentElement!==rank)rank.insertBefore(rankLabel,rankTitle||rank.firstChild);
+  if(rankLabel&&rankLabel.textContent.trim()!=='REAL ✦ RANK')rankLabel.textContent='REAL ✦ RANK';
+  if(rankTitle){
+   rankTitle.setAttribute('role','link');
+   rankTitle.setAttribute('tabindex','0');
+   rankTitle.setAttribute('aria-label','View '+(rankTitle.textContent.trim()||'Real Rank')+' in Trophies');
+   rankTitle.setAttribute('title','Open Trophies');
+  }
   if(highlights&&rank&&(highlights.compareDocumentPosition(rank)&Node.DOCUMENT_POSITION_PRECEDING))rank.before(highlights);
  }
  function schedule(){
   if(requested)return;requested=true;requestAnimationFrame(align);
  }
+ function openRankTrophies(event){
+  const target=event.target?.closest?.('#studioApp .profile-card:not(.profile-is-editing) .real-rank strong[role="link"]');
+  if(!target)return;
+  if(event.type==='keydown'&&!['Enter',' '].includes(event.key))return;
+  event.preventDefault();
+  if(typeof window.openBIGLWAModule==='function'){
+   window.openBIGLWAModule('trophies');
+   return;
+  }
+  // Use the site's existing trophies launcher when the module router is
+  // not yet initialized. Do not create a second URL or a dummy button.
+  document.querySelector('#studioApp [data-sidebar-route="trophies"],#studioApp [data-open="trophies"],#studioApp [data-widget-route="trophies"]')?.click();
+ }
  function init(){
   schedule();
+  document.addEventListener('click',openRankTrophies);
+  document.addEventListener('keydown',openRankTrophies);
   const host=document.querySelector('#studioApp')||document.body;
   const observer=new MutationObserver(list=>{
    if(list.some(x=>x.type==='childList'&&

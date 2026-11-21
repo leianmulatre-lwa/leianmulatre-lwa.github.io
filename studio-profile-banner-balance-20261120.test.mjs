@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
+import vm from 'node:vm';
 
 const read=path=>readFileSync(new URL('./'+path,import.meta.url),'utf8');
 const css=read('studio-profile-banner-balance-20261120.css');
@@ -12,10 +13,10 @@ test('weekly mood is absent from nonediting profile, without deleting account da
   assert.doesNotMatch(css,/localStorage|setDoc|removeChild|replaceChildren/);
 });
 
-test('the banner and independent scoreboard share a short first row',()=>{
-  assert.match(css,/grid-template-rows:224px 246px auto!important/);
-  assert.match(css,/>\.profile-card:not\(\.profile-is-editing\) \{\s*height:224px!important;min-height:224px!important;max-height:224px!important/);
-  assert.match(css,/\.profile-card:not\(\.profile-is-editing\) \.biglwa-profile-scoreboard \{\s*height:224px!important/);
+test('the banner and independent scoreboard share a 246px first row, lower widgets retain 206px',()=>{
+  assert.match(css,/grid-template-rows:246px 206px auto!important/);
+  assert.match(css,/>\.profile-card:not\(\.profile-is-editing\) \{\s*height:246px!important;min-height:246px!important;max-height:246px!important/);
+  assert.match(css,/\.profile-card:not\(\.profile-is-editing\) \.biglwa-profile-scoreboard \{\s*height:246px!important/);
   assert.match(css,/grid-column:1\/-1!important;grid-row:3!important/);
 });
 
@@ -31,15 +32,61 @@ test('loading globe and block sprites are reused, with accessible reduced motion
   assert.match(css,/pointer-events:none;user-select:none/);
 });
 
-test('scoreboard LWA uses Stitch while live counts retain Alarm Clock',()=>{
+test('center scoreboard emblem is the animated pixel blocks, not stitched LWA text',()=>{
   const existing=read('profile-scoreboard-compact-20261118.css');
-  assert.match(css,/\.biglwa-profile-scoreboard>\.stats\.stats::after \{\s*font-family:"CS Bergamot Stitched"/);
+  assert.match(css,/\.biglwa-profile-scoreboard>\.stats\.stats::after \{\s*content:""!important/);
+  assert.match(css,/background:transparent url\("\/assets\/loading-blocks-pixel-20261029\.png"\)/);
+  assert.match(css,/\.biglwa-profile-scoreboard::after \{\s*display:none!important/);
+  assert.match(css,/\.biglwa-scoreboard-header::before \{\s*content:"✦"!important/);
   assert.match(existing,/font-family:"BIGLWA Alarm Clock"/);
 });
+
+test('shortcut rail fills the masonry width and bottom widgets keep original height',()=>{
+  assert.match(css,/\.hero:has\(>\.profile-card:not\(\.profile-is-editing\) \.biglwa-profile-scoreboard\)\s*>\.mobile-dock\.hero-action-bar \{[\s\S]*?width:100%!important/);
+  assert.match(css,/--studio-upper-card-height:206px!important/);
+  assert.doesNotMatch(css,/width:min\(980px/);
+});
+
 
 test('each Studio entry loads the cache-busted stylesheet',()=>{
   for(const shell of shells){
     const html=read(shell);
-    assert.equal(html.split('studio-profile-banner-balance-20261120.css?v=20261120-globe-banner-shortcuts-1').length-1,1,shell);
+    assert.equal(html.split('studio-profile-banner-balance-20261120.css?v=20261120-globe-banner-shortcuts-1&ranklayout=20261121-1').length-1,1,shell);
   }
+});
+
+test('clicking Chopped opens the existing Trophies module, including keyboard access',()=>{
+ const source=read('profile-stats-row-20261116.js');
+ assert.match(source,/rankTitle\.setAttribute\('role','link'\)/);
+ assert.match(source,/rankTitle\.setAttribute\('tabindex','0'\)/);
+ assert.match(source,/rank\.insertBefore\(rankLabel,rankTitle\|\|rank\.firstChild\)/);
+ const listeners={}; const opened=[]; let prevented=0;
+ const profile={querySelector(){return null}};
+ const document={
+  readyState:'complete',
+  body:{},
+  querySelector(selector){
+   if(selector==='#studioApp')return {};
+   if(selector.includes('.profile-card:not(.profile-is-editing) .profile-copy'))return profile;
+   return null;
+  },
+  addEventListener(type,callback){(listeners[type]??=[]).push(callback)}
+ };
+ const scope={
+  window:{addEventListener(){},openBIGLWAModule(key){opened.push(key)}},
+  document,
+  MutationObserver:class{observe(){}},
+  requestAnimationFrame(cb){cb()},
+  Node:{DOCUMENT_POSITION_PRECEDING:4}
+ };
+ vm.runInNewContext(source,scope,{timeout:1500});
+ const target={closest(selector){return selector.includes('real-rank strong[role="link"]')?{}:null}};
+ const event={type:'click',target,preventDefault(){prevented++}};
+ listeners.click[0](event);
+ assert.deepEqual(opened,['trophies']);
+ assert.equal(prevented,1);
+ listeners.keydown[0]({...event,type:'keydown',key:'Escape'});
+ assert.equal(opened.length,1);
+ listeners.keydown[0]({...event,type:'keydown',key:'Enter'});
+ assert.deepEqual(opened,['trophies','trophies']);
 });
