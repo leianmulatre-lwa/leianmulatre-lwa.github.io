@@ -123,12 +123,12 @@
     function sectionId(title){return 'bl-section-'+String(title).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
     // Use the same symbols as the Studio/Skeleton Key, not unrelated emoji or initials.
     function sectionSymbol(title){
-      const route=/^all$/i.test(title)?'veve':/images?/i.test(title)?'feed':/politic/i.test(title)?'politc':/research/i.test(title)?'tools':/stream|video/i.test(title)?'stream':/people|users/i.test(title)?'connect':/books|herstory/i.test(title)?'library':/sqwidz/i.test(title)?'notes':/songs/i.test(title)?'music':/place|map/i.test(title)?'map':/widget/i.test(title)?'studio':null;
+      const route=/^all$/i.test(title)?'veve':/images?/i.test(title)?'feed':/politic|politque/i.test(title)?'politc':/research/i.test(title)?'tools':/stream|video/i.test(title)?'stream':/people|users/i.test(title)?'connect':/books|herstory/i.test(title)?'library':/sqwidz/i.test(title)?'notes':/songs/i.test(title)?'music':/place|map/i.test(title)?'map':/widget/i.test(title)?'studio':null;
       if(route&&window.BigLWADiscoveryExtras?.symbol){const art=window.BigLWADiscoveryExtras.symbol(route);return /^herstory$/i.test(title)?'<span class="bl-herstory-symbol">'+art+'</span>':art;}
       if(/^all$/i.test(title))return '<span class="bl-veve-symbol" aria-hidden="true">✺</span>';
       if(/^images?$/i.test(title))return '<img src="/assets/feed-symbol-generated.png" alt="" loading="lazy">';
       if(/^herstory$/i.test(title))return '<span class="bl-herstory-symbol" aria-hidden="true">'+sectionSymbol('Books')+'</span>';
-      var type=/jobs?|career/i.test(title)?'tools':/image/i.test(title)?'feed':/politic/i.test(title)?'politc':/research/i.test(title)?'research':/book/i.test(title)?'library':/stream|video|cinema/i.test(title)?'stream':/sqwidz/i.test(title)?'notes':/user|people/i.test(title)?'connect':/song/i.test(title)?'music':/place|map/i.test(title)?'map':/widget/i.test(title)?'studio':'archive';
+      var type=/jobs?|career/i.test(title)?'tools':/image/i.test(title)?'feed':/politic|politque/i.test(title)?'politc':/research/i.test(title)?'research':/book/i.test(title)?'library':/stream|video|cinema/i.test(title)?'stream':/sqwidz/i.test(title)?'notes':/user|people/i.test(title)?'connect':/song/i.test(title)?'music':/place|map/i.test(title)?'map':/widget/i.test(title)?'studio':'archive';
       if(type==='politc')return '<img src="/assets/politc-nyame-baatanpa.svg" alt="" loading="lazy">';
       if(type==='research')return '<img src="/assets/tools-hand-eye.svg" alt="" loading="lazy">';
       var selectors=[
