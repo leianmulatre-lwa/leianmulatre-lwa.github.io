@@ -3,7 +3,7 @@
  */
 (()=>{'use strict';
  if(window.__biglwaPolicyFamily20261116)return;window.__biglwaPolicyFamily20261116=true;
- const pages=[['legal','Important'],['about','About'],['privacy','Privacy'],['terms','Terms'],['rights','Rights & Likeness'],['affidavit','Good Faith']];
+ const pages=[['legal','LWA & Order'],['about','About'],['privacy','Privacy'],['terms','Terms'],['rights','Rights & Likeness'],['affidavit','Good Faith']];
  function mount(){
   const active=location.pathname.split('/').filter(Boolean)[0]||'';
   if(!pages.some(([id])=>id===active))return;
@@ -13,7 +13,7 @@
   if(!shell&&!legal&&!about)return;
   if(document.querySelector('.policy-family-nav'))return;
   const nav=document.createElement('nav');
-  nav.className='policy-family-nav';nav.setAttribute('aria-label','Important and legal page family');
+  nav.className='policy-family-nav';nav.setAttribute('aria-label','LWA and Order page family');
   for(const [id,title] of pages){
    const link=document.createElement('a');link.href='/'+id+'/';link.textContent=title;
    if(id===active)link.setAttribute('aria-current','page');
