@@ -678,7 +678,7 @@
   // routes *before* drawing shortcut rows. Never mutate account layout here.
   const SIDEBAR_ROUTE_FALLBACKS=[
     ['studio','Studio','<img src="/assets/studio-tipi-symbol.svg?v=20261026-1" alt="" aria-hidden="true">'],
-    ['politc','Politic','<img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="">'],
+    ['politc','Politque','<img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="">'],
     ['tools','lwazi','<img src="/assets/tools-hand-eye.svg" alt="">'],
     ['calendar','Calendar','▦'],
     ['map','Map','⌖'],
@@ -922,7 +922,7 @@
     const civic=$('#politc',app);
     if(civic&&!navigationCatalog.has('politc')){
       navigationCatalog.set('politc',{
-        key:'politc',label:'Politic',href:'#politc',policyRoute:'',
+        key:'politc',label:'Politque',href:'#politc',policyRoute:'',
         symbolHTML:widgetIconMarkup(civic)||'<img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="">',
         order:-1
       });
