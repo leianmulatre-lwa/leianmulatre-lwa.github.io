@@ -142,7 +142,9 @@ jobs:
             mkdir -p "$RUNNER_TEMP/known-good-pages"
             gh run download "$previous_run" --name github-pages --dir "$RUNNER_TEMP/known-good-pages"
             test -s "$RUNNER_TEMP/known-good-pages/artifact.tar"
-            tar -tf "$RUNNER_TEMP/known-good-pages/artifact.tar" | grep -Eq '^\\./bigapps/lightR/index\\.html
+            tar -xf "$RUNNER_TEMP/known-good-pages/artifact.tar" --no-same-owner -C . ./bigapps ./craftapps
+          fi
+          python3 - <<'PY'
           import json
           from pathlib import Path
           manifest=json.loads(Path('bigapps/manifest.json').read_text())
