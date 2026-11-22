@@ -336,7 +336,7 @@
   .hero .profile-card:not(.profile-is-editing) .profile-copy>.biglwa-stories-ribbon .biglwa-stories-track{
     display:flex!important;flex-flow:row nowrap!important;
     grid-template-columns:none!important;align-items:flex-start!important;
-    justify-content:flex-start!important;gap:8px!important;
+    justify-content:space-between!important;gap:clamp(14px,3%,36px)!important;
     flex:1 1 auto!important;width:100%!important;max-width:100%!important;
     min-width:0!important;max-height:75px!important;
     padding:2px!important;box-sizing:border-box!important;
