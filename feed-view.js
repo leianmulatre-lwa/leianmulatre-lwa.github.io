@@ -149,7 +149,9 @@ const rimOf = (source) => (SOURCE_THEMES[String(source || "").toLowerCase()] || 
 // Exactly one visible offset shadow; source glows are not a second key.
 const shadowOf = (source) => '3px 3px 0 ' + rimOf(source);
 const safeAura = value => /^#[0-9a-fA-F]{6}$/.test(String(value||''))?String(value):'';
-function postShadow(post,managed,source){
+// Sponsored posts stay outside the MyFeed personal media view.
+ const isSponsoredPost=post=>post?.isAd===true||post?.sponsored===true||post?.advertisement===true;
+ function postShadow(post,managed,source){
   if(post?.isAd===true||post?.sponsored===true||post?.advertisement===true)
     return {kind:'ad',rim:'#ffffff',shadow:'3px 3px 0 #ffffff'};
   // These are author-owned imported links, not anonymous platform advertisements.
@@ -780,7 +782,7 @@ function renderHero(force) {
   const previewPosts=isPublicProfile?posts:(verifiedUid&&studioOwnerUid===verifiedUid?studioOwnPosts:[]);
   const ownerKey=(isPublicProfile?'public:':'owner:')+(isPublicProfile?String(window.__biglwaViewedProfile?.uid||''):verifiedUid);
   if(heroOwnerKey!==ownerKey){heroOwnerKey=ownerKey;heroSelectedKeys=[];heroFailedUrls.clear();}
-  const storedPosts=previewPosts.filter(post=>post.state==='approved'&&heroPhotoUrl(post)&&!heroFailedUrls.has(heroPhotoUrl(post)));
+  const storedPosts=previewPosts.filter(post=>!isSponsoredPost(post)&&post.state==='approved'&&heroPhotoUrl(post)&&!heroFailedUrls.has(heroPhotoUrl(post)));
   const requiresSync=previewPosts.some(post=>post.orbitImported&&
     ['instagram','pinterest'].includes(String(post.source||'').toLowerCase())&&!pictureUrls(post).length);
   // No member-published pictures? Never display fixed sample photographs.
@@ -1123,7 +1125,7 @@ function renderPosts(force) {
   list.querySelectorAll(".biglwa-pin-post").forEach((node) => node.remove());
   stopSlideshows(true);
   if (!posts.length) return;
-  const scoped=posts.filter(usablePost).filter(post=>{
+  const scoped=posts.filter(usablePost).filter(post=>!isSponsoredPost(post)).filter(post=>{
     if(feedAppFilter==='all')return true;
     const source=String(post.source||'').toLowerCase();
     if(feedAppFilter==='pinterest')return source==='pinterest'||/https?:\/\/(?:www\.)?pinterest\./i.test(String(post.sourceUrl||''));
