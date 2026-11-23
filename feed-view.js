@@ -1125,7 +1125,8 @@ function renderPosts(force) {
   list.querySelectorAll(".biglwa-pin-post").forEach((node) => node.remove());
   stopSlideshows(true);
   if (!posts.length) return;
-  const scoped=posts.filter(usablePost).filter(post=>!isSponsoredPost(post)).filter(post=>{
+  const scoped=posts.filter(usablePost).filter(post=>{
+    if(isSponsoredPost(post))return false;
     if(feedAppFilter==='all')return true;
     const source=String(post.source||'').toLowerCase();
     if(feedAppFilter==='pinterest')return source==='pinterest'||/https?:\/\/(?:www\.)?pinterest\./i.test(String(post.sourceUrl||''));

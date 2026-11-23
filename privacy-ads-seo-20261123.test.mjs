@@ -35,7 +35,7 @@ test('settings and public routes expose privacy and rejection',()=>{
 });
 test('feed omits paid records and sponsored inventory stays separate',()=>{
  const feed=read('feed-view.js');
- assert.match(feed,/filter\(post=>!isSponsoredPost\(post\)\)/);
+ assert.match(feed,/if\(isSponsoredPost\(post\)\)return false/);
  assert.match(feed,/previewPosts\.filter\(post=>!isSponsoredPost\(post\)/);
  assert.match(read('ads-sponsor-20261123.css'),/background:#fff!important/);
  assert.match(read('veve.js'),/No sponsored placements/);
