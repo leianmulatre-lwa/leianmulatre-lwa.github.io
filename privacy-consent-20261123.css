@@ -1,0 +1,13 @@
+#biglwaPrivacyLauncher{position:fixed;left:12px;bottom:12px;z-index:2147482200;border:1px solid #a9696c;border-radius:999px;padding:7px 12px;background:#fffaf5;color:#55272c;font:700 12px system-ui;box-shadow:0 2px 10px #16050926;cursor:pointer}
+#biglwaPrivacyChoices{position:fixed;inset:0;z-index:2147483001;display:grid;place-items:center;padding:18px;background:#18090ec2;color:#342128;font:15px/1.5 system-ui}
+.biglwa-privacy-panel{box-sizing:border-box;background:#fffaf3;border:1px solid #c79da3;border-radius:18px;width:min(590px,94vw);max-height:92vh;overflow-y:auto;padding:clamp(18px,4vw,30px);box-shadow:0 16px 46px #1005095c}
+.biglwa-privacy-panel h2{font:700 clamp(26px,5vw,37px)/1.12 Georgia,serif;margin:4px 0 12px;color:#351d23}
+.biglwa-privacy-panel p{margin:10px 0 16px}.biglwa-privacy-kicker{font-size:11px;font-weight:800;letter-spacing:.12em;color:#9e3b4a}
+.biglwa-privacy-row{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:12px 0;border-top:1px solid #e4d2cf}
+.biglwa-privacy-row>span:first-child,.biglwa-privacy-row>div{display:grid;gap:4px}.biglwa-privacy-row strong{font-size:14px}
+.biglwa-privacy-row small,.biglwa-privacy-row>span:last-child{color:#675861;font-size:12px}.biglwa-privacy-row input{width:20px;height:20px;accent-color:#aa354d;flex:none}
+.biglwa-privacy-ad-note{background:#f7edf0;border-left:3px solid #a7334b;padding:10px 13px;font-size:12px}
+.biglwa-privacy-actions{display:flex;flex-wrap:wrap;gap:8px}.biglwa-privacy-actions button{font:700 13px system-ui;cursor:pointer;border-radius:9px;min-height:39px;padding:9px 13px;border:1px solid #9d4d5b;background:#fff;color:#662331}
+.biglwa-privacy-actions [data-privacy-action=accept]{background:#64202e;color:#fff}.biglwa-privacy-links{font-size:12px}.biglwa-privacy-links a{color:#7c3040}
+#biglwaPrivacyLauncher:focus-visible,.biglwa-privacy-panel :focus-visible{outline:3px solid #bc3856;outline-offset:3px}
+@media(max-width:500px){.biglwa-privacy-actions button{flex:1 1 100%}}

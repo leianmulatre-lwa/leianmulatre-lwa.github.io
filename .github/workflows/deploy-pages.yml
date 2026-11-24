@@ -75,6 +75,7 @@ jobs:
           node --check lwazi-link-tools-20261114.js
           node --test lwazi-link-tools-20261114.test.mjs
           node --test free-tools-seo-20261114.test.mjs
+          node --test privacy-ads-seo-20261123.test.mjs
           node --check lwazi-discovery-extras.js
           node --test discovery-seo-20261115.test.mjs
           node --check gt6-live-preview-20261118.js
