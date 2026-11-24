@@ -15,7 +15,8 @@ test('first-party privacy UI and sponsor guard parse without loading Google ads'
  assert.match(consent,/These choices do not give permission for advertising/);
  assert.match(consent,/Our free tools are available either way/);
  assert.match(consent,/biglwa:privacy-changed/);
- assert.match(consent,/not automatically uploaded/i);
+ assert.match(consent,/This information stays on your device and is never uploaded\./i);
+ assert.match(consent,/<strong>We never sell your personal data or creative work\.<\/strong>/);
  assert.match(ads,/enabled:false,certifiedCmpPublished:false,publisherApproved:false/);
  assert.match(ads,/Sponsored · Advertisement/);
  assert.match(ads,/profile-photos/);
