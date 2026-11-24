@@ -163,3 +163,13 @@ test('inner perimeter stitching and clock spacing preserve the tile; blocks anim
  assert.match(css,/@media \(prefers-reduced-motion:no-preference\) \{\s*#studioApp#studioApp#studioApp:has\(#lwaProfileLoading:not\(\[hidden\]\) \.lwa-profile-loading-label:not\(\[hidden\]\)\)/);
  for(const shell of shells)assert.match(read(shell),/studio-profile-banner-balance-20261120\.css\?[^"']*seam=20261124-2/);
 });
+
+test('rank rail and rank track use the same baseline and full available width',()=>{
+ const rules=css.slice(css.indexOf('/* The rail already owns REAL ★ RANK'));
+ assert.match(rules,/grid-template-columns:max-content minmax\(0,1fr\) max-content!important/);
+ assert.match(rules,/\.rank-track\{\s*grid-row:1!important;grid-column:2!important;align-self:center!important;\s*justify-self:stretch!important;width:100%!important;max-width:none!important/);
+ assert.match(rules,/\.real-rank-label\{\s*position:absolute!important;inset:auto 0 3px 0!important;\s*height:28px!important/);
+ assert.match(rules,/flex:0 0 28px!important;height:28px!important/);
+ assert.match(rules,/text-align:center!important;justify-content:center!important/);
+ for(const shell of shells)assert.match(read(shell),/studio-profile-banner-balance-20261120\.css\?[^"']*rankline=20261124-3/);
+});

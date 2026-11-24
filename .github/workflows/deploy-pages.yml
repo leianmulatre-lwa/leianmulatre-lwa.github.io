@@ -342,6 +342,7 @@ jobs:
             grep -Fq 'clock=20261124-1' "dist/public/$entry"
             grep -Fq 'stitch=20261124-1' "dist/public/$entry"
             grep -Fq 'seam=20261124-2' "dist/public/$entry"
+            grep -Fq 'rankline=20261124-3' "dist/public/$entry"
           done
           test ! -e dist/public/third_party
           test ! -e dist/public/.github
