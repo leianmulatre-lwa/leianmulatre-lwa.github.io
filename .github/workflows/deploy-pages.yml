@@ -163,7 +163,8 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+    # Keep the production browser smoke on the same supported OS as native builds.
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -325,6 +326,21 @@ jobs:
           test -f dist/public/legal/index.html
           test -f dist/public/map-app.html
           test -f dist/public/bigapps/manifest.json
+          # The actual published payload must contain the pending Studio fixes,
+          # not merely pass tests against files in the repository.
+          grep -Fq 'REAL ★ RANKINGS' dist/public/profile-stats-row-20261116.js
+          grep -Fq 'REAL ★ RANK' dist/public/profile-stats-row-20261116.js
+          grep -Fq 'biglwa-scoreboard-lights' dist/public/profile-stats-row-20261116.js
+          grep -Fq 'scoreboardClock' dist/public/profile-scoreboard-compact-20261118.js
+          grep -Fq 'outline:1px dashed rgba(255,255,255,.88)' dist/public/studio-profile-banner-balance-20261120.css
+          grep -Fq 'width:min(100%,8ch)' dist/public/studio-profile-banner-balance-20261120.css
+          grep -Fq 'Enlarge Aura widget' dist/public/studio-experience.js
+          grep -Fq 'Add an avatar through Edit profile' dist/public/avatar-studio-bitmoji-20261017-v3.js
+          for entry in index.html studio/index.html 404.html live-studio-shell.html; do
+            grep -Fq 'rankstars=20261124-1' "dist/public/$entry"
+            grep -Fq 'clock=20261124-1' "dist/public/$entry"
+            grep -Fq 'stitch=20261124-1' "dist/public/$entry"
+          done
           test ! -e dist/public/third_party
           test ! -e dist/public/.github
           test ! -e dist/public/docs
