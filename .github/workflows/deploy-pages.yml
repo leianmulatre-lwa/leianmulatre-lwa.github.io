@@ -241,6 +241,7 @@ jobs:
           node --test geez-calendar-mode-test.mjs
           node booth-vanity-preflight-test.mjs
           node --check pinterest-orbit.js
+          node --test orbit-instagram-personal-access.test.mjs
           node --check stream-guide.js
           node lwazi-search-regression-test.mjs
           node --test lwazi/search-experience.test.mjs lwazi/music-jobs-integration.test.mjs

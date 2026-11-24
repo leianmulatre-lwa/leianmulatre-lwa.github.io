@@ -34,7 +34,7 @@
       const done=()=>{if(finished)return;finished=true;clearTimeout(timeout);resolve(window.openBIGLWAModule||window.BigLWAOpenModule||null);};
       // Index normally injects the same module bundle. Reuse it rather than
       // executing module-pages twice while Studio is still mounting.
-      const current='/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&studioTour=20261116-1&desk=20261116-2';
+      const current='/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&studioTour=20261116-1&desk=20261116-2&igpersonal=20261124-1';
       const present=[...document.scripts].find(script=>script.getAttribute('src')?.includes('/module-pages.js?'));
       const timeout=setTimeout(done,7000);
       if(present){

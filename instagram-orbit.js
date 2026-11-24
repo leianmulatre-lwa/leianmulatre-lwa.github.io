@@ -167,7 +167,16 @@
   }
   /* /studio is a stub that rebuilds the query and would drop the handoff code, so the
      return goes to the site root the app actually runs from. */
-  function connect() { window.location.assign(API + '/oauth/start?return_to=' + encodeURIComponent(window.location.origin + '/studio?view=orbit&orbit_return=1')); }
+  // A personal profile link is available without Meta OAuth. Never send
+  // a member into Business Login unless they explicitly choose live sync.
+  function connect(options) {
+    if(options?.professional!==true){
+      if(typeof window.openBIGLWAModule==='function')window.openBIGLWAModule('orbit');
+      else status('Open Orbit to link your personal Instagram or authorize live sync.');
+      return;
+    }
+    window.location.assign(API + '/oauth/start?return_to=' + encodeURIComponent(window.location.origin + '/studio?view=orbit&orbit_return=1'));
+  }
   async function restore({silent=false}={}) {
     // The canonical connection belongs to the authenticated account on the
     // Worker, not this device. Refresh it first on every restore.
@@ -275,8 +284,9 @@
   function disconnect() { return api('/instagram/disconnect', { method: 'POST' }).catch(function () {}).then(function () { saveSession(''); state.connected = false; state.profile = null; state.media = []; state.hostedById = {}; render(); status('Instagram disconnected from Orbit.'); }); }
   function render() {
     try {
-      all('[data-orbit-app="instagram"]').forEach(function (tile) { tile.classList.toggle('orbit-connected', state.connected); tile.setAttribute('aria-label', state.connected ? 'View connected Instagram account' : 'Connect Instagram'); var small = one('small', tile); if (small) small.textContent = state.connected ? 'Connected' : 'Connect'; });
-      all('[data-orbit-path="instagram"]').forEach(function (input) { var row = input.closest('.module-orbit-row'); var actions = row ? one('.module-actions', row) : null; if (!actions) return; var button = one('[data-instagram-connect]', actions); if (!button) { button = document.createElement('button'); button.type = 'button'; button.className = 'module-action'; button.setAttribute('data-instagram-connect', '1'); actions.insertBefore(button, actions.firstChild); } button.textContent = state.connected ? 'Connected' : 'Connect Instagram'; button.setAttribute('aria-pressed', state.connected ? 'true' : 'false'); });
+      const linked=!!window.BigLWAOrbitAccountLinks?.get?.().instagram;
+      all('[data-orbit-app="instagram"]').forEach(function (tile) { tile.classList.toggle('orbit-connected', state.connected); tile.classList.toggle('is-linked',linked); tile.setAttribute('aria-label', state.connected ? 'View connected Instagram account' : 'Manage Instagram profile link or live sync'); var small = one('small', tile); if (small) small.textContent = state.connected ? 'Connected' : linked ? 'Linked' : 'Link'; });
+      all('[data-orbit-path="instagram"]').forEach(function (input) { var row = input.closest('.module-orbit-row'); var actions = row ? one('.module-actions', row) : null; if (!actions) return; if(one('[data-orbit-connect="instagram"]',actions)){one('[data-instagram-connect]',actions)?.remove();return;} var button = one('[data-instagram-connect]', actions); if (!button) { button = document.createElement('button'); button.type = 'button'; button.className = 'module-action'; button.setAttribute('data-instagram-connect', '1'); actions.insertBefore(button, actions.firstChild); } button.textContent = state.connected ? 'Connected' : 'Manage Instagram'; button.setAttribute('aria-pressed', state.connected ? 'true' : 'false'); });
       renderFeed();
     } catch (error) { console.error('BIGLWA Instagram render isolated:', error); }
   }
@@ -558,6 +568,7 @@
     }
  var target = event.target && event.target.closest ? event.target : null; if (!target) return; if (target.closest('[data-orbit-app="instagram"],[data-instagram-connect]')) { event.preventDefault(); event.stopImmediatePropagation(); if(!state.connected)connect(); else window.openBIGLWAModule?.('orbit'); return; } if (target.closest('[data-instagram-disconnect]')) { event.preventDefault(); disconnect(); return; } if (target.closest('[data-open="orbit"],[data-open="feed"]')) setTimeout(render, 80); }, true);
   window.__biglwaInstagramOrbit = { connect: connect, disconnect: disconnect, restore: restore, state: state, render: render, renderFeed: renderFeed };
+  window.addEventListener('biglwa:orbit-links-synced',render);
   // Do not touch providers until a persisted Big LWA Firebase account has
   // actually been restored. Provider errors have no right to change login.
   function bootProvider(){
