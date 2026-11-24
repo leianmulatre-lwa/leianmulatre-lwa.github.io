@@ -1,7 +1,7 @@
 {
-  "tag": "biglwa-native-20261023",
+  "tag": "biglwa-native-recovered-45347087655-1",
   "archive": "biglwa-native-editors.tar.gz",
-  "archive_sha256": "65ecb5b92cdb92ec97e8844db512ecd2be6a698bec5efb9161f0aff6e6add918",
+  "archive_sha256": "bb1336e849dc21ac2513344ca3ff5ba6016de561cd0d81d0276e267cd09706fd",
   "source_sha": "279c52ddbe4d11f3309b331755c7daa08402f12a",
   "lightR_sha": "688c579b3dada389b62c8fad95a024bff1a78564"
 }
