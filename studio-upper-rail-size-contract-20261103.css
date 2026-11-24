@@ -508,3 +508,89 @@ body.night-mode #studioApp #minimizedWidgetDock .sidebar-route-icon img:is([src*
 /* Compact stereo retains room for title and seek control. */
 html body #studioApp .music-card.stereo-music-widget.studio-upper-square .stereo-shell .stereo-time-scale>.stereo-eq{height:22px!important;min-height:22px!important;max-height:22px!important}
 html body #studioApp .music-card.stereo-music-widget .stereo-time-scale>.stereo-eq>i{height:100%!important;transform-origin:center bottom!important;animation:none!important;transition:none!important}
+
+/* Tunes hardware face: responsive boombox, same outer rail geometry and player. */
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked){
+ container-type:inline-size;padding:36px 9px 9px!important;
+ background:linear-gradient(115deg,#484c4f,#242729 20%,#17191a 60%,#3e4244)!important;
+ box-shadow:inset 0 0 0 2px #17191a,inset 0 0 0 4px #777c7d77,0 3px 8px #0003!important;
+}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked)>.stereo-shell{
+ display:grid!important;grid-template-columns:minmax(42px,22%) minmax(0,1fr) minmax(42px,22%)!important;
+ grid-template-rows:22px minmax(0,1fr) 28px!important;gap:5px!important;
+ width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;overflow:visible!important;
+}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked) .stereo-shell>.stereo-tuner{
+ grid-column:1/-1!important;grid-row:1!important;height:22px!important;min-height:22px!important;max-height:22px!important;
+ border:3px solid #81878a!important;border-radius:3px!important;
+ background:linear-gradient(#131b15,#050906)!important;box-shadow:0 1px 2px #000,inset 0 0 0 1px #070907!important;
+}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked) .stereo-shell>.stereo-face{display:contents!important}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked) .stereo-shell .stereo-speaker{
+ position:relative!important;grid-row:2/4!important;align-self:stretch!important;justify-self:stretch!important;
+ width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;
+ max-width:none!important;max-height:none!important;aspect-ratio:auto!important;
+ border:1px solid #08090a!important;border-radius:5px!important;
+ background:radial-gradient(circle at 5px 5px,#c6c9c8 0 1px,#24282a 1.5px 2.5px,transparent 3px),
+ radial-gradient(circle at calc(100% - 5px) 5px,#c6c9c8 0 1px,#24282a 1.5px 2.5px,transparent 3px),
+ radial-gradient(circle at 5px calc(100% - 5px),#c6c9c8 0 1px,#24282a 1.5px 2.5px,transparent 3px),
+ radial-gradient(circle at calc(100% - 5px) calc(100% - 5px),#c6c9c8 0 1px,#24282a 1.5px 2.5px,transparent 3px),
+ linear-gradient(145deg,#8d9193,#383b3d 45%,#181a1c 72%,#676c6e)!important;
+ box-shadow:inset 0 0 0 2px #a0a4a466,0 1px 2px #000!important;
+}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked) .stereo-face>.stereo-speaker:first-child{grid-column:1!important}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked) .stereo-face>.stereo-speaker:last-child{grid-column:3!important}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked) .stereo-speaker::before{
+ content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+ width:min(calc(100% - 8px),112px);aspect-ratio:1;box-sizing:border-box;
+ border:3px solid #a9adae;border-radius:50%;
+ background:radial-gradient(circle at 1px 1px,#737778 0 .6px,#121415 1px 1.6px,transparent 2px) 0 0/4px 4px,
+ radial-gradient(circle at 40% 32%,#505557,#111315 68%,#060708);
+ box-shadow:0 0 0 2px #17191a,0 0 0 3px #727879,inset 0 0 0 3px #26292a,inset 0 0 12px #000;
+}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked) .stereo-speaker::after{
+ content:"";position:absolute;inset:auto!important;left:50%!important;top:50%!important;
+ transform:translate(-50%,-50%)!important;width:clamp(12px,24%,28px);aspect-ratio:1;border-radius:50%;
+ border:1px solid #656a6c;background:conic-gradient(from 45deg,#4b5051,#b0b5b5,#303436,#777d7f,#4b5051)!important;
+ box-shadow:0 1px 4px #000!important;
+}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked) .stereo-shell .stereo-display{
+ grid-column:2!important;grid-row:2!important;align-self:stretch!important;
+ width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;
+ padding:5px 6px!important;border:3px solid #929797!important;border-radius:4px!important;
+ box-shadow:inset 0 0 0 1px #0a0d0a,inset 0 0 12px #000,0 1px 2px #000!important;
+}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked) .stereo-display .stereo-now-playing{letter-spacing:.18em!important;margin-bottom:3px!important}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked) .stereo-display .music-row{flex:0 0 auto!important;min-width:0!important}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked) .stereo-display .music-copy{min-width:0!important;flex:1!important}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked) .stereo-display .stereo-time-scale{margin-top:auto!important;grid-template-columns:auto minmax(0,1fr) auto!important}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked) .stereo-display .stereo-time-scale>.stereo-eq{height:clamp(10px,4cqi,20px)!important;min-height:10px!important;max-height:20px!important}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked) .stereo-shell .stereo-control-deck{
+ grid-column:2!important;grid-row:3!important;width:100%!important;height:28px!important;
+ min-height:28px!important;max-height:none!important;align-self:stretch!important;margin:0!important;
+ grid-template-columns:repeat(3,minmax(0,1fr)) minmax(22px,.8fr)!important;
+ gap:3px!important;padding:2px!important;border:1px solid #090b0c!important;border-radius:3px!important;
+ background:linear-gradient(#777b7d,#303334)!important;
+}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked) .stereo-control-deck :is(.stereo-skip-button,#playBtn,.stereo-eject){
+ height:22px!important;min-height:22px!important;max-height:22px!important;min-width:0!important;
+ border-radius:2px!important;padding:0!important;background:linear-gradient(#777c7e,#343839 45%,#232627 50%,#414547)!important;
+ box-shadow:inset 0 1px #ffffff44,0 1px 1px #000!important;
+}
+/* Compact: full-width display, twin speakers and a two-by-two transport. */
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked).studio-upper-square>.stereo-shell{
+ grid-template-columns:minmax(25px,1fr) minmax(54px,1.45fr) minmax(25px,1fr)!important;
+ grid-template-rows:19px minmax(0,1fr) 53px!important;gap:4px!important;
+}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked).studio-upper-square .stereo-shell>.stereo-tuner{height:19px!important;min-height:19px!important;max-height:19px!important}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked).studio-upper-square .stereo-shell .stereo-display{grid-column:1/-1!important;grid-row:2!important;padding:4px!important}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked).studio-upper-square .stereo-shell .stereo-speaker{grid-row:3!important}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked).studio-upper-square .stereo-speaker::before{width:min(calc(100% - 6px),43px);border-width:2px}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked).studio-upper-square .stereo-speaker::after{width:12px}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked).studio-upper-square .stereo-shell .stereo-control-deck{
+ grid-column:2!important;grid-row:3!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ grid-template-rows:repeat(2,minmax(0,1fr))!important;height:53px!important;min-height:53px!important;padding:2px!important;
+}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked).studio-upper-square .stereo-control-deck :is(.stereo-skip-button,#playBtn,.stereo-eject){height:100%!important;min-height:0!important;max-height:none!important}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked).studio-upper-square .stereo-display .stereo-time-scale>.stereo-eq{height:12px!important;min-height:12px!important;max-height:12px!important}
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked).studio-upper-square .stereo-display .album-art{width:20px!important;height:20px!important;flex-basis:20px!important}
