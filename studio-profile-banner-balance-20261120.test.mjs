@@ -173,3 +173,8 @@ test('rank rail and rank track use the same baseline and full available width',(
  assert.match(rules,/text-align:center!important;justify-content:center!important/);
  for(const shell of shells)assert.match(read(shell),/studio-profile-banner-balance-20261120\.css\?[^"']*rankline=20261124-3/);
 });
+
+test('scoreboard cabinet and stitched seam have square corners',()=>{
+ assert.match(css,/\.biglwa-profile-scoreboard,\s*#studioApp#studioApp#studioApp:not\(\.profile-editor-wallpaper\) \.hero \.profile-card:not\(\.profile-is-editing\) \.biglwa-profile-scoreboard::after\{\s*border-radius:0!important/);
+ for(const shell of shells)assert.match(read(shell),/studio-profile-banner-balance-20261120\.css\?[^"']*square=20261124-4/);
+});

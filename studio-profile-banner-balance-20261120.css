@@ -531,3 +531,10 @@
   margin:0!important;padding:2px 0!important;
  }
 }
+
+/* Square scoreboard cabinet and matching inner seam; leave all controls,
+   digital readouts, proportions and the existing shadow unchanged. */
+#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard,
+#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard::after{
+ border-radius:0!important;
+}
