@@ -48,9 +48,9 @@
 }
 #studioApp#studioApp#studioApp .profile-card
 .biglwa-profile-scoreboard>.biglwa-scoreboard-header {
-  flex:0 0 72px!important;
+  flex:0 0 79px!important;
   box-sizing:border-box!important;
-  width:100%!important;min-height:72px!important;height:72px!important;
+  width:100%!important;min-height:79px!important;height:79px!important;
   margin:0!important;padding:0 40px!important;
   text-align:center!important;
 }
@@ -97,7 +97,7 @@
   image-rendering:pixelated;
   filter:drop-shadow(1px 2px 0 rgba(14,0,9,.35));
   pointer-events:none;user-select:none;
-  animation:biglwa-score-pixel-float 3.2s steps(3,end) -1.35s infinite;
+  animation:none!important;
 }
 
 /* The real nine-link dock is centered across the complete Studio, not the
@@ -146,8 +146,14 @@
 #studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard::before {
   left:calc(50% - 21px)!important;
 }
+/* Inner stitched seam is independent of the number displays and never catches input. */
 #studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard::after {
-  display:none!important;
+  content:""!important;display:block!important;position:absolute!important;
+  inset:5px!important;width:auto!important;height:auto!important;
+  box-sizing:border-box!important;border:1px dashed rgba(255,255,255,.72)!important;
+  border-radius:7px!important;background:none!important;box-shadow:none!important;
+  filter:none!important;animation:none!important;transform:none!important;
+  pointer-events:none!important;z-index:1!important;
 }
 /* Replace the upper-left dash with a star. Existing three-dot window
    controls remain in the opposite corner and retain their handlers. */
@@ -410,8 +416,8 @@
    the lower pixel-block emblem, rank labels and independent tile dimensions. */
 #studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard::before{display:none!important}
 #studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.biglwa-score-clock{
- position:absolute!important;top:26px!important;left:50%!important;transform:translateX(-50%)!important;
- z-index:3!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:2px!important;
+ position:absolute!important;top:34px!important;left:50%!important;transform:translateX(-50%)!important;
+ z-index:3!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:4px!important;
  width:max-content!important;min-width:0!important;max-width:48%!important;padding:0!important;margin:0!important;
  background:transparent!important;border:0!important;box-shadow:none!important;color:color-mix(in srgb,var(--score-ink) 70%,white)!important;
  cursor:pointer;font:650 9px/1.1 Inter,system-ui,sans-serif!important;white-space:nowrap!important;
@@ -432,7 +438,7 @@
 #studioApp .biglwa-score-clock-zone{font:600 9px/1 Inter,system-ui,sans-serif;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 #studioApp .biglwa-score-clock:focus-visible{outline:2px solid var(--score-ink);outline-offset:3px}
 #studioApp .biglwa-score-clock:disabled{opacity:1;cursor:default}
-@media(max-width:560px){#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.biglwa-score-clock{top:30px!important}}
+@media(max-width:560px){#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.biglwa-score-clock{top:38px!important}}
 .biglwa-score-clock-dialog{width:min(340px,90vw);max-width:90vw;box-sizing:border-box;padding:18px;border:1px solid #84515c;border-radius:9px;background:#411625;color:#fff4e4;box-shadow:0 12px 40px #0008;font:13px/1.4 Inter,system-ui,sans-serif}
 .biglwa-score-clock-dialog::backdrop{background:#0007}
 .biglwa-score-clock-dialog form{display:grid;gap:12px}
@@ -443,11 +449,26 @@
 .biglwa-score-clock-dialog button{background:#fff7eb;color:#411625;border:0;border-radius:4px;padding:7px 12px;cursor:pointer}
 .biglwa-score-clock-dialog p{margin:0;min-height:1em}
 
-/* White stitched clock perimeter; paired stat windows have equal width. */
+/* Solid white clock outline; paired stat windows have equal width. */
 #studioApp .biglwa-score-clock-face{
- outline:1px dashed rgba(255,255,255,.88);outline-offset:3px;
+ outline:1px solid rgba(255,255,255,.88);outline-offset:2px;
 }
 #studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.stats.stats
 :is([data-profile-stat="followers"],[data-profile-stat="following"],[data-profile-stat="reach"],[data-profile-stat="likes"]) b{
  width:min(100%,8ch)!important;min-width:0!important;max-width:100%!important;
+}
+
+/* Pixel blocks rest after loading. Use the existing real profile loader
+   (not unrelated widget requests or a new artificial timer). */
+@media (prefers-reduced-motion:no-preference) {
+ #studioApp#studioApp#studioApp:has(#lwaProfileLoading:not([hidden]) .lwa-profile-loading-label:not([hidden]))
+ .profile-card .biglwa-profile-scoreboard>.stats.stats::after {
+   animation:biglwa-score-pixel-float 3.2s steps(3,end) -1.35s infinite!important;
+ }
+}
+/* Maintain a little more clearance when the stacked mobile title is lower. */
+@media(max-width:560px){
+ #studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.biglwa-scoreboard-header{
+   flex-basis:83px!important;min-height:83px!important;height:83px!important;
+ }
 }

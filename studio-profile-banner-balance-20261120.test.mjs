@@ -32,11 +32,11 @@ test('loading globe and block sprites are reused, with accessible reduced motion
   assert.match(css,/pointer-events:none;user-select:none/);
 });
 
-test('center scoreboard emblem is the animated pixel blocks, not stitched LWA text',()=>{
+test('center scoreboard emblem is the original pixel blocks, not stitched LWA text',()=>{
   const existing=read('profile-scoreboard-compact-20261118.css');
   assert.match(css,/\.biglwa-profile-scoreboard>\.stats\.stats::after \{\s*content:""!important/);
   assert.match(css,/background:transparent url\("\/assets\/loading-blocks-pixel-20261029\.png"\)/);
-  assert.match(css,/\.biglwa-profile-scoreboard::after \{\s*display:none!important/);
+  assert.match(css,/\.biglwa-profile-scoreboard::after \{\s*content:""!important;display:block!important;position:absolute!important;\s*inset:5px!important/);
   assert.match(css,/\.biglwa-scoreboard-header::before \{\s*content:"★"!important/);
   assert.match(existing,/font-family:"BIGLWA Alarm Clock"/);
 });
@@ -147,9 +147,19 @@ test('clock replaces only globe and keeps private account preferences and non-ed
  for(const shell of shells)for(const asset of ['profile-scoreboard-compact-20261118.js','studio-profile-banner-balance-20261120.css','studio-experience.js','ui-coherence.js','avatar-studio-bitmoji-20261017-v3.js'])assert(read(shell).includes('clock=20261124-1'),asset);
 });
 
-test('clock stitch and paired metric face widths remain consistent',()=>{
- assert.match(css,/outline:1px dashed rgba\(255,255,255,\.88\);outline-offset:3px/);
+test('solid clock outline and paired metric face widths remain consistent',()=>{
+ assert.match(css,/outline:1px solid rgba\(255,255,255,\.88\);outline-offset:2px/);
  assert.match(css,/\[data-profile-stat="followers"\],\[data-profile-stat="following"\],\[data-profile-stat="reach"\],\[data-profile-stat="likes"\]/);
  assert.match(css,/width:min\(100%,8ch\)!important/);
  assert.doesNotMatch(read('profile-scoreboard-compact-20261118.js'),/cloneNode|localStorage\.setItem|setDoc|replaceChildren/);
+});
+
+test('inner perimeter stitching and clock spacing preserve the tile; blocks animate only during profile loading',()=>{
+ assert.match(css,/inset:5px!important;width:auto!important;height:auto!important/);
+ assert.match(css,/border:1px dashed rgba\(255,255,255,\.72\)!important/);
+ assert.match(css,/top:34px!important;left:50%!important/);
+ assert.match(css,/flex:0 0 79px!important/);
+ assert.match(css,/loading-blocks-pixel-20261029\.png"\) center\/contain no-repeat!important;[\s\S]*?animation:none!important/);
+ assert.match(css,/@media \(prefers-reduced-motion:no-preference\) \{\s*#studioApp#studioApp#studioApp:has\(#lwaProfileLoading:not\(\[hidden\]\) \.lwa-profile-loading-label:not\(\[hidden\]\)\)/);
+ for(const shell of shells)assert.match(read(shell),/studio-profile-banner-balance-20261120\.css\?[^"']*seam=20261124-2/);
 });
