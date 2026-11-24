@@ -134,7 +134,7 @@
   }
   function openAvatarLarge(){
     const a=state.avatar;
-    if(!a?.url||!state.loadedUid||state.loadedUid!==current()){openEditor();setStatus('Save your avatar first to open the interactive enlarged view.');return}
+    if(!a?.url||!state.loadedUid||state.loadedUid!==current()){setStatus('Add an avatar through Edit profile to use the interactive enlarged view.');const status=one('#studioAvatarCard [role="status"]');if(status)status.textContent='Add an avatar through Edit profile first.';else window.alert('Add an avatar through Edit profile first.');return}
     let dialog=one('#biglwaAvatarLarge');
     if(!dialog){
       dialog=document.createElement('dialog');dialog.id='biglwaAvatarLarge';dialog.className='biglwa-avatar-lightbox';
@@ -689,7 +689,7 @@
     if(control){
       e.preventDefault();e.stopPropagation();
       if(control.dataset.avatarWidgetAction==='enlarge')openAvatarLarge();
-      else if(control.dataset.avatarWidgetAction==='edit')openEditor();
+      else if(control.dataset.avatarWidgetAction==='edit'){setStatus('Use Edit profile to change your avatar.');return;}
       else if(control.dataset.avatarWidgetAction==='minimize')window.BigLWAUpperWidgets?.minimize?.('avatar');
       else if(window.confirm('Remove Avatar from Studio? Your saved avatar will remain in your account.'))setVisibility('removed');
       return;

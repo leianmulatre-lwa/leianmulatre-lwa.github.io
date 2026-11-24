@@ -540,6 +540,7 @@
 
   function greenControl(widget){
     const id=widget.dataset.widgetId||widget.id||'widget',route=widget.dataset.widgetRoute||$('.arrow-btn[data-open]',widget)?.dataset.open||id;
+    if(route==='aura'||id==='aura'||id==='aura-card')return {attribute:'data-expand-widget="'+id+'"',label:'Enlarge Aura widget'};
     if(route==='guest-check'||id==='guest-check')return {attribute:'data-open-guest="check"',label:'Open Guest Check'};
     if(FULL_WIDGET_ROUTES.has(route))return {attribute:`data-open="${route}"`,label:`Open full ${route.replace(/[-_]/g,' ')} interface`};
     return {attribute:`data-open-widget-settings="${id}"`,label:'Open full widget customization interface'};
@@ -555,6 +556,15 @@
       let controls=$(':scope>.widget-window-controls',widget);
       if(!controls){controls=document.createElement('div');controls.className='widget-window-controls';widget.prepend(controls)}
       if(!$('.window-light.green',controls)){const green=greenControl(widget);controls.insertAdjacentHTML('afterbegin',`<button class="window-light green" type="button" ${green.attribute} aria-label="${green.label}" title="${green.label}"></button><button class="window-light yellow" type="button" data-minimize-widget="${widget.dataset.widgetId}" aria-label="Minimize ${widget.dataset.widgetLabel}"></button><button class="window-light red" type="button" data-dock-widget="${widget.dataset.widgetId}" aria-label="Move ${widget.dataset.widgetLabel} to toolbar"></button>`)}
+      if(widget.classList.contains('aura-card')){
+        const green=$('.window-light.green',controls);
+        if(green){
+          green.removeAttribute('data-open-widget-settings');
+          green.setAttribute('data-expand-widget',widget.dataset.widgetId);
+          green.setAttribute('aria-label','Enlarge Aura widget');
+          green.title='Enlarge Aura widget';
+        }
+      }
       let handle=$('[data-studio-drag-handle]',widget);
       if(!handle){
         handle=document.createElement('button');handle.type='button';handle.className='widget-drag-handle';handle.dataset.studioDragHandle='1';handle.setAttribute('aria-label',`Move ${widget.dataset.widgetLabel}`);handle.title='Drag to reorder';handle.innerHTML='<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="3" cy="3" r="1" fill="currentColor"/><circle cx="9" cy="3" r="1" fill="currentColor"/><circle cx="3" cy="9" r="1" fill="currentColor"/><circle cx="9" cy="9" r="1" fill="currentColor"/></svg>';

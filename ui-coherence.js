@@ -821,6 +821,7 @@
 
   const fullWidgetRoutes=new Set(['veve','create','calendar','orbit','feed','connect','camera','diary','stream','library','archive','closet','trophies','rooms','room','boards','notes','projects','games','learn','didyouknow','map','tools','politc','politic']);
   function greenControlAction(route,id){
+    if(route==='aura'||id==='aura'||id==='aura-card')return {attribute:'data-expand-widget="'+id+'"',label:'Enlarge Aura widget'};
     if(route==='guest-check'||id==='guest-check')return {attribute:'data-open-guest="check"',label:'Open Guest Check'};
     if(fullWidgetRoutes.has(route))return {attribute:`data-open="${route}"`,label:`Open full ${route.replace(/[-_]/g,' ')} interface`};
     return {attribute:`data-open-widget-settings="${id}"`,label:'Open full widget customization interface'};

@@ -9,6 +9,72 @@
  const hex=x=>typeof x==='string'&&/^#[0-9a-f]{6}$/i.test(x)?x.toLowerCase():'';
  let appliedUid='',ink='',plate='maroon',acceptedInk='',acceptedPlate='maroon',writes=Promise.resolve(),scheduled=false;
  const DEFAULT_AURA='#d85f6d';
+ let clockPrefs={format:'12h',zone:''}, clockSaving=false;
+ function validZone(value){
+  if(typeof value!=='string'||value.length>100)return '';
+  try{new Intl.DateTimeFormat('en-US',{timeZone:value});return value}catch{return ''}
+ }
+ function normalizeClock(value){
+  return {format:value?.format==='24h'?'24h':'12h',zone:validZone(value?.zone)};
+ }
+ function clockParts(date,prefs){
+  const options={hour:'2-digit',minute:'2-digit',hourCycle:prefs.format==='24h'?'h23':'h12',...(prefs.zone?{timeZone:prefs.zone}:{})};
+  const parts=new Intl.DateTimeFormat('en-US',options).formatToParts(date);
+  const part=type=>parts.find(p=>p.type===type)?.value||'';
+  return {time:part('hour')+':'+part('minute'),period:part('dayPeriod'),zone:new Intl.DateTimeFormat('en-US',{...(prefs.zone?{timeZone:prefs.zone}:{}),timeZoneName:'short'}).formatToParts(date).find(p=>p.type==='timeZoneName')?.value||''};
+ }
+ function setText(node,value){if(node&&node.textContent!==value)node.textContent=value}
+ function renderClock(){
+  const board=$('#studioApp .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard');
+  if(!board)return;
+  let box=$('.biglwa-score-clock',board);
+  if(!box){
+   box=document.createElement('button');box.type='button';box.className='biglwa-score-clock';
+   box.innerHTML='<span class="biglwa-score-clock-label">TIME</span><span class="biglwa-score-clock-face"><b>--:--</b><small></small></span><span class="biglwa-score-clock-zone"></span>';
+   board.append(box);
+  }
+  const guest=preview(),prefs=guest?{format:'12h',zone:''}:clockPrefs;
+  box.disabled=guest;
+  const value=clockParts(new Date(),prefs);
+  setText($('b',box),value.time);
+  setText($('small',box),value.period);
+  setText($('.biglwa-score-clock-zone',box),value.zone);
+  box.title=guest?'Viewer local time':'Change clock format or time zone';
+  const label='Time '+value.time+' '+value.period+' '+value.zone+(guest?'':'. Change clock settings');
+  if(box.getAttribute('aria-label')!==label)box.setAttribute('aria-label',label);
+ }
+ function openClock(){
+  if(preview())return;
+  let dialog=$('#biglwaScoreClockDialog');
+  if(!dialog){
+   dialog=document.createElement('dialog');dialog.id='biglwaScoreClockDialog';dialog.className='biglwa-score-clock-dialog';
+   dialog.setAttribute('aria-labelledby','biglwaScoreClockTitle');
+   dialog.innerHTML='<form><h2 id="biglwaScoreClockTitle">Clock settings</h2><label>Time format<select name="format"><option value="12h">12-hour (AM / PM)</option><option value="24h">24-hour (military)</option></select></label><label>Time zone<select name="zone"></select></label><p role="status"></p><div><button type="button" data-clock-cancel>Cancel</button><button type="submit">Save</button></div></form>';
+   document.body.append(dialog);
+   $('[data-clock-cancel]',dialog).addEventListener('click',()=>dialog.close());
+   $('form',dialog).addEventListener('submit',async event=>{
+    event.preventDefault();if(clockSaving||preview())return;
+    const next=normalizeClock({format:$('[name="format"]',dialog).value,zone:$('[name="zone"]',dialog).value}),owner=uid(),status=$('[role="status"]',dialog);
+    if(!owner||!window.BigLWAUserDirectory?.saveCustomizations){setText(status,'Sign in to save clock settings.');return}
+    clockSaving=true;const save=$('[type="submit"]',dialog);save.disabled=true;setText(status,'Saving…');
+    try{
+     const ok=await window.BigLWAUserDirectory.saveCustomizations({appearance:{scoreboardClock:next}});
+     if(!ok||uid()!==owner||preview())throw Error('Clock settings not saved');
+     clockPrefs=next;renderClock();dialog.close();
+    }catch{setText(status,'Could not save clock settings. Please retry.')}
+    finally{clockSaving=false;save.disabled=false}
+   });
+  }
+  const select=$('[name="zone"]',dialog);
+  const zones=typeof Intl.supportedValuesOf==='function'?Intl.supportedValuesOf('timeZone'):['America/Los_Angeles','America/Denver','America/Chicago','America/New_York','America/Port-au-Prince','Europe/London','Europe/Paris','Africa/Lagos','Asia/Kolkata','Asia/Tokyo','Australia/Sydney'];
+  select.replaceChildren();
+  for(const value of ['',...new Set(['UTC',...zones,...(clockPrefs.zone?[clockPrefs.zone]:[])])]){
+   const option=document.createElement('option');option.value=value;option.textContent=value?value.replace(/_/g,' '):'Automatic (device time zone)';select.append(option);
+  }
+  select.value=clockPrefs.zone;$('[name="format"]',dialog).value=clockPrefs.format;setText($('[role="status"]',dialog),'');
+  if(!dialog.open)dialog.showModal();
+ }
+
  function auraHex(){
   const app=$('#studioApp');
   if(!app||typeof getComputedStyle!=='function')return DEFAULT_AURA;
@@ -37,7 +103,8 @@
   ink=hex(s.scoreboardTextColor);
   plate=s.scoreboardPlate==='clear'?'clear':'maroon';
   acceptedInk=ink;acceptedPlate=plate;
-  repaint();
+  clockPrefs=normalizeClock(s.scoreboardClock);
+  repaint();renderClock();
  }
  function ensurePrefs(){
   if(preview())return;
@@ -59,10 +126,11 @@
   if(hero&&board)hero.classList.add('biglwa-scoreboard-ready');
   if(uid()!==appliedUid){
    ink='';plate='maroon';acceptedInk='';acceptedPlate='maroon';appliedUid=uid();
+   clockPrefs=normalizeClock();const dialog=$('#biglwaScoreClockDialog');if(dialog?.open)dialog.close();
    if(uid()&&window.__biglwaRemoteCustomization?.uid===uid())hydrate(window.__biglwaRemoteCustomization);
   }
   ensurePrefs();
-  repaint();
+  repaint();renderClock();
  }
 
  // Keep the live scoreboard a right-hand tile instead of falling back on top
@@ -111,6 +179,9 @@
  }
  function start(){
   schedule();
+  setInterval(renderClock,1000);
+  document.addEventListener('visibilitychange',renderClock);
+  document.addEventListener('click',event=>{if(event.target?.closest?.('.biglwa-score-clock')&&!preview()){event.preventDefault();openClock()}});
   document.addEventListener('input',event=>{
    if(event.target?.id==='skeletonScoreboardColor'&&uid()&&!preview()){
     ink=hex(event.target.value);repaint();

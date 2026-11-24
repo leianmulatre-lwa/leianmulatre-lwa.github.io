@@ -128,3 +128,21 @@ test('profile rail photo, Edit Profile and location stay separate; Highlights ne
   assert.match(css,/biglwa-scoreboard-lights>\.window-light \{[\s\S]*?width:18px!important;height:18px!important;[\s\S]*?border-radius:3px!important/);
   for(const shell of shells)for(const asset of ['profile-stats-row-20261116.js','profile-preview-repair.js','studio-profile-banner-balance-20261120.css'])assert.match(read(shell),new RegExp(asset.replace(/\./g,'\\.')+'\\?[^"\']*rankstars=20261124-1'),shell+' '+asset);
  });
+
+test('clock replaces only globe and keeps private account preferences and non-editor green actions',()=>{
+ const clock=read('profile-scoreboard-compact-20261118.js');
+ assert.match(css,/biglwa-profile-scoreboard::before\{display:none!important\}/);
+ assert(css.includes('biglwa-score-clock-face'));
+ assert(clock.includes("hourCycle:prefs.format==='24h'?'h23':'h12'"));
+ assert(clock.includes('Intl.supportedValuesOf'));
+ assert(clock.includes('saveCustomizations({appearance:{scoreboardClock:next}})'));
+ assert.doesNotMatch(clock,/localStorage|sessionStorage/);
+ for(const source of ['studio-experience.js','ui-coherence.js']){
+   const js=read(source);assert(js.includes("label:'Enlarge Aura widget'"));
+   assert(js.includes("data-expand-widget"));
+ }
+ const avatar=read('avatar-studio-bitmoji-20261017-v3.js');
+ assert.doesNotMatch(avatar,/if\(!a\?\.url\|\|!state\.loadedUid\|\|state\.loadedUid!==current\(\)\)\{openEditor\(\)/);
+ assert(avatar.includes("if(control.dataset.avatarWidgetAction==='enlarge')openAvatarLarge()"));
+ for(const shell of shells)for(const asset of ['profile-scoreboard-compact-20261118.js','studio-profile-banner-balance-20261120.css','studio-experience.js','ui-coherence.js','avatar-studio-bitmoji-20261017-v3.js'])assert(read(shell).includes('clock=20261124-1'),asset);
+});
