@@ -40,10 +40,23 @@
    header=document.createElement('div');
    header.className='biglwa-scoreboard-header';
    header.setAttribute('aria-hidden','true');
-   header.textContent='REAL RANKINGS';
+   header.textContent='REAL ★ RANKINGS';
    board.prepend(header);
   }
-  if(header.textContent!=='REAL RANKINGS')header.textContent='REAL RANKINGS';
+  if(header.textContent!=='REAL ★ RANKINGS')header.textContent='REAL ★ RANKINGS';
+  // These are decorative, like the original scoreboard dots; do not register
+  // a second set of Studio window actions.
+  if(!header.querySelector('.biglwa-scoreboard-lights')){
+   const lights=document.createElement('span');
+   lights.className='biglwa-scoreboard-lights';
+   lights.setAttribute('aria-hidden','true');
+   for(const color of ['green','yellow','red']){
+    const light=document.createElement('span');
+    light.className='window-light '+color;
+    lights.append(light);
+   }
+   header.append(lights);
+  }
   board.setAttribute('aria-label','Real rankings scoreboard');
   if(stats.parentElement!==board)board.append(stats);
   // The profile grid was sometimes left at full width, sending an absolutely
@@ -62,7 +75,7 @@
     profile.closest('.profile-card')?.querySelector('.profile-identity-rail .rank-label,.biglwa-rank-rail-label');
   const rankTitle=rank?.querySelector('strong');
   if(rank&&rankLabel&&rankLabel.parentElement!==rank)rank.insertBefore(rankLabel,rankTitle||rank.firstChild);
-  if(rankLabel&&rankLabel.textContent.trim()!=='REAL ✦ RANK')rankLabel.textContent='REAL ✦ RANK';
+  if(rankLabel&&rankLabel.textContent.trim()!=='REAL ★ RANK')rankLabel.textContent='REAL ★ RANK';
   if(rankTitle){
    rankTitle.setAttribute('role','link');
    rankTitle.setAttribute('tabindex','0');

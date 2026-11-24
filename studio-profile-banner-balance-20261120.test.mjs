@@ -108,7 +108,7 @@ test('profile rail photo, Edit Profile and location stay separate; Highlights ne
   assert.match(css,/grid-template-columns:140px minmax\(0,1fr\)!important/);
   assert.match(css,/margin:auto 0 0!important/);
   assert.match(css,/content:"★"!important/);
-  assert.match(stats,/header\.textContent='REAL RANKINGS'/);
+  assert.match(stats,/header\.textContent='REAL ★ RANKINGS'/);
   for(const shell of shells){
     const html=read(shell);
     for(const asset of ['profile-social-showcase.js','profile-stats-row-20261116.js','profile-scoreboard-compact-20261118.js','studio-profile-banner-balance-20261120.css']){
@@ -117,3 +117,14 @@ test('profile rail photo, Edit Profile and location stay separate; Highlights ne
     assert.equal(html.split('&profilefit=20261121-3').length-1,4,shell+' has all 4 fresh asset versions');
   }
 });
+
+ test('rank stars and scoreboard square keys keep the stereo appearance and existing layout',()=>{
+  const stats=read('profile-stats-row-20261116.js');
+  const preview=read('profile-preview-repair.js');
+  const payload=read('live-studio-payload.html');
+  assert(stats.includes("rankLabel.textContent='REAL ★ RANK'"));
+  assert(preview.includes("label.textContent='REAL ★ RANK'"));
+  assert(payload.includes('class="rank-label">REAL ★ RANK</span>'));
+  assert.match(css,/biglwa-scoreboard-lights>\.window-light \{[\s\S]*?width:18px!important;height:18px!important;[\s\S]*?border-radius:3px!important/);
+  for(const shell of shells)for(const asset of ['profile-stats-row-20261116.js','profile-preview-repair.js','studio-profile-banner-balance-20261120.css'])assert.match(read(shell),new RegExp(asset.replace(/\./g,'\\.')+'\\?[^"\']*rankstars=20261124-1'),shell+' '+asset);
+ });

@@ -218,10 +218,8 @@
 }
 #studioApp#studioApp#studioApp .profile-card
 .biglwa-profile-scoreboard>.biglwa-scoreboard-header::after {
-  top:1px!important;
-  right:39px!important;
-  background:#38be72!important;
-  box-shadow:14px 0 #e7b333,28px 0 #e24850!important;
+  content:none!important;
+  display:none!important;
 }
 
 /* Avatar title+symbol tuck into the same left-edge grid as neighboring
@@ -378,4 +376,32 @@
     position:static!important;inset:auto!important;
     margin:12px 0 0!important;
   }
+}
+
+/* 2026-11-24: scoreboard window indicators match the Tunes stereo's
+   18px square RGB keys (studio-upper-rail-size-contract-20261103.css).
+   Decorative only: retain the existing scoreboard and all metric handlers. */
+#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.biglwa-scoreboard-header {
+  padding-inline:70px!important;
+}
+#studioApp#studioApp#studioApp .profile-card .biglwa-scoreboard-lights {
+  position:absolute!important;top:-1px!important;right:8px!important;
+  display:flex!important;align-items:center!important;gap:3px!important;
+  padding:2px!important;border-radius:4px!important;background:#111514!important;
+  box-shadow:inset 0 1px 3px #000!important;pointer-events:none!important;
+}
+#studioApp#studioApp#studioApp .profile-card .biglwa-scoreboard-lights>.window-light {
+  display:block!important;flex:0 0 18px!important;
+  width:18px!important;height:18px!important;min-width:18px!important;min-height:18px!important;
+  border:1px solid #161b19!important;border-radius:3px!important;
+  padding:0!important;margin:0!important;box-sizing:border-box!important;
+  box-shadow:inset 0 1px 1px #ffffff55,inset 0 -1px 1px #0005!important;
+  transform:none!important;
+}
+#studioApp#studioApp#studioApp .profile-card .biglwa-scoreboard-lights>.window-light.green{background:#58a36d!important}
+#studioApp#studioApp#studioApp .profile-card .biglwa-scoreboard-lights>.window-light.yellow{background:#e5bd45!important}
+#studioApp#studioApp#studioApp .profile-card .biglwa-scoreboard-lights>.window-light.red{background:#df5b56!important}
+@media(max-width:360px){
+ #studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.biglwa-scoreboard-header{padding-inline:48px!important}
+ #studioApp#studioApp#studioApp .profile-card .biglwa-scoreboard-lights{transform:scale(.72);transform-origin:right top;right:3px!important}
 }

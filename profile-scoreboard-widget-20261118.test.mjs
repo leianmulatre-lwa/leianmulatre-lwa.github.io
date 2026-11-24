@@ -65,6 +65,11 @@ test('runtime relocation keeps the original stats node inside the scoreboard',()
  const board=line.children.find(child=>child.className==='biglwa-profile-scoreboard');
  assert(board,'scoreboard widget created');
  assert.equal(board.attrs['aria-label'],'Real rankings scoreboard');
+ const header=board.children.find(child=>child.className==='biglwa-scoreboard-header');
+ assert.equal(header.textContent,'REAL ★ RANKINGS');
+ const lights=header.children.find(child=>child.className==='biglwa-scoreboard-lights');
+ assert.equal(lights.attrs['aria-hidden'],'true');
+ assert.deepEqual(lights.children.map(child=>child.className),['window-light green','window-light yellow','window-light red']);
  assert.equal(stats.parentElement,board,'original stats node moved into scoreboard');
  assert.equal(line.children.filter(child=>child.className==='biglwa-profile-scoreboard').length,1,'no duplicate widget');
 });
@@ -80,7 +85,7 @@ test('all Studio shells bust the first-party scoreboard font cache',()=>{
 
 test('gym scoreboard paints real five-count stats at four corners + center in current Aura',()=>{
  assert.match(js,/biglwa-scoreboard-header/);
- assert.match(js,/header\.textContent='REAL RANKINGS'/);
+ assert.match(js,/header\.textContent='REAL ★ RANKINGS'/);
  assert.match(css,/grid-template-areas:"followers connections reach" "following connections likes"/);
  assert.match(css,/grid-area:connections;min-height:116px/);
  assert.match(css,/--score-aura:rgb\(var\(--aura-rgb,216,95,109\)\)/);
