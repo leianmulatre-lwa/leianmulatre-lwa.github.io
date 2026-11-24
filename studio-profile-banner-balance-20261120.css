@@ -473,65 +473,68 @@
  }
 }
 
-/* The rail already owns REAL ★ RANK; the visible rank row therefore has
-   exactly three columns, not four. The previous phantom label column was
-   consuming the flexible track and collapsing it to its 34px minimum. */
-#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero
-.profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank{
- position:static!important;inset:auto!important;display:grid!important;
- grid-template-columns:max-content minmax(0,1fr) max-content!important;
- grid-template-rows:minmax(28px,auto)!important;
- align-items:center!important;justify-items:stretch!important;
- align-self:stretch!important;justify-self:stretch!important;
- width:100%!important;max-width:none!important;min-width:0!important;
- height:auto!important;min-height:28px!important;
- box-sizing:border-box!important;gap:10px!important;padding:0!important;
+/* The rank label and rank row use the SAME card-relative bottom anchor.
+   On the desktop banner, the identity column is 140px, gap 14px, and
+   horizontal padding 16px. Leave the profile copy and highlights untouched. */
+#studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank{
+ display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+ align-items:center!important;justify-content:flex-start!important;gap:10px!important;
+ box-sizing:border-box!important;min-width:0!important;max-width:none!important;
+ height:28px!important;min-height:28px!important;max-height:28px!important;
+ padding:0!important;border-top:0!important;transform:none!important;
 }
-#studioApp#studioApp#studioApp .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank>strong{
- grid-row:1!important;grid-column:1!important;align-self:center!important;margin:0!important;
+#studioApp#studioApp#studioApp#studioApp .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank>strong,
+#studioApp#studioApp#studioApp#studioApp .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank>.rank-next{
+ flex:0 0 auto!important;width:auto!important;min-width:0!important;max-width:none!important;
+ align-self:center!important;white-space:nowrap!important;margin:0!important;
 }
-#studioApp#studioApp#studioApp .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank>.rank-track{
- grid-row:1!important;grid-column:2!important;align-self:center!important;
- justify-self:stretch!important;width:100%!important;max-width:none!important;
- min-width:0!important;box-sizing:border-box!important;margin:0!important;
+#studioApp#studioApp#studioApp#studioApp .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank>.rank-track{
+ position:relative!important;display:block!important;flex:1 1 0%!important;
+ width:auto!important;min-width:64px!important;max-width:none!important;
+ height:12px!important;min-height:12px!important;max-height:12px!important;
+ box-sizing:border-box!important;align-self:center!important;overflow:visible!important;
+ margin:0!important;padding:0!important;
 }
-#studioApp#studioApp#studioApp .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank>.rank-next{
- grid-row:1!important;grid-column:3!important;align-self:center!important;
- white-space:nowrap!important;margin:0!important;
-}
-#studioApp#studioApp#studioApp .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank>:is(.rank-label,.real-rank-label,.real-rank-explanation){
+#studioApp#studioApp#studioApp#studioApp .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank>:is(.rank-label,.real-rank-label,.real-rank-explanation){
  display:none!important;
 }
-#studioApp#studioApp#studioApp .hero .profile-card:not(.profile-is-editing) .profile-identity-rail>.profile-rail-location,
-#studioApp#studioApp#studioApp .hero .profile-card:not(.profile-is-editing) .profile-identity-rail>.real-rank-label{
- width:100%!important;box-sizing:border-box!important;align-self:center!important;
- text-align:center!important;justify-content:center!important;
+#studioApp#studioApp#studioApp#studioApp .hero .profile-card:not(.profile-is-editing) .profile-identity-rail>.profile-rail-location,
+#studioApp#studioApp#studioApp#studioApp .hero .profile-card:not(.profile-is-editing) .profile-identity-rail>.real-rank-label{
+ box-sizing:border-box!important;text-align:center!important;justify-content:center!important;
 }
 @media(min-width:901px){
- #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero
- .profile-card:not(.profile-is-editing) .profile-identity-rail{
-  position:relative!important;
+ #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero>.profile-card:not(.profile-is-editing){
+  position:relative!important;--biglwa-rank-bottom:16px;--biglwa-rank-height:28px;
  }
- #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero
- .profile-card:not(.profile-is-editing) .profile-identity-rail>.real-rank-label{
-  position:absolute!important;inset:auto 0 3px 0!important;
-  height:28px!important;min-height:28px!important;margin:0!important;padding:0!important;
-  display:flex!important;align-items:center!important;justify-content:center!important;
+ #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero>.profile-card:not(.profile-is-editing) :is(.profile-identity-rail,.profile-copy){
+  position:static!important;inset:auto!important;
  }
- #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero
- .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank{
-  flex:0 0 28px!important;height:28px!important;min-height:28px!important;
-  margin:auto 0 0!important;
+ #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero>.profile-card:not(.profile-is-editing) .profile-identity-rail>.real-rank-label{
+  position:absolute!important;top:auto!important;bottom:var(--biglwa-rank-bottom)!important;
+  left:16px!important;right:auto!important;width:140px!important;
+  height:var(--biglwa-rank-height)!important;min-height:var(--biglwa-rank-height)!important;
+  margin:0!important;padding:0!important;display:flex!important;align-items:center!important;
+  justify-content:center!important;transform:none!important;z-index:2!important;
+ }
+ #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero>.profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank{
+  position:absolute!important;top:auto!important;bottom:var(--biglwa-rank-bottom)!important;
+  left:170px!important;right:16px!important;width:auto!important;
+  height:var(--biglwa-rank-height)!important;margin:0!important;z-index:2!important;
  }
 }
 @media(max-width:900px){
- #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero
- .profile-card:not(.profile-is-editing) .profile-identity-rail>.real-rank-label{
-  position:static!important;inset:auto!important;height:auto!important;
+ #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-identity-rail>.real-rank-label{
+  position:static!important;inset:auto!important;width:100%!important;height:auto!important;
   margin:0!important;padding:2px 0!important;
  }
+ #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank{
+  position:static!important;inset:auto!important;width:100%!important;
+  margin:12px 0 0!important;
+ }
+ #studioApp#studioApp#studioApp#studioApp .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank>.rank-track{
+  min-width:24px!important;
+ }
 }
-
 /* Square scoreboard cabinet and matching inner seam; leave all controls,
    digital readouts, proportions and the existing shadow unchanged. */
 #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard,

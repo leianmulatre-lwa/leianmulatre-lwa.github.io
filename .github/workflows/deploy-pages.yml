@@ -246,6 +246,14 @@ jobs:
           node --test lwazi/search-experience.test.mjs lwazi/music-jobs-integration.test.mjs
           node studio-first-paint-rgb-regression-test.mjs
           node studio-myfeed-archive-filmstrip-test.mjs
+      - name: Verify actual rank alignment and progress width in Chromium
+        env:
+          NODE_PATH: ${{ runner.temp }}/biglwa-playwright/node_modules
+        run: |
+          set -euo pipefail
+          npm install --prefix "$RUNNER_TEMP/biglwa-playwright" playwright@1.55.1 --no-audit --no-fund
+          "$RUNNER_TEMP/biglwa-playwright/node_modules/.bin/playwright" install --with-deps chromium
+          node .github/scripts/studio-rank-layout-smoke.cjs
       - name: Refresh original-source discovery feeds
         run: python3 scripts/refresh-discovery.py
       - name: Download previously verified native builds

@@ -164,14 +164,14 @@ test('inner perimeter stitching and clock spacing preserve the tile; blocks anim
  for(const shell of shells)assert.match(read(shell),/studio-profile-banner-balance-20261120\.css\?[^"']*seam=20261124-2/);
 });
 
-test('rank rail and rank track use the same baseline and full available width',()=>{
- const rules=css.slice(css.indexOf('/* The rail already owns REAL ★ RANK'));
- assert.match(rules,/grid-template-columns:max-content minmax\(0,1fr\) max-content!important/);
- assert.match(rules,/\.rank-track\{\s*grid-row:1!important;grid-column:2!important;align-self:center!important;\s*justify-self:stretch!important;width:100%!important;max-width:none!important/);
- assert.match(rules,/\.real-rank-label\{\s*position:absolute!important;inset:auto 0 3px 0!important;\s*height:28px!important/);
- assert.match(rules,/flex:0 0 28px!important;height:28px!important/);
- assert.match(rules,/text-align:center!important;justify-content:center!important/);
- for(const shell of shells)assert.match(read(shell),/studio-profile-banner-balance-20261120\.css\?[^"']*rankline=20261124-3/);
+test('rank label and title share card-relative baseline; flexible progress track cannot collapse',()=>{
+ const rules=css.slice(css.indexOf('/* The rank label and rank row'));
+ assert.match(rules,/--biglwa-rank-bottom:16px;--biglwa-rank-height:28px/);
+ assert.equal(rules.match(/bottom:var\(--biglwa-rank-bottom\)!important/g)?.length,2);
+ assert.match(rules,/left:170px!important;right:16px!important;width:auto!important/);
+ assert.match(rules,/\.rank-track\{\s*position:relative!important;display:block!important;flex:1 1 0%!important;\s*width:auto!important;min-width:64px!important;max-width:none!important/);
+ assert.match(rules,/position:static!important;inset:auto!important/);
+ for(const shell of shells)assert.match(read(shell),/studio-profile-banner-balance-20261120\.css\?[^"']*rankbaseline=20261124-5/);
 });
 
 test('scoreboard cabinet and stitched seam have square corners',()=>{
