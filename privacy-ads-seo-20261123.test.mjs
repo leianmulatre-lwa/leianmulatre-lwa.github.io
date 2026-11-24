@@ -9,7 +9,11 @@ test('first-party privacy UI and sponsor guard parse without loading Google ads'
  assert.doesNotThrow(()=>new vm.Script(consent));
  assert.doesNotThrow(()=>new vm.Script(ads));
  assert.match(consent,/analytics:false,personalization:false/);
- assert.match(consent,/Reject optional/);
+ assert.match(consent,/Use essentials only/);
+ assert.match(consent,/Save my choices/);
+ assert.match(consent,/Allow both/);
+ assert.match(consent,/These choices do not give permission for advertising/);
+ assert.match(consent,/Our free tools are available either way/);
  assert.match(consent,/biglwa:privacy-changed/);
  assert.match(consent,/not automatically uploaded/i);
  assert.match(ads,/enabled:false,certifiedCmpPublished:false,publisherApproved:false/);

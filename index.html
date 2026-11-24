@@ -245,7 +245,7 @@ const scripts='<link rel="stylesheet" href="/profile-preview-repair.css?v=202611
 
     // Experience preferences are not a certified advertising CMP.
     html=html.replace('</head>',"<link rel=\"stylesheet\" href=\"/privacy-consent-20261123.css?v=1\"><link rel=\"stylesheet\" href=\"/ads-sponsor-20261123.css?v=1\"></head>");
-    html=html.replace('</body>', '<scr'+'ipt defer src="/ads-privacy-config-20261123.js?v=1"></scr'+'ipt><scr'+'ipt defer src="/privacy-consent-20261123.js?v=1"></scr'+'ipt></body>');
+    html=html.replace('</body>', '<scr'+'ipt defer src="/ads-privacy-config-20261123.js?v=1"></scr'+'ipt><scr'+'ipt defer src="/privacy-consent-20261123.js?v=2"></scr'+'ipt></body>');
     // Preserve crawlable document metadata after the legacy loader rewrites the page.
     if(!/<html[^>]*\blang=/i.test(html))html=html.replace(/<html(?=[\s>])/i,'<html lang="en"');
     const seoPath=location.pathname.replace(/\/+$/,'')||'/';

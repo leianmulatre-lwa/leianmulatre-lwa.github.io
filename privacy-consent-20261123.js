@@ -19,13 +19,13 @@ function open(){
   dialog=document.createElement('div');dialog.id='biglwaPrivacyChoices';
   dialog.innerHTML='<section class="biglwa-privacy-panel" role="dialog" aria-modal="true" aria-labelledby="biglwaPrivacyTitle" aria-describedby="biglwaPrivacyText">'+
    '<p class="biglwa-privacy-kicker">BIG LWA · PRIVACY & DATA</p><h2 id="biglwaPrivacyTitle">Your data, your terms.</h2>'+
-   '<p id="biglwaPrivacyText">Essential storage keeps your account and Studio working. Optional choices below never restrict our free tools.</p>'+
-   '<div class="biglwa-privacy-row"><div><strong>Essential</strong><small>Login, security, drafts and requested account settings</small></div><span>Always on</span></div>'+
-   '<label class="biglwa-privacy-row"><span><strong>Experience analytics</strong><small>Opt into on-device performance counters; reports are not automatically uploaded.</small></span><input type="checkbox" id="biglwaAllowAnalytics"></label>'+
-   '<label class="biglwa-privacy-row"><span><strong>Personalization</strong><small>Allow future optional experience improvements based on your chosen preferences.</small></span><input type="checkbox" id="biglwaAllowPersonalization"></label>'+
-   '<p class="biglwa-privacy-ad-note"><strong>Advertising is off.</strong> Future Google ads will require their own certified consent platform. These checkboxes do not authorize advertising.</p>'+
-   '<div class="biglwa-privacy-actions"><button type="button" data-privacy-action="reject">Reject optional</button><button type="button" data-privacy-action="save">Save choices</button><button type="button" data-privacy-action="accept">Accept optional</button></div>'+
-   '<p class="biglwa-privacy-links"><a href="/privacy/">Privacy policy</a> · <a href="/settings/#privacyControls">Settings</a> · <a href="/data-deletion/">Data deletion</a></p></section>';
+   '<p id="biglwaPrivacyText">BIG LWA uses cookies and similar storage to keep your Studio working. You choose whether to allow anything extra. Our free tools are available either way.</p>'+
+   '<div class="biglwa-privacy-row"><div><strong>Keep BIG LWA working</strong><small>Remember your login, protect your account, and save your drafts and settings.</small></div><span>Always on</span></div>'+
+   '<label class="biglwa-privacy-row"><span><strong>Help improve BIG LWA</strong><small>Allow this browser to count page visits, slow loads and errors. This information stays on your device and is not automatically uploaded.</small></span><input type="checkbox" id="biglwaAllowAnalytics"></label>'+
+   '<label class="biglwa-privacy-row"><span><strong>Make BIG LWA more you</strong><small>Save your permission for future optional features that tailor your experience to your preferences.</small></span><input type="checkbox" id="biglwaAllowPersonalization"></label>'+
+   '<p class="biglwa-privacy-ad-note"><strong>No ads are active right now.</strong> These choices do not give permission for advertising. If ads are introduced, any required advertising consent will be requested separately.</p>'+
+   '<div class="biglwa-privacy-actions"><button type="button" data-privacy-action="reject">Use essentials only</button><button type="button" data-privacy-action="save">Save my choices</button><button type="button" data-privacy-action="accept">Allow both</button></div>'+
+   '<p class="biglwa-privacy-links">Change your choices anytime in <a href="/settings/#privacyControls">Settings</a>. <a href="/privacy/">Privacy policy</a> · <a href="/data-deletion/">Data deletion</a></p></section>';
   const c=get();dialog.querySelector('#biglwaAllowAnalytics').checked=c.analytics;dialog.querySelector('#biglwaAllowPersonalization').checked=c.personalization;
   dialog.addEventListener('click',e=>{
    const action=e.target.closest('[data-privacy-action]')?.dataset.privacyAction;
