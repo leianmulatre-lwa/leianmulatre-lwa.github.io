@@ -22,6 +22,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       rebuild: ${{ steps.release.outputs.rebuild }}
+      reuse: ${{ steps.release.outputs.reuse }}
     steps:
       - uses: actions/checkout@v4
       - id: release
@@ -33,13 +34,43 @@ jobs:
           asset=$(jq -r .archive .github/native-release-lock.json)
           if gh release view "$tag" --json assets --jq '.assets[].name' > "$RUNNER_TEMP/native-assets" && grep -Fxq "$asset" "$RUNNER_TEMP/native-assets"; then
             echo 'rebuild=false' >> "$GITHUB_OUTPUT"
+            echo 'reuse=false' >> "$GITHUB_OUTPUT"
           else
             echo 'rebuild=true' >> "$GITHUB_OUTPUT"
+            # The failed website test did not invalidate these four successful,
+            # SHA-pinned Chromium-tested editor jobs from the recovery run.
+            # Only reuse their exact artifact IDs and digests while available.
+            if gh api "repos/$GITHUB_REPOSITORY/actions/runs/45342237858" > "$RUNNER_TEMP/recovery-run.json" &&
+               gh api "repos/$GITHUB_REPOSITORY/actions/runs/45342237858/artifacts" > "$RUNNER_TEMP/recovery-artifacts.json" &&
+               gh api "repos/$GITHUB_REPOSITORY/actions/runs/45342237858/jobs" > "$RUNNER_TEMP/recovery-jobs.json" &&
+               python3 - "$RUNNER_TEMP/recovery-run.json" "$RUNNER_TEMP/recovery-artifacts.json" "$RUNNER_TEMP/recovery-jobs.json" <<'PY'
+          import json,sys
+          from pathlib import Path
+          run, artifacts, jobs = (json.loads(Path(p).read_text()) for p in sys.argv[1:])
+          assert run['head_sha']=='ee167547c4482194cd2242c55bb856476c4314bd'
+          lock=json.loads(Path('.github/native-release-lock.json').read_text())
+          assert lock['lightR_sha']=='688c579b3dada389b62c8fad95a024bff1a78564'
+          assert lock['source_sha']=='279c52ddbe4d11f3309b331755c7daa08402f12a'
+          expected={
+            'lightR':(14897453612,'sha256:f16acfe946f5a542feb6ebda8600550e4a780cce502e1c51457117f4064365bc',138268479787),
+            'paintR':(14897432443,'sha256:18c7f64096d6a3081c626aedb88f1c91307608c76024d16da2a81aef38b4c453',138268479889),
+            'fileR':(14897392255,'sha256:4eb6fdf942efc7ec0317b1dbe42098ef2d33aa9b96e669e3d8f9f7ed7fd5915d',138268479774),
+            'keyframeR':(14896837949,'sha256:90ccda0913bd35196729f8a334ac1cd2083963665037c78ed166c5aefada96ca',138268479823)}
+          for name,(aid,digest,jid) in expected.items():
+              assert any(a['id']==aid and a['name']=='recovered-native-'+name and a['digest']==digest and not a['expired'] for a in artifacts['artifacts'])
+              assert any(j['id']==jid and j['conclusion']=='success' for j in jobs['jobs'])
+          print('All four previous verified native editor artifacts are available.')
+          PY
+            then
+              echo 'reuse=true' >> "$GITHUB_OUTPUT"
+            else
+              echo 'reuse=false' >> "$GITHUB_OUTPUT"
+            fi
           fi
 
   rebuild-native:
     needs: native-release-check
-    if: needs.native-release-check.outputs.rebuild == 'true'
+    if: needs.native-release-check.outputs.rebuild == 'true' && needs.native-release-check.outputs.reuse != 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     strategy:
@@ -216,8 +247,16 @@ jobs:
           node studio-myfeed-archive-filmstrip-test.mjs
       - name: Refresh original-source discovery feeds
         run: python3 scripts/refresh-discovery.py
+      - name: Download previously verified native builds
+        if: needs.native-release-check.outputs.reuse == 'true'
+        uses: actions/download-artifact@v4
+        with:
+          pattern: recovered-native-*
+          path: ${{ runner.temp }}/recovered-native
+          github-token: ${{ github.token }}
+          run-id: 45342237858
       - name: Download freshly rebuilt verified native editors
-        if: needs.native-release-check.outputs.rebuild == 'true'
+        if: needs.native-release-check.outputs.rebuild == 'true' && needs.native-release-check.outputs.reuse != 'true'
         uses: actions/download-artifact@v4
         with:
           pattern: recovered-native-*

@@ -20,7 +20,10 @@ assert(css.includes('background:repeating-linear-gradient(90deg,')&&css.includes
 assert(css.includes('aspect-ratio:3 / 2!important'),'Four photo apertures retain consistent landscape proportions');
 assert(css.includes('pointer-events:none!important'),'Decorative perforations never block clicks');
 assert(css.includes('.biglwa-feed-hero-preview:focus-visible'),'Keyboard users can see active thumbnails');
-assert(feed.includes("const storedPosts=previewPosts.filter(post=>post.state==='approved'&&heroPhotoUrl(post)&&!heroFailedUrls.has(heroPhotoUrl(post)))")&&feed.includes('const HERO_SLOTS = 4'),'Four photo-only slots exclude video posters');
+assert(feed.includes('const HERO_SLOTS = 4'),'Four photo slots retained');
+const sponsorFilter=feed.match(/const isSponsoredPost=post=>[^;]+;/)?.[0];
+const photoFilter=feed.match(/const storedPosts=previewPosts\.filter\([^\n]+\);/)?.[0];
+assert(sponsorFilter&&photoFilter,'Actual photo selection and sponsored-content guard are present');
 assert(feed.includes('openLightbox(post,Math.max(0,slideUrls(post).indexOf(selected)))'),'Filmstrip photo opens at the selected frame in the existing lightbox');
 assert(index.includes('account-boot.js?v=20261029-film-shuffle-3'),'Fresh account bootstrap on the live site');
 assert(read('account-boot.js').includes('feed-view.js?v=20261029-owned-photo-shuffle-3'),'Feed module cache version changes');
@@ -55,6 +58,12 @@ assert.equal(sandbox.pickPhoto(videoOnly),'','Video-only posters are excluded');
 assert.equal(sandbox.pickPhoto(mixed),photo,'Mixed posts show their actual photograph');
 assert.equal(sandbox.pickPhoto(oldVideo),'','Legacy video poster is excluded');
 assert.equal(sandbox.pickPhoto(oldPhoto),photo,'Legacy image-only posts still qualify');
+// Exercise the actual production filter, including every sponsored flag.
+const eligible=runInNewContext(sponsorFilter+'\n(previewPosts,heroPhotoUrl,heroFailedUrls)=>{'+photoFilter+'return storedPosts}',{});
+const approved={...picture,state:'approved',id:'photo'};
+const candidates=[approved,{...videoOnly,state:'approved',id:'video'},{...approved,id:'draft',state:'draft'},{...approved,id:'archived',state:'archived'},{...approved,id:'ad',isAd:true},{...approved,id:'sponsor',sponsored:true},{...approved,id:'advertisement',advertisement:true}];
+assert.equal(Array.from(eligible(candidates,sandbox.pickPhoto,new Set()),p=>p.id).join(','),'photo','Only approved real unsponsored photos enter the filmstrip');
+assert.equal(eligible(candidates,sandbox.pickPhoto,new Set([photo])).length,0,'Failed image URLs remain excluded');
 assert(feed.includes("const isPublicProfile=Boolean(window.__biglwaPublicStorageView)"),'Owner-only and public-post protections unchanged');
 assert(!pages.includes('archive-preview-b64-0a.txt'),'Old six-file photograph cannot replace new wallpaper');
 assert(pages.includes('preview.classList.add(\'biglwa-archive-default-windows\')'),'Archive wallpaper gets correct fitting style');

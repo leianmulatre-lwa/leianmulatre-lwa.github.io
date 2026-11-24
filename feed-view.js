@@ -794,7 +794,7 @@ function renderHero(force) {
   }
   const viewedUid=isPublicProfile?String(window.__biglwaViewedProfile?.uid||''):verifiedUid;
   const signature=viewedUid+'|'+(isPublicProfile?'public':'owner')+'|'+
-    previewPosts.map(p=>p.id+':'+p.state+':'+heroPhotoUrl(p)+':'+(p.caption||'')).join('|');
+    String(requiresSync)+'|'+storedPosts.map(p=>p.id+':'+p.state+':'+heroPhotoUrl(p)+':'+(p.caption||'')).join('|');
   const sameContent=anchor===heroOn&&signature===heroSignature;
   if(sameContent)return;
   heroOn=anchor;
