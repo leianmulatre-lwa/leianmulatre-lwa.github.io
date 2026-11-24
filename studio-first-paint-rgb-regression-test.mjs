@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {Script} from 'node:vm';
 const html=readFileSync(new URL('./index.html',import.meta.url),'utf8');
 const player=readFileSync(new URL('./login-archive-player.js',import.meta.url),'utf8');
 const dots=readFileSync(new URL('./studio-loading-dots-20261021.js',import.meta.url),'utf8');
@@ -41,7 +42,7 @@ console.log('PASS one lowercase dot-floating startup, restored stitched wordmark
 // The startup curtain must survive auth and the first stable paint; never
 // vanish as soon as a Studio or login node is merely mounted.
 assert(html.includes('biglwa:initial-route-ready'),'Initial auth routing participates in loader readiness');
-assert(html.includes("document.readyState!=='complete'"),'Loader waits for the browser to finish initial assets');
+assert(html.includes("document.readyState==='loading'"),'Loader waits for DOM parsing, not slow unrelated assets');
 assert(html.includes('Date.now()-quietSince<280'),'Loader waits for layout mutations to settle');
 assert(html.includes('biglwa:startup-revealed'),'Startup publishes a single reveal event');
 assert(!html.includes('window.setTimeout(finish,8000)'),'Old eight-second premature dismissal is removed');
@@ -55,3 +56,22 @@ for(const asset of deployedAssets){
  const one=version(html),two=version(studio);
  assert(one&&two&&one===two,'Root and /studio must use the exact same '+asset+' build');
 }
+
+// Parse the actual inline boot script exactly where the HTML parser closes
+// it. A literal closing script tag inside a string is a fatal HTML error,
+// even if the intended full JavaScript text would otherwise be valid.
+for(const entry of ['index.html','studio/index.html','404.html','live-studio-shell.html']){
+ const source=readFileSync(new URL('./'+entry,import.meta.url),'utf8');
+ const match=source.match(/<script>\s*(\(async\(\)=>\{try\{[\s\S]*?)<\/script>/i);
+ assert(match,entry+' contains executable bootstrap');
+ assert.doesNotThrow(()=>new Script(match[1]),entry+' browser-delimited bootstrap parses');
+ assert(source.slice(match.index+match[0].length).trim()==='</body></html>',entry+' bootstrap script is not cut off by generated markup');
+ assert(source.includes('privacy-consent-20261123.js?v=4'),entry+' loads current privacy UI');
+ assert(source.includes('biglwa:initial-route-ready'),entry+' retains auth route gate');
+ assert(source.includes("Date.now()-started<3500"),entry+' bounds optional image waits');
+ assert(source.includes("Date.now()-started<6000"),entry+' bounds incidental layout settling');
+ assert(!source.includes('window.setTimeout(finish,8000)'),entry+' cannot reveal unverified private UI');
+}
+const consent=readFileSync(new URL('./privacy-consent-20261123.js',import.meta.url),'utf8');
+assert(consent.includes("window.addEventListener('biglwa:startup-revealed',ask,{once:true})"),'Privacy prompt waits for verified startup reveal');
+console.log('PASS all four browser-delimited boot scripts, auth gate, bounded optional waits, and deferred privacy prompt');

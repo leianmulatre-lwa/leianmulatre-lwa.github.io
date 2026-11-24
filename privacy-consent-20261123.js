@@ -52,7 +52,12 @@ function install(){
  launcher=document.createElement('button');launcher.type='button';launcher.id='biglwaPrivacyLauncher';launcher.textContent='Privacy choices';
  launcher.addEventListener('click',open);document.body.append(launcher);
  document.addEventListener('click',e=>{if(e.target.closest('[data-open-biglwa-privacy]')){e.preventDefault();open();}});
- if(!get().savedAt)open();
+ // The auth-protected curtain hides every other body child. Wait until the
+ // verified route is revealed instead of focusing a hidden privacy dialog.
+ const ask=()=>{if(!get().savedAt)open();};
+ if(document.documentElement.classList.contains('biglwa-startup-protected')){
+   window.addEventListener('biglwa:startup-revealed',ask,{once:true});
+ }else ask();
  if(allowed('analytics'))note('page-view');
 }
 window.BigLWAPrivacy=Object.freeze({get,allowed,save,open,note,report});
