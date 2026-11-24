@@ -594,3 +594,13 @@ html body #studioApp .music-card.stereo-music-widget .stereo-time-scale>.stereo-
 #studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked).studio-upper-square .stereo-control-deck :is(.stereo-skip-button,#playBtn,.stereo-eject){height:100%!important;min-height:0!important;max-height:none!important}
 #studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked).studio-upper-square .stereo-display .stereo-time-scale>.stereo-eq{height:12px!important;min-height:12px!important;max-height:12px!important}
 #studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked).studio-upper-square .stereo-display .album-art{width:20px!important;height:20px!important;flex-basis:20px!important}
+
+/* Retire the legacy 242px compact height; square and long use the same
+   shared upper rail track. Do not modify the widget visibility or playback. */
+#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked).studio-upper-square{
+ width:100%!important;max-width:none!important;
+ height:var(--studio-upper-card-height,206px)!important;
+ min-height:var(--studio-upper-card-height,206px)!important;
+ max-height:var(--studio-upper-card-height,206px)!important;
+ aspect-ratio:auto!important;
+}

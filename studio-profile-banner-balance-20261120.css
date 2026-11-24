@@ -150,7 +150,7 @@
 #studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard::after {
   content:""!important;display:block!important;position:absolute!important;
   inset:5px!important;width:auto!important;height:auto!important;
-  box-sizing:border-box!important;border:1px dashed rgba(255,255,255,.72)!important;
+  box-sizing:border-box!important;border:2px dashed rgba(255,255,255,.86)!important;
   border-radius:7px!important;background:none!important;box-shadow:none!important;
   filter:none!important;animation:none!important;transform:none!important;
   pointer-events:none!important;z-index:1!important;
@@ -451,7 +451,7 @@
 
 /* Solid white clock outline; paired stat windows have equal width. */
 #studioApp .biglwa-score-clock-face{
- outline:1px solid rgba(255,255,255,.88);outline-offset:2px;
+ outline:2px solid rgba(255,255,255,.94);outline-offset:2px;border-radius:0!important;
 }
 #studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.stats.stats
 :is([data-profile-stat="followers"],[data-profile-stat="following"],[data-profile-stat="reach"],[data-profile-stat="likes"]) b{
@@ -539,5 +539,18 @@
    digital readouts, proportions and the existing shadow unchanged. */
 #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard,
 #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard::after{
+ border-radius:0!important;
+}
+
+/* Neutralize legacy avatar offsets and align the entire identity stack.
+   Keep the rank baseline, highlights and the card dimensions intact. */
+#studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-identity-rail>.profile-avatar{
+ position:relative!important;left:0!important;right:auto!important;transform:translateX(-2px)!important;
+}
+#studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-identity-rail>#editProfileBtn{
+ transform:translateX(-2px)!important;
+}
+/* Both white and inset clock borders meet at true square corners. */
+#studioApp#studioApp .biglwa-profile-scoreboard .biglwa-score-clock-face{
  border-radius:0!important;
 }

@@ -72,7 +72,7 @@
   if(!document.getElementById('studioUpperRailSizeContract')){
    const link=document.createElement('link');
    link.id='studioUpperRailSizeContract';link.rel='stylesheet';
-   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261115-tunes-time-eq-v1&timeline=20261115-bottom-v1&wave=20261116-studio-tour&discovery=20261117-2&boombox=20261124-1';
+   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261115-tunes-time-eq-v1&timeline=20261115-bottom-v1&wave=20261116-studio-tour&discovery=20261117-2&boombox=20261124-2';
    document.head.append(link);
   }
  }

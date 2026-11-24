@@ -148,7 +148,7 @@ test('clock replaces only globe and keeps private account preferences and non-ed
 });
 
 test('solid clock outline and paired metric face widths remain consistent',()=>{
- assert.match(css,/outline:1px solid rgba\(255,255,255,\.88\);outline-offset:2px/);
+ assert.match(css,/outline:2px solid rgba\(255,255,255,\.94\);outline-offset:2px;border-radius:0!important/);
  assert.match(css,/\[data-profile-stat="followers"\],\[data-profile-stat="following"\],\[data-profile-stat="reach"\],\[data-profile-stat="likes"\]/);
  assert.match(css,/width:min\(100%,8ch\)!important/);
  assert.doesNotMatch(read('profile-scoreboard-compact-20261118.js'),/cloneNode|localStorage\.setItem|setDoc|replaceChildren/);
@@ -156,7 +156,7 @@ test('solid clock outline and paired metric face widths remain consistent',()=>{
 
 test('inner perimeter stitching and clock spacing preserve the tile; blocks animate only during profile loading',()=>{
  assert.match(css,/inset:5px!important;width:auto!important;height:auto!important/);
- assert.match(css,/border:1px dashed rgba\(255,255,255,\.72\)!important/);
+ assert.match(css,/border:2px dashed rgba\(255,255,255,\.86\)!important/);
  assert.match(css,/top:34px!important;left:50%!important/);
  assert.match(css,/flex:0 0 79px!important/);
  assert.match(css,/loading-blocks-pixel-20261029\.png"\) center\/contain no-repeat!important;[\s\S]*?animation:none!important/);
@@ -177,4 +177,11 @@ test('rank label and title share card-relative baseline; flexible progress track
 test('scoreboard cabinet and stitched seam have square corners',()=>{
  assert.match(css,/\.biglwa-profile-scoreboard,\s*#studioApp#studioApp#studioApp:not\(\.profile-editor-wallpaper\) \.hero \.profile-card:not\(\.profile-is-editing\) \.biglwa-profile-scoreboard::after\{\s*border-radius:0!important/);
  for(const shell of shells)assert.match(read(shell),/studio-profile-banner-balance-20261120\.css\?[^"']*square=20261124-4/);
+});
+
+test('identity controls and thicker square scoreboard clock',()=>{
+ assert.match(css,/\.profile-identity-rail>\.profile-avatar\{\s*position:relative!important;left:0!important;right:auto!important;transform:translateX\(-2px\)!important/);
+ assert.match(css,/\.profile-identity-rail>#editProfileBtn\{\s*transform:translateX\(-2px\)!important/);
+ assert.match(css,/\.biglwa-profile-scoreboard \.biglwa-score-clock-face\{\s*border-radius:0!important/);
+ for(const shell of shells)assert.match(read(shell),/studio-profile-banner-balance-20261120\.css\?[^"']*thickframe=20261124-1/);
 });

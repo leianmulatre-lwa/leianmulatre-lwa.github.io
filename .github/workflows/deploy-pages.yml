@@ -341,8 +341,8 @@ jobs:
           grep -Fq 'REAL ★ RANK' dist/public/profile-stats-row-20261116.js
           grep -Fq 'biglwa-scoreboard-lights' dist/public/profile-stats-row-20261116.js
           grep -Fq 'scoreboardClock' dist/public/profile-scoreboard-compact-20261118.js
-          grep -Fq 'outline:1px solid rgba(255,255,255,.88)' dist/public/studio-profile-banner-balance-20261120.css
-          grep -Fq 'border:1px dashed rgba(255,255,255,.72)' dist/public/studio-profile-banner-balance-20261120.css
+          grep -Fq 'outline:2px solid rgba(255,255,255,.94)' dist/public/studio-profile-banner-balance-20261120.css
+          grep -Fq 'border:2px dashed rgba(255,255,255,.86)' dist/public/studio-profile-banner-balance-20261120.css
           grep -Fq 'width:min(100%,8ch)' dist/public/studio-profile-banner-balance-20261120.css
           grep -Fq 'Enlarge Aura widget' dist/public/studio-experience.js
           grep -Fq 'Add an avatar through Edit profile' dist/public/avatar-studio-bitmoji-20261017-v3.js
