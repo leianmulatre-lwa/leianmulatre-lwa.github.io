@@ -442,3 +442,12 @@
 .biglwa-score-clock-dialog form>div{display:flex;justify-content:flex-end;gap:8px}
 .biglwa-score-clock-dialog button{background:#fff7eb;color:#411625;border:0;border-radius:4px;padding:7px 12px;cursor:pointer}
 .biglwa-score-clock-dialog p{margin:0;min-height:1em}
+
+/* White stitched clock perimeter; paired stat windows have equal width. */
+#studioApp .biglwa-score-clock-face{
+ outline:1px dashed rgba(255,255,255,.88);outline-offset:3px;
+}
+#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.stats.stats
+:is([data-profile-stat="followers"],[data-profile-stat="following"],[data-profile-stat="reach"],[data-profile-stat="likes"]) b{
+ width:min(100%,8ch)!important;min-width:0!important;max-width:100%!important;
+}

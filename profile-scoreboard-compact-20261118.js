@@ -67,7 +67,7 @@
   }
   const select=$('[name="zone"]',dialog);
   const zones=typeof Intl.supportedValuesOf==='function'?Intl.supportedValuesOf('timeZone'):['America/Los_Angeles','America/Denver','America/Chicago','America/New_York','America/Port-au-Prince','Europe/London','Europe/Paris','Africa/Lagos','Asia/Kolkata','Asia/Tokyo','Australia/Sydney'];
-  select.replaceChildren();
+  while(select.firstChild)select.removeChild(select.firstChild);
   for(const value of ['',...new Set(['UTC',...zones,...(clockPrefs.zone?[clockPrefs.zone]:[])])]){
    const option=document.createElement('option');option.value=value;option.textContent=value?value.replace(/_/g,' '):'Automatic (device time zone)';select.append(option);
   }

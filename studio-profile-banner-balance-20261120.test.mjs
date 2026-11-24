@@ -146,3 +146,10 @@ test('clock replaces only globe and keeps private account preferences and non-ed
  assert(avatar.includes("if(control.dataset.avatarWidgetAction==='enlarge')openAvatarLarge()"));
  for(const shell of shells)for(const asset of ['profile-scoreboard-compact-20261118.js','studio-profile-banner-balance-20261120.css','studio-experience.js','ui-coherence.js','avatar-studio-bitmoji-20261017-v3.js'])assert(read(shell).includes('clock=20261124-1'),asset);
 });
+
+test('clock stitch and paired metric face widths remain consistent',()=>{
+ assert.match(css,/outline:1px dashed rgba\(255,255,255,\.88\);outline-offset:3px/);
+ assert.match(css,/\[data-profile-stat="followers"\],\[data-profile-stat="following"\],\[data-profile-stat="reach"\],\[data-profile-stat="likes"\]/);
+ assert.match(css,/width:min\(100%,8ch\)!important/);
+ assert.doesNotMatch(read('profile-scoreboard-compact-20261118.js'),/cloneNode|localStorage\.setItem|setDoc|replaceChildren/);
+});
