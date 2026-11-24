@@ -246,7 +246,7 @@ jobs:
           node --test lwazi/search-experience.test.mjs lwazi/music-jobs-integration.test.mjs
           node studio-first-paint-rgb-regression-test.mjs
           node studio-myfeed-archive-filmstrip-test.mjs
-      - name: Verify actual rank alignment and progress width in Chromium
+      - name: Verify rank and stereo geometry and visibility in Chromium
         env:
           NODE_PATH: ${{ runner.temp }}/biglwa-playwright/node_modules
         run: |
@@ -352,6 +352,8 @@ jobs:
             grep -Fq 'stitch=20261124-1' "dist/public/$entry"
             grep -Fq 'seam=20261124-2' "dist/public/$entry"
             grep -Fq 'rankline=20261124-3' "dist/public/$entry"
+            grep -Fq 'boombox=20261124-3' "dist/public/$entry"
+            grep -Fq 'thickframe=20261124-1' "dist/public/$entry"
           done
           test ! -e dist/public/third_party
           test ! -e dist/public/.github

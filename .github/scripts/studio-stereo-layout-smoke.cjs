@@ -22,7 +22,17 @@ const {chromium}=require('playwright');
    else{assert(r.left.right<=r.display.x+1&&r.display.right<=r.right.x+1,JSON.stringify(r));assert(r.left.h>=r.display.h,JSON.stringify(r))}
    console.log('PASS stereo '+width+'px '+(square?'square':'long')+', same player and no clipping');
   }
-  await page.evaluate(()=>{document.querySelector('.music-card').hidden=true});
-  assert.equal(await page.locator('.music-card').isVisible(),false);
+  // Exercise each independent close state and restoration at every size.
+  for(const square of [true,false]){
+   await page.evaluate(square=>{const card=document.querySelector('.music-card');for(const name of ['studio-upper-square','studio-header-only','studio-music-square'])card.classList.toggle(name,square)},square);
+   for(const state of ['hidden','widget-is-minimized','widget-is-docked']){
+    await page.evaluate(state=>{const card=document.querySelector('.music-card');if(state==='hidden')card.hidden=true;else card.classList.add(state)},state);
+    assert.equal(await page.locator('.music-card').isVisible(),false,state+' must hide stereo');
+    await page.evaluate(state=>{const card=document.querySelector('.music-card');if(state==='hidden')card.hidden=false;else card.classList.remove(state)},state);
+    assert.equal(await page.locator('.music-card').isVisible(),true,state+' must restore stereo');
+    assert(await page.evaluate(()=>window.originalAudio===document.querySelector('#studioAudio')&&window.originalPlay===document.querySelector('#playBtn')));
+   }
+  }
+  console.log('PASS long and square hidden, docked, minimized and restored states');
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

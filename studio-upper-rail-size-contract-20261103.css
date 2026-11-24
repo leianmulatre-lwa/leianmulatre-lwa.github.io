@@ -604,3 +604,11 @@ html body #studioApp .music-card.stereo-music-widget .stereo-time-scale>.stereo-
  max-height:var(--studio-upper-card-height,206px)!important;
  aspect-ratio:auto!important;
 }
+
+/* Visibility is the terminal state of the upper-rail size contract.
+   Older full/compact selectors otherwise win over the native hidden
+   attribute. Neither resizing nor the hardware face may revive a closed
+   stereo. Retain the player node so restoring does not restart the song. */
+#studioApp#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:is([hidden],.widget-is-minimized,.widget-is-docked){
+ display:none!important;visibility:hidden!important;pointer-events:none!important;
+}
