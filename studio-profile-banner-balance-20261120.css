@@ -150,8 +150,17 @@
 #studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard::after {
   content:""!important;display:block!important;position:absolute!important;
   inset:5px!important;width:auto!important;height:auto!important;
-  box-sizing:border-box!important;border:2px dashed rgba(255,255,255,.86)!important;
-  border-radius:7px!important;background:none!important;box-shadow:none!important;
+  box-sizing:border-box!important;border:0!important;
+  /* Four stitched edges: 3px stroke, 6px thread, 2px gap. Unlike dashed
+     borders, the stitch length and gap stay consistent at every card width. */
+  --score-stitch-ink:rgba(255,255,255,.92);
+  border-radius:0!important;
+  background:
+    repeating-linear-gradient(90deg,var(--score-stitch-ink) 0 6px,transparent 6px 8px) top left/100% 3px no-repeat,
+    repeating-linear-gradient(90deg,var(--score-stitch-ink) 0 6px,transparent 6px 8px) bottom left/100% 3px no-repeat,
+    repeating-linear-gradient(0deg,var(--score-stitch-ink) 0 6px,transparent 6px 8px) top left/3px 100% no-repeat,
+    repeating-linear-gradient(0deg,var(--score-stitch-ink) 0 6px,transparent 6px 8px) top right/3px 100% no-repeat!important;
+  box-shadow:none!important;
   filter:none!important;animation:none!important;transform:none!important;
   pointer-events:none!important;z-index:1!important;
 }

@@ -100,3 +100,27 @@ html.biglwa-preview-mode #studioApp #socialOnlineFriends{display:none!important}
 body.night-mode #studioApp #archive .archive-photo-preview.biglwa-archive-default-windows img.biglwa-windows-archive-photo[src^="/assets/studio-defaults/archive-windows-hill.webp"]{
  content:url('/assets/studio-defaults/archive-windows-hill-night.webp');
 }
+
+/* A single fixed-height mini-map surface: island while loading or failed,
+   live iframe on readiness, compact retry overlay only on failure. */
+#studioApp #map .studio-map-preview-slot[data-map-preview-owner="module-pages"]{
+ height:205px!important;min-height:205px!important;max-height:205px!important;
+ overflow:hidden!important;
+}
+#studioApp #map .studio-map-preview-slot[data-map-preview-owner="module-pages"]>.studio-map-still{
+ position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+ max-height:none!important;object-fit:cover!important;box-shadow:none!important;border:0!important;
+}
+#studioApp #map .studio-map-preview-slot[data-map-preview-state="ready"]>.studio-map-still{visibility:hidden!important}
+#studioApp #map .studio-map-preview-slot>.studio-map-preview-error{
+ position:absolute;inset:auto 0 0;z-index:3;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+ gap:5px 8px;padding:7px 8px;background:#e8eef1f2;color:#34535d;
+ font:600 10px/1.35 system-ui;text-align:center;
+}
+#studioApp #map .studio-map-preview-slot>.studio-map-preview-error[hidden]{display:none!important}
+#studioApp #map .studio-map-preview-retry{
+ border:1px solid #507985;border-radius:5px;background:#fffaf5;color:#34535d;
+ padding:5px 9px;font:700 10px/1.3 system-ui;cursor:pointer;
+}
+#studioApp #map .studio-map-preview-retry:focus-visible{outline:2px solid #2a7187;outline-offset:2px}
+#studioApp #map .studio-map-preview-slot[data-map-preview-owner="module-pages"]>.biglwa-map-error-fallback{display:none!important}

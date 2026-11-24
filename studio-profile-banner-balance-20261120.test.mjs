@@ -156,7 +156,9 @@ test('solid clock outline and paired metric face widths remain consistent',()=>{
 
 test('inner perimeter stitching and clock spacing preserve the tile; blocks animate only during profile loading',()=>{
  assert.match(css,/inset:5px!important;width:auto!important;height:auto!important/);
- assert.match(css,/border:2px dashed rgba\(255,255,255,\.86\)!important/);
+ assert.match(css,/--score-stitch-ink:rgba\(255,255,255,\.92\)/);
+ assert.match(css,/transparent 6px 8px\) top left\/100% 3px no-repeat/);
+ assert.match(css,/transparent 6px 8px\) top right\/3px 100% no-repeat!important/);
  assert.match(css,/top:34px!important;left:50%!important/);
  assert.match(css,/flex:0 0 79px!important/);
  assert.match(css,/loading-blocks-pixel-20261029\.png"\) center\/contain no-repeat!important;[\s\S]*?animation:none!important/);

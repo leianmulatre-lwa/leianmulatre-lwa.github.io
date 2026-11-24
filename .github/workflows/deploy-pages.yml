@@ -255,6 +255,7 @@ jobs:
           "$RUNNER_TEMP/biglwa-playwright/node_modules/.bin/playwright" install --with-deps chromium
           node .github/scripts/studio-rank-layout-smoke.cjs
           node .github/scripts/studio-stereo-layout-smoke.cjs
+          node .github/scripts/studio-map-single-preview-smoke.cjs
       - name: Refresh original-source discovery feeds
         run: python3 scripts/refresh-discovery.py
       - name: Download previously verified native builds
@@ -342,7 +343,8 @@ jobs:
           grep -Fq 'biglwa-scoreboard-lights' dist/public/profile-stats-row-20261116.js
           grep -Fq 'scoreboardClock' dist/public/profile-scoreboard-compact-20261118.js
           grep -Fq 'outline:2px solid rgba(255,255,255,.94)' dist/public/studio-profile-banner-balance-20261120.css
-          grep -Fq 'border:2px dashed rgba(255,255,255,.86)' dist/public/studio-profile-banner-balance-20261120.css
+          grep -Fq -- '--score-stitch-ink:rgba(255,255,255,.92)' dist/public/studio-profile-banner-balance-20261120.css
+          grep -Fq 'transparent 6px 8px) top left/100% 3px no-repeat' dist/public/studio-profile-banner-balance-20261120.css
           grep -Fq 'width:min(100%,8ch)' dist/public/studio-profile-banner-balance-20261120.css
           grep -Fq 'Enlarge Aura widget' dist/public/studio-experience.js
           grep -Fq 'Add an avatar through Edit profile' dist/public/avatar-studio-bitmoji-20261017-v3.js
@@ -354,6 +356,7 @@ jobs:
             grep -Fq 'rankline=20261124-3' "dist/public/$entry"
             grep -Fq 'boombox=20261124-3' "dist/public/$entry"
             grep -Fq 'thickframe=20261124-1' "dist/public/$entry"
+            grep -Fq 'mapstitch=20261124-1' "dist/public/$entry"
           done
           test ! -e dist/public/third_party
           test ! -e dist/public/.github

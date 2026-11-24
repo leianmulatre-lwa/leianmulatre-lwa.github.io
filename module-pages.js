@@ -4471,6 +4471,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     // Restore the interactive baseline (6858a0ef, Nov 16), keeping one frame
     // alive across Studio refreshes. An unavailable map leaves the artwork intact.
     slot.setAttribute('aria-label','Interactive map preview');
+    slot.dataset.mapPreviewOwner='module-pages';
+    slot.querySelectorAll(':scope > .biglwa-map-error-fallback').forEach(node=>node.remove());
     if(!slot.querySelector('#biglwaStudioMiniMap')){
       slot.replaceChildren();
       const image=document.createElement('img');image.className='studio-map-still';
@@ -4482,18 +4484,22 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
       mini.className='studio-mini-map';mini.referrerPolicy='same-origin';
       mini.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;visibility:hidden';
       const retry=document.createElement('button');retry.type='button';retry.textContent='Retry interactive map';retry.hidden=true;
-      retry.style.cssText='position:absolute;top:8px;left:8px;z-index:2;font:600 11px system-ui;padding:5px 8px';
-      slot.style.position='relative';slot.append(image,mini,retry);
+      retry.className='studio-map-preview-retry';
+      retry.textContent='Retry map ↻';
+      const failure=document.createElement('div');failure.className='studio-map-preview-error';failure.hidden=true;
+      const note=document.createElement('span');note.textContent='Map could not open. Your saved pins are safe.';
+      failure.append(note,retry);retry.hidden=false;
+      slot.style.position='relative';slot.append(image,mini,failure);
       let timeout,ready=false;
-      const fail=()=>{if(ready)return;mini.style.visibility='hidden';retry.hidden=false;};
-      const load=()=>{ready=false;retry.hidden=true;mini.style.visibility='hidden';clearTimeout(timeout);
+      const fail=()=>{if(ready||!slot.isConnected)return;clearTimeout(timeout);slot.dataset.mapPreviewState='failed';mini.style.visibility='hidden';failure.hidden=false;};
+      const load=()=>{ready=false;slot.dataset.mapPreviewState='loading';failure.hidden=true;mini.classList.remove('biglwa-map-unavailable');mini.style.visibility='hidden';clearTimeout(timeout);
         mini.src='/map-app.html?embed=1&preview=1&v=20261118-preview-guide&discovery=20261117-1&retry='+Date.now();
         timeout=setTimeout(fail,18000);};
       const listener=event=>{
         if(!slot.isConnected){clearTimeout(timeout);window.removeEventListener('message',listener);return;}
         if(event.origin!==location.origin||event.source!==mini.contentWindow||!['biglwa:map-ready','biglwa:map-failed'].includes(event.data?.type))return;
         if(event.data.type==='biglwa:map-failed'){ready=false;fail();return;}
-        ready=true;clearTimeout(timeout);mini.style.visibility='visible';retry.hidden=true;
+        ready=true;clearTimeout(timeout);slot.dataset.mapPreviewState='ready';mini.classList.remove('biglwa-map-unavailable');mini.style.visibility='visible';failure.hidden=true;
       };
       window.addEventListener('message',listener);mini.addEventListener('error',fail);
       retry.addEventListener('click',load);load();

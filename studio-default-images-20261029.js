@@ -104,8 +104,8 @@
  function refresh(){
   queued=false;
   archive();visualizr();trophy();
-  const mini=$('#biglwaStudioMiniMap');
-  if(mini)imageFallback(mini);
+  // The mini-map is owned by syncMapCardPreview in module-pages.js.
+  // Only the full workspace map needs this separate fallback panel.
   const full=$('#biglwaMapApp');
   if(full)imageFallback(full);
   for(const [frame,state] of frames)if(!frame.isConnected){clearTimeout(state.timer);frames.delete(frame)}
