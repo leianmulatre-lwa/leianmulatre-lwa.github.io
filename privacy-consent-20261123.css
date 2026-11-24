@@ -1,4 +1,7 @@
-#biglwaPrivacyLauncher{position:fixed;left:12px;bottom:12px;z-index:2147482200;border:1px solid #a9696c;border-radius:999px;padding:7px 12px;background:#fffaf5;color:#55272c;font:700 12px system-ui;box-shadow:0 2px 10px #16050926;cursor:pointer}
+.biglwa-privacy-footer-link{position:static!important;display:inline-block;flex:0 0 auto;max-width:100%;margin:0;padding:0 0 2px;border:0;border-bottom:1px solid currentColor;border-radius:0;background:transparent;box-shadow:none;color:inherit;font:inherit;line-height:inherit;text-decoration:none;cursor:pointer;white-space:normal}
+#studioApp .site-policy-footer .biglwa-privacy-footer-link{font-size:10px;color:#5b524d;align-self:flex-start}
+body.night-mode #studioApp .site-policy-footer .biglwa-privacy-footer-link{color:inherit}
+.biglwa-privacy-footer-link:hover{text-decoration:underline}
 #biglwaPrivacyChoices{position:fixed;inset:0;z-index:2147483001;display:grid;place-items:center;padding:18px;background:#18090ec2;color:#342128;font:15px/1.5 system-ui}
 .biglwa-privacy-panel{box-sizing:border-box;background:#fffaf3;border:1px solid #c79da3;border-radius:18px;width:min(590px,94vw);max-height:92vh;overflow-y:auto;padding:clamp(18px,4vw,30px);box-shadow:0 16px 46px #1005095c}
 .biglwa-privacy-panel h2{font:700 clamp(26px,5vw,37px)/1.12 Georgia,serif;margin:4px 0 12px;color:#351d23}
@@ -9,5 +12,5 @@
 .biglwa-privacy-ad-note{background:#f7edf0;border-left:3px solid #a7334b;padding:10px 13px;font-size:12px}
 .biglwa-privacy-actions{display:flex;flex-wrap:wrap;gap:8px}.biglwa-privacy-actions button{font:700 13px system-ui;cursor:pointer;border-radius:9px;min-height:39px;padding:9px 13px;border:1px solid #9d4d5b;background:#fff;color:#662331}
 .biglwa-privacy-actions [data-privacy-action=accept]{background:#64202e;color:#fff}.biglwa-privacy-links{font-size:12px}.biglwa-privacy-links a{color:#7c3040}
-#biglwaPrivacyLauncher:focus-visible,.biglwa-privacy-panel :focus-visible{outline:3px solid #bc3856;outline-offset:3px}
+.biglwa-privacy-footer-link:focus-visible,.biglwa-privacy-panel :focus-visible{outline:3px solid #bc3856;outline-offset:3px}
 @media(max-width:500px){.biglwa-privacy-actions button{flex:1 1 100%}}

@@ -66,7 +66,7 @@ for(const entry of ['index.html','studio/index.html','404.html','live-studio-she
  assert(match,entry+' contains executable bootstrap');
  assert.doesNotThrow(()=>new Script(match[1]),entry+' browser-delimited bootstrap parses');
  assert(source.slice(match.index+match[0].length).trim()==='</body></html>',entry+' bootstrap script is not cut off by generated markup');
- assert(source.includes('privacy-consent-20261123.js?v=4'),entry+' loads current privacy UI');
+ assert(source.includes('privacy-consent-20261123.js?v=5'),entry+' loads current privacy UI');
  assert(source.includes('biglwa:initial-route-ready'),entry+' retains auth route gate');
  assert(source.includes("Date.now()-started<3500"),entry+' bounds optional image waits');
  assert(source.includes("Date.now()-started<6000"),entry+' bounds incidental layout settling');

@@ -7,6 +7,7 @@ const defaults=()=>({version:1,analytics:false,personalization:false,savedAt:nul
 function get(){try{const x=JSON.parse(localStorage.getItem(KEY)||'null');return x&&x.version===1&&typeof x.analytics==='boolean'&&typeof x.personalization==='boolean'?x:defaults();}catch{return defaults();}}
 function allowed(name){return (name==='analytics'||name==='personalization')&&get()[name]===true;}
 let dialog,launcher;
+const launcherSelector='[data-privacy-footer-launcher]';
 function close(){if(dialog){dialog.remove();dialog=null;}launcher?.focus({preventScroll:true});}
 function save(a,p){
   const value={version:1,analytics:a===true,personalization:p===true,savedAt:new Date().toISOString()};
@@ -47,11 +48,38 @@ function note(event){
   }catch{return false;}
 }
 function report(){if(!allowed('analytics'))return null;try{return JSON.parse(sessionStorage.getItem('biglwa:optional-diagnostics:v1')||'{}');}catch{return null;}}
+function mountPrivacyLinks(){
+ // Use the existing policy footer, not the fixed Skeleton Key sidebar.
+ const targets=new Set(document.querySelectorAll('.site-policy-footer nav,.public-page-footer nav,footer nav[aria-label="Footer navigation"]'));
+ const login=document.getElementById('loginPage');
+ if(login&&!login.querySelector('.public-page-footer nav')){
+   const links=login.querySelector('.login-explore-links,.policy-links');
+   if(links)targets.add(links);
+ }
+ if(!targets.size){
+   // Standalone public pages without a policy footer get a normal-flow link.
+   const fallback=document.querySelector('footer')||document.querySelector('main')||document.body;
+   if(fallback)targets.add(fallback);
+ }
+ for(const target of targets){
+   if(target.querySelector(launcherSelector))continue;
+   const link=document.createElement('button');link.type='button';
+   link.className='biglwa-privacy-footer-link';link.dataset.privacyFooterLauncher='1';
+   link.setAttribute('data-open-biglwa-privacy','');link.textContent='Privacy choices';
+   target.append(link);
+ }
+}
 function install(){
- if(!document.body||document.querySelector('#biglwaPrivacyLauncher'))return;
- launcher=document.createElement('button');launcher.type='button';launcher.id='biglwaPrivacyLauncher';launcher.textContent='Privacy choices';
- launcher.addEventListener('click',open);document.body.append(launcher);
- document.addEventListener('click',e=>{if(e.target.closest('[data-open-biglwa-privacy]')){e.preventDefault();open();}});
+ if(!document.body)return;
+ mountPrivacyLinks();
+ // Existing footer and login nodes can be added by policy hydration later.
+ let scheduled=false;
+ const observer=new MutationObserver(records=>{
+   if(scheduled||!records.some(r=>Array.from(r.addedNodes).some(n=>n.nodeType===1&&(n.matches?.('footer,.site-policy-footer,.public-page-footer,.login-explore-links')||n.querySelector?.('footer,.site-policy-footer,.public-page-footer,.login-explore-links')))))return;
+   scheduled=true;requestAnimationFrame(()=>{scheduled=false;mountPrivacyLinks();});
+ });
+ observer.observe(document.body,{childList:true,subtree:true});
+ document.addEventListener('click',e=>{const trigger=e.target.closest?.('[data-open-biglwa-privacy]');if(trigger){e.preventDefault();launcher=trigger;open();}});
  // The auth-protected curtain hides every other body child. Wait until the
  // verified route is revealed instead of focusing a hidden privacy dialog.
  const ask=()=>{if(!get().savedAt)open();};

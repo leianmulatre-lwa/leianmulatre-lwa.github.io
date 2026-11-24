@@ -58,3 +58,12 @@ test('distinct SEO guides are canonical, discoverable and truthful',()=>{
  assert.match(discover,/href="\/free-content-customization\/"/);
  assert(!sitemap.includes('<loc>https://biglwa.com/studio/</loc>'));
 });
+test('privacy controls live with footer links rather than a floating sidebar pill',()=>{
+ const consent=read('privacy-consent-20261123.js'),css=read('privacy-consent-20261123.css');
+ assert.match(consent,/\.site-policy-footer nav,\.public-page-footer nav/);
+ assert.match(consent,/target\.append\(link\)/);
+ assert.match(consent,/data-open-biglwa-privacy/);
+ assert.doesNotMatch(consent,/document\.body\.append\(launcher\)/);
+ assert.match(css,/\.biglwa-privacy-footer-link\{position:static!important/);
+ assert.doesNotMatch(css,/#biglwaPrivacyLauncher/);
+});
