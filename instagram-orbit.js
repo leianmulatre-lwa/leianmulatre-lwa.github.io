@@ -20,6 +20,9 @@
   var RETURNED_ERROR = (function () {
     try { return new URL(window.location.href).searchParams.get('instagram_error') || ''; } catch (error) { return ''; }
   }());
+  var markCallbackReturn = function () {
+    try { sessionStorage.setItem('biglwa:orbit-callback-return', String(Date.now())) } catch (error) {}
+  };
   function one(selector, root) { return (root || document).querySelector(selector); }
   function all(selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); }
   function escapeText(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
@@ -269,6 +272,7 @@
     // OAuth one-time codes must not replay after other auth state changes.
     RETURNED_HANDOFF='';RETURNED_ERROR='';
     window.__biglwaInstagramReturnCode = handoff;
+    if (handoff || error) markCallbackReturn();
     if (error) { url.searchParams.delete('instagram_error'); history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash); status(error); }
     if (!handoff) return restore({silent:true});
     url.searchParams.delete('instagram_handoff'); history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);

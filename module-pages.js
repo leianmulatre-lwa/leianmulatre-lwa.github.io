@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261124-1';
+        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261124-1&callback=20261124-2';
         document.head.appendChild(script);
       }, 250);
     }
@@ -4739,8 +4739,20 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     'pinterest_handoff','pinterest_error','tiktok_handoff','tiktok_error',
     'orbit_provider','orbit_status','orbit_error',
     'facebook_login','facebook_login_error'];
+  // Provider clients consume their one-time handoff params before this module
+  // runs. They leave a short-lived marker so a real OAuth return is not treated
+  // as a stale ?view=orbit tab. Consume it once: both the canonicalizer and the
+  // initial view resolver below need to see the same answer.
+  let recentOrbitCallback=false;
+  try{
+    const raw=sessionStorage.getItem('biglwa:orbit-callback-return');
+    const age=Date.now()-Number(raw||0);
+    if(raw&&Number.isFinite(age)&&age>=0&&age<15000)recentOrbitCallback=true;
+    sessionStorage.removeItem('biglwa:orbit-callback-return');
+  }catch(error){}
   const explicitOrbitReturn=params=>params.get('orbit_return')==='1'||
-    params.get('nav')==='1'||ORBIT_CALLBACK_PARAMS.some(key=>params.has(key));
+    params.get('nav')==='1'||recentOrbitCallback||
+    ORBIT_CALLBACK_PARAMS.some(key=>params.has(key));
   const routeViewFromUrl=()=>{
     const params=new URLSearchParams(location.search);
     if(location.pathname.replace(/\/+$/,'')==='/studio'&&['map','politc'].includes(params.get('panel')))return params.get('panel');

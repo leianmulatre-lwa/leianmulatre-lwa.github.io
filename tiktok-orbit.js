@@ -9,6 +9,12 @@
   // Capture OAuth response before module-pages rewrites the Studio URL.
   let CALLBACK_HANDOFF=(()=>{try{return new URL(location.href).searchParams.get('tiktok_handoff')||''}catch{return''}})();
   const CALLBACK_ERROR=(()=>{try{return new URL(location.href).searchParams.get('tiktok_error')||''}catch{return''}})();
+  // module-pages.js reads this before it canonicalizes the Studio URL. The
+  // handoff params are consumed here, so the router needs a durable same-task
+  // signal that ?view=orbit is a real OAuth return, not a stale tab.
+  const markCallbackReturn=()=>{
+    try{sessionStorage.setItem('biglwa:orbit-callback-return',String(Date.now()))}catch{}
+  };
   let connected = false, profile = {}, videos = [], authUid = '', restoreBusy = false;
   let lastError='',videoPermissionPending=false,videoLoadError='',lastCollectiveSync='',videoAppScopePending=false;
   const scopedKey = () => authUid ? KEY + ':' + authUid : '';
@@ -487,6 +493,7 @@
     const url=new URL(location.href),handoff=url.searchParams.get('tiktok_handoff')||CALLBACK_HANDOFF,error=url.searchParams.get('tiktok_error')||CALLBACK_ERROR;
     if(handoff){sessionStorage.setItem(PENDING_KEY,JSON.stringify({handoff,receivedAt:Date.now()}));CALLBACK_HANDOFF='';}
     if(handoff||error){
+      markCallbackReturn();
       url.searchParams.delete('tiktok_handoff');url.searchParams.delete('tiktok_error');
       history.replaceState(history.state,'',url.href);
     }

@@ -4,6 +4,16 @@
  'use strict';
  if(window.BigLWAFacebookPersonal)return;
  const origin='https://api.biglwa.com',id='facebook-personal';
+ // callbackNotice() waits for DOMContentLoaded, after module-pages.js has
+ // already canonicalized the Studio URL. Mark the return at script evaluation
+ // time so the router keeps the Orbit panel open for the acknowledgement.
+ const markCallbackReturn=()=>{
+   try{
+     const result=new URL(location.href).searchParams.get('facebook_login')||'';
+     if(['connected','failed'].includes(result))sessionStorage.setItem('biglwa:orbit-callback-return',String(Date.now()));
+   }catch(error){}
+ };
+ markCallbackReturn();
  const state={connected:false,profile:null,needsReauth:false,configured:false,missing:[]};
  let authPromise=null,refreshing=null,syncing=null;
  const notice=text=>{
@@ -187,6 +197,7 @@
    const result=url.searchParams.get('facebook_login')||'';
    if(!['connected','failed'].includes(result))return;
    const error=url.searchParams.get('facebook_login_error')||'';
+   markCallbackReturn();
    url.searchParams.delete('facebook_login');
    url.searchParams.delete('facebook_login_error');
    history.replaceState(history.state,'',url.toString());

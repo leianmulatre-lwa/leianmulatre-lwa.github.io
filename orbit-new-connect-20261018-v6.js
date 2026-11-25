@@ -7,6 +7,12 @@
  if(window.BigLWAOrbitOAuth)return;
  const base='https://api.biglwa.com';
  const providerIds=['x','snapchat','tumblr'];
+ // Provider scripts run before module-pages.js canonicalizes the Studio view.
+ // Marking the return for one task keeps the router from treating a callback whose
+ // parameters were just consumed as a stale ?view=orbit tab and closing the Orbit panel.
+ const markCallbackReturn=()=>{
+   try{sessionStorage.setItem('biglwa:orbit-callback-return',String(Date.now()))}catch{}
+ };
  const callbackNotice=(()=>{
    try{
      const url=new URL(location.href);
@@ -14,6 +20,7 @@
      const status=url.searchParams.get('orbit_status')||'';
      if(!providerIds.includes(id)||!['connected','failed'].includes(status))return null;
      const message=url.searchParams.get('orbit_error')||'';
+     markCallbackReturn();
      for(const k of ['orbit_provider','orbit_status','orbit_error'])url.searchParams.delete(k);
      history.replaceState(history.state,'',url.href);
      return {id,status,error:message};
