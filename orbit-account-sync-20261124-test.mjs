@@ -20,7 +20,9 @@ const parseable = source => source
   .replace(/^export /mg, '');
 for (const [name, source] of [['module-pages.js', pages], ['orbit-connections.js', hub],
   ['orbit-new-connect-20261018-v6.js', provider],
-  ['facebook-personal-orbit-20261016.js', facebook]]) {
+  ['facebook-personal-orbit-20261016.js', facebook],
+  ['tiktok-orbit.js', tiktok], ['instagram-orbit.js', instagram],
+  ['pinterest-orbit.js', pinterest]]) {
   assert.doesNotThrow(() => new Script(parseable(source), { filename: name }), name + ' must parse');
 }
 
@@ -72,6 +74,23 @@ assert.ok(pinterest.includes("searchParams.get('pinterest_handoff')"), 'Pinteres
 assert.ok(worker.includes("url.searchParams.set('facebook_login',status)"), 'Facebook personal callback returns a status flag');
 assert.ok(worker.includes("searchParams.set('orbit_status',status)"), 'Tumblr/X callbacks return a status flag');
 
+for (const [name, source] of [['X/Snapchat/Tumblr', provider], ['Facebook', facebook],
+  ['Instagram', instagram], ['TikTok', tiktok]]) {
+  assert.ok(source.includes("biglwa:orbit-callback-return"),
+    name + ' marks a consumed OAuth return for the Studio router');
+}
+// Pinterest is injected after module-pages.js, so its handoff params are still
+// present when the router decides to keep the Orbit panel open.
+assert.ok(html.indexOf('/pinterest-orbit.js?') > html.indexOf('/module-pages.js?'),
+  'Pinterest runs after the router and does not need a consumed-callback marker');
+assert.ok(pages.includes("sessionStorage.getItem('biglwa:orbit-callback-return')"),
+  'Orbit router reads the consumed-callback marker');
+assert.ok(pages.includes("sessionStorage.removeItem('biglwa:orbit-callback-return')"),
+  'Orbit router consumes the marker exactly once');
+assert.ok(pages.includes('recentOrbitCallback'),
+  'Orbit router keeps a marked return across both router checks');
+assert.ok(pages.includes('age<15000'), 'callback marker is short-lived and cannot pin a stale ?view=orbit');
+
 assert.ok(hub.includes('return { outcome: "save-failed", record };'),
   'central hub distinguishes a provider reply from a successful account write');
 assert.ok(hub.includes('next[source.id] = { ...record, accountSaveFailed: true };'),
@@ -107,15 +126,24 @@ assert.ok(facebook.includes("window.__biglwaConnections?.forget?.('facebook')"),
 assert.ok(facebook.includes('verifiedFromProvider:true,accountSaveFailed:!!state.accountSaveFailed'),
   'Facebook row shows when the account save is still pending');
 
-for (const shell of ['index.html', 'studio/index.html']) {
+for (const shell of ['index.html', 'studio/index.html', '404.html', 'live-studio-shell.html']) {
   const source = read(shell);
   for (const script of ['module-pages.js', 'orbit-new-connect-20261018-v6.js',
-    'facebook-personal-orbit-20261016.js']) {
+    'facebook-personal-orbit-20261016.js', 'tiktok-orbit.js', 'instagram-orbit.js',
+    'pinterest-orbit.js', 'account-boot.js']) {
     const match = source.match(new RegExp('/' + script.replace(/\./g, '\\.') + '\\?v=[^"\'\\s]+'));
-    assert.ok(match && match[0].includes('orbitsync=20261124-1'),
-      shell + ' serves the repaired ' + script + ' with a fresh cache key');
+    assert.ok(match, shell + ' serves ' + script);
+    assert.ok(match[0].includes('orbitsync=20261124-1'),
+      shell + ' serves the repaired ' + script + ' with the account-sync cache key');
+    assert.ok(match[0].includes('callback=20261124-2'),
+      shell + ' serves the repaired ' + script + ' with the callback-return cache key');
   }
 }
+assert.ok(pages.includes("script.src = '/module-pages.js?v=") &&
+  pages.includes('callback=20261124-2'),
+  'the deferred module-pages loader cannot resurrect the old cached bundle');
+assert.ok(read('politc-route-guard.js').includes('callback=20261124-2'),
+  'the politc route guard recognizes the freshly loaded module bundle');
 for (const source of [read('account-boot.js'), read('settings-photo.js')]) {
   assert.ok(source.includes('./orbit-connections.js?v=') && source.includes('orbitsync=20261124-1'),
     'shared connection hub has a fresh cache key');
