@@ -187,6 +187,7 @@
  opacity:0;transform:translateY(5px);pointer-events:none;
  transition:opacity .18s ease,transform .18s ease;
 }
+#biglwaVeve .veve-photo:has(> .veve-pin-board-action) .veve-photo-details{padding-right:43px}
 #biglwaVeve .veve-photo:is(:hover,:focus-within) .veve-photo-details{
  opacity:1;transform:none;pointer-events:auto;
 }
@@ -205,7 +206,7 @@
    Pinterest pins gain an actual private BIG LWA board action on hover/focus. */
 .veve-photo-frame{position:relative}
 .veve-media-open{display:none!important}
-.veve-pin-board-action{position:absolute;right:10px;bottom:11px;z-index:7;
+.veve-pin-board-action{position:absolute;right:10px;bottom:11px;z-index:8;
  border:1px solid #f2dcd8;border-radius:9px;background:#f4ebe4;color:#462a39;
  box-shadow:0 3px 12px #1c101d66;display:grid;place-items:center;
  width:32px;height:32px;padding:0;font:750 20px/1 system-ui;
@@ -235,3 +236,12 @@
 
 /* The route owns its heading even while an older cached renderer loads. */
 .module-workspace[data-module-key="veve"] #biglwaVeve .veve-intro{display:none!important}
+
+
+.veve-book-header{display:flex;align-items:flex-start;justify-content:space-between;gap:6px}
+.veve-book .veve-bookmark{
+ display:grid;place-items:center;flex:0 0 32px;
+ width:32px;height:34px;padding:0;color:#56332a;
+}
+.veve-bookmark[aria-pressed="true"] svg{fill:currentColor}
+.veve-bookmark:focus-visible{outline:2px solid #ae5266;outline-offset:2px}

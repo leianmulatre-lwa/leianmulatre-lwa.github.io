@@ -27,6 +27,34 @@ assert.ok(pinterest.includes("result?.boards?.find(b=>b.id===target)?.pins?.some
   'Saved Pin confirmed from returned server response');
 assert.ok(css.includes('.veve-pin-board-action')&&css.includes('.veve-save-board-dialog'),
   'Card action and board selector have visible, keyboard-accessible styling');
+const library=source('library-catalog.js');
+const records=new Map();
+const window={BigLWAAccountStorage:{uid:'reader',ready:Promise.resolve(true)}};
+const context=vm.createContext({window,document:{readyState:'loading',addEventListener(){}},localStorage:{
+ getItem:key=>records.get(key)||null,setItem:(key,value)=>records.set(key,value)
+}});
+vm.runInContext(library,context);
+const picks=veve.slice(veve.indexOf('  const readingPicks='),veve.indexOf('  const state='));
+const clickStart=veve.indexOf("      if(b.hasAttribute('data-veve-bookmark'))");
+const clickEnd=veve.indexOf("      if(b.hasAttribute('data-veve-reader'))",clickStart);
+const handler=vm.runInContext(picks+'; (async (b,root,say)=>{'+veve.slice(clickStart,clickEnd)+'})',context);
+const button={dataset:{veveBookmark:'gutenberg:84'},hasAttribute:()=>true,setAttribute(key,value){this[key]=value}};
+const root={querySelectorAll:()=>[button]},feedback=[];
+await handler(button,root,value=>feedback.push(value));
+await handler(button,root,value=>feedback.push(value));
+const shelf=JSON.parse(records.get('biglwaLibraryCatalogV1'));
+assert.equal(shelf.length,1,'Repeated bookmarks do not create duplicates');
+assert.equal(shelf[0].title,'Frankenstein');
+assert.equal(shelf[0].url,'https://www.gutenberg.org/ebooks/84');
+assert.equal(button['aria-pressed'],'true');
+assert.equal(window.__biglwaLibraryCatalog.hasTitle(shelf[0]),true,'Saved state comes from the Library shelf');
+assert.match(feedback[1],/already in your Library/);
+window.BigLWAAccountStorage.uid='';
+await handler({...button,dataset:{veveBookmark:'gutenberg:23'}},root,value=>feedback.push(value));
+assert.match(feedback[2],/Sign in/);
+assert.equal(JSON.parse(records.get('biglwaLibraryCatalogV1')).length,1);
+assert.match(veve,/<\/div>'\+\s*\(url&&boardPin\(post\)\?/, 'The Boards button sits outside the clipped photo frame');
+assert.match(css,/\.veve-pin-board-action\{[^}]*z-index:8/, 'The Boards button paints above the caption');
 assert.ok(!stage.includes('text-transform:uppercase;text-shadow')&&stage.includes('text-transform:lowercase!important'),
   'Module loading heading is lowercase');
 assert.ok(stage.includes('.module-shell.lwa-curtain-veve-pending::after')&&

@@ -35,6 +35,14 @@
     'Comedy':['comedy','joke','funny','humor','meme'],
     'Nature':['nature','outdoors','plants','environment','animal']
   };
+  const readingPicks=[
+    ['84','Frankenstein','Mary Shelley'],
+    ['23','Narrative of the Life of Frederick Douglass','Frederick Douglass'],
+    ['1342','Pride and Prejudice','Jane Austen']
+  ].map(([number,title,author])=>({
+    id:'gutenberg:'+number,kind:'book',title,author,
+    url:'https://www.gutenberg.org/ebooks/'+number,source:'Project Gutenberg'
+  }));
   const state={items:[],sqwibs:[],resqwibs:[],interests:[],sensitivity:'general',loadError:'',prefs:null,uid:'',loading:false,mounted:null,renderGen:0,showSettings:false,active:'all',sourceCounts:new Map(),initialReady:false,loadStage:'Connecting to public collections…'};
   let firebasePromise=null;
   async function fb(){
@@ -291,10 +299,10 @@
     return '<article class="veve-tile veve-photo" data-veve-origin="'+e(src)+'" data-veve-pin-kind="'+e(sourceKind)+'" data-veve-post="'+e(post.id)+'">'+
       '<div class="veve-photo-frame"'+(validRatio?' style="--lwa-image-aspect:'+displayRatio+'"':'')+'>'+videoMarkup+
       '<span class="veve-provider">'+e(label)+'</span>'+
-      (url&&boardPin(post)?
-       '<button type="button" class="veve-pin-board-action" data-veve-save-board="'+e(post.id)+'" aria-label="Save to board" title="Save to board">⊞</button>':'')+
       '<span class="veve-lights"><button type="button" data-veve-view="'+e(post.id)+'" aria-label="Enlarge or play media" title="View in Veve"></button></span>'+
       '</div>'+
+      (url&&boardPin(post)?
+       '<button type="button" class="veve-pin-board-action" data-veve-save-board="'+e(post.id)+'" aria-label="Save to board" title="Save to board">⊞</button>':'')+
       ((usage(post)||src==='pinterest'&&link)?'<div class="veve-photo-details">'+
         (usage(post)?'<span class="veve-usage">'+e(usage(post))+' using this Pin</span>':'')+
         (src==='pinterest'&&link?'<a class="veve-source-credit" href="'+e(link)+'" target="_blank" rel="noopener noreferrer">Original Pinterest Pin ↗</a>':'')+
@@ -371,12 +379,14 @@
       '<h3>'+e(game.label)+'</h3><p>'+e(game.description)+'</p>'+
       '<button type="button" data-veve-game="'+e(game.id)+'">Play here ▶</button></div></article>').join('');
     if(key==='books'){
-      const bibliography=[
-        ['Frankenstein','Mary Shelley','https://www.gutenberg.org/ebooks/84'],
-        ['Narrative of the Life of Frederick Douglass','Frederick Douglass','https://www.gutenberg.org/ebooks/23'],
-        ['Pride and Prejudice','Jane Austen','https://www.gutenberg.org/ebooks/1342']
-      ];
-      return bibliography.map(b=>'<article class="veve-tile veve-book"><span class="veve-eyebrow">public-domain reading pick</span><h3>'+e(b[0])+'</h3><p>'+e(b[1])+'</p><button type="button" data-veve-reader="'+e(b[2])+'">Preview reading ↗</button></article>').join('');
+      return readingPicks.map(book=>{
+        const saved=Boolean(window.__biglwaLibraryCatalog?.hasTitle(book));
+        return '<article class="veve-tile veve-book"><div class="veve-book-header">'+
+          '<span class="veve-eyebrow">public-domain reading pick</span>'+
+          '<button class="veve-bookmark" type="button" data-veve-bookmark="'+e(book.id)+'" aria-pressed="'+saved+'" aria-label="Bookmark '+e(book.title)+' in Library" title="'+(saved?'Saved to Library':'Save to Library')+'">'+
+          '<svg aria-hidden="true" width="17" height="19" viewBox="0 0 20 22" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 2.5h12v17l-6-4-6 4z"/></svg></button></div>'+
+          '<h3>'+e(book.title)+'</h3><p>'+e(book.author)+'</p><button type="button" data-veve-reader="'+e(book.url)+'">Preview reading ↗</button></article>';
+      }).join('');
     }
     if(key==='closet')return quickCard('closet','community closet','Browse your closet space. Member listings are not treated as publicly available until their owners choose to publish them.','closet');
     if(key==='ads')return quickCard('sponsored','No sponsored placements','Veve will identify paid placements clearly. Nothing is labeled as sponsored until a genuine approved campaign exists.',null);
@@ -638,6 +648,27 @@
         if(p)openMedia(p);return;
       }
       if(b.hasAttribute('data-veve-game')){openGame(b.dataset.veveGame);return}
+      if(b.hasAttribute('data-veve-bookmark')){
+        const book=readingPicks.find(item=>item.id===b.dataset.veveBookmark);
+        if(!book||b.disabled)return;
+        b.disabled=true;
+        try{
+          const account=window.BigLWAAccountStorage,catalog=window.__biglwaLibraryCatalog;
+          if(!account||!catalog?.addTitle)throw Error('Library is still loading. Try again in a moment.');
+          await account.ready;
+          if(!account.uid)throw Error('Sign in to save books to your Library.');
+          const added=catalog.addTitle(book);
+          root.querySelectorAll('[data-veve-bookmark]').forEach(button=>{
+            if(button.dataset.veveBookmark===book.id){
+              button.setAttribute('aria-pressed','true');
+              button.title='Saved to Library';
+            }
+          });
+          say(added?'Added '+book.title+' to your Library shelf.':book.title+' is already in your Library.');
+        }catch(error){say(error.message||'Could not bookmark this book.')}
+        finally{b.disabled=false;}
+        return;
+      }
       if(b.hasAttribute('data-veve-reader')){
         const d=viewDialog(),stage=d.querySelector('#vevePreviewStage');stage.replaceChildren();
         const frame=document.createElement('iframe');frame.className='veve-reading-frame';frame.title='Public-domain book preview';
