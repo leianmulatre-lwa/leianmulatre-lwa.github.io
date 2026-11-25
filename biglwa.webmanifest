@@ -1,0 +1,26 @@
+{
+  "id": "/",
+  "name": "BIG LWA",
+  "short_name": "BIG LWA",
+  "description": "A bigger you, on your terms.",
+  "start_url": "/studio",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#250c17",
+  "theme_color": "#250c17",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/biglwa-pwa-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
