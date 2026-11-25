@@ -11,7 +11,13 @@ for(const [name,code]of [['Veve',veve],['Pinterest Boards',pinterest],['Studio l
  assert.doesNotThrow(()=>new vm.Script(code),name+' must parse as JavaScript');
 assert.ok(!veve.includes('title="Preview here"'),'Veve no longer adds a second center preview button');
 assert.ok(veve.includes('data-veve-save-board'),'Pinterest discovery has Save to Board action');
-assert.ok(veve.includes('const original=safeUrl(post.sourceUrl||post.permalink)'),'Pin saving uses original source URL');
+const pinCode=veve.slice(veve.indexOf('  function boardPin('),veve.indexOf('  function photoMarkup('));
+const boardPin=vm.runInNewContext(pinCode+'; boardPin',{safeUrl:x=>x||''});
+const pin={source:'pinterest',sourcePostId:'record-id',sourceUrl:'https://www.pinterest.com/pin/123456789/?utm_source=veve'};
+assert.equal(boardPin(pin)?.url,'https://www.pinterest.com/pin/123456789/');
+assert.equal(boardPin({...pin,sourceUrl:'https://example.com/pin/123456789/'}),null);
+assert.equal(boardPin({...pin,source:'instagram'}),null);
+assert.ok(veve.includes('title="Save to board">⊞</button>'),'Veve uses the same board icon as Boards');
 assert.ok(veve.includes('await api.loadSaved()')&&veve.includes('await api.saveVevePin('),'Veve uses real Pinterest account-backed saved data');
 assert.ok(veve.includes('api.createVeveBoard(name)'),'Veve can create private boards');
 assert.ok(pinterest.includes('async function saveVevePin(')&&pinterest.includes("await savedRequest('POST',next)"),
@@ -40,7 +46,7 @@ assert.ok(builder.includes('def brand_web_shell(')&&
 for(const asset of [
  'veve.js?v=20261027-lwazi-interest-sensitivity-1',
  'veve.css?v=20261023-orbit-colors-7',
- 'pinterest-orbit.js?v=20261028-oauth-return-2',
+ 'pinterest-orbit.js?v=',
  'studio-loading-dots-20261021.js?v=20261026-curtain-sync-7'
 ])assert.ok(html.includes(asset),'Site must load '+asset);
 console.log('PASS: Veve board saving, bounded lower loader, local ArtCraft links, arcade app identity.');

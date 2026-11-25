@@ -14,7 +14,7 @@
 @media (min-width:901px) {
   #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper)
   .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard) {
-    grid-template-rows:246px 206px auto!important;
+    grid-template-rows:246px auto auto!important;
   }
   #studioApp#studioApp#studioApp:not(.profile-editor-wallpaper)
   .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)
@@ -100,39 +100,17 @@
   animation:none!important;
 }
 
-/* The real nine-link dock is centered across the complete Studio, not the
-   profile's left tile. Keep the same DOM, shortcuts and reorder handlers. */
-#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper)
-.hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)
->.mobile-dock.hero-action-bar {
+/* The shortcut bar fills the same grid track as the upper widgets even
+   while the scoreboard or profile editor is mounting. */
+#studioApp#studioApp#studioApp .hero:has(>.hero-widget-rail)>.mobile-dock.hero-action-bar {
   position:relative!important;
   grid-column:1/-1!important;grid-row:3!important;
-  left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
-  transform:none!important;
-  width:100%!important;
-  max-width:100%!important;min-width:0!important;
-  margin:0 auto!important;
-  justify-self:center!important;align-self:start!important;
+  inset:auto!important;transform:none!important;
+  width:100%!important;max-width:none!important;min-width:0!important;
+  margin:0!important;
+  justify-self:stretch!important;align-self:start!important;
   box-sizing:border-box!important;
-}
-@media (max-width:900px) {
-  #studioApp#studioApp .hero:has(>.hero-widget-rail)>.mobile-dock.hero-action-bar {
-    width:100%!important;
-    min-width:0!important;
-    margin:0 auto!important;
-    overflow-x:auto!important;
-  }
-}
-
-/* 2026-11-21: let the content-width shortcut bar touch the same left/right
-   edges as the lower Studio widget grid. Keep existing nine click targets. */
-#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper)
-.hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)
->.mobile-dock.hero-action-bar {
-  width:100%!important;max-width:100%!important;
-  min-width:0!important;margin:0!important;
-  grid-column:1/-1!important;grid-row:3!important;
-  justify-self:stretch!important;
+  overflow-x:auto!important;
 }
 
 /* Return the second-row modules to the pre-scoreboard height contract;

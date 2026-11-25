@@ -152,7 +152,7 @@ test('scoreboard uses an independent right tile with responsive stacking',()=>{
  assert.match(controller,/boardRect\.left<profileRect\.right\+6/);
  assert.match(controller,/window\.addEventListener\('resize'/);
  // Keep the banner and scoreboard short without changing the lower row.
- assert.match(balance,/grid-template-rows:246px 206px auto!important/);
+ assert.match(balance,/grid-template-rows:246px auto auto!important/);
  assert.match(balance,/\.biglwa-profile-scoreboard \{\s*height:246px!important/);
  // Late account hydration reuses live metrics.
  assert.match(js,/if\(!stats\)\{/);

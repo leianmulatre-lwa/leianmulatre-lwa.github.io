@@ -207,7 +207,8 @@
 .veve-media-open{display:none!important}
 .veve-pin-board-action{position:absolute;right:10px;bottom:11px;z-index:7;
  border:1px solid #f2dcd8;border-radius:9px;background:#f4ebe4;color:#462a39;
- box-shadow:0 3px 12px #1c101d66;padding:8px 12px;font:750 12px/1.1 system-ui;
+ box-shadow:0 3px 12px #1c101d66;display:grid;place-items:center;
+ width:32px;height:32px;padding:0;font:750 20px/1 system-ui;
  opacity:0;transform:translateY(4px);pointer-events:none;cursor:pointer;
  transition:opacity .15s ease,transform .15s ease}
 .veve-photo:is(:hover,:focus-within) .veve-pin-board-action{opacity:1;transform:none;pointer-events:auto}

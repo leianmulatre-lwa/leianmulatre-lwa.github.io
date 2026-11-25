@@ -13,8 +13,8 @@ test('weekly mood is absent from nonediting profile, without deleting account da
   assert.doesNotMatch(css,/localStorage|setDoc|removeChild|replaceChildren/);
 });
 
-test('the banner and independent scoreboard share a 246px first row, lower widgets retain 206px',()=>{
-  assert.match(css,/grid-template-rows:246px 206px auto!important/);
+test('the banner and scoreboard share a 246px first row and the rail can wrap',()=>{
+  assert.match(css,/grid-template-rows:246px auto auto!important/);
   assert.match(css,/>\.profile-card:not\(\.profile-is-editing\) \{\s*height:246px!important;min-height:246px!important;max-height:246px!important/);
   assert.match(css,/\.profile-card:not\(\.profile-is-editing\) \.biglwa-profile-scoreboard \{\s*height:246px!important/);
   assert.match(css,/grid-column:1\/-1!important;grid-row:3!important/);
@@ -42,7 +42,7 @@ test('center scoreboard emblem is the original pixel blocks, not stitched LWA te
 });
 
 test('shortcut rail fills the masonry width and bottom widgets keep original height',()=>{
-  assert.match(css,/\.hero:has\(>\.profile-card:not\(\.profile-is-editing\) \.biglwa-profile-scoreboard\)\s*>\.mobile-dock\.hero-action-bar \{[\s\S]*?width:100%!important/);
+  assert.match(css,/\.hero:has\(>\.hero-widget-rail\)>\.mobile-dock\.hero-action-bar \{[\s\S]*?width:100%!important/);
   assert.match(css,/--studio-upper-card-height:206px!important/);
   assert.doesNotMatch(css,/width:min\(980px/);
 });

@@ -72,7 +72,7 @@
   if(!document.getElementById('studioUpperRailSizeContract')){
    const link=document.createElement('link');
    link.id='studioUpperRailSizeContract';link.rel='stylesheet';
-   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261115-tunes-time-eq-v1&timeline=20261115-bottom-v1&wave=20261116-studio-tour&discovery=20261117-2&boombox=20261124-3';
+   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261115-tunes-time-eq-v1&timeline=20261115-bottom-v1&wave=20261116-studio-tour&discovery=20261117-2&boombox=20261124-3&boardrail=20261125-1';
    document.head.append(link);
   }
  }
@@ -160,21 +160,21 @@
   }
   // Fill the row with a true 2:1 expanded/minimized width ratio.
   // Count only visible widgets so closing/minimizing never reserves a hole.
-  const railWidth=rail.getBoundingClientRect().width;
   const visible=Object.keys(upperWidgets).filter(id=>!upperRemoved(id,upperElement(id)));
-  const squareCount=visible.filter(id=>upperView(id,upperElement(id))==='square').length;
-  const longCount=visible.length-squareCount;
-  const squareWidth=Math.max(0,(railWidth-14*Math.max(0,visible.length-1))/Math.max(1,squareCount+2*longCount));
-  const longWidth=2*squareWidth;
-  const cardWidth=id=>upperRemoved(id,upperElement(id))?0:upperView(id,upperElement(id))==='long'?longWidth:squareWidth;
-  if(railWidth>0){
-   const tracks=[...rail.children].filter(el=>el===pair?visible.includes('aura')||visible.includes('avatar'):visible.includes(upperId(el))).map(el=>{
-    const size=el===pair?cardWidth('aura')+cardWidth('avatar')+(visible.includes('aura')&&visible.includes('avatar')?14:0):cardWidth(upperId(el));
-    return size+'px';
-   }).join(' ');
-   rail.style.setProperty('--studio-upper-tracks',tracks||'1fr');
-   if(pair)pair.style.setProperty('--studio-pair-tracks',['aura','avatar'].filter(id=>visible.includes(id)).map(id=>cardWidth(id)+'px').join(' ')||'1fr');
-  }
+  const weight=id=>visible.includes(id)?upperUnits(id,upperElement(id)):0;
+  const total=visible.reduce((sum,id)=>sum+weight(id),0);
+  const pairWeight=weight('aura')+weight('avatar');
+  const pairGap=weight('aura')&&weight('avatar')?14:0;
+  const gaps=14*Math.max(0,visible.length-1);
+  const tracks=[...rail.children].flatMap(el=>{
+   const units=el===pair?pairWeight:weight(upperId(el));
+   return units?['calc((100% - '+gaps+'px) * '+units+' / '+total+' + '+(el===pair?pairGap:0)+'px)']:[];
+  }).join(' ')||'minmax(0,1fr)';
+  const pairTracks=['aura','avatar'].map(weight).filter(Boolean).map(n=>'minmax(0,'+n+'fr)').join(' ')||'minmax(0,1fr)';
+  if(rail.style.getPropertyValue('--studio-upper-tracks')!==tracks)
+   rail.style.setProperty('--studio-upper-tracks',tracks);
+  if(pair&&pair.style.getPropertyValue('--studio-pair-tracks')!==pairTracks)
+   pair.style.setProperty('--studio-pair-tracks',pairTracks);
   if(pair){
    const aura=upperElement('aura'),avatar=upperElement('avatar');
    const a=upperUnits('aura',aura),b=upperUnits('avatar',avatar);

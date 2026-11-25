@@ -261,6 +261,14 @@
   function sectionBar(key,extra=''){
     return '<div class="veve-section-heading"><h2>'+e(names[key])+'</h2>'+extra+'</div>';
   }
+  function boardPin(post){
+    if(String(post.source||'').toLowerCase()!=='pinterest')return null;
+    const source=String(post.sourcePostId||'').trim();
+    const url=safeUrl(post.sourceUrl||post.permalink);
+    const linked=url.match(/^https:\/\/(?:www\.)?pinterest\.com\/pin\/(\d{6,25})\/?(?:[?#].*)?$/i)?.[1];
+    const id=linked||(/^\d{6,25}$/.test(source)?source:'');
+    return id?{id,url:'https://www.pinterest.com/pin/'+id+'/'}:null;
+  }
   function photoMarkup(post,section){
     const url=picture(post),direct=video(post),embed=videoEmbed(post),src=String(post.source||'BIG LWA').toLowerCase();
     if(!url&&!direct&&!embed)return '';
@@ -283,8 +291,8 @@
     return '<article class="veve-tile veve-photo" data-veve-origin="'+e(src)+'" data-veve-pin-kind="'+e(sourceKind)+'" data-veve-post="'+e(post.id)+'">'+
       '<div class="veve-photo-frame"'+(validRatio?' style="--lwa-image-aspect:'+displayRatio+'"':'')+'>'+videoMarkup+
       '<span class="veve-provider">'+e(label)+'</span>'+
-      (src==='pinterest'&&/^(?:[0-9]{6,25})$/.test(String(post.sourcePostId||''))&&link?
-       '<button type="button" class="veve-pin-board-action" data-veve-save-board="'+e(post.id)+'" aria-label="Save Pinterest Pin to a BIG LWA board" title="Save to board">+ board</button>':'')+
+      (url&&boardPin(post)?
+       '<button type="button" class="veve-pin-board-action" data-veve-save-board="'+e(post.id)+'" aria-label="Save to board" title="Save to board">⊞</button>':'')+
       '<span class="veve-lights"><button type="button" data-veve-view="'+e(post.id)+'" aria-label="Enlarge or play media" title="View in Veve"></button></span>'+
       '</div>'+
       ((usage(post)||src==='pinterest'&&link)?'<div class="veve-photo-details">'+
@@ -486,10 +494,8 @@
   async function openBoardSaver(post){
     const api=window.__biglwaPinterest;
     if(!api?.saveVevePin||!api?.loadSaved)throw Error('Boards are still starting. Open Boards once, then try again.');
-    const original=safeUrl(post.sourceUrl||post.permalink);
-    const id=String(post.sourcePostId||'');
-    if(!/^[0-9]{6,25}$/.test(id)||!/^https:\/\/(www\.)?pinterest\.com\/pin\/[0-9]{6,25}\/?(?:\?.*)?$/.test(original))
-      throw Error('This discovery item has no usable original Pinterest Pin URL.');
+    const pin=boardPin(post);
+    if(!pin)throw Error('This discovery item has no usable Pinterest Pin reference.');
     const dlg=saveDialog(),select=dlg.querySelector('#veveBoardTarget');
     const submit=dlg.querySelector('[data-veve-commit-board]'),feedback=dlg.querySelector('.veve-save-board-status');
     feedback.textContent='Loading your saved boards…';submit.disabled=true;
@@ -510,7 +516,7 @@
           const name=dlg.querySelector('#veveBoardNewName').value.trim();
           const target=name?(await api.createVeveBoard(name)).id:select.value;
           const result=await api.saveVevePin({
-            pinId:id,url:original,image:picture(post),title:String(post.title||post.caption||'Pinterest Pin')
+            pinId:pin.id,url:pin.url,image:picture(post),title:String(post.title||post.caption||'Pinterest Pin')
           },target);
           feedback.textContent=result.already?'Already in '+result.board+'.':'Saved to '+result.board+'!';
           say(feedback.textContent);
