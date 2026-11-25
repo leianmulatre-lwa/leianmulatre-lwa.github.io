@@ -39,3 +39,6 @@ const {chromium}=require('playwright');
   console.log('PASS one map preview across load, failure, retry, readiness and refresh');
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
+
+// Run the Avatar cross-origin preview smoke alongside the Map preview checks.
+require('./studio-sona-preview-smoke.cjs');

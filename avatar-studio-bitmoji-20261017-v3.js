@@ -107,8 +107,10 @@
     const wrap=document.createElement('div');wrap.className='biglwa-sona-frame'+(compact?' is-compact':'');
     const iframe=document.createElement('iframe');
     iframe.src=url;iframe.title='Avatar · 360sona display case';
-    iframe.width='265';iframe.height='170';iframe.loading='lazy';
-    iframe.referrerPolicy='no-referrer';iframe.setAttribute('allow','fullscreen');
+    iframe.width='265';iframe.height='170';iframe.loading=compact?'lazy':'eager';
+    // Only the site origin is sent, never the member's profile path or query.
+    // Published 360sona cases can restrict which sites may embed them.
+    iframe.referrerPolicy='strict-origin';iframe.setAttribute('allow','fullscreen');
     iframe.setAttribute('data-sona-widget','1');iframe.style.border='0';
     // Preserve actual interaction (drag/rotate/pet gestures) in the compact display case.
     wrap.append(iframe);root.append(wrap);return true;
@@ -257,6 +259,8 @@
         '<div class="biglwa-sona-actions"><button type="button" data-sona-preview>Preview</button><button type="button" data-sona-save>Save Avatar</button>'+
         '<button type="button" data-sona-example>Use supplied example</button></div>'+
         '<div id="biglwaSonaLivePreview" class="biglwa-sona-editor-preview" aria-label="360sona live display-case preview"><span>Your widget will appear here when you provide its link.</span></div>'+
+        '<p id="biglwaSonaFrameStatus" role="status" aria-live="polite" hidden></p>'+
+        '<a data-sona-open-preview class="biglwa-sona-external" target="_blank" rel="noopener noreferrer" hidden>Open this display case directly ↗</a>'+
         '<div class="biglwa-sona-creator-actions"><button type="button" data-sona-creator aria-expanded="false" aria-controls="biglwaSonaCreator">Create here ▾</button><a class="biglwa-sona-external" href="https://360sona.com/" target="_blank" rel="noopener noreferrer">Open creator in new tab ↗</a></div>'+ '<div id="biglwaSonaCreator" hidden><p>This is 360sona in a browser frame. If its website blocks embedding, use the new-tab link above, then paste the finished widget URL here.</p><iframe title="360sona avatar creator" loading="lazy" referrerpolicy="no-referrer" data-sona-editor></iframe></div>'+
         '<small class="biglwa-sona-note">Display case: 320 × 546, full avatar, original 360sona theme. BIGLWA does not control the third-party editor.</small>';
       const inp=one('#biglwaSonaWidgetURL',mount);
@@ -272,10 +276,10 @@
         inp.addEventListener('change',()=>{if(sonaUrl(inp.value))previewSonaInput(inp)});
         inp.addEventListener('keydown',event=>{
           if(event.key!=='Enter'||event.isComposing)return;
-          event.preventDefault();event.stopPropagation();previewSonaInput(inp);
+          event.preventDefault();event.stopPropagation();previewSonaInput(inp,true);
         });
       }
-      if(owned)renderSonaFrame(one('#biglwaSonaLivePreview',mount),owned);
+      if(owned)previewSonaInput(inp);
     }else if(name==='bitmoji'){
       mount.innerHTML='<p>Use the Bitmoji from your connected Snapchat account. Connect Snapchat in Orbit first, then return here.</p>'+ 
         '<div id="biglwaBitmojiPreview" class="biglwa-bitmoji-preview"></div>'+ '<div class="biglwa-bitmoji-actions">'+ 
@@ -468,13 +472,34 @@
     }catch(error){setStatus('Model preview updated; account save failed: '+(error.message||'Retry.'))}
     finally{state.busy=false;}
   }
-  function previewSonaInput(input){
+  function previewSonaInput(input,force=false){
     const url=sonaUrl(input?.value);
-    if(!url){setStatus('Paste a public 360sona display-case link (360sona.com/w/…) or the copied iframe embed code.');return false;}
+    const mount=input?.closest('#biglwaAvatarSource');
+    const preview=mount&&one('#biglwaSonaLivePreview',mount);
+    const status=mount&&one('#biglwaSonaFrameStatus',mount);
+    const external=mount&&one('[data-sona-open-preview]',mount);
+    if(!url||!preview){
+      const message='Paste a published 360sona display-case link (360sona.com/w/…) or its copied iframe code.';
+      if(status){status.hidden=false;status.textContent=message;}
+      setStatus(message);return false;
+    }
     input.value=url;
-    const preview=one('#biglwaSonaLivePreview');
-    if(preview?.querySelector('iframe[data-sona-widget]')?.getAttribute('src')!==url)renderSonaFrame(preview,url);
-    setStatus('Previewing your display case. Save to show it on your profile.');
+    if(external){external.href=url;external.hidden=false;}
+    const previous=preview.querySelector('iframe[data-sona-widget]');
+    if(!force&&previous?.getAttribute('src')===url)return true;
+    if(!renderSonaFrame(preview,url))return false;
+    const frame=preview.querySelector('iframe[data-sona-widget]');
+    if(!frame)return false;
+    const hint='If the avatar stays blank, open the display case directly. Publish it in 360sona and leave “Only on” empty or allow biglwa.com.';
+    if(status){status.hidden=false;status.textContent='Loading your 360sona display case…';}
+    const active=()=>frame.isConnected&&preview.querySelector('iframe[data-sona-widget]')===frame;
+    let timer=0;
+    const finish=message=>{clearTimeout(timer);if(active()&&status)status.textContent=message;};
+    frame.addEventListener('load',()=>finish(hint),{once:true});
+    frame.addEventListener('error',()=>finish('360sona could not load. '+hint),{once:true});
+    timer=setTimeout(()=>finish('360sona is taking longer than expected. '+hint),12000);
+    setStatus('Display case requested. Save Avatar to keep this link on your profile.');
+    if(force)preview.scrollIntoView?.({block:'nearest',behavior:'auto'});
     return true;
   }
   async function saveSona(){
@@ -496,7 +521,8 @@
       state.avatar={type:'sona360',url};state.loadedUid=uid;
       try{await publishStudioAvatar(f,uid,state.avatar)}catch(error){console.warn('[BIG LWA] Public 360sona sync will retry:',error)}
       showAvatar();
-      renderSonaFrame(one('#biglwaSonaLivePreview'),url);
+      // Saving the account must not destroy the already-loaded editor frame.
+      if(input.isConnected&&sonaUrl(input.value)===url)previewSonaInput(input);
       try{const channel=new BroadcastChannel('biglwa-avatar');channel.postMessage({type:'saved',uid});channel.close()}catch{}
       window.dispatchEvent(new CustomEvent('biglwa:avatar-updated',{detail:{type:'sona360'}}));
       setStatus('Avatar saved to your own BIGLWA profile.');return true;
@@ -679,12 +705,12 @@
     if(e.target.closest('#profileAvatarEditor [data-sona-example]')){
       e.preventDefault();
       const inp=one('#biglwaSonaWidgetURL');if(inp)inp.value=SONA_EXAMPLE;
-      renderSonaFrame(one('#biglwaSonaLivePreview'),SONA_EXAMPLE);
+      previewSonaInput(inp,true);
       setStatus('Showing the supplied 360sona example. Save only if this is your display case.');
       return;
     }
     if(e.target.closest('#profileAvatarEditor [data-sona-preview]')){
-      e.preventDefault();previewSonaInput(one('#biglwaSonaWidgetURL'));return;
+      e.preventDefault();previewSonaInput(one('#biglwaSonaWidgetURL'),true);return;
     }
     const creator=e.target.closest('#profileAvatarEditor [data-sona-creator]');
     if(creator){
@@ -1082,7 +1108,10 @@
    Keep the provider's internal zoom/framing independent of BIG LWA dimensions. */
 #studioApp #profileAvatarEditor .biglwa-sona-editor-preview{display:flex;align-items:center;justify-content:center;min-width:0;min-height:190px;border-radius:10px;background:linear-gradient(165deg,#20242a,#0b0d10);color:#e8eddc;border:1px solid #76b90055;padding:7px}
 #studioApp #profileAvatarEditor .biglwa-sona-editor-preview>span{font:600 12px/1.5 system-ui;text-align:center}
-#studioApp #profileAvatarEditor .biglwa-sona-editor-preview .biglwa-sona-frame{width:min(100%,530px);height:auto;aspect-ratio:265/170}
+#studioApp #profileAvatarEditor .biglwa-sona-editor-preview .biglwa-sona-frame{position:relative;flex:0 0 auto;width:min(100%,530px);height:auto;min-height:170px;aspect-ratio:265/170}
+#studioApp #profileAvatarEditor .biglwa-sona-editor-preview .biglwa-sona-frame>iframe{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;visibility:visible!important;opacity:1!important}
+#studioApp #profileAvatarEditor :is(#biglwaSonaFrameStatus,[data-sona-open-preview])[hidden]{display:none!important}
+#studioApp #profileAvatarEditor #biglwaSonaFrameStatus{font:12px/1.4 system-ui}
 #studioApp #profileAvatarEditor .biglwa-sona-note{font:600 11px/1.45 system-ui;color:var(--widget-muted,#706867)}
 #studioApp #profileAvatarEditor .biglwa-sona-external{display:inline-flex;text-decoration:underline;text-underline-offset:3px}
 #studioApp .biglwa-sona-frame{position:relative;box-sizing:border-box;width:min(100%,530px);aspect-ratio:265/170;height:auto;overflow:hidden;margin:0 auto;border-radius:8px;background:transparent;border:0;box-shadow:none}

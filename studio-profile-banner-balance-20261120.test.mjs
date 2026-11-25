@@ -271,5 +271,16 @@ test('360sona accepts copied display-case links and embed code safely',()=>{
  assert.ok(source.includes("inp.addEventListener('paste'"),'Clipboard is read on the input');
  assert.ok(source.includes("previewSonaInput(inp)"),'Paste updates preview');
  
- for(const shell of shells)assert.match(read(shell),/avatar-studio-bitmoji-20261017-v3\.js\?[^"']*sonapaste=20261124-1/);
+ for(const shell of shells)assert.match(read(shell),/avatar-studio-bitmoji-20261017-v3\.js\?[^"']*sonapaste=20261124-2/);
+});
+
+
+test('360sona Enter and Preview force a fresh eager visible iframe and preserve origin-only referrer',()=>{
+ const source=read('avatar-studio-bitmoji-20261017-v3.js');
+ assert(source.includes("previewSonaInput(inp,true)"));
+ assert(source.includes("previewSonaInput(one('#biglwaSonaWidgetURL'),true)"));
+ assert(source.includes("iframe.loading=compact?'lazy':'eager'"));
+ assert(source.includes("iframe.referrerPolicy='strict-origin'"));
+ assert(source.includes('frame.isConnected&&preview.querySelector'));
+ assert(source.includes('Only on'));
 });
