@@ -79,22 +79,24 @@ function paintLocks(){
 }
 function openAudience(key){let dialog=$('#widgetAudienceDialog');if(dialog)dialog.remove();dialog=document.createElement('dialog');dialog.id='widgetAudienceDialog';const name=document.querySelector('[data-sidebar-route-row="'+CSS.escape(key)+'"] .sidebar-route-label')?.textContent||key;const title=document.createElement('h2');title.textContent=name+' · visibility';const help=document.createElement('p');help.textContent='Choose who sees this widget preview. Private drafts and editing tools remain protected.';const select=document.createElement('select');select.setAttribute('aria-label','Widget audience');for(const [value,label]of [['everyone','Everyone'],['members','Signed-in members'],['boos','Boos · friends'],['bookiniz','Bookiniz · family'],['private','Only me']]){const option=document.createElement('option');option.value=value;option.textContent=label;select.append(option)}select.value=audience[key]||'everyone';const save=document.createElement('button');save.textContent='Save';const close=document.createElement('button');close.textContent='Close';close.onclick=()=>dialog.close();const status=document.createElement('p');status.setAttribute('role','status');save.onclick=async()=>{save.disabled=true;try{const next={...audience,[key]:select.value},result=await request({widgetAudience:next});audience=result.widgetAudience;paintLocks();status.textContent='Saved to your account.'}catch(e){status.textContent=e.message}finally{save.disabled=false}};dialog.append(title,help,select,save,close,status);document.body.append(dialog);dialog.showModal()}
 function mountLocker(){
- const title=$('#wallpaperPanel .panel-title');
- if(!title||visitor()||window.__biglwaPublicStorageView||title.querySelector('[data-open-locker]'))return;
- const button=document.createElement('button');
- button.type='button';button.dataset.openLocker='';button.textContent='Locker';
- button.onclick=()=>openLocker().catch(error=>window.alert(error.message));
- title.append(button);
+ const panel=$('#wallpaperPanel'),tabs=$('#profileEditorTabs',panel);
+ if(!tabs||visitor()||window.__biglwaPublicStorageView)return;
+ let button=$('[data-profile-editor-tab="lockers"]',tabs);
+ if(!button){
+  button=document.createElement('button');button.type='button';button.textContent='Lockers';button.dataset.profileEditorTab='lockers';
+  button.id='profileLockerTab';button.setAttribute('role','tab');button.setAttribute('aria-controls','profileLockerEditor');button.setAttribute('aria-selected','false');
+  const section=document.createElement('section');section.id='profileLockerEditor';section.className='customize-section profile-locker-section';
+  section.dataset.profileEditorPane='lockers';section.setAttribute('role','tabpanel');section.setAttribute('aria-labelledby',button.id);section.hidden=true;
+  panel.append(section);tabs.append(button);
+  button.onclick=()=>{if(!section.dataset.busy)openLocker(section).catch(error=>{section.textContent=error.message})};
+ }
+ const avatar=$('[data-profile-editor-tab="avatar"]',tabs);
+ if(avatar&&avatar.nextElementSibling!==button)avatar.after(button);
 }
-async function openLocker(){
- const owner=(await auth())?.uid, directory=window.BigLWAUserDirectory;
+async function openLocker(dialog){
+ const owner=(await auth())?.uid,directory=window.BigLWAUserDirectory;
  if(!owner||!directory)throw Error('Sign in to open your profile locker.');
- if(document.querySelector('.profile-locker-dialog'))return;
- const dialog=document.createElement('dialog');dialog.className='profile-locker-dialog';
- dialog.innerHTML='<h2>Profile locker</h2><label><input type="checkbox"> Include shortcuts when saving</label><div class="locker-doors"></div><p role="status">Opening lockers…</p><button type="button" data-close>Close</button>';
- document.body.append(dialog);dialog.showModal();
- dialog.addEventListener('close',()=>dialog.remove(),{once:true});
- dialog.querySelector('[data-close]').onclick=()=>dialog.close();
+ dialog.innerHTML='<h3>Profile lockers</h3><label><input type="checkbox"> Include shortcuts when saving</label><div class="locker-doors"></div><p role="status">Opening lockers…</p>';
  const status=dialog.querySelector('[role=status]'),doors=dialog.querySelector('.locker-doors');
  const checkOwner=async()=>{if((await auth())?.uid!==owner||visitor()||window.__biglwaPublicStorageView)throw Error('Reopen your locker in your own Studio.')};
  const draw=async()=>{
@@ -139,6 +141,7 @@ async function openLocker(){
  };
  try{await draw();status.textContent=''}catch(error){status.textContent=error.message}
 }
+document.addEventListener('click',event=>{if(event.target.closest?.('#editProfileBtn,#profileEditorTabs'))queueMicrotask(mountLocker)});
 function run(){mountLocker();moveHeader();profileGeometry();paintLocks();if(visitor())previewFaces(publicProfile||window.__biglwaViewedProfile)}
 window.BigLWAProfileRepair={restoreMedia,request,previewFaces,paintLocks};
 window.addEventListener('biglwa:public-profile-ended',()=>{publicProfile=null;viewerGrant={owner:'',boo:false,bookini:false};for(const el of document.querySelectorAll('[data-private-preview-hidden]')){delete el.dataset.privatePreviewHidden;el.hidden=false}document.querySelectorAll('.public-widget-safe-face').forEach(el=>el.remove());document.querySelectorAll('.public-widget-face').forEach(el=>{el.classList.remove('public-widget-face','public-widget-locked');delete el.dataset.publicFaceSanitized})});

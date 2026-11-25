@@ -1658,11 +1658,12 @@
       profileSection.addEventListener('input',event=>{if(event.target.matches('#profileMoodInput,#profileMoodStyle'))syncMoodPreview()});
       profileSection.addEventListener('change',event=>{if(event.target.matches('#profileMoodInput,#profileMoodStyle'))syncMoodPreview()});
     }
+    const editorDetails=()=>({name:$('#profileNameInput',panel).value.trim(),username:$('#profileUsernameInput',panel).value.trim().replace(/^@/,''),bio:$('#profileBioEditor',panel).value.trim(),location:$('#profileLocationInput',panel).value.trim(),website:$('#profileWebsiteInput',panel).value.trim(),mood:$('#profileMoodInput',panel).value.trim(),moodStyle:$('#profileMoodStyle',panel).value,auraText:$('#profileAuraTextInput',panel).value.trim()});
     const fillEditor=()=>{
       // Private by default for every account and every edit session; the member can opt in to notifying others.
       const silent=$('#profileSilentUpdate',panel);if(silent)silent.checked=true;
       $('#profileNameInput',panel).value=display?display.textContent.trim():'';
-      $('#profileUsernameInput',panel).value=handle?handle.textContent.trim().replace(/^@/,''):'';
+      $('#profileUsernameInput',panel).value=window.__biglwaIdentity?.username||readOwnProfile()?.username||handle?.textContent.trim().replace(/^@/,'')||'';
       $('#profileBioEditor',panel).value=bio?bio.textContent.trim():'';
       const loc=meta&&$('span',meta),web=meta&&$('a',meta);
       $('#profileLocationInput',panel).value=loc?loc.textContent.replace(/^⌖\s*/,'').trim():'';
@@ -1671,7 +1672,7 @@
       $('#profileMoodInput',panel).value=moodCard.dataset.moodPreview==='1'||moodValue==='add this week’s #mood'?'':moodValue;
       $('#profileMoodStyle',panel).value=moodCard.dataset.moodStyle||'qwiky-note';
       const aura=$('#studioApp .aura-card p');$('#profileAuraTextInput',panel).value=aura?aura.innerText.trim():'Focused\nbut dreaming.';
-      syncMoodPreview();
+      syncMoodPreview();panel.dataset.openedDetails=JSON.stringify(editorDetails());
     };
     let button=$('#editProfileBtn',card),moodBeforeEdit=null;
     const endEdit=()=>{card.classList.remove('profile-is-editing');panel.classList.add('panel-hidden');panel.hidden=true;button?.setAttribute('aria-expanded','false');if(button)button.textContent='Edit profile'};
@@ -1686,17 +1687,21 @@
     if(saveButton&&saveButton.dataset.biglwaProfileBound!=='3'){
       saveButton.dataset.biglwaProfileBound='3';saveButton.addEventListener('click',async()=>{
         if(saveButton.disabled)return;
-        saveButton.disabled=true;saveButton.textContent='Saving…';
+        $('#profileSaveStatus',panel)?.remove();saveButton.disabled=true;saveButton.textContent='Saving…';
         try{
-        const details={name:$('#profileNameInput',panel).value.trim(),username:$('#profileUsernameInput',panel).value.trim().replace(/^@/,''),bio:$('#profileBioEditor',panel).value.trim(),location:$('#profileLocationInput',panel).value.trim(),website:$('#profileWebsiteInput',panel).value.trim(),mood:$('#profileMoodInput',panel).value.trim(),moodStyle:$('#profileMoodStyle',panel).value,auraText:$('#profileAuraTextInput',panel).value.trim()};
-        try{if(!writeOwnProfile(details))return;if(details.username){const directory=JSON.parse(localStorage.getItem('biglwaUserDirectory')||'[]');const next=Array.isArray(directory)?directory.filter(user=>String(user?.username||'').toLowerCase()!==details.username.toLowerCase()):[];next.push({username:details.username,name:details.name||'',url:'/'+encodeURIComponent(details.username)});localStorage.setItem('biglwaUserDirectory',JSON.stringify(next))}}catch{}
-        if(!await window.BigLWAUserDirectory?.saveProfile?.(details))throw Error('Profile could not be saved to your account. Please retry.');
+        const details=editorDetails();
+        const changed=JSON.stringify(details)!==panel.dataset.openedDetails;
+        if(changed){
+        if(!await window.BigLWAUserDirectory?.saveProfile?.(details,{throwErrors:true}))throw Error('Your account is still connecting. Try Save changes again.');
+        try{writeOwnProfile(details);if(details.username){const directory=JSON.parse(localStorage.getItem('biglwaUserDirectory')||'[]');const next=Array.isArray(directory)?directory.filter(user=>String(user?.username||'').toLowerCase()!==details.username.toLowerCase()):[];next.push({username:details.username,name:details.name||'',url:'/'+encodeURIComponent(details.username)});localStorage.setItem('biglwaUserDirectory',JSON.stringify(next))}}catch{}
+        panel.dataset.openedDetails=JSON.stringify(details);
+        }
         const readJson=key=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
         const savedDocked=readJson('biglwaDockedWidgetsV3'),savedOrder=readJson('biglwaWidgetOrder');
         const lookSaved=await window.BigLWAUserDirectory?.saveCustomizations?.({appearance:{color:$('#widgetColor')?.value||'#faf7f1',radius:$('#widgetRadius')?.value||'16',opacity:$('#widgetOpacity')?.value||'84',blur:$('#widgetBlur')?.value||'18',aura:$('#auraColor')?.value||'#d85f6d'},wallpaper:{zoom:window.BIGLWAStudioAppearance?.snapshot()?.wallpaper?.zoom||1,fit:$('#fitSelect')?.value||'cover',position:$('#positionSelect')?.value||'center',blur:$('#blurRange')?.value||'0',overlay:$('#overlayRange')?.value||'18'},layout:{docked:Array.isArray(savedDocked)?savedDocked:[],order:savedOrder&&typeof savedOrder==='object'?savedOrder:{}}});
         if(!lookSaved)throw Error('Appearance could not be saved to your account. Please retry.');
         window.BIGLWAStudioAppearance?.save?.();
-        applyProfilePayload(details);moodBeforeEdit=null;$('#saveStudioMusicMeta',panel)?.click();
+        if(changed)applyProfilePayload(details);moodBeforeEdit=null;$('#saveStudioMusicMeta',panel)?.click();
         window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Profile updated',source:'Profile',detail:'Identity, mood, song, Aura, and profile formatting changed',notified:!$('#profileSilentUpdate',panel)?.checked}}));
         endEdit();
         }catch(error){let status=$('#profileSaveStatus',panel);if(!status){status=document.createElement('p');status.id='profileSaveStatus';status.setAttribute('role','alert');saveButton.after(status)}status.textContent=error.message;}finally{saveButton.disabled=false;saveButton.textContent='Save changes';}

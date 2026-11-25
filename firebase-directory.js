@@ -84,19 +84,20 @@ async function claimUsername(username,user){
 
 async function syncAccountProfile(profile={},options={}){
   const username=normalize(profile.username);
-  if(!username || !validUsername(username)) return false;
   try{
+    if(!validUsername(username))throw Error("Use 5–24 letters, numbers, periods, underscores or hyphens for your username.");
     const {db,auth}=await getFirebase();
+    await auth.authStateReady();
     const user=auth.currentUser;
-    if(!user)return false;
+    if(!user)throw Error("Sign in to save your profile.");
     const {doc,getDoc,setDoc,deleteDoc,deleteField,runTransaction,serverTimestamp}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
 
     const userRef=doc(db,"users",user.uid);
-    const previousSnap=await getDoc(userRef);
-    const previous=previousSnap.exists()?previousSnap.data():{};
-    const previousUsername=normalize(previous.username);
-
     await runTransaction(db,async tx=>{
+      const previous=(await tx.get(userRef)).data()||{};
+      const previousUsername=normalize(previous.usernameLower||previous.username);
+      const oldRef=previousUsername&&previousUsername!==username?doc(db,"usernames",previousUsername):null;
+      const old=oldRef?await tx.get(oldRef):null;
       const newRef=doc(db,"usernames",username);
       const existing=await tx.get(newRef);
       if(existing.exists() && existing.data()?.uid!==user.uid){
@@ -120,6 +121,7 @@ async function syncAccountProfile(profile={},options={}){
       },{merge:true});
       tx.set(userRef,{
         uid:user.uid,
+        usernameLower:username,
         email:user.email||"",
         name:clean(profile.name)||clean(user.displayName),
         username,
@@ -131,11 +133,7 @@ async function syncAccountProfile(profile={},options={}){
         auraText:clean(profile.auraText),
         updatedAt:serverTimestamp()
       },{merge:true});
-      if(previousUsername && previousUsername!==username){
-        const oldRef=doc(db,"usernames",previousUsername);
-        const old=await tx.get(oldRef);
-        if(old.exists() && old.data()?.uid===user.uid) tx.delete(oldRef);
-      }
+      if(old?.exists() && old.data()?.uid===user.uid)tx.delete(oldRef);
     });
     return true;
   }catch(err){
@@ -145,8 +143,8 @@ async function syncAccountProfile(profile={},options={}){
   }
 }
 
-export async function saveProfile(profile){
-  return syncAccountProfile(profile,{throwErrors:false});
+export async function saveProfile(profile,options={}){
+  return syncAccountProfile(profile,options);
 }
 
 async function saveCustomizations(custom={}){
