@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1';
+        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261124-1';
         document.head.appendChild(script);
       }, 250);
     }
@@ -1594,7 +1594,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
      if(ORBIT_CONNECTED.has(k)){
       const row=connected[k],pending=!ORBIT_LIVE.has(k);
       const stats=[orbitStat('followers','followers',row),orbitStat('posts','mediaCount',row),orbitStat('boards','boards',row),orbitStat('likes','likes',row)].filter(Boolean).join(' · ');
-      return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.needsReauth?'<em class="orbit-state">Reconnect required</em>':row.verifiedFromProvider?'<em class="orbit-state is-on">Connected · verified</em>':'<em class="orbit-state is-on">Connected</em>'):(k==='instagram'&&links[k]?'<em class="orbit-state">Profile linked</em>':'<em class="orbit-state">Not connected</em>')}</header><div class="orbit-main">`+
+      return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.accountSaveFailed?'<em class="orbit-state">Account sync pending</em>':row.needsReauth?'<em class="orbit-state">Reconnect required</em>':row.verifiedFromProvider?'<em class="orbit-state is-on">Connected · verified</em>':'<em class="orbit-state is-on">Connected</em>'):(k==='instagram'&&links[k]?'<em class="orbit-state">Profile linked</em>':'<em class="orbit-state">Not connected</em>')}</header><div class="orbit-main">`+
        (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}${row.verifiedFromProvider?'<small>Authenticated with '+esc(n)+' · verified just now</small>':''}</span>${row.link?'<a class="orbit-hotlink" href="'+esc(row.link)+'" target="_blank" rel="noopener noreferrer">Open ↗</a>':k==='snapchat'&&!links[k]?'<small>Snapchat connected. Add your public profile URL using Link to publish a quick link.</small>':k==='tumblr'&&!links[k]?'<small>Connected, but no public blog URL returned. Add your Tumblr blog link below.</small>':''}${k==='snapchat'?'<small>Spotlight imports require Snapchat Public Profile API access; Login Kit alone only shares account identity and optional Bitmoji.</small>':''}</div>`
         :(k==='instagram'?'<div class="orbit-not-connected">'+(links[k]?'Profile link saved · no automatic sync.':'Personal account? Add your profile link. Live sync requires a creator or business account.')+'</div>':'<div class="orbit-not-connected">Connect to show your account preview.</div>'))+'</div>'+
        `<div class="module-actions">${row&&['x','tumblr','snapchat'].includes(k)?'<button class="module-action ghost" type="button" data-orbit-verify="'+k+'">Verify status</button>':''}${k==='instagram'?'<button class="module-action" type="button" data-orbit-edit-link="instagram">'+(links[k]||row?.link?'Edit profile link':'Link personal account')+'</button>':''}<button class="module-action${k==='instagram'?' ghost':''}" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${k==='instagram'?(row?'Reconnect sync':'Live sync · pro'):k==='facebook'?'Facebook':(row?'Reconnect ':'Connect ')+n}</button>${k==='tiktok'?'<button class="module-action ghost" type="button" data-orbit-tiktok-sync="1" title="Refresh TikTok profile and sync authorized posts without reopening Login Kit">Sync now</button>':''}${k==='x'?'<button class="module-action ghost" type="button" data-orbit-x-basic="1" title="Diagnostic: request only X profile access, without Tweet or offline permissions">Test basic X login</button>':''}${k==='facebook'?'<button class="module-action ghost" type="button" data-facebook-legacy-connect="1">Meta Business</button>':''}${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}${k==='instagram'?'':`<button class="module-action ghost orbit-inline-link" type="button" data-orbit-edit-link="${k}">${links[k]||row?.link?'Edit link':(k==='snapchat'||k==='tumblr'?'Add profile link':'Link')}</button>`}${orbitBadge(g,t)}</div>`+
@@ -4730,9 +4730,17 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
 
   document.addEventListener('click',e=>{if(e.target.closest('#moduleWorkspace'))return;const directory=e.target.closest('.hero-action-bar a[href^="#"]');const mobile=e.target.closest('#mobileCreate');const trigger=e.target.closest('[data-open],.arrow-btn');if(!directory&&!mobile&&!trigger)return;let key=mobile?'veve':directory?(directory.getAttribute('href')||'').replace(/^#/,''):trigger.dataset.open;if(key==='home'){e.preventDefault();e.stopImmediatePropagation();closeModule();window.scrollTo({top:0,behavior:'smooth'});return}if(key==='desk')key='create';const card=trigger?.closest('.card');const cardKey=card?.id;if(!known.has(String(key||'').toLowerCase())&&cardKey)key=cardKey;if(!key&&cardKey)key=cardKey;if(!key||!known.has(String(key).toLowerCase()))return;e.preventDefault();e.stopImmediatePropagation();openModule(key,trigger?.dataset.open||'')},true);
   const cleanStudioModulePath=()=>{try{const parts=location.pathname.replace(/^\/+|\/+$/g,'').split('/').filter(Boolean).map(x=>decodeURIComponent(x).toLowerCase());if(parts[0]!=='studio'||parts.length!==2)return '';return known.has(parts[1])?parts[1]:''}catch{return ''}};
+  // Every OAuth worker returns with a one-use handoff or a status flag. The
+  // client scripts read those flags while they load, before this router runs;
+  // without listing all of them here, canonicalizeLegacyView() rewrites the
+  // URL to /studio and the member lands back on a plain Studio with no
+  // acknowledgement and no Orbit panel showing the new connection.
+  const ORBIT_CALLBACK_PARAMS=['instagram_handoff','instagram_error',
+    'pinterest_handoff','pinterest_error','tiktok_handoff','tiktok_error',
+    'orbit_provider','orbit_status','orbit_error',
+    'facebook_login','facebook_login_error'];
   const explicitOrbitReturn=params=>params.get('orbit_return')==='1'||
-    params.get('nav')==='1'||params.has('instagram_handoff')||
-    params.has('instagram_error')||params.has('pinterest_handoff')||params.has('tiktok_handoff');
+    params.get('nav')==='1'||ORBIT_CALLBACK_PARAMS.some(key=>params.has(key));
   const routeViewFromUrl=()=>{
     const params=new URLSearchParams(location.search);
     if(location.pathname.replace(/\/+$/,'')==='/studio'&&['map','politc'].includes(params.get('panel')))return params.get('panel');

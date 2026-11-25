@@ -6,7 +6,7 @@
 import { startIdentity, refreshIdentity, identity } from "./account-identity.js";
 import { startChrome, renderIdentityChrome } from "./account-chrome.js?v=20261116-journal-cover";
 import { loadProfilePhoto } from "./account-photo.js?v=20261027-adjust-position-1&preview=20261029-durable-1";
-import { startConnections } from "./orbit-connections.js?v=20261022-verified-followers-3&fix=public-youtube-1";
+import { startConnections } from "./orbit-connections.js?v=20261022-verified-followers-3&fix=public-youtube-1&orbitsync=20261124-1";
 import { startFeed } from "./feed-view.js?v=20261029-owned-photo-shuffle-3&previewfix=20261110-1&optimized=20261116-webp-previews-1&sponsorfilter=20261124-1";
 
 function boot() {

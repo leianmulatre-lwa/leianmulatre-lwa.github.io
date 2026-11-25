@@ -177,9 +177,11 @@ export function connectedIds() {
 /* Pulls one source's profile through the Worker and stores the readable parts.
    The result says which of three things happened, because only one of them should remove
    the connection from the account:
-     updated   the provider answered, so the record is current
-     stale     the provider could not be reached, so the stored record is kept as it was
-     rejected  the provider refused the credential, so the connection is no longer real
+     updated     the provider answered and the account accepted the record
+     save-failed the provider answered, but the account write failed; keep the
+                 local record visible while marking account sync as pending
+     stale       the provider could not be reached, so the stored record is kept
+     rejected    the provider refused the credential, so the connection is gone
    A device with no local credential never gets this far: it keeps what the account says
    and reports the connection as needing to be re-authorised here. */
 async function syncSource(source, uid) {
@@ -285,7 +287,12 @@ async function syncSource(source, uid) {
       (sameAccount?String(old.countCheckedAt||old.lastCheckedAt||''):'')
   };
   const persisted = await write(uid, source.id, record);
-  if (!persisted) window.dispatchEvent(new CustomEvent("biglwa:orbit-connection-save-error", { detail: { source: source.id } }));
+  if (!persisted) {
+    // The provider really answered, but the account did not accept the record.
+    // Do not call this a complete connection: another device would see nothing.
+    window.dispatchEvent(new CustomEvent("biglwa:orbit-connection-save-error", { detail: { source: source.id } }));
+    return { outcome: "save-failed", record };
+  }
   return { outcome: "updated", record };
 }
 
@@ -326,6 +333,7 @@ const PUBLIC_HOSTS = {
   tiktok: ["tiktok.com", "www.tiktok.com"],
   pinterest: ["pinterest.com", "www.pinterest.com"],
   youtube: ["youtube.com", "www.youtube.com", "m.youtube.com"],
+  facebook: ["facebook.com", "www.facebook.com", "fb.com", "www.fb.com"],
   x: ["x.com", "www.x.com", "twitter.com", "www.twitter.com"],
   snapchat: ["snapchat.com", "www.snapchat.com"],
   tumblr: ["tumblr.com", "www.tumblr.com"]
@@ -375,6 +383,9 @@ async function mirrorPublic(uid, records) {
       if(link)socials[id]=link;
     }
     for (const [id, record] of Object.entries(records || {})) {
+      // A provider that could not be saved to the owner's account must not be
+      // published as if it were a durable connection.
+      if (record?.accountSaveFailed) continue;
       const link = publicLink(id, record);
       if (link) socials[id] = link;
     }
@@ -409,7 +420,11 @@ export function refresh(uid) {
     for (const source of SOURCES) {
       const { outcome, record } = await syncSource(source, who);
       const next = { ...current };
-      if (outcome === "updated") {
+      if (outcome === "save-failed") {
+        // Keep the verified provider details for this tab, but never claim the
+        // account has them. The badge in Orbit says the save is still pending.
+        next[source.id] = { ...record, accountSaveFailed: true };
+      } else if (outcome === "updated") {
         next[source.id] = record;
       } else if (outcome === "rejected") {
         /* The provider itself said this credential is dead, so the account should stop
@@ -446,7 +461,8 @@ export async function refreshSource(id, uid) {
   const result = await syncSource(source, who);
   if (auth.currentUser?.uid !== who) return { outcome: "no-session" };
   const next = { ...current };
-  if (result.outcome === "updated") next[id] = result.record;
+  if (result.outcome === "save-failed") next[id] = { ...result.record, accountSaveFailed: true };
+  else if (result.outcome === "updated") next[id] = result.record;
   else if (result.outcome === "rejected") {
     delete next[id];
     await clearStored(who, id);
@@ -457,6 +473,31 @@ export async function refreshSource(id, uid) {
   emit();
   await mirrorPublic(who, next);
   return result;
+}
+
+/* Provider clients that do not use the main Worker profile routes (currently
+   personal Facebook) still need their verified connection to land in the same
+   account record as Instagram, TikTok and Pinterest. */
+export async function recordProvider(uid, id, record) {
+  const who = uid || identity()?.uid;
+  if (!who || !record) return false;
+  /* A refresh timer should not rewrite the same record forever. Verification time
+     changes on every pass; everything that describes the connection does not. */
+  const comparable = value => {
+    if (!value) return "";
+    const { lastVerifiedAt, ...rest } = value;
+    return JSON.stringify(rest);
+  };
+  if (comparable(current[id]) === comparable(record)) return true;
+  const saved = await write(who, id, record);
+  if (!saved) {
+    window.dispatchEvent(new CustomEvent("biglwa:orbit-connection-save-error", { detail: { source: id } }));
+    return false;
+  }
+  current = { ...current, [id]: record };
+  emit();
+  await mirrorPublic(who, current);
+  return true;
 }
 
 async function clearStored(uid, id) {
@@ -515,11 +556,15 @@ export async function startConnections() {
   /* The Orbit page is a classic script and cannot import this module, so the connected
      accounts are published on the window for it to read and to subscribe to. */
   window.__biglwaConnections = { connections, onConnectionsChange, connectedIds, refresh, refreshSource, forget,
-    publishPublicLinks:()=>mirrorPublic(identity()?.uid,current) };
+    recordProvider,
+    publishPublicLinks:(forUid)=>mirrorPublic(forUid||identity()?.uid,current) };
+  // Classic provider scripts load before this module finishes. Tell them when the
+  // shared account writer is available so a verified connection can be retried.
+  window.dispatchEvent(new CustomEvent('biglwa:orbit-connections-ready'));
   window.addEventListener('biglwa:orbit-links-synced',()=>{
     if(identity()?.uid)mirrorPublic(identity().uid,current).catch(()=>{});
   });
   return begin(identity());
 }
 
-export default { connections, onConnectionsChange, connectedIds, refresh, refreshSource, forget, startConnections };
+export default { connections, onConnectionsChange, connectedIds, refresh, refreshSource, forget, recordProvider, startConnections };

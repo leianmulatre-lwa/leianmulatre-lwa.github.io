@@ -21,6 +21,9 @@
  })();
  const config=Object.fromEntries(providerIds.map(id=>[id,{configured:false,missing:[],checked:false}]));
  const state={};
+ // A failed or partial /session check must never erase a provider the
+ // account already knows. Only an explicit connected:false response does.
+ const disconnectedNow=new Set();
  let refsPromise=null,refreshing=null,loggedInUid='',authObserver=null;
  let mirrorPromise=null;
  const notify=()=>document.dispatchEvent(new CustomEvent('biglwa:new-orbit-status'));
@@ -88,9 +91,10 @@
      try{
        const auth=await firebase();await auth.authStateReady();
        const user=auth.currentUser;const uid=user?.uid||'';
-       if(!uid){loggedInUid='';for(const id of providerIds)delete state[id];notify();return}
+       if(!uid){loggedInUid='';disconnectedNow.clear();for(const id of providerIds)delete state[id];notify();return}
        const idToken=await user.getIdToken();
        // Configuration health must not suppress a previously saved account session.
+       if(loggedInUid!==uid)disconnectedNow.clear();
        if(loggedInUid!==uid)for(const id of providerIds)delete state[id];
        const results=await Promise.all(providerIds.map(async id=>{
          try{return [id,await query(id,'session','GET',idToken)]}
@@ -98,6 +102,7 @@
        }));
        if((await firebase()).currentUser?.uid!==uid)return;
        loggedInUid=uid;
+       disconnectedNow.clear();
        for(const [id,response] of results){
          if(response?.sessionError){
            console.warn('Orbit '+id+' connection check:',response.sessionError);
@@ -118,11 +123,12 @@
                publicProfile.link='https://www.tumblr.com/'+encodeURIComponent(publicProfile.username);
              }
            }
+           disconnectedNow.delete(id);
            state[id]={...publicProfile,id,scopes:String(response.scopes||''),needsReauth:!!response.needsReauth,
              accounts:Array.isArray(response.accounts)?response.accounts.slice(0,5):[],
              activeSourceUserId:response.activeSourceUserId||publicProfile.sourceUserId,
              verifiedFromProvider:!response.needsReauth,lastVerifiedAt:Date.now()};
-         }else delete state[id];
+         }else{delete state[id];disconnectedNow.add(id)}
        }
      }catch(error){console.warn('Orbit new provider restore:',error)}
      if(loggedInUid)await mirrorProfiles(loggedInUid);
@@ -140,10 +146,14 @@
      const db=getFirestore(auth.app),ref=doc(db,'users',uid);
      const snapshot=await getDoc(ref);
      if(auth.currentUser?.uid!==uid)return;
-     const profiles={};
      const previous=snapshot.data()?.orbitConnectedProfiles||{};
+     // A provider whose /session check failed, or that returned no public
+     // link, must not erase an earlier verified connection on a later pass.
+     const profiles={...previous};
      for(const id of providerIds){
-       const row=state[id];if(!row?.verifiedFromProvider)continue;
+       const row=state[id];
+       if(disconnectedNow.has(id)){delete profiles[id];continue}
+       if(!row?.verifiedFromProvider)continue;
        let link='';
        try{
          const u=new URL(String(row.link||''));
@@ -153,22 +163,21 @@
             id==='tumblr'&&(host==='tumblr.com'||host==='www.tumblr.com'||host.endsWith('.tumblr.com'))||
             id==='snapchat'&&['snapchat.com','www.snapchat.com'].includes(host)))link=u.href;
        }catch{}
-       if(link){
-         const prior=previous[id]||{};
-         const sameAccount=String(prior.username||'').toLowerCase()===String(row.username||'').toLowerCase();
-         const count=row.followers!==null&&row.followers!==undefined&&row.followers!==''&&
-           Number.isSafeInteger(Number(row.followers))&&Number(row.followers)>=0?Number(row.followers):null;
-         const existing=sameAccount&&Number.isSafeInteger(Number(prior.followers))&&
-           prior.followers!==null&&prior.followers!==undefined?Number(prior.followers):null;
-         profiles[id]={link,name:String(row.name||id).slice(0,100),
-           label:id==='x'?'X':id==='tumblr'?'Tumblr':'Snapchat',
-           username:String(row.username||'').slice(0,80),
-           ...(id==='tumblr'?{blogCount:Math.max(0,Number(row.blogCount)||0)}:{})};
-         // Owner-only data. OAuth sessions/tokens never enter this record.
-         if(id==='x'&&(count!==null||existing!==null)){
-           profiles[id].followers=count??existing;
-           profiles[id].countCheckedAt=count!==null?new Date().toISOString():String(prior.countCheckedAt||'');
-         }
+       if(!link)continue;
+       const prior=previous[id]||{};
+       const sameAccount=String(prior.username||'').toLowerCase()===String(row.username||'').toLowerCase();
+       const count=row.followers!==null&&row.followers!==undefined&&row.followers!==''&&
+         Number.isSafeInteger(Number(row.followers))&&Number(row.followers)>=0?Number(row.followers):null;
+       const existing=sameAccount&&Number.isSafeInteger(Number(prior.followers))&&
+         prior.followers!==null&&prior.followers!==undefined?Number(prior.followers):null;
+       profiles[id]={link,name:String(row.name||id).slice(0,100),
+         label:id==='x'?'X':id==='tumblr'?'Tumblr':'Snapchat',
+         username:String(row.username||'').slice(0,80),
+         ...(id==='tumblr'?{blogCount:Math.max(0,Number(row.blogCount)||0)}:{})};
+       // Owner-only data. OAuth sessions/tokens never enter this record.
+       if(id==='x'&&(count!==null||existing!==null)){
+         profiles[id].followers=count??existing;
+         profiles[id].countCheckedAt=count!==null?new Date().toISOString():String(prior.countCheckedAt||'');
        }
      }
      if(JSON.stringify(previous)!==JSON.stringify(profiles)){
@@ -176,7 +185,7 @@
          {mergeFields:['orbitConnectedProfiles','orbitProfilesUpdatedAt']});
      }
      // The public usernames mirror is separate from the account-only record.
-     await window.__biglwaConnections?.publishPublicLinks?.();
+     await window.__biglwaConnections?.publishPublicLinks?.(uid);
    })();
    try{await mirrorPromise}catch(error){console.warn('Orbit public profile mirror:',error)}
    finally{mirrorPromise=null}
@@ -221,6 +230,7 @@
    const result=await query(provider,'disconnect','POST',user.idToken);
    if(result.connected){await load();return}
    delete state[provider];
+   disconnectedNow.add(provider);
    await mirrorProfiles(user.uid);
    notify();
  }
