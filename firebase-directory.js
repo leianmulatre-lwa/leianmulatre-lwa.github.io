@@ -297,6 +297,10 @@ async function publishJournal(rawText,viewable){
   return {viewable:!!viewable,username,text:viewable?text:''};
 }
 
+async function mergePublicMedia(data){
+    if(data.uid){try{const response=await fetch('https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/profile-state/'+encodeURIComponent(data.uid),{cache:'no-store',signal:AbortSignal.timeout(6000)});if(response.ok){const media=await response.json();if(media.uid===data.uid){if(media.photoKnown)data.profilePhotoUrl=media.profilePhotoUrl;if(media.profilePhotoPosition)data.profilePhotoPosition=media.profilePhotoPosition;if(media.wallpaperKnown)data.look={...(data.look||{}),wallpaperMedia:media.wallpaperMedia};data.widgetAudience=media.widgetAudience||{}}}}catch{}}
+}
+
 async function loadPublicProfile(rawUsername){
   const username=normalize(rawUsername);
   if(!validUsername(username))return null;
@@ -306,7 +310,7 @@ async function loadPublicProfile(rawUsername){
     const snap=await getDoc(doc(db,"usernames",username));
     if(!snap.exists())return null;
     const data={...(snap.data()||{})};
-    if(data.uid){try{const response=await fetch('https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/profile-state/'+encodeURIComponent(data.uid),{cache:'no-store',signal:AbortSignal.timeout(6000)});if(response.ok){const media=await response.json();if(media.uid===data.uid){if(media.photoKnown)data.profilePhotoUrl=media.profilePhotoUrl;if(media.profilePhotoPosition)data.profilePhotoPosition=media.profilePhotoPosition;if(media.wallpaperKnown)data.look={...(data.look||{}),wallpaperMedia:media.wallpaperMedia};data.widgetAudience=media.widgetAudience||{}}}}catch{}}
+    await mergePublicMedia(data);
     const look=data.look&&typeof data.look==="object"?data.look:null;
     return {
       uid:clean(data.uid),
@@ -445,10 +449,16 @@ export async function searchUsers(rawQuery){
       endAt(q+"\uf8ff"),
       limit(8)
     ));
-    return snap.docs.map(d=>{
+    return Promise.all(snap.docs.map(async d=>{
       const x=d.data()||{};
-      return {username:x.username||d.id,name:x.name||"",url:x.url||("/"+encodeURIComponent(x.username||d.id)),bio:x.accountVisibility==='private'?'':x.bio||"",location:x.accountVisibility==='private'?'':x.location||"",website:x.accountVisibility==='private'?'':x.website||"",mood:x.accountVisibility==='private'?'':x.mood||"",moodStyle:x.accountVisibility==='private'?'':x.moodStyle||""};
-    });
+      const visible=x.accountVisibility!=='private';
+      if(visible)await mergePublicMedia(x);
+      return {
+        profilePhotoUrl:visible?x.profilePhotoUrl||'':'',
+        auraColor:visible?x.look?.auraColor||'':'',
+        profilePhotoPosition:safePhotoPosition(x.profilePhotoPosition),
+        username:x.username||d.id,name:x.name||"",url:x.url||("/"+encodeURIComponent(x.username||d.id)),bio:x.accountVisibility==='private'?'':x.bio||"",location:x.accountVisibility==='private'?'':x.location||"",website:x.accountVisibility==='private'?'':x.website||"",mood:x.accountVisibility==='private'?'':x.mood||"",moodStyle:x.accountVisibility==='private'?'':x.moodStyle||""};
+    }));
   }catch(err){
     console.warn("[BIGLWA] Firebase username search unavailable:",err);
     return [];

@@ -291,3 +291,11 @@ html body #bl-studio-search-results .bl-search-category-nav .bl-search-tab-symbo
 html body #bl-studio-search-results .bl-widget-symbol{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px}
 html body #bl-studio-search-results .bl-widget-symbol :is(img,svg){width:27px!important;height:27px!important;object-fit:contain;position:static!important;transform:none!important}
 html body.night-mode #bl-studio-search-results :is(.bl-widget-symbol,.bl-search-tab-symbol)>img{filter:invert(1)}
+
+#bl-studio-search-results .bl-search-card.bl-user-card .bl-search-card-media.bl-person-photo{
+  position:relative;display:grid!important;place-items:center;box-sizing:border-box;
+  width:76px!important;min-width:76px!important;height:94px!important;
+  border:3px solid var(--person-aura)!important;border-radius:0!important;overflow:hidden;
+}
+.bl-person-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.bl-person-photo img[hidden]{display:none!important}
