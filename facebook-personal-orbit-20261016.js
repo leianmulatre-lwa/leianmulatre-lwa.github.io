@@ -25,12 +25,13 @@
    }).catch(error=>{authPromise=null;throw error});
    return authPromise;
  }
- async function authToken(){
+ async function authUser(){
    const auth=await fbFirebase();
    await auth.authStateReady();
    if(!auth.currentUser)throw Error('Sign in to BIG LWA before connecting Facebook.');
-   return auth.currentUser.getIdToken();
+   return auth.currentUser;
  }
+ async function authToken(){return (await authUser()).getIdToken()}
  async function api(action,method='GET',token=''){
    const response=await fetch(origin+'/'+id+'/'+action,{
      method,headers:token?{Authorization:'Bearer '+token}:{},cache:'no-store'
@@ -97,6 +98,34 @@
    })();
    try{return await syncing}finally{syncing=null;renderSync()}
  }
+ let pendingAccountRecord=null;
+ function connectionRecord(uid,profile,needsReauth){
+   return {id:'facebook',label:'Facebook',
+     link:String(profile?.link||'').slice(0,2048),
+     username:String(profile?.username||profile?.handle||'').slice(0,80),
+     name:String(profile?.name||'Facebook').slice(0,100),
+     avatarUrl:String(profile?.avatarUrl||'').slice(0,2048),
+     sourceUserId:String(profile?.sourceUserId||profile?.id||'').slice(0,120),
+     verifiedFromProvider:true,needsReauth:!!needsReauth,lastVerifiedAt:Date.now()};
+ }
+ async function persistAccount(uid,profile,needsReauth){
+   const record=connectionRecord(uid,profile,needsReauth);
+   const hub=window.__biglwaConnections;
+   if(!hub?.recordProvider){pendingAccountRecord={uid,profile,needsReauth};return false}
+   pendingAccountRecord=null;
+   const saved=await hub.recordProvider(uid,'facebook',record);
+   state.accountSaveFailed=saved===false;
+   return saved;
+ }
+ window.addEventListener('biglwa:orbit-connections-ready',()=>{
+   if(!pendingAccountRecord)return;
+   const pending=pendingAccountRecord;pendingAccountRecord=null;
+   persistAccount(pending.uid,pending.profile,pending.needsReauth).catch(error=>{
+     state.accountSaveFailed=true;
+     console.warn('Facebook account sync:',error.message);
+     publish();
+   });
+ });
  function publish(){
    document.dispatchEvent(new CustomEvent('biglwa:facebook-personal-status'));
    renderSync();
@@ -110,8 +139,8 @@
        state.missing=Array.isArray(health.missing)?health.missing:[];
      }catch(error){state.configured=false;state.missing=[];state.configurationError=error.message}
      try{
-       const token=await authToken();
-       const account=await api('session','GET',token);
+       const user=await authUser();
+       const account=await api('session','GET',await user.getIdToken());
        state.connected=!!account.connected;
        state.profile=account.profile||null;
        state.needsReauth=!!account.needsReauth;
@@ -119,6 +148,10 @@
        if(state.profile?.link&&links?.save&&!links.get?.().facebook){
          try{await links.save('facebook',state.profile.link)}catch(error){console.warn('Facebook profile link could not be saved:',error.message)}
        }
+       if(state.connected&&state.profile){
+         try{await persistAccount(user.uid,state.profile,state.needsReauth)}
+         catch(error){state.accountSaveFailed=true;console.warn('Facebook account sync:',error.message)}
+       }else pendingAccountRecord=null;
      }catch{state.connected=false;state.profile=null;state.needsReauth=false}
      publish();
      return state;
@@ -142,10 +175,12 @@
  async function disconnect(){
    const token=await authToken();
    await api('disconnect','POST',token);
-   state.connected=false;state.profile=null;state.needsReauth=false;publish();
+   pendingAccountRecord=null;
+   try{await window.__biglwaConnections?.forget?.('facebook')}catch(error){console.warn('Facebook account unlink:',error.message)}
+   state.connected=false;state.profile=null;state.needsReauth=false;state.accountSaveFailed=false;publish();
  }
  function get(){return state.connected&&state.profile?{
-   ...state.profile,link:state.profile.link||window.BigLWAOrbitAccountLinks?.get?.().facebook||'',id:'facebook',needsReauth:state.needsReauth,verifiedFromProvider:true
+   ...state.profile,link:state.profile.link||window.BigLWAOrbitAccountLinks?.get?.().facebook||'',id:'facebook',needsReauth:state.needsReauth,verifiedFromProvider:true,accountSaveFailed:!!state.accountSaveFailed
  }:null}
  function callbackNotice(){
    const url=new URL(location.href);
