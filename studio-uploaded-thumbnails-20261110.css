@@ -91,6 +91,8 @@ html body #studioApp #feed #biglwaFeedHero .biglwa-feed-sync-note {
   z-index:2!important;
   width:100%!important;
   height:100%!important;
+  margin:0!important;
+  max-width:100%!important;
   object-fit:contain!important;
   object-position:center!important;
   transform:none!important;
@@ -109,33 +111,28 @@ body.night-mode #studioApp #camera .photobooth-reference-preview > img {
   padding:0!important;
   margin:12px 0 14px!important;
   border:0!important;
-  border-radius:16px!important;
-  /* Trim the dark outer rows without shifting the film apertures. */
-  clip-path:inset(1.4% 0 1.4% round 16px);
+  border-radius:0 14px 14px 0!important;
+  clip-path:inset(4% 3% round 0 14px 14px 0)!important;
   overflow:hidden!important;
   background:transparent!important;
   box-shadow:none!important;
 }
-#studioApp #camera .photobooth-reference-preview > img {
-  transform:translateY(-.9%) scale(1.06,1.10)!important;
-  transform-origin:center!important;
-}
-/* The fallback and saved photos share the coordinates of the zoomed apertures. */
+/* Coordinates follow the transparent windows in the original 1200 × 903 artwork. */
 #studioApp #camera .contact-sheet.photobooth-reference-preview::before,
 #studioApp #camera .contact-sheet .booth-recent-film {
   position:absolute!important;
   z-index:0!important;
-  left:4.4%!important;
-  top:5.29%!important;
+  left:7.15%!important;
+  top:10.35%!important;
   right:auto!important;
   bottom:auto!important;
-  width:18.5%!important;
-  height:88.8%!important;
+  width:16.9%!important;
+  height:80.2%!important;
   box-sizing:border-box!important;
   display:grid!important;
   grid-template-columns:1fr!important;
   grid-template-rows:repeat(4,minmax(0,1fr))!important;
-  gap:3.1%!important;
+  gap:4.7%!important;
   padding:0!important;
   margin:0!important;
   background:transparent!important;
@@ -148,10 +145,10 @@ body.night-mode #studioApp #camera .photobooth-reference-preview > img {
   --booth-no-signal:url('data:image/webp;base64,UklGRq4CAABXRUJQVlA4TKICAAAvT8EzAM0oatsGUvtt+UM+NgQR/Z8AMPyl0IlARwAkR5ISUdVzWmvhaSz1juMLvAU8XPkOrLOweAmefMCp2c4IY3o6p2sksiNiAj5H66/Q+iu0/hqtf43WX6D1F5j9P/t/9v/s/9n/s/9n/8/+n/0/+3/2/+z/2f9H9evm3NzPwcY+rq39mAhXAhC5uW/eRGNfNrf736D1m9juisGCCd8HTsxLHNtl5/3zvutPTT3+a91sjT51EKMNgFMdk9wQAZhrDERtzfSQbUkEC0kPkBwwxzz6ddd5nW1J6mXZhm1LUkiWIUuhCP0UobBsALYdtkcYlm1YlkIRsZT6CBM9wpIVkm3AtiWpD8kyYFuSwl2pLqARePvWYdsDpsGi2vV/2isEefErACQqWUqptZRFqV1XF113rjt3rgNsW1ZIlqwvbFuGAa9Yq+N01p/1y+j7UK/4IaCwJFkyLADmAIECkiBZSIIAseMtrLq3YKNNvbdsALCN8ZKlXjJGmyAAAyBBDJMACGN7CYAEAAojaQAwtt3bxMWZsbtNJI2RRtoJDtGb4cqENE6DTOxZt+A95815xeBGmiYAr/MYT0BP06BxWJojAFXsTg6cOjnOExmDJQAQ4IliK4kj13uhjmudPrj+GRi7hocWd1DSO+CwLwB3zVpPYzbGfcNJPI6bGCa4Y4wd633jSThusAcMgERlqbWUrnSl6xa1nuu6cx1g2JLkgGQJsm2tkyVHYhnLvu+jl3pJIYQlWZZhGzBXCIBc43VM3UtdQfZB6nHqVuqz1PnUpdRHyN5PAPdHLN+du4hfniJ7CdkFspeRvYrsRWTvIVuRXQwdheeuA3iC9LtUnimmmGKKqePXkyk1P54pppgqKabqZDx6LqXOpa6mrqUupR6maupcCg==');
   content:''!important;
   background:
-    var(--booth-no-signal) center 0% / 100% 22.675% no-repeat,
-    var(--booth-no-signal) center 33.333% / 100% 22.675% no-repeat,
-    var(--booth-no-signal) center 66.667% / 100% 22.675% no-repeat,
-    var(--booth-no-signal) center 100% / 100% 22.675% no-repeat!important;
+    var(--booth-no-signal) center 0% / 100% 21.475% no-repeat,
+    var(--booth-no-signal) center 33.333% / 100% 21.475% no-repeat,
+    var(--booth-no-signal) center 66.667% / 100% 21.475% no-repeat,
+    var(--booth-no-signal) center 100% / 100% 21.475% no-repeat!important;
 }
 #studioApp #camera .contact-sheet .booth-recent-film {z-index:1!important}
 #studioApp #camera .booth-recent-film::before,
@@ -231,12 +228,4 @@ html.biglwa-preview-mode #studioApp #diary .diary-page > .studio-journal-initial
  border:0!important;background:transparent!important;box-shadow:none!important
 }
 
-#studioApp #camera .contact-sheet.photobooth-reference-preview{clip-path:inset(1.4% 0 1.4% round 16px)!important;overflow:hidden!important;filter:none}
-#studioApp #camera .photobooth-reference-preview > img{transform:translateY(-.9%) scale(1.06,1.10)!important;margin:0!important;max-width:100%!important}
-#studioApp #camera .contact-sheet .booth-recent-film{left:4.4%!important;top:5.29%!important;width:18.5%!important;height:88.8%!important}
-
-/* Mask the dark margin baked into the curtain artwork around its stitched rim. */
-#studioApp #camera .contact-sheet.photobooth-reference-preview{
- clip-path:inset(4.8% 3.2% 4.8% 3% round 14px)!important;filter:none!important;
-}
 #studioApp #camera .contact-sheet.photobooth-reference-preview::after{content:none!important}
