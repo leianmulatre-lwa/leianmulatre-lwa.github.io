@@ -122,6 +122,16 @@
     root.append(curtain);
     return curtain;
   }
+  let supportsSona3D;
+  function canDrawSona(){
+    if(supportsSona3D!==undefined)return supportsSona3D;
+    try{
+      const context=document.createElement('canvas').getContext('webgl2');
+      supportsSona3D=Boolean(context);
+      context?.getExtension('WEBGL_lose_context')?.loseContext();
+    }catch{supportsSona3D=false;}
+    return supportsSona3D;
+  }
   function renderSonaFrame(root,value,compact=false,{retry=false,onState,publicView=false}={}){
     if(!root)return false;
     const url=sonaUrl(value);
@@ -130,6 +140,12 @@
     disposeViewer(root);root.dataset.minecraftSkin='';root.replaceChildren();
     root.dataset.sonaFrameUrl=url;
     const wrap=document.createElement('div');wrap.className='biglwa-sona-frame'+(compact?' is-compact':'');
+    if(!canDrawSona()){
+      avatarPlaceholder(wrap,'Interactive Avatar requires WebGL 2.',url);
+      root.append(wrap);
+      onState?.('unsupported');
+      return true;
+    }
     const iframe=document.createElement('iframe');
     iframe.title='Avatar · 360sona display case';
     iframe.width='265';iframe.height='170';iframe.loading='eager';
@@ -531,7 +547,9 @@
       if(!status)return;
       status.hidden=false;
       status.textContent=phase==='loading'?'Loading your 360sona display case…':
-        phase==='ready'?hint:'360sona could not load here. '+hint;
+        phase==='ready'?hint:phase==='unsupported'?
+          'This browser needs WebGL 2 to draw the live avatar. You can still save the link.':
+          '360sona could not load here. '+hint;
     }}))return false;
     setStatus('Display case requested. Save Avatar to keep this link on your profile.');
     if(force)preview.scrollIntoView?.({block:'nearest',behavior:'auto'});

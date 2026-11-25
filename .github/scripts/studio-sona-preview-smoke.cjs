@@ -15,6 +15,13 @@ const {chromium}=require('playwright');
    if(++requests===1)await hold;
    await route.fulfill({contentType:'text/html',body:'<!doctype html><p id="test-avatar">Controlled avatar</p>'});
   });
+  await page.addInitScript(()=>{
+   const original=HTMLCanvasElement.prototype.getContext;
+   HTMLCanvasElement.prototype.getContext=function(type,...args){
+    if(type==='webgl2')return location.pathname==='/no-webgl'?null:{getExtension:()=>null};
+    return original.call(this,type,...args);
+   };
+  });
   await page.goto('https://biglwa.test/studio');
   await page.addStyleTag({path:'studio-loading-pixel-20261029.css'});
   await page.addScriptTag({content:fs.readFileSync('avatar-studio-bitmoji-20261017-v3.js','utf8')});
@@ -45,6 +52,16 @@ const {chromium}=require('playwright');
   await input.fill('https://bad.test/w/test_case_123');await input.press('Enter');
   assert.match(await page.locator('#biglwaSonaFrameStatus').innerText(),/published 360sona/);
   assert.equal(await frame.getAttribute('src'),share,'Invalid links never replace the valid frame');
+  await page.goto('https://biglwa.test/no-webgl');
+  await page.addScriptTag({content:fs.readFileSync('avatar-studio-bitmoji-20261017-v3.js','utf8')});
+  await page.locator('#profileAvatarEditor').evaluate(el=>el.hidden=false);
+  await page.locator('[data-avatar-source="sona360"]').click();
+  await input.fill(u);await input.press('Enter');
+  const fallback=page.locator('#biglwaSonaLivePreview .biglwa-avatar-empty');
+  assert.equal(await fallback.locator('img').getAttribute('src'),'/sesa-wo-suban-medium.png');
+  assert.equal(await fallback.locator('a').getAttribute('href'),u);
+  assert.equal(await frame.count(),0);
+  assert.match(await page.locator('#biglwaSonaFrameStatus').innerText(),/WebGL 2/);
   assert.deepEqual(errors,[]);
   console.log('PASS actual Avatar input, Enter, visible iframe, retry and invalid link in Chromium (controlled provider)');
  }finally{await browser.close()}
