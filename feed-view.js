@@ -606,21 +606,15 @@ async function loadPosts() {
   try {
     const { db, auth, collection, query, where, limit, getDocs } = await firebase();
     const user = auth.currentUser;
-    if(window.__biglwaPublicStorageView){
-      const owner=window.__biglwaViewedProfile;
-      posts=[];draftPosts=[];
-      if(owner?.uid&&owner.accountVisibility!=='private'){
-        const snap=await getDocs(query(collection(db,'users',owner.uid,'posts'),where('state','==','approved'),limit(FEED_SIZE)));
-        posts=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>postTimeMs(b)-postTimeMs(a));
-        await fillPublicAuthorAuras({db,doc:(await firebase()).doc,getDoc:(await firebase()).getDoc},posts);
-      }
-      renderPosts(true);renderDraftPanel();renderHero(true);return posts;
+    if(window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode')){
+      posts=[];draftPosts=[];studioOwnPosts=[];studioOwnerUid='';
+      return [];
     }
     let rootPosts = [];
     let profilePosts = [];
 
-    try {
-      const publicSnap = await getDocs(query(collection(db, "posts"), where("state", "==", "approved"), limit(FEED_SIZE)));
+    if(user)try {
+      const publicSnap = await getDocs(query(collection(db, "posts"), where("uid", "==", user.uid),where("state", "==", "approved"), limit(FEED_SIZE)));
       rootPosts = publicSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
     } catch (error) {
       console.error("BIGLWA collective feed root load:", error);
@@ -648,7 +642,7 @@ async function loadPosts() {
           profilePosts = refreshed.docs.map((d) => ({ id: d.id, ...d.data() }));
         }
 
-        const profileApproved = profilePosts.filter((p) => p.orbitImported && p.state === "approved");
+        const profileApproved = profilePosts.filter((p) => p.uid===user.uid && p.state === "approved");
         const rootIds = new Set(rootPosts.map((p) => p.id));
         const repair = window.__biglwaOrbitPosts?.savePostRecords;
         for (const profilePost of profileApproved) {
@@ -659,7 +653,7 @@ async function loadPosts() {
              back through the shared writer, so the repair stamps the same owner fields and
              lands in the Archive too. Writing doc(db,"posts") directly from a reader is what
              left the two paths disagreeing. */
-          if (typeof repair !== "function") continue;
+          if (!profilePost.orbitImported || typeof repair !== "function") continue;
           try {
             await repair(user.uid, profilePost.id, { ...profilePost, id: undefined }, { archiveState: profilePost.archiveState || "collective" });
           } catch (error) {
@@ -681,7 +675,7 @@ async function loadPosts() {
     // the card's own author color rather than borrowing the current viewer's.
     await fillPublicAuthorAuras({db,doc:(await firebase()).doc,getDoc:(await firebase()).getDoc},rootPosts);
     posts = rootPosts
-      .filter((p) => p.state === "approved")
+      .filter((p) => user && p.uid===user.uid && p.state === "approved")
       .sort((a, b) => postTimeMs(b) - postTimeMs(a))
       .slice(0, FEED_SIZE);
 
@@ -698,7 +692,7 @@ async function loadPosts() {
     }
   } catch (error) {
     console.error("BIGLWA feed load:", error);
-    if (!posts.length) posts = [];
+    posts = [];studioOwnPosts=[];
     draftPosts = [];
   } finally {
     loading = false;
@@ -779,7 +773,7 @@ function renderHero(force) {
      Visitor previews use only the viewed profile's approved posts. */
   const isPublicProfile=Boolean(window.__biglwaPublicStorageView);
   const verifiedUid=String(window.BigLWAAccountStorage?.uid||identity()?.uid||'');
-  const previewPosts=isPublicProfile?posts:(verifiedUid&&studioOwnerUid===verifiedUid?studioOwnPosts:[]);
+  const previewPosts=isPublicProfile?[]:(verifiedUid&&studioOwnerUid===verifiedUid?studioOwnPosts:[]);
   const ownerKey=(isPublicProfile?'public:':'owner:')+(isPublicProfile?String(window.__biglwaViewedProfile?.uid||''):verifiedUid);
   if(heroOwnerKey!==ownerKey){heroOwnerKey=ownerKey;heroSelectedKeys=[];heroFailedUrls.clear();}
   const storedPosts=previewPosts.filter(post=>!isSponsoredPost(post)&&post.state==='approved'&&heroPhotoUrl(post)&&!heroFailedUrls.has(heroPhotoUrl(post)));
@@ -1159,7 +1153,13 @@ function renderPosts(force) {
 
   list.querySelectorAll(".biglwa-pin-post").forEach((node) => node.remove());
   stopSlideshows(true);
-  if (!posts.length) return;
+  let discovery=list.parentElement?.querySelector('[data-empty-myfeed]');
+  if(!posts.length&&!window.__biglwaPublicStorageView){
+    if(!discovery){discovery=document.createElement('button');discovery.type='button';discovery.className='module-action';discovery.dataset.emptyMyfeed='';discovery.textContent='View Veve';discovery.onclick=()=>window.BigLWAVeve?.previewBelow(discovery);list.after(discovery)}
+    return;
+  }
+  if(discovery?.nextElementSibling?.classList.contains('veve-empty-preview'))discovery.nextElementSibling.remove();
+  discovery?.remove();
   const scoped=posts.filter(usablePost).filter(post=>{
     if(isSponsoredPost(post))return false;
     if(feedAppFilter==='all')return true;

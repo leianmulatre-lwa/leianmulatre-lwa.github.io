@@ -1704,7 +1704,7 @@
         if(changed)applyProfilePayload(details);moodBeforeEdit=null;$('#saveStudioMusicMeta',panel)?.click();
         window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Profile updated',source:'Profile',detail:'Identity, mood, song, Aura, and profile formatting changed',notified:!$('#profileSilentUpdate',panel)?.checked}}));
         endEdit();
-        }catch(error){let status=$('#profileSaveStatus',panel);if(!status){status=document.createElement('p');status.id='profileSaveStatus';status.setAttribute('role','alert');saveButton.after(status)}status.textContent=error.message;}finally{saveButton.disabled=false;saveButton.textContent='Save changes';}
+        }catch(error){let status=$('#profileSaveStatus',panel);if(!status){status=document.createElement('p');status.id='profileSaveStatus';status.setAttribute('role','alert');saveButton.after(status)}status.textContent=/quota|resource-exhausted/i.test(error.code+" "+error.message)?"Account quota reached. Keep this editor open and retry Save changes when quota is available.":error.message;}finally{saveButton.disabled=false;saveButton.textContent='Save changes';}
       })
     }
     const cancel=$('#cancelProfileBtn',panel);if(cancel&&cancel.dataset.biglwaProfileBound!=='3'){cancel.dataset.biglwaProfileBound='3';cancel.addEventListener('click',cancelEdit)}

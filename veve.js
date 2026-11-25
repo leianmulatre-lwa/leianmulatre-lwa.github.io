@@ -175,7 +175,7 @@
     loadProgress('Loading public posts…');
     try{
       const f=await fb();
-      const rows=await f.getDocs(f.query(f.collection(f.db,'posts'),f.where('state','==','approved'),f.limit(160)));
+      const rows=await f.getDocs(f.query(f.collection(f.db,'posts'),f.where('state','==','approved'),f.where('veveFeatured','==',true),f.where('veveOptOut','==',false),f.limit(160)));
       // Query public posts only. Do not load private board data into discovery.
       state.items=uniquePublicPhotos(rows.docs.map(d=>({id:d.id,...d.data()})).filter(p=>p.state==='approved'&&p.visibility!=='private'&&p.veveOptOut!==true));
       state.sourceCounts=new Map();
@@ -706,7 +706,25 @@
       .map(({post})=>({id:String(post.id),title:String(post.title||post.caption||'Published media').slice(0,180),
         image:picture(post),video:!!(video(post)||videoEmbed(post)),source:String(post.source||'Veve')})).filter(p=>p.image||p.video);
   }
-  window.BigLWAVeve=Object.freeze({mount,refresh,searchMedia,
+  async function previewBelow(button){
+    if(button.nextElementSibling?.classList.contains('veve-empty-preview')){button.nextElementSibling.remove();button.setAttribute('aria-expanded','false');return}
+    const panel=document.createElement('section');panel.className='veve-empty-preview';panel.setAttribute('aria-label','Veve discovery');button.after(panel);button.setAttribute('aria-expanded','true');
+    panel.textContent='Loading Veve…';
+    try{await restorePrefs();await load()}catch{}
+    if(!panel.isConnected)return;
+    const items=state.items.filter(allowedPost).slice(0,3);
+    panel.replaceChildren();
+    for(const post of items){
+      const img=document.createElement('img'),action=document.createElement('button');action.type='button';
+      img.src=picture(post);img.alt=post.caption||'Open Veve media';img.loading='lazy';img.width=96;img.height=110;img.style.objectFit='cover';
+      action.append(img);action.onclick=()=>openMedia(post);panel.append(action);
+    }
+    if(!items.length)for(const book of readingPicks.slice(0,3)){
+      const link=document.createElement('a');link.href=book.url;link.textContent=book.title;link.target='_blank';link.rel='noopener noreferrer';panel.append(link);
+    }
+    const open=document.createElement('button');open.type='button';open.textContent='Open Veve';open.onclick=()=>window.BigLWAOpenModule?.('veve');panel.append(open);
+  }
+  window.BigLWAVeve=Object.freeze({mount,refresh,searchMedia,previewBelow,
     interests:()=>state.interests.slice(),
     loadInterests:async()=>{await restorePrefs();return state.interests.slice()},
     openPost(id){const post=state.items.find(p=>String(p.id)===String(id));if(post&&allowedPost(post))openMedia(post)},

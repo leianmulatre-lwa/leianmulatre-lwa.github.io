@@ -29,7 +29,7 @@ for(const [name,src] of [['firebase directory',dir],['public preview',publicPrev
 assert.match(styles,/const ownedKey=base=>activeUid\(\)/,'Widget preferences use account keys');
 assert.ok(styles.includes('Math.max(.20,'),'Widget backgrounds honor the explicit 20% minimum');
 assert.match(rules,/match \/users\/\{userId\} \{[\s\S]*?allow read, create, delete: if isOwner\(userId\)/,'Owner Firestore rule in source');
-assert.match(rules,/match \/posts\/\{postId\} \{[\s\S]*?allow read: if resource\.data\.state == 'approved'/,'Collective posts stay draft-private');
+assert.match(rules,/match \/posts\/\{postId\} \{[\s\S]*?allow read: if isOwner\(resource\.data\.uid\)[\s\S]*?resource\.data\.veveFeatured == true/,'Collective posts stay draft-private');
 
 assert.match(shell,/id="biglwa-first-paint"/,'Initial response paints the same red curtain, not an ivory flash');
 assert.match(music,/return 'music:'\+uid/,'Locally stored tracks are keyed to verified owner');
@@ -39,8 +39,8 @@ assert.doesNotMatch(orbit,/localStorage\.setItem\('biglwaOrbitLinks'/,'Orbit can
 assert.match(storage,/legacyOwner===uid\?policy\.keys:\[\]/,'Legacy collections require matching historical owner');
 
 assert.match(feed,/studioOwnPosts=user\?profilePosts\.filter\(p=>p\.uid===user\.uid&&p\.state==='approved'\)/,'Studio thumbnails require matching owner UID and published state');
-assert.match(feed,/const previewPosts=isPublicProfile\?posts:/,'Public profiles and private Studios use different thumbnail sources');
-assert.match(feed,/posts = rootPosts/,'Community Collective Feed and Veve still use approved public posts');
+assert.match(feed,/const previewPosts=isPublicProfile\?\[\]:/,'Public profiles and private Studios use different thumbnail sources');
+assert.match(feed,/where\("uid", "==", user.uid\),where\("state", "==", "approved"\)/,'MyFeed reads only the signed-in account');
 
 assert.match(boundary,/if\(html\.classList\.contains\('biglwa-preview-mode'\)\)/,"Public profile stays masked until viewed owner's data loads");
 

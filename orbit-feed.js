@@ -155,7 +155,7 @@
   function sweep() {
     queued = false;
     var list = document.getElementById('feedPageList');
-    if (!list) return;
+    if (!list || window.__biglwaPublicStorageView || document.documentElement.classList.contains("biglwa-preview-mode")) return;
     installStyle();
     sources.forEach(function (source) {
       var nodes = list.querySelectorAll('.' + source.marker);

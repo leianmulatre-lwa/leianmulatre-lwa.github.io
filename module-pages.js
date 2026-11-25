@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261124-1&callback=20261124-2&threads=20261125-1&avatarload=20261125-1&linkmedia=20261125-1';
+        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261124-1&callback=20261124-2&threads=20261125-1&avatarload=20261125-1&linkmedia=20261125-1&myfeed=20261125-1';
         document.head.appendChild(script);
       }, 250);
     }
@@ -1430,7 +1430,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
       if(tt?.connected&&tt.uid&&(!uid||tt.uid===uid)&&tt.profile?.open_id){
         rows.push({id:'tiktok',label:'TikTok',name:tt.profile.display_name||'TikTok account',
           username:'',avatarUrl:tt.profile.avatar_url||'',
-          link:'https://www.tiktok.com/',verifiedFromProvider:true});
+          link:tt.profile.profile_deep_link||window.BigLWAOrbitAccountLinks?.get?.().tiktok||'',verifiedFromProvider:true});
       }
     }catch{}
     /* Facebook authorises in the browser through its own SDK, so its state lives on the
@@ -1491,7 +1491,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
       chips.push({href,label,handle,cls});
     };
     orbitConnected().forEach(row=>{
-      if(row?.link&&row.id!=='threads')add(row.id,row.link,row.label||ORBIT_APP_NAMES[row.id]||row.id,
+      if(row?.link)add(row.id,row.link,row.label||ORBIT_APP_NAMES[row.id]||row.id,
         row.username?'@'+row.username:(row.name||''),'is-connected is-'+row.id);
     });
     Object.entries(orbitLinks()).forEach(([k,url])=>{
@@ -2142,12 +2142,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
          </div>
          <div class="biglwa-feed-compose-actions">
           <label class="biglwa-pick biglwa-feed-photo-picker"><input type="file" id="biglwaFeedPicker" accept="image/jpeg,image/png,image/webp,image/gif">＋ Add photo <span>(optional)</span></label>
-          <button class="module-action biglwa-feed-publish-button" type="submit">Post to Collective Feed</button>
+          <button class="module-action biglwa-feed-publish-button" type="submit">Save to MyFeed</button>
          </div>
          <output class="module-status biglwa-feed-compose-status" id="biglwaFeedStatus" role="status" aria-live="polite"></output>
         </form>
        </section>
-       <section class="module-card wide biglwa-feed-wall-card"><h2>Collective Feed</h2><div class="module-list" id="feedPageList"></div></section>
+       <section class="module-card wide biglwa-feed-wall-card"><h2>MyFeed</h2><div class="module-list" id="feedPageList"></div></section>
       </div>`;
     const streamExplore=$('#feedStreamExplore',body);
     if(streamExplore)streamExplore.onclick=()=>window.BigLWAOpenModule?.('veve');

@@ -67,7 +67,7 @@ service cloud.firestore {
     }
     function validSharedModule(kind) {
       let value=request.resource.data;
-      return kind in ['projects','library','closet','trophies']
+      return kind in ['projects','library','closet','trophies','feed']
         && value.keys().hasAll(['value','visibility','updatedAt'])
         && value.keys().hasOnly(['value','visibility','updatedAt'])
         && value.value is string && value.value.size() <= 500000
@@ -96,8 +96,8 @@ service cloud.firestore {
     // Collective posts are public only after the owner explicitly publishes them.
     // Draft Orbit imports remain readable only by the Firebase account that owns them.
     match /posts/{postId} {
-      allow read: if resource.data.state == 'approved'
-        || isOwner(resource.data.uid);
+      allow read: if isOwner(resource.data.uid) || (resource.data.state == 'approved'
+        && resource.data.veveFeatured == true && resource.data.veveOptOut == false);
       allow create: if isOwner(request.resource.data.uid)
         && request.resource.data.state in ['draft', 'approved'];
       allow update: if isOwner(resource.data.uid)
@@ -116,8 +116,7 @@ service cloud.firestore {
        rule, so a reader must filter on state == 'approved' to see another account. That
        is not a partial leak; the query simply fails closed. */
     match /users/{userId}/posts/{postId} {
-      allow read: if isOwner(userId)
-        || (resource.data.uid == userId && resource.data.state == 'approved');
+      allow read: if isOwner(userId);
       allow create, update: if isOwner(userId)
         && request.resource.data.uid == userId;
       allow delete: if isOwner(userId)
@@ -132,7 +131,6 @@ service cloud.firestore {
        /users/{userId}. */
     match /users/{userId}/archive/{archiveId} {
       allow read: if isOwner(userId)
-        || (resource.data.uid == userId && resource.data.state == 'approved')
         || (request.auth != null
           && get(/databases/$(database)/documents/users/$(userId)).data.get('archive', {}).get('visibility', 'private') == 'friends'
           && request.auth.uid in get(/databases/$(database)/documents/users/$(userId)).data.get('archiveFriends', []));

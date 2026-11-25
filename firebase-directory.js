@@ -39,6 +39,8 @@ const safePhotoPosition=value=>{
    someone else's profile is leaving the site, so the address has to be one we recognise
    rather than whatever string ended up in the document. */
 const SOCIAL_HOSTS={
+  facebook:["facebook.com","www.facebook.com","fb.com","www.fb.com"],
+  threads:["threads.com","www.threads.com","threads.net","www.threads.net"],
   instagram:["instagram.com","www.instagram.com"],
   tiktok:["tiktok.com","www.tiktok.com"],
   pinterest:["pinterest.com","www.pinterest.com"],

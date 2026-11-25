@@ -31,6 +31,8 @@ const broadcast=()=>{
   if(note)note.textContent='Profile links are saved to your BIGLWA account. Imported media is stored separately in your archive.';
   document.querySelectorAll('#studioApp [data-orbit-app]').forEach(el=>{
     const id=el.dataset.orbitApp;
+    const live=window.BigLWAOrbitOAuth?.get?.(id)||window.__biglwaConnections?.connections?.()?.[id];
+    if(live){const badge=el.querySelector('small');if(badge)badge.textContent=live.needsReauth?'Reconnect':'Connected';el.classList.add('is-linked');return}
     if(['instagram','pinterest','tiktok','facebook'].includes(id))return;
     const text=el.querySelector('small');
     if(text)text.textContent=links[id]?'Linked':'Link';

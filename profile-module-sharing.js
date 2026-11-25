@@ -1,6 +1,6 @@
 /* Public snapshots are separate from private backups and never used as writable account state. */
 (()=>{'use strict';
-const sections={projects:uid=>'biglwaProjectCanvas:v1:'+uid,library:()=> 'biglwaLibraryCatalogV1',closet:()=> 'biglwaModule_closet',trophies:()=> 'biglwaModule_trophies'};
+const sections={feed:()=>'',projects:uid=>'biglwaProjectCanvas:v1:'+uid,library:()=> 'biglwaLibraryCatalogV1',closet:()=> 'biglwaModule_closet',trophies:()=> 'biglwaModule_trophies'};
 let visitor=null,sdkPromise;
 const isVisitor=()=>Boolean(window.__biglwaPublicStorageView)||Boolean(visitor)||document.documentElement.classList.contains('biglwa-preview-mode');
 async function sdk(){if(!sdkPromise)sdkPromise=Promise.all([import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js'),import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js')]).then(([a,f,u])=>({f,db:f.getFirestore(a.getApps()[0]),auth:u.getAuth(a.getApps()[0])}));return sdkPromise;}
@@ -13,7 +13,12 @@ async function share(kind,visible,status){
  if(!uid||isVisitor())throw Error('Open your own Studio to change sharing.');
  const account=await f.getDoc(f.doc(db,'users',uid));
  if(visible&&account.data()?.accountVisibility==='private')throw Error('Your account is private. Change profile visibility before sharing a module.');
- const value=visible?JSON.stringify(snapshot(kind,localStorage.getItem(sections[kind](uid)))):'[]';
+ let rows=[];
+ if(visible&&kind==='feed'){
+  const posts=await f.getDocs(f.query(f.collection(db,'users',uid,'posts'),f.where('state','==','approved'),f.limit(100)));
+  rows=posts.docs.map(d=>d.data()).filter(row=>row.uid===uid).map(row=>({title:String(row.caption||row.title||'Media').slice(0,500),image:safeImage(row.thumbnailUrl||row.imageUrl||row.imageUrls?.[0])}));
+ }else if(visible){rows=snapshot(kind,localStorage.getItem(sections[kind](uid)))}
+ const value=JSON.stringify(rows);
  if(!window.confirm(visible?'Publish a snapshot of this '+kind+' collection on your profile? Future private edits stay private until you publish again.':'Hide this shared collection from profile visitors?'))return;
  await f.setDoc(f.doc(db,'users',uid,'sharedModules',kind),{value,visibility:visible?'public':'private',updatedAt:f.serverTimestamp()});status.textContent=visible?'Snapshot published to your profile.':'Shared snapshot hidden.';
 }
@@ -53,7 +58,7 @@ async function publicBoards(root){
  if(visitor?.profile?.accountVisibility!=='private'&&visitor?.uid){
   try{
    const {f,db}=await sdk();
-   const snap=await f.getDocs(f.query(f.collection(db,'users',visitor.uid,'posts'),f.where('state','==','approved'),f.limit(100)));
+   const snap=await f.getDocs(f.query(f.collection(db,'posts'),f.where('uid','==',visitor.uid),f.where('state','==','approved'),f.where('veveFeatured','==',true),f.where('veveOptOut','==',false),f.limit(100)));
    for(const d of snap.docs){
     const item=d.data(),source=String(item.source||'').toLowerCase();
     const link=String(item.sourceUrl||'');
@@ -65,7 +70,7 @@ async function publicBoards(root){
   }catch{}
  }
  if(!root.isConnected)return;
- for(let i=0;i<6;i++){
+ for(let i=0;i<(cards.length||3);i++){
   const card=node('div','');card.className='biglwa-public-board-tile';
   if(cards[i]){
    const img=document.createElement('img');img.src=cards[i].image;img.alt=cards[i].title;img.loading='lazy';card.append(img);
@@ -84,9 +89,7 @@ async function paintPublicContent(kind,root){
  try{
   if(kind==='diary'){root.replaceChildren(node('h2','Journal'),node('p',profile.journalVisibility==='public'?profile.publicJournal:'This Journal is private.'));return;}
   const {f,db}=await sdk();let rows=[];
-  if(kind==='feed'){
-   const snap=await f.getDocs(f.query(f.collection(db,'users',owner,'posts'),f.where('state','==','approved'),f.limit(100)));rows=snap.docs.map(d=>d.data());
-  }else if(kind==='archive')rows=await window.BigLWAUserDirectory.loadArchiveForUsername(visitor.username);
+  if(kind==='archive')rows=await window.BigLWAUserDirectory.loadArchiveForUsername(visitor.username);
   else if(kind==='map'){
    const snap=await f.getDocs(f.query(f.collection(db,'mapPins'),f.where('uid','==',owner),f.where('isPublic','==',true),f.limit(100)));rows=snap.docs.map(d=>d.data());
   }else{root.replaceChildren(node('h2',kind),node('p','This module contains private account data. Open your own Studio to use it.'));return;}

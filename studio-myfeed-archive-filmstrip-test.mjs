@@ -75,7 +75,7 @@ assert(statSync(new URL('./assets/studio-defaults/archive-windows-hill.webp',imp
 
 /* Four MyFeed frames must be shuffled from the signed-in or viewed member's
    approved picture pool, never copied from the public wall or stock samples. */
-assert(feed.includes("const previewPosts=isPublicProfile?posts:(verifiedUid&&studioOwnerUid===verifiedUid?studioOwnPosts:[])"),
+assert(feed.includes("const previewPosts=isPublicProfile?[]:(verifiedUid&&studioOwnerUid===verifiedUid?studioOwnPosts:[])"),
   'Owner contact strip stays scoped to the signed-in UID, never the public wall');
 assert(feed.includes("post.state==='approved'&&heroPhotoUrl(post)"),
   'Draft, archived and pending-deletion posts never enter the shuffle');

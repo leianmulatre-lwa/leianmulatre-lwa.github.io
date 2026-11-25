@@ -139,8 +139,8 @@
          }else{delete state[id];disconnectedNow.add(id)}
        }
      }catch(error){console.warn('Orbit new provider restore:',error)}
-     if(loggedInUid)await mirrorProfiles(loggedInUid);
      notify();
+     if(loggedInUid)await mirrorProfiles(loggedInUid);
    })();
    try{await refreshing}finally{refreshing=null}
  }
@@ -159,8 +159,7 @@
      // link, must not erase an earlier verified connection on a later pass.
      const profiles={...previous};
      for(const id of providerIds){
-       // Threads profile information is visible in the owner's Orbit. Sharing uses an explicit URL.
-       if(id==='threads')continue;
+
        const row=state[id];
        if(disconnectedNow.has(id)){delete profiles[id];continue}
        if(!row?.verifiedFromProvider)continue;
@@ -169,7 +168,8 @@
          const u=new URL(String(row.link||''));
          const host=u.hostname.toLowerCase();
          if(u.protocol==='https:'&&u.pathname!=='/'&&
-           (id==='x'&&['x.com','www.x.com','twitter.com','www.twitter.com'].includes(host)||
+           (id==='threads'&&['threads.com','www.threads.com','threads.net','www.threads.net'].includes(host)&&/^\/@[a-z0-9._]+\/?$/i.test(u.pathname)||
+            id==='x'&&['x.com','www.x.com','twitter.com','www.twitter.com'].includes(host)||
             id==='tumblr'&&(host==='tumblr.com'||host==='www.tumblr.com'||host.endsWith('.tumblr.com'))||
             id==='snapchat'&&['snapchat.com','www.snapchat.com'].includes(host)))link=u.href;
        }catch{}
@@ -181,13 +181,13 @@
        const existing=sameAccount&&Number.isSafeInteger(Number(prior.followers))&&
          prior.followers!==null&&prior.followers!==undefined?Number(prior.followers):null;
        profiles[id]={link,name:String(row.name||id).slice(0,100),
-         label:id==='x'?'X':id==='tumblr'?'Tumblr':'Snapchat',
+         label:providerNames[id]||id,
          username:String(row.username||'').slice(0,80),
          ...(id==='tumblr'?{blogCount:Math.max(0,Number(row.blogCount)||0)}:{})};
        // Owner-only data. OAuth sessions/tokens never enter this record.
        if(id==='x'&&(count!==null||existing!==null)){
          profiles[id].followers=count??existing;
-         profiles[id].countCheckedAt=count!==null?new Date().toISOString():String(prior.countCheckedAt||'');
+         profiles[id].countCheckedAt=count!==null&&prior.followers!==count?new Date().toISOString():String(prior.countCheckedAt||'');
        }
      }
      if(JSON.stringify(previous)!==JSON.stringify(profiles)){

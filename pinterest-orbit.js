@@ -861,9 +861,9 @@ async function connect(){await run(async()=>{
      nothing when tapped, which read as the button being broken. Each tile now connects. */
   if(!connected&&!savedLibrary.boards.length){
    const tile='<button type="button" class="pinterest-board is-empty" data-pn-connect'+(disabled||'')+'><span>Connect Pinterest</span></button>';
-   return '<div class="pinterest-board-grid">'+Array.from({length:6},()=>tile).join('')+'</div>';
+   return '<div class="pinterest-board-grid">'+Array.from({length:3},()=>tile).join('')+'</div><button type="button" class="module-action" data-boards-veve>View Veve</button>';
   }
-  if(!boards.length&&!savedLibrary.boards.length)return'<p role="status">No boards yet. Create a board above.</p>';
+  if(!boards.length&&!savedLibrary.boards.length)return'<p role="status">No boards yet. Create a board above.</p><button type="button" class="module-action" data-boards-veve>View Veve</button>';
   const entries=[...orderedBoards().map(b=>({...b,local:false})),...savedLibrary.boards.map(b=>({...b,name:b.title,pin_count:b.pins.length,local:true}))];
   entries.sort((a,b)=>{const ai=recentBoardIds.indexOf(String(a.id)),bi=recentBoardIds.indexOf(String(b.id));return (ai<0?1e6:ai)-(bi<0?1e6:bi)});
   const tiles=(showAllBoards?entries:entries.slice(0,6)).map(b=>{
@@ -1073,6 +1073,7 @@ document.addEventListener('click',e=>{
   const bid=removePin.dataset.pnSavedFrom,id=removePin.dataset.pnRemoveSaved;
   editSaved(data=>{const b=data.boards.find(b=>b.id===bid);if(b)b.pins=b.pins.filter(p=>p.id!==id)});return;}
  const tile=e.target.closest('[data-pn-board]');if(tile){e.preventDefault();e.stopImmediatePropagation();choose(tile.dataset.pnBoard);return;}
+ if(e.target.closest('[data-boards-veve]')){window.BigLWAVeve?.previewBelow(e.target.closest('[data-boards-veve]'));return}
  const b=e.target.closest('[data-pn-connect],[data-pn-open],[data-orbit-app="pinterest"],[data-pn-disconnect],[data-pn-refresh],[data-pn-more-boards],[data-pn-more-pins],[data-pn-more-created],[data-pn-sync]');
  if(!b)return;e.preventDefault();e.stopImmediatePropagation();
  if(b.hasAttribute('data-pn-disconnect'))disconnect();

@@ -155,7 +155,7 @@ async function firebase() {
 }
 
 const listeners = [];
-let current = {};
+let current = {}, currentUid="";
 
 export function onConnectionsChange(fn) {
   listeners.push(fn);
@@ -390,7 +390,10 @@ async function mirrorPublic(uid, records) {
       const link = publicLink(id, record);
       if (link) socials[id] = link;
     }
-    await setDoc(doc(db, "usernames", username), { socials, updatedAt: serverTimestamp() }, { merge: true });
+    const ref=doc(db,"usernames",username);
+    const prior=(await getDoc(ref)).data()?.socials||{};
+    const sorted=value=>JSON.stringify(Object.keys(value).sort().map(key=>[key,value[key]?.url,value[key]?.handle,value[key]?.label]));
+    if(sorted(prior)!==sorted(socials))await setDoc(ref,{socials,updatedAt:serverTimestamp()},{mergeFields:['socials','updatedAt']});
   } catch {
     /* The public mirror is a convenience. Not being able to reach it must not disturb the
        connection itself, which has already been recorded on the account. */
@@ -400,13 +403,15 @@ async function mirrorPublic(uid, records) {
 /* Reads what the account already records, so a connection made on another device is
    visible before this device has refreshed it from the provider. */
 async function load(uid) {
-  if (!uid) { current = {}; emit(); return; }
+  if(currentUid!==uid){current={};currentUid=uid;emit()}
+  if (!uid) return;
   let stored = {};
   try {
     const { db, doc, getDoc } = await firebase();
     const snap = await getDoc(doc(db, "users", uid));
     stored = snap.exists() ? (snap.data().connections || {}) : {};
-  } catch { /* fall back to whatever the sources report */ }
+  } catch { stored=current; }
+  if(currentUid!==uid)return;
   current = stored && typeof stored === "object" ? stored : {};
   emit();
   await refresh(uid);
@@ -420,6 +425,7 @@ export function refresh(uid) {
   refreshing = (async () => {
     for (const source of SOURCES) {
       const { outcome, record } = await syncSource(source, who);
+      if(identity()?.uid!==who)break;
       const next = { ...current };
       if (outcome === "save-failed") {
         // Keep the verified provider details for this tab, but never claim the
@@ -443,7 +449,7 @@ export function refresh(uid) {
     }
     /* Mirrored once per pass rather than per source: three links arriving separately would
        make a visitor's profile flicker through a half-published state. */
-    await mirrorPublic(who, current);
+    if(identity()?.uid===who)await mirrorPublic(who, current);
     refreshing = null;
     return current;
   })();

@@ -245,3 +245,5 @@
 }
 .veve-bookmark[aria-pressed="true"] svg{fill:currentColor}
 .veve-bookmark:focus-visible{outline:2px solid #ae5266;outline-offset:2px}
+
+.veve-empty-preview{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:12px 0}.veve-empty-preview a{flex:1 1 120px}
