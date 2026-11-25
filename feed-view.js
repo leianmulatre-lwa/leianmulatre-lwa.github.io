@@ -1857,6 +1857,15 @@ export async function startFeed() {
   watch();
   if (identity()) await loadPosts();
   window.__biglwaFeed = { loadPosts, renderPosts, renderHero, refresh: loadPosts, sendBarMarkup, registerSendCard,
+    linkedMedia(raw){
+      const key=value=>{try{const u=new URL(value);return u.hostname.replace(/^www\./,'')+u.pathname.replace(/\/$/,'')+(u.hostname.endsWith('youtube.com')?'?v='+u.searchParams.get('v'):'')}catch{return ''}};
+      const post=[...posts,...draftPosts].find(p=>(p.state==='approved'||p.uid===identity()?.uid)&&p.sourceUrl&&key(p.sourceUrl)===key(raw));
+      if(!post)return null;
+      const video=playableVideo(post);
+      if(video)return {url:video,kind:'video'};
+      if(post.mediaType==='video'||post.videoUrl||post.source==='tiktok')return null;
+      const image=pictureUrls(post)[0];return image?{url:image,kind:'image'}:null;
+    },
     previewPost(id){const post=posts.find(p=>String(p.id)===String(id));if(post){openLightbox(post,0);return true}return false;}
   };
   /* The connected source cards render before this module finishes booting, so they are told

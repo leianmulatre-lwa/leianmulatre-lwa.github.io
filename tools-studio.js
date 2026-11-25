@@ -183,8 +183,9 @@ function engine(){
 
 async function runEngine(file,op,onProgress){
   const ff=await engine();
-  const input='input-'+(file.name||'file').replace(/[^\w.-]/g,'_');
-  const output='output.'+op.ext;
+  const job=crypto.randomUUID();
+  const input=job+'-input-'+(file.name||'file').replace(/[^\w.-]/g,'_');
+  const output=job+'-output.'+op.ext;
   const listener=({progress})=>{if(onProgress&&isFinite(progress))onProgress(Math.max(0,Math.min(1,progress)))};
   ff.on('progress',listener);
   try{
@@ -192,11 +193,10 @@ async function runEngine(file,op,onProgress){
     const code=await ff.exec(['-i',input,...op.args(),output]);
     if(code&&code!==0)throw new Error('The conversion did not finish cleanly.');
     const data=await ff.readFile(output);
-    await ff.deleteFile(input).catch(()=>{});
-    await ff.deleteFile(output).catch(()=>{});
     const bytes=data instanceof Uint8Array?data:new Uint8Array(data);
     return new File([bytes],baseName(file.name)+'-converted.'+op.ext,{type:op.type});
   }finally{
+    await Promise.all([ff.deleteFile(input).catch(()=>{}),ff.deleteFile(output).catch(()=>{})]);
     ff.off('progress',listener);
   }
 }
@@ -237,6 +237,14 @@ async function audioToWav(file){
   return new File([data],baseName(file.name)+'.wav',{type:'audio/wav'});
 }
 
+export async function convertLinkedMedia(file,kind,format){
+  if(file.size>MEMORY_HEAVY_TRANSCODE)throw Error('Choose a file under 125 MB for browser conversion.');
+  if(kind==='image'&&IMAGE_TARGETS[format])return convertImage(file,IMAGE_TARGETS[format],.92);
+  if(kind==='audio'&&format==='wav')return audioToWav(file);
+  const op=(kind==='audio'?AUDIO_OPS:kind==='video'?VIDEO_OPS:{})[format];
+  if(!op)throw Error('Choose a format for this media type.');
+  return runEngine(file,op);
+}
 function toolLinks(names){
   return names.map(name=>ONLINE_TOOLS.find(tool=>tool.name===name)).filter(Boolean);
 }
@@ -288,14 +296,14 @@ export function mountToolsStudio(root,helper){
     </section>
     <section class="module-card wide tool-links">
       <h2>Media from a link</h2>
-      <p>Preview supported YouTube, TikTok and SoundCloud posts here. The original creator hosts the media, and your file stays on its source site.</p>
+      <p>Paste a media URL to choose a download format. Conversion runs in your browser.</p>
       <form class="module-form two" id="toolLinkForm">
-        <input class="module-input" name="url" type="url" placeholder="Paste a YouTube, TikTok or SoundCloud link…">
-        <button class="module-action" type="submit">Preview media</button>
+        <input class="module-input" name="url" type="url" placeholder="Paste a media or post link…">
+        <button class="module-action" type="submit">Find downloads</button>
       </form>
       <div class="module-status" id="toolLinkStatus">No media selected.</div>
-      <div class="tool-link-preview" id="toolLinkPreview" aria-live="polite"></div>
-      <p class="tool-note">BIGLWA does not scrape or re-encode other people's posts, so it cannot strip a watermark off a TikTok or Reels someone else posted. For your own uploads, save them from the app, which gives you the clean copy without any added watermark, then convert that file here.</p>
+      <div id="toolLinkDownloads"></div><div class="tool-link-preview" id="toolLinkPreview" aria-live="polite"></div>
+      <p class="tool-note">For a playback-only post, use a direct file link or drop your copy into the converter above.</p>
     </section>`;
 
   // Independently load creative editors; file conversions and video trim still
@@ -333,12 +341,14 @@ export function mountToolsStudio(root,helper){
     const link=String(new FormData(event.target).get('url')||'').trim();
     const note=root.querySelector('#toolLinkStatus'),preview=root.querySelector('#toolLinkPreview');
     preview.replaceChildren();
+    const downloads=root.querySelector('#toolLinkDownloads');downloads.replaceChildren();
     if(!link){note.textContent='Paste a link first.';return}
     let url;
     try{url=new URL(link)}catch{note.textContent='That needs to be a full link starting with https://';return}
     if(url.protocol!=='https:'||url.username||url.password||url.port){
       note.textContent='Use a secure https:// media link.';return
     }
+    window.BigLWALinkTools?.renderForQuery(downloads,url.href,{inline:true});
     const host=url.hostname.toLowerCase();
     let embed='',label='';
     if(['youtube.com','www.youtube.com','m.youtube.com','youtu.be'].includes(host)){
@@ -351,7 +361,7 @@ export function mountToolsStudio(root,helper){
       if(/^\/[^/]+\/[^/]+/.test(url.pathname)){embed='https://w.soundcloud.com/player/?url='+encodeURIComponent(url.href);label='SoundCloud'}
     }
     if(!embed){
-      note.textContent='Preview is available for supported YouTube, TikTok and SoundCloud post links.';
+      note.textContent='';
       return;
     }
     const frame=document.createElement('iframe');
@@ -367,6 +377,8 @@ export function mountToolsStudio(root,helper){
     preview.append(frame,original);
     note.textContent='Previewing '+label+' · playback is provided by the original source.';
   });
+
+  root.querySelector('#toolLinkForm input').addEventListener('paste',()=>setTimeout(()=>{const form=root.querySelector('#toolLinkForm');if(form?.checkValidity())form.requestSubmit()},0));
 
   function setProgress(fraction,text){
     if(fraction==null){progressEl.hidden=true;return}

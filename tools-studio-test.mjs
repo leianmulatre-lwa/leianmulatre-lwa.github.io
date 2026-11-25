@@ -65,9 +65,9 @@ check("a named directory of converters is offered", tools.includes("const ONLINE
 check("each entry says what it is good at", tools.includes("best:'Almost anything to almost anything'"));
 check("outbound links are safe", (tools.match(/rel="noopener nofollow"/g)||[]).length >= 2);
 check("leaving the device is said plainly", tools.includes("your file leaves this device"));
-check("Media from a link uses inline playback, not Cobalt", tools.includes("Preview media") && tools.includes("toolLinkPreview") && !tools.includes("cobalt.tools/"));
+check("Media from a link uses inline playback, not Cobalt", tools.includes("Find downloads") && tools.includes("renderForQuery(downloads") && tools.includes("toolLinkPreview") && !tools.includes("cobalt.tools/"));
 check("previews only use trusted official provider embed domains",tools.includes("www.youtube-nocookie.com/embed/")&&tools.includes("www.tiktok.com/player/v1/")&&tools.includes("w.soundcloud.com/player/"));
-check("no watermark claim is faked", tools.includes("does not scrape or re-encode other people's posts") && tools.includes("save them from the app"));
+check("no watermark claim is faked", tools.includes("playback-only post") && tools.includes("direct file link"));
 check("a link must be a real link", tools.includes("That needs to be a full link starting with https://"));
 
 console.log("\n=== WIRED INTO THE PAGE ===");

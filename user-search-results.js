@@ -380,8 +380,8 @@
       var submitInput=document.getElementById('globalSearch');
       if(submitInput){submitInput.value=q;submitInput.dataset.blSubmitted='1'}
       var navCommand=window.BigLWANavigationCommands?.resolve(q);
-      if(navCommand&&window.BigLWANavigationCommands.navigate(navCommand)){close();return}
-      var route=routeCommand(q);if(route){goRoute(route);return}
+      if(!isFileLink&&navCommand&&window.BigLWANavigationCommands.navigate(navCommand)){close();return}
+      var route=!isFileLink&&routeCommand(q);if(route){goRoute(route);return}
       mount(q);var current=panel;var clean=String(q).replace(/^@/,'').trim();
       // Explicit HTTP(S) links receive purpose-specific file controls rather than
       // being sent to general discovery/AI sources as search keywords.
@@ -677,6 +677,7 @@
       var search=document.getElementById('globalSearch');if(!search)return;
       var wrap=search.closest('.search-wrap')||search.parentNode;if(!wrap)return;
       // The old floating autocomplete used this flag. Discovery now belongs in the Studio flow.
+      if(!search.dataset.linkPasteBound){search.dataset.linkPasteBound='1';search.addEventListener('paste',()=>setTimeout(()=>{const value=search.value.trim();if(/^https?:\/\/\S+$/i.test(value)&&window.BigLWALinkTools?.parse(value))openPanel(value)},0))}
       search.__biglwaSearchBound=1;
       if(wrap.tagName&&wrap.tagName.toLowerCase()==='label'){
         var div=document.createElement('div');div.className=wrap.className;div.style.cssText=wrap.style.cssText;
