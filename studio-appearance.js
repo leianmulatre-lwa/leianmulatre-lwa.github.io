@@ -544,6 +544,7 @@
   }
 
   window.BIGLWAStudioAppearance={
+    snapshot:()=>({appearance:readAppearance(),wallpaper:currentWallpaperSettings()}),
     beginEdit(){appearanceDraft={appearance:readAppearance(),wallpaper:currentWallpaperSettings()};},
     cancelEdit(){
       const draft=appearanceDraft;if(!draft)return;appearanceDraft=null;

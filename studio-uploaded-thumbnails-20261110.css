@@ -234,3 +234,9 @@ html.biglwa-preview-mode #studioApp #diary .diary-page > .studio-journal-initial
 #studioApp #camera .contact-sheet.photobooth-reference-preview{clip-path:inset(1.4% 0 1.4% round 16px)!important;overflow:hidden!important;filter:none}
 #studioApp #camera .photobooth-reference-preview > img{transform:translateY(-.9%) scale(1.06,1.10)!important;margin:0!important;max-width:100%!important}
 #studioApp #camera .contact-sheet .booth-recent-film{left:4.4%!important;top:5.29%!important;width:18.5%!important;height:88.8%!important}
+
+/* Mask the dark margin baked into the curtain artwork around its stitched rim. */
+#studioApp #camera .contact-sheet.photobooth-reference-preview{
+ clip-path:inset(4.8% 3.2% 4.8% 3% round 14px)!important;filter:none!important;
+}
+#studioApp #camera .contact-sheet.photobooth-reference-preview::after{content:none!important}

@@ -369,3 +369,21 @@ body.night-mode #studioApp .hero.biglwa-scoreboard-ready .profile-card .biglwa-p
   margin:8px 0!important;
  }
 }
+
+/* A machined rim and recessed counter windows, within the existing footprint. */
+#studioApp#studioApp#studioApp .hero .profile-card .biglwa-profile-scoreboard{
+ border-style:solid!important;border-color:#bd9390 #442c34 #301c24 #a87e80!important;
+ box-shadow:inset 0 2px 1px #fff7,inset 3px 0 2px #ffffff1f,inset -3px -4px 3px #160912aa,0 3px 2px #1c101a88!important;
+}
+#studioApp#studioApp#studioApp .hero .profile-card .biglwa-profile-scoreboard>.stats.stats [data-profile-stat] b{
+ border-color:#260e19 #98616c #b47884 #351621!important;
+ box-shadow:inset 0 3px 4px #000,0 1px 0 #ffcec44d!important;
+}
+.profile-locker-dialog{width:min(34rem,90vw);box-sizing:border-box;border:2px solid #563742;border-radius:8px;background:#f4e8dd;color:#332329;padding:18px;font:14px system-ui}
+.profile-locker-dialog::backdrop{background:#170b12a8}
+.profile-locker-dialog h2{margin:0 0 12px}
+.locker-doors{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:16px}
+.locker-doors section{display:flex;flex-direction:column;gap:8px;align-items:stretch;justify-content:flex-end;padding:10px 6px;min-height:9rem;background:linear-gradient(100deg,#acddea,#74bbcf);border:3px ridge #92c9d8;color:#183944}
+.locker-doors section::before{content:"";height:20px;margin:0 14% auto;background:repeating-linear-gradient(#558d9c 0 2px,#c5eaf0 2px 3px,transparent 3px 6px)}
+.locker-doors button{min-height:32px}.locker-doors strong{text-align:center}
+@media(max-width:420px){.locker-doors{grid-template-columns:repeat(2,minmax(0,1fr))}.locker-doors section{min-height:7rem}}

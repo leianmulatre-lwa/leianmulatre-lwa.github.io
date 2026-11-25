@@ -303,7 +303,8 @@
       '</div>'+
       (url&&boardPin(post)?
        '<button type="button" class="veve-pin-board-action" data-veve-save-board="'+e(post.id)+'" aria-label="Save to board" title="Save to board">⊞</button>':'')+
-      ((usage(post)||src==='pinterest'&&link)?'<div class="veve-photo-details">'+
+      ((post.veveLocation?.label||usage(post)||src==='pinterest'&&link)?'<div class="veve-photo-details">'+
+        (post.veveLocation?.label?'<a class="veve-source-credit" target="_blank" rel="noopener noreferrer" href="https://www.openstreetmap.org/?mlat='+encodeURIComponent(post.veveLocation.lat)+'&amp;mlon='+encodeURIComponent(post.veveLocation.lng)+'">'+e(post.veveLocation.label)+' ↗</a>':'')+
         (usage(post)?'<span class="veve-usage">'+e(usage(post))+' using this Pin</span>':'')+
         (src==='pinterest'&&link?'<a class="veve-source-credit" href="'+e(link)+'" target="_blank" rel="noopener noreferrer">Original Pinterest Pin ↗</a>':'')+
         (src==='pinterest'&&post.pinterestOriginVerified===true?'<small class="veve-pin-provenance">'+(sourceKind==='board'?'Board Pin':'Original Pin')+'</small>':'')+

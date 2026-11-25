@@ -78,7 +78,68 @@ function paintLocks(){
  }
 }
 function openAudience(key){let dialog=$('#widgetAudienceDialog');if(dialog)dialog.remove();dialog=document.createElement('dialog');dialog.id='widgetAudienceDialog';const name=document.querySelector('[data-sidebar-route-row="'+CSS.escape(key)+'"] .sidebar-route-label')?.textContent||key;const title=document.createElement('h2');title.textContent=name+' · visibility';const help=document.createElement('p');help.textContent='Choose who sees this widget preview. Private drafts and editing tools remain protected.';const select=document.createElement('select');select.setAttribute('aria-label','Widget audience');for(const [value,label]of [['everyone','Everyone'],['members','Signed-in members'],['boos','Boos · friends'],['bookiniz','Bookiniz · family'],['private','Only me']]){const option=document.createElement('option');option.value=value;option.textContent=label;select.append(option)}select.value=audience[key]||'everyone';const save=document.createElement('button');save.textContent='Save';const close=document.createElement('button');close.textContent='Close';close.onclick=()=>dialog.close();const status=document.createElement('p');status.setAttribute('role','status');save.onclick=async()=>{save.disabled=true;try{const next={...audience,[key]:select.value},result=await request({widgetAudience:next});audience=result.widgetAudience;paintLocks();status.textContent='Saved to your account.'}catch(e){status.textContent=e.message}finally{save.disabled=false}};dialog.append(title,help,select,save,close,status);document.body.append(dialog);dialog.showModal()}
-function run(){moveHeader();profileGeometry();paintLocks();if(visitor())previewFaces(publicProfile||window.__biglwaViewedProfile)}
+function mountLocker(){
+ const title=$('#wallpaperPanel .panel-title');
+ if(!title||visitor()||window.__biglwaPublicStorageView||title.querySelector('[data-open-locker]'))return;
+ const button=document.createElement('button');
+ button.type='button';button.dataset.openLocker='';button.textContent='Locker';
+ button.onclick=()=>openLocker().catch(error=>window.alert(error.message));
+ title.append(button);
+}
+async function openLocker(){
+ const owner=(await auth())?.uid, directory=window.BigLWAUserDirectory;
+ if(!owner||!directory)throw Error('Sign in to open your profile locker.');
+ if(document.querySelector('.profile-locker-dialog'))return;
+ const dialog=document.createElement('dialog');dialog.className='profile-locker-dialog';
+ dialog.innerHTML='<h2>Profile locker</h2><label><input type="checkbox"> Include shortcuts when saving</label><div class="locker-doors"></div><p role="status">Opening lockers…</p><button type="button" data-close>Close</button>';
+ document.body.append(dialog);dialog.showModal();
+ dialog.addEventListener('close',()=>dialog.remove(),{once:true});
+ dialog.querySelector('[data-close]').onclick=()=>dialog.close();
+ const status=dialog.querySelector('[role=status]'),doors=dialog.querySelector('.locker-doors');
+ const checkOwner=async()=>{if((await auth())?.uid!==owner||visitor()||window.__biglwaPublicStorageView)throw Error('Reopen your locker in your own Studio.')};
+ const draw=async()=>{
+  const slots=await Promise.all([1,2,3,4].map(n=>directory.profileLocker(n,undefined,0,owner)));
+  doors.replaceChildren();
+  slots.forEach(({preset,revision},index)=>{
+   const n=index+1,door=document.createElement('section');
+   door.innerHTML='<strong>Locker '+n+'</strong><button type="button" data-save></button><button type="button" data-use>Apply</button>';
+   const save=door.querySelector('[data-save]'),use=door.querySelector('[data-use]');
+   save.textContent=preset?'Replace':'Save look';use.disabled=!preset;
+   const act=fn=>async()=>{
+    if(dialog.dataset.busy)return;
+    dialog.dataset.busy='1';doors.inert=true;
+    try{await checkOwner();await fn()}catch(error){status.textContent=error.message}
+    finally{delete dialog.dataset.busy;doors.inert=false}
+   };
+   save.onclick=act(async()=>{
+    if(preset&&!confirm('Replace the look in locker '+n+'?'))return;
+    status.textContent='Saving…';
+    const [account,media]=await Promise.all([directory.loadProfile(),request()]);
+    if(account?.uid!==owner)throw Error('Your saved settings could not be loaded.');
+    const custom=account.customization||{},layout={...(window.BigLWAStudioLayout?.snapshot()||custom.layout||{})};
+    if(!dialog.querySelector('input').checked){delete layout.navigation;delete layout.disconnectedNavigation}
+    const live=window.BIGLWAStudioAppearance?.snapshot?.()||{};
+    const saved={appearance:{...custom.appearance,...live.appearance},wallpaper:{...custom.wallpaper,...live.wallpaper},layout,
+      media:{profilePhotoUrl:(Object.hasOwn(media,'profilePhotoUrl')?media.profilePhotoUrl:window.__biglwaIdentity?.avatarUrl)||null,profilePhotoPosition:media.profilePhotoPosition||{x:50,y:50},wallpaperMedia:Object.hasOwn(media,'wallpaperMedia')?media.wallpaperMedia:await window.BIGLWAWallpaperCloud?.load()}};
+    await checkOwner();await directory.profileLocker(n,saved,revision,owner);await draw();status.textContent='Saved to locker '+n+'.';
+   });
+   use.onclick=act(async()=>{
+    status.textContent='Applying look…';
+    const layout={...preset.layout,updatedAtMs:Date.now()};
+    if(!Object.hasOwn(layout,'navigation')){
+     const current=window.BigLWAStudioLayout?.snapshot()||(await directory.loadProfile())?.customization?.layout;
+     if(current?.navigation)layout.navigation=current.navigation;
+    }
+    await checkOwner();await request(preset.media);await checkOwner();
+    if(!await directory.saveCustomizations({appearance:preset.appearance,wallpaper:preset.wallpaper,layout}))throw Error('The settings could not be applied. Try this locker again.');
+    location.reload();
+   });
+   doors.append(door);
+  });
+ };
+ try{await draw();status.textContent=''}catch(error){status.textContent=error.message}
+}
+function run(){mountLocker();moveHeader();profileGeometry();paintLocks();if(visitor())previewFaces(publicProfile||window.__biglwaViewedProfile)}
 window.BigLWAProfileRepair={restoreMedia,request,previewFaces,paintLocks};
 window.addEventListener('biglwa:public-profile-ended',()=>{publicProfile=null;viewerGrant={owner:'',boo:false,bookini:false};for(const el of document.querySelectorAll('[data-private-preview-hidden]')){delete el.dataset.privatePreviewHidden;el.hidden=false}document.querySelectorAll('.public-widget-safe-face').forEach(el=>el.remove());document.querySelectorAll('.public-widget-face').forEach(el=>{el.classList.remove('public-widget-face','public-widget-locked');delete el.dataset.publicFaceSanitized})});
 window.addEventListener('biglwa:public-mirror-ready',e=>{previewFaces(e.detail?.profile);run()});

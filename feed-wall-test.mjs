@@ -53,7 +53,7 @@ check("a stack draws no tabs", feed.includes('const shown = isStack ? urls.slice
 check("the live Instagram cards use the same rule", orbit.includes("var manyPhotos = children.length >= 8") && orbit.includes("children.length > 1 && !manyPhotos"));
 
 console.log("\n=== EVERY CARD SHARES A TOP-RIGHT THREE-DOT MENU ===");
-check("the actions menu markup is shareable", feed.includes("function sendBarMarkup(managed = false, sourceUrl = '')"));
+check("the actions menu markup is shareable", feed.includes("function sendBarMarkup(managed = false, sourceUrl = '', sharedPlace = false)"));
 check("the feed hands it out", feed.includes('window.__biglwaFeed = { loadPosts, renderPosts, renderHero, refresh: loadPosts, sendBarMarkup, registerSendCard,'));
 check("the live cards draw it", orbit.includes("window.__biglwaFeed.sendBarMarkup()"));
 check("the live cards carry a post id and picture record", orbit.includes('data-post-id=') && orbit.includes('data-send-record=') && orbit.includes('var sendRecord = JSON.stringify'));

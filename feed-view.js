@@ -511,7 +511,7 @@ async function firebase() {
       doc: store.doc, getDoc: store.getDoc, deleteDoc: store.deleteDoc,
       addDoc: store.addDoc, collection: store.collection, query: store.query, orderBy: store.orderBy,
       limit: store.limit, where: store.where, getDocs: store.getDocs, serverTimestamp: store.serverTimestamp,
-      updateDoc: store.updateDoc, setDoc: store.setDoc
+      writeBatch:store.writeBatch, updateDoc: store.updateDoc, setDoc: store.setDoc
     };
   }
   return refs;
@@ -879,9 +879,9 @@ document.addEventListener('click',async event=>{
 /* One unified top-right menu for Instagram, Pinterest and all Collective cards.
    No floating + below the image: actions remain one click away in the menu. */
 function sendBar(post, managed = false) {
-  return sendBarMarkup(managed, post?.sourceUrl || '');
+  return sendBarMarkup(managed, post?.sourceUrl || '', Boolean(post?.veveLocation));
 }
-function sendBarMarkup(managed = false, sourceUrl = '') {
+function sendBarMarkup(managed = false, sourceUrl = '', sharedPlace = false) {
   return '<details class="biglwa-send biglwa-card-options" data-open="0">' +
     '<summary aria-label="More options for this Collective Feed card" title="More actions">+</summary>' +
     '<div class="biglwa-send-tray" role="group" aria-label="Post options">' +
@@ -889,7 +889,9 @@ function sendBarMarkup(managed = false, sourceUrl = '') {
       '<button type="button" data-send-to="projects">Add to Projects</button>' +
       (managed ? '<button type="button" data-send-to="veve">✦ Send to Veve</button>' : '') +
       '<input type="text" data-send-map-field placeholder="Place or map coordinates" aria-label="Place or map coordinates">' +
-      '<button type="button" data-send-map>Pin on Map</button>' +
+      '<button type="button" data-send-map>Pin on my map</button>' +
+      (managed ? '<button type="button" data-send-to="share-place">Share place on Veve</button>' +
+        (sharedPlace ? '<button type="button" data-send-to="hide-place">Remove Veve location</button>' : '') : '') +
       (managed ?
         '<button type="button" data-post-enlarge>View full media</button>' +
         '<button type="button" data-post-archive>Archive this post</button>' +
@@ -932,6 +934,12 @@ function writeLocalList(key, value) {
 /* An address typed into the card is turned into coordinates here, so pinning a place does not
    need the map page or its search box. Photon is the same geocoder map-app.html already uses. */
 async function geocodeAddress(query) {
+  const coordinates=/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/.exec(query);
+  if(coordinates){
+    const lat=Number(coordinates[1]),lng=Number(coordinates[2]);
+    if(Math.abs(lat)>90||Math.abs(lng)>180)throw Error('Enter valid latitude and longitude.');
+    return {lat,lng,label:query};
+  }
   const url = "https://photon.komoot.io/api/?limit=1&q=" + encodeURIComponent(query);
   const response = await fetch(url);
   if (!response.ok) throw new Error("The address could not be looked up.");
@@ -947,6 +955,32 @@ async function geocodeAddress(query) {
   };
 }
 async function sendPostTo(post, destination, tray, address) {
+  if(destination==='share-place'||destination==='hide-place'){
+    try{
+      const {db,auth,doc,writeBatch}=await firebase();
+      if(!post?.uid||post.uid!==auth.currentUser?.uid)throw Error('Open your own post to change its shared location.');
+      let place=null;
+      if(destination==='share-place'){
+        if(post.state!=='approved'||post.visibility==='private')throw Error('Publish this media before sharing its place on Veve.');
+        const address=tray.querySelector('[data-send-map-field]').value.trim();
+        const pin=readLocalList('biglwaMapPins').find(row=>row.postId===post.id);
+        if(!address&&!pin)throw Error('Enter a place or pin this post on your map first.');
+        const selected=address?await geocodeAddress(address):pin;
+        place={label:String(selected.label||selected.title||address).slice(0,180),lat:selected.lat,lng:selected.lng};
+        if(!window.confirm('Share '+place.label+' with this post on Veve?'))return;
+      }
+      const batch=writeBatch(db),patch=place?{veveLocation:place,veveFeatured:true,veveOptOut:false}:{veveLocation:null};
+      batch.update(doc(db,'posts',post.id),patch);
+      batch.set(doc(db,'users',post.uid,'posts',post.id),{uid:post.uid,...patch},{merge:true});
+      await batch.commit();Object.assign(post,patch);
+      const remove=tray.querySelector('[data-send-to="hide-place"]');
+      if(remove)remove.hidden=!place;
+      else if(place){const button=document.createElement('button');button.type='button';button.dataset.sendTo='hide-place';button.textContent='Remove Veve location';tray.querySelector('[data-send-to="share-place"]').after(button)}
+      sendStatus(tray,place?'Place shared on Veve.':'Veve location removed.');
+      document.dispatchEvent(new CustomEvent('biglwa:feed-ready'));
+    }catch(error){sendStatus(tray,error.message)}
+    return;
+  }
   // A discovery selection is a flag on this SAME published record.
   // No copy, state change, archiving or deletion from the Collective Feed.
   if(destination==='veve'){
@@ -977,7 +1011,8 @@ async function sendPostTo(post, destination, tray, address) {
       const place = await geocodeAddress(address);
       const pins = readLocalList("biglwaMapPins");
       const pin = {
-        id: (crypto.randomUUID ? crypto.randomUUID() : "pin-" + Date.now()),
+        id: pins.find(row=>row.postId===post.id)?.id || crypto.randomUUID(),
+        postId:post.id,
         title: place.label || address,
         detail: label,
         category: "Memory",
@@ -989,7 +1024,7 @@ async function sendPostTo(post, destination, tray, address) {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
-      writeLocalList("biglwaMapPins", [pin, ...pins]);
+      writeLocalList("biglwaMapPins", [pin, ...pins.filter(row=>row.id!==pin.id)]);
       document.dispatchEvent(new CustomEvent("biglwa:map-pin-added", { detail: pin }));
       sendStatus(tray, "Pinned on your map at " + (place.label || address) + ".");
       if (tray) tray.dataset.open = "0";
@@ -1109,7 +1144,7 @@ function renderDraftPanel(){
    return '<label class="biglwa-draft-card" data-draft-source="'+esc(source)+'"><input type="checkbox" data-orbit-draft-check value="'+esc(post.id)+'" aria-label="Select '+esc(caption.slice(0,75))+'">'+
     (image?'<img src="'+esc(image)+'" loading="lazy" alt="">':'<span class="biglwa-draft-fallback" aria-hidden="true">▶</span>')+
     '<div><b>'+esc(caption.slice(0,120))+'</b><small>'+esc(source)+' · private draft</small>'+
-    (original?'<a href="'+esc(original)+'" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">View original ↗</a>':'')+'</div></label>';
+    (original?'<a href="'+esc(original)+'" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">View original ↗</a>':'')+'</div><button type="button" data-draft-pin="'+esc(post.id)+'">Pin on my map</button><small data-send-status role="status"></small></label>';
   }).join("")+'</div>';
 }
 function renderPosts(force) {
@@ -1642,6 +1677,14 @@ async function wire(list, form) {
   if (draftPanel && !draftPanel.dataset.bigWired) {
     draftPanel.dataset.bigWired = "1";
     draftPanel.addEventListener("click", async (event) => {
+      const pin=event.target.closest('[data-draft-pin]');
+      if(pin){
+        event.preventDefault();
+        const post=draftPosts.find(row=>row.id===pin.dataset.draftPin&&row.uid===identity()?.uid);
+        const address=post&&window.prompt('Place or coordinates for your private map');
+        if(address?.trim())await sendPostTo(post,'map',pin.closest('.biglwa-draft-card'),address.trim());
+        return;
+      }
       const bulk = event.target.closest("[data-orbit-publish-selected]");
       if (!bulk) return;
       const ids = Array.from(draftPanel.querySelectorAll("[data-orbit-draft-check]:checked")).map((input) => input.value);

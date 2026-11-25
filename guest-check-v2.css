@@ -131,3 +131,7 @@ html.biglwa-preview-mode #studioApp #guestCheckWidget .biglwa-guest-v2-head{
 html.biglwa-preview-mode #studioApp #guestCheckWidget :is(.biglwa-guest-v2-head,.biglwa-guest-v2-row){
  grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) 62px 28px!important;gap:0!important;
 }
+
+#biglwaGuestCheckV2[open]{display:flex;flex-direction:column;box-sizing:border-box}
+#biglwaGuestCheckV2 .biglwa-guest-v2-title{flex:none}
+#biglwaGuestCheckV2 .biglwa-guest-v2-content{min-height:0;max-height:none;box-sizing:border-box;overflow-y:auto;padding-bottom:max(25px,env(safe-area-inset-bottom))}

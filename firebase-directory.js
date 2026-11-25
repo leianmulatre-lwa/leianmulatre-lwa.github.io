@@ -547,7 +547,24 @@ async function recordAnalyticsMonth(month,snapshot){
  return data;
 }
 
-window.BigLWAUserDirectory={getAccountOverview,addPerson,recordAnalyticsMonth,saveProfile,searchUsers,syncAccountProfile,saveCustomizations,loadProfile,loadPublicProfile,loadArchiveForUsername,publishJournal};
+async function profileLocker(slot, value, expectedRevision, owner){
+  const {db,auth}=await getFirebase();
+  if(!owner || auth.currentUser?.uid!==owner || window.__biglwaPublicStorageView ||
+     document.documentElement.classList.contains('biglwa-preview-mode'))throw Error('Open your own Studio to use your locker.');
+  if(!Number.isInteger(slot)||slot<1||slot>4)throw Error('Choose a locker from 1 to 4.');
+  const {doc,getDocFromServer,runTransaction,serverTimestamp}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
+  const ref=doc(db,'users',owner,'studioState','profileLocker'+slot);
+  if(value===undefined){
+    const data=(await getDocFromServer(ref)).data();
+    return {revision:data?.revision||0,preset:data?.value?JSON.parse(data.value):null};
+  }
+  await runTransaction(db,async tx=>{
+    const revision=(await tx.get(ref)).data()?.revision||0;
+    if(revision!==expectedRevision)throw Error('This locker changed on another device. Reopen it before saving.');
+    tx.set(ref,{value:JSON.stringify(value),revision:revision+1,editId:crypto.randomUUID(),updatedAt:serverTimestamp()});
+  });
+}
+window.BigLWAUserDirectory={profileLocker,getAccountOverview,addPerson,recordAnalyticsMonth,saveProfile,searchUsers,syncAccountProfile,saveCustomizations,loadProfile,loadPublicProfile,loadArchiveForUsername,publishJournal};
 
 (async()=>{
   try{
