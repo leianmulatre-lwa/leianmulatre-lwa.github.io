@@ -66,7 +66,7 @@
    panel.hidden=!state.connected;
    panel.querySelector('button').disabled=!!syncing;
    panel.querySelector('p').textContent=state.syncMessage||'Sync recent personal posts and photos to the Collective Feed.';
-   if(state.connected&&!get()?.link)panel.querySelector('p').textContent+=' Facebook did not share a profile link. Reconnect to grant profile-link access, or use Facebook’s Link button to save your profile URL.';
+   if(state.connected&&!get()?.link)panel.querySelector('p').textContent+=' Facebook did not share a profile link. Reconnect to grant profile-link access, or use Facebook’s Link via URL button to save your profile URL.';
  }
  async function syncHometown(uid){
    const data=await api('hometown','GET',await authToken());

@@ -1,7 +1,7 @@
 /* Account-scoped Orbit profile URLs; credentials never enter Firestore. */
 import { identity, onIdentityChange, startIdentity } from './account-identity.js';
 
-const OPTIONS=new Set(['spotify','soundcloud','youtube','drive','calendar','google','goodreads','letterboxd','twitch','depop','facebook','instagram','tiktok','pinterest','x','snapchat','tumblr','imdb','vsco','bereal','substack','xbox','website']);
+const OPTIONS=new Set(['spotify','soundcloud','youtube','drive','calendar','google','goodreads','letterboxd','twitch','depop','facebook','instagram','threads','tiktok','pinterest','x','snapchat','tumblr','imdb','vsco','bereal','substack','xbox','website']);
 const clean=(links)=>{
   const output={};
   for(const [k,v] of Object.entries(links&&typeof links==='object'?links:{})){
@@ -10,6 +10,8 @@ const clean=(links)=>{
       const url=new URL(String(v||'').trim());
       const domain=url.hostname.toLowerCase();
       const providers={vsco:['vsco.co','vsco.com'],bereal:['bere.al','bereal.com'],substack:['substack.com'],xbox:['xbox.com','xboxlive.com']};
+      if(k==='threads'&&(!['threads.com','www.threads.com','threads.net','www.threads.net'].includes(domain)||
+          !/^\/@[a-z0-9._]{1,30}\/?$/i.test(url.pathname)))continue;
       const allowed=providers[k];
       if(allowed&&!allowed.some(host=>domain===host||domain.endsWith('.'+host)))continue;
       // Own websites may use any public HTTPS host; Orbit links are never credentials.
@@ -86,7 +88,7 @@ async function save(id,value){
   if(!uid||!ready)throw Error('Your account links are loading. Sign in and retry.');
   const next={...links};if(String(value||'').trim()){
     const parsed=clean({[id]:value});
-    if(!parsed[id])throw Error('Use a complete https:// profile URL.');
+    if(!parsed[id])throw Error(id==='threads'?'Enter a Threads profile URL, such as https://www.threads.com/@yourname.':'Use a complete https:// profile URL.');
     const destination=normalizedDestination(parsed[id]);
     if(Object.entries(links).some(([other,existing])=>other!==id&&normalizedDestination(existing)===destination))
       throw Error('You already saved that destination under another Orbit planet.');

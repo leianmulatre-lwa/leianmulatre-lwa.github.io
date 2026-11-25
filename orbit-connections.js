@@ -330,6 +330,7 @@ async function write(uid, id, record) {
    address on someone's profile. */
 const PUBLIC_HOSTS = {
   instagram: ["instagram.com", "www.instagram.com"],
+  threads: ["threads.com", "www.threads.com", "threads.net", "www.threads.net"],
   tiktok: ["tiktok.com", "www.tiktok.com"],
   pinterest: ["pinterest.com", "www.pinterest.com"],
   youtube: ["youtube.com", "www.youtube.com", "m.youtube.com"],

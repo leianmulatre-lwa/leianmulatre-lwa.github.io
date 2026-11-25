@@ -1,4 +1,4 @@
-/* Orbit X / Tumblr / Snapchat OAuth client.
+/* Orbit X / Tumblr / Snapchat / Threads OAuth client.
  * No provider credentials enter browser storage; Firebase ID tokens are sent
  * to BIG LWA Worker only over TLS for user-bound start/session/disconnect.
  */
@@ -6,7 +6,8 @@
  'use strict';
  if(window.BigLWAOrbitOAuth)return;
  const base='https://api.biglwa.com';
- const providerIds=['x','snapchat','tumblr'];
+ const providerNames={x:'X',snapchat:'Snapchat',tumblr:'Tumblr',threads:'Threads'};
+ const providerIds=Object.keys(providerNames);
  // Provider scripts run before module-pages.js canonicalizes the Studio view.
  // Marking the return for one task keeps the router from treating a callback whose
  // parameters were just consumed as a stale ?view=orbit tab and closing the Orbit panel.
@@ -37,7 +38,7 @@
  function callbackMessage(){
    if(!callbackNotice)return;
    const id=callbackNotice.id;
-   const name=id==='x'?'X':id==='snapchat'?'Snapchat':'Tumblr';
+   const name=providerNames[id];
    return notice(callbackNotice.status==='connected'
      ?(state[id]?.verifiedFromProvider&&!state[id]?.needsReauth?'✓ '+name+' verified by provider after login · @'+(state[id]?.username||'connected'):name+' login redirected, but BIG LWA could not restore a provider account. Check the callback registered in your '+name+' developer app.')
      :name+' connection was not completed. '+(callbackNotice.error||'Please retry from Orbit.'));
@@ -158,6 +159,8 @@
      // link, must not erase an earlier verified connection on a later pass.
      const profiles={...previous};
      for(const id of providerIds){
+       // Threads profile information is visible in the owner's Orbit. Sharing uses an explicit URL.
+       if(id==='threads')continue;
        const row=state[id];
        if(disconnectedNow.has(id)){delete profiles[id];continue}
        if(!row?.verifiedFromProvider)continue;
@@ -203,6 +206,7 @@
    if(!config[provider]?.configured)await load();
    const health=config[provider];
    if(!health?.configured){
+     if(provider==='threads')throw Error('Threads sign-in is unavailable right now. You can still use Link via URL.');
      const missing=health?.missing||[];
      const portal=provider==='snapchat'?'Snap Kit Developer Portal → Login Kit'
        :provider==='tumblr'?'Tumblr Applications → Consumer Key':'Developer Portal';
@@ -219,7 +223,7 @@
    notice(basicTest?'Opening X profile-only authentication test…':'Opening '+provider+' authorization…');
    const result=await query(provider,'start','POST',user.idToken,basicTest?{mode:'profile-only'}:null);
    const uri=new URL(String(result.authorizeUrl||''));
-   const valid=provider==='x'?['twitter.com','x.com']:provider==='tumblr'?['www.tumblr.com']:['accounts.snapchat.com'];
+   const valid=provider==='x'?['twitter.com','x.com']:provider==='tumblr'?['www.tumblr.com']:provider==='threads'?['www.threads.com']:['accounts.snapchat.com'];
    if(uri.protocol!=='https:'||!valid.includes(uri.hostname))throw Error('Provider returned an invalid authorization destination.');
    window.location.assign(uri.href);
  }

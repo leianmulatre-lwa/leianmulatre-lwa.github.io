@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261124-1&callback=20261124-2';
+        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261124-1&callback=20261124-2&threads=20261125-1';
         document.head.appendChild(script);
       }, 250);
     }
@@ -1360,7 +1360,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
 
   /* Primary Orbit contains API-backed accounts. Link-only destinations live in Planetary. */
   const ORBIT_APPS=[
-    ['instagram','IG','Instagram','#ffab63'],['facebook','FB','Facebook','#1658be'],
+    ['instagram','IG','Instagram','#ffab63'],['threads','@','Threads','#171717'],['facebook','FB','Facebook','#1658be'],
     ['tiktok','TT','TikTok','#772dcc'],['pinterest','P','Pinterest','#e60023'],
     ['x','𝕏','X','#080808'],['snapchat','SC','Snapchat','#ffeb00'],
     ['tumblr','T','Tumblr','#1b304b'],['youtube','YT','YouTube','#d0202f']
@@ -1374,6 +1374,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
      ['substack','S','Substack','#da521b'],['xbox','XB','Xbox','#a3d65e'],
     ['website','WWW','My website','rgb(var(--aura-rgb,216,95,109))']
   ];
+  const ORBIT_OAUTH_PROVIDERS=['x','snapchat','tumblr','threads'];
   const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest','facebook','youtube','calendar','drive']);
   const ORBIT_LIVE=new Set(['instagram','tiktok','pinterest','facebook','youtube','calendar','drive']);
   const ORBIT_APP_NAMES=Object.fromEntries([...ORBIT_APPS,...PLANETARY_APPS].map(([k,,n])=>[k,n]));
@@ -1384,7 +1385,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   const orbitLinks=()=>window.BigLWAOrbitAccountLinks?.get?.() ?? readJSON('biglwaOrbitLinks',{});
   const orbitConnected=()=>{
     const rows=[];
-    for(const id of ['x','snapchat','tumblr']){const item=window.BigLWAOrbitOAuth?.get?.(id);if(item)rows.push(item)}
+    for(const id of ORBIT_OAUTH_PROVIDERS){const item=window.BigLWAOrbitOAuth?.get?.(id);if(item)rows.push(item)}
     try{rows.push(...Object.values(window.__biglwaConnections?.connections?.()||{}).filter(row=>row&&row.id&&row.link))}catch{}
     // Google Identity Services returns a short-lived in-memory access token;
     // it is not an account-level token nor a public profile link. Reflect it in
@@ -1490,7 +1491,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
       chips.push({href,label,handle,cls});
     };
     orbitConnected().forEach(row=>{
-      if(row&&row.link)add(row.id,row.link,row.label||ORBIT_APP_NAMES[row.id]||row.id,
+      if(row?.link&&row.id!=='threads')add(row.id,row.link,row.label||ORBIT_APP_NAMES[row.id]||row.id,
         row.username?'@'+row.username:(row.name||''),'is-connected is-'+row.id);
     });
     Object.entries(orbitLinks()).forEach(([k,url])=>{
@@ -1503,7 +1504,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   }
   /* The source clients each own their own connect button, so the Orbit page hands the click
      over rather than reimplementing the OAuth start. */
-  const ORBIT_HANDS=key=>{const map={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.BigLWAFacebookPersonal,youtube:window.__biglwaGoogleOrbit,x:window.BigLWAOrbitOAuth,snapchat:window.BigLWAOrbitOAuth,tumblr:window.BigLWAOrbitOAuth};return Boolean(map[key])};
+  const ORBIT_HANDS=key=>{if(ORBIT_OAUTH_PROVIDERS.includes(key))return Boolean(window.BigLWAOrbitOAuth?.connect);const map={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.BigLWAFacebookPersonal,youtube:window.__biglwaGoogleOrbit,calendar:window.__biglwaGoogleOrbit,drive:window.__biglwaGoogleOrbit};return Boolean(map[key])};
    // Planet card dimensions are applied directly by the Orbit renderer.
    // Earlier standalone CSS patches lost to later module/provider styles and
    // left X/YouTube stretched while Facebook's link editor grew taller.
@@ -1570,15 +1571,21 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
      return '<dialog class="orbit-link-dialog" data-orbit-link-dialog="'+esc(k)+'" aria-label="Edit '+esc(name)+' public link">'+
        '<div class="orbit-link-dialog-head"><b>'+esc(name)+' link</b><button type="button" class="orbit-link-dialog-close" data-orbit-close-link="'+esc(k)+'" aria-label="Close link editor">×</button></div>'+
        (k==='instagram'?'<p>Keep your personal or private Instagram account. Save your profile link without changing your account type. This shortcut can appear on your BIG LWA profile; Instagram controls who can view your posts. It does not verify ownership or sync media.</p><p>For a copy of your photos and videos, use <a href="https://help.instagram.com/181231772500920" target="_blank" rel="noopener noreferrer">Instagram’s official export instructions</a>. Exported files can be added manually to BIG LWA; automatic ZIP import is not available.</p>':'')+
-       '<label for="'+id+'">'+(k==='instagram'?'Instagram profile URL':'Public profile or Page URL')+'</label>'+
+       '<label for="'+id+'">'+(k==='instagram'||k==='threads'?esc(name)+' profile URL':'Public profile or Page URL')+'</label>'+
        '<input id="'+id+'" class="module-input" data-orbit-path="'+esc(k)+'" type="url" inputmode="url" value="'+esc(url||'')+'" placeholder="https://…">'+
+       '<p class="module-status" data-orbit-link-status role="status"></p>'+
        '<div class="orbit-link-dialog-actions"><button type="button" class="module-action" data-orbit-save="'+esc(k)+'">Save link</button>'+
        '<button type="button" class="module-action ghost" data-orbit-close-link="'+esc(k)+'">Cancel</button></div></dialog>';
    }
    function renderOrbitPage(){
-    // Only show a real OAuth button once its public app key, secret and callback
-    // are actually available. Until then an account-linked profile URL works.
-    for(const id of ['x','snapchat','tumblr']){
+    const openEditor=$('dialog[data-orbit-link-dialog][open]',body);
+    if(openEditor){
+      openEditor.onclose=()=>{
+        if(openEditor.isConnected&&workspace.dataset.moduleKey==='orbit'&&!workspace.hidden)renderOrbitPage();
+      };
+      return;
+    }
+    for(const id of ORBIT_OAUTH_PROVIDERS){
       const live=window.BigLWAOrbitOAuth?.configured?.(id)?.configured===true;
       // Always expose the OAuth connection action. Missing public IDs show a
       // precise setup message instead of replacing the provider with a URL-only
@@ -1590,24 +1597,27 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const links=orbitLinks();
     const connected=Object.fromEntries(orbitConnected().map(r=>[r.id,r]));
     const legacyCount=window.BigLWAOrbitAccountLinks?.localPending?.()?.length||0;
-    body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Connect your platforms or save a profile link. Your Orbit destinations follow your Big LWA account; imports require a supported provider authorization.</p><div class="module-status" id="orbitPageStatus"></div>${legacyCount?'<button type="button" class="module-action ghost" id="orbitImportLocalLinks">Move '+legacyCount+' saved browser link(s) to my account</button>':''}${orbitQuickLinks()}<div class="module-orbit">${[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{
+    body.innerHTML=heading('orbit')+`<div class="module-grid"><section class="module-card wide"><h2>Your orbit</h2><p>Connect your platforms or save a profile link. Your Orbit destinations follow your Big LWA account; imports require a supported provider authorization.</p><div class="module-status" id="orbitPageStatus" role="status"></div>${legacyCount?'<button type="button" class="module-action ghost" id="orbitImportLocalLinks">Move '+legacyCount+' saved browser link(s) to my account</button>':''}${orbitQuickLinks()}<div class="module-orbit">${[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{
      if(ORBIT_CONNECTED.has(k)){
       const row=connected[k],pending=!ORBIT_LIVE.has(k);
+      const connectLabel=k==='instagram'?(row?'Reconnect sync':'Live sync · pro'):
+        k==='facebook'?(row?'Reconnect Facebook':'Facebook Login'):
+        (row?'Reconnect ':'Connect ')+n;
+      const urlLabel=links[k]?'Edit URL':'Link via URL';
       const stats=[orbitStat('followers','followers',row),orbitStat('posts','mediaCount',row),orbitStat('boards','boards',row),orbitStat('likes','likes',row)].filter(Boolean).join(' · ');
-      return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.accountSaveFailed?'<em class="orbit-state">Account sync pending</em>':row.needsReauth?'<em class="orbit-state">Reconnect required</em>':row.verifiedFromProvider?'<em class="orbit-state is-on">Connected · verified</em>':'<em class="orbit-state is-on">Connected</em>'):(k==='instagram'&&links[k]?'<em class="orbit-state">Profile linked</em>':'<em class="orbit-state">Not connected</em>')}</header><div class="orbit-main">`+
-       (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}${row.verifiedFromProvider?'<small>Authenticated with '+esc(n)+' · verified just now</small>':''}</span>${row.link?'<a class="orbit-hotlink" href="'+esc(row.link)+'" target="_blank" rel="noopener noreferrer">Open ↗</a>':k==='snapchat'&&!links[k]?'<small>Snapchat connected. Add your public profile URL using Link to publish a quick link.</small>':k==='tumblr'&&!links[k]?'<small>Connected, but no public blog URL returned. Add your Tumblr blog link below.</small>':''}${k==='snapchat'?'<small>Spotlight imports require Snapchat Public Profile API access; Login Kit alone only shares account identity and optional Bitmoji.</small>':''}</div>`
-        :(k==='instagram'?'<div class="orbit-not-connected">'+(links[k]?'Profile link saved · no automatic sync.':'Personal account? Add your profile link. Live sync requires a creator or business account.')+'</div>':'<div class="orbit-not-connected">Connect to show your account preview.</div>'))+'</div>'+
-       `<div class="module-actions">${row&&['x','tumblr','snapchat'].includes(k)?'<button class="module-action ghost" type="button" data-orbit-verify="'+k+'">Verify status</button>':''}${k==='instagram'?'<button class="module-action" type="button" data-orbit-edit-link="instagram">'+(links[k]||row?.link?'Edit profile link':'Link personal account')+'</button>':''}<button class="module-action${k==='instagram'?' ghost':''}" type="button" data-orbit-connect="${k}" ${!pending&&!ORBIT_HANDS(k)?'disabled':''}>${k==='instagram'?(row?'Reconnect sync':'Live sync · pro'):k==='facebook'?'Facebook':(row?'Reconnect ':'Connect ')+n}</button>${k==='tiktok'?'<button class="module-action ghost" type="button" data-orbit-tiktok-sync="1" title="Refresh TikTok profile and sync authorized posts without reopening Login Kit">Sync now</button>':''}${k==='x'?'<button class="module-action ghost" type="button" data-orbit-x-basic="1" title="Diagnostic: request only X profile access, without Tweet or offline permissions">Test basic X login</button>':''}${k==='facebook'?'<button class="module-action ghost" type="button" data-facebook-legacy-connect="1">Meta Business</button>':''}${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}${k==='instagram'?'':`<button class="module-action ghost orbit-inline-link" type="button" data-orbit-edit-link="${k}">${links[k]||row?.link?'Edit link':(k==='snapchat'||k==='tumblr'?'Add profile link':'Link')}</button>`}${orbitBadge(g,t)}</div>`+
-       orbitLinkEditor(k,n,links[k]||row?.link||'')+'</div>';
+      return `<div class="module-orbit-row is-oauth" data-orbit-row="${k}"><header><b>${n}</b>${row?(row.accountSaveFailed?'<em class="orbit-state">Account sync pending</em>':row.needsReauth?'<em class="orbit-state">Reconnect required</em>':row.verifiedFromProvider?'<em class="orbit-state is-on">Connected · verified</em>':'<em class="orbit-state is-on">Connected</em>'):(links[k]?'<em class="orbit-state">Profile linked</em>':'<em class="orbit-state">Not connected</em>')}</header><div class="orbit-main">`+
+       (row?`<div class="orbit-connected-card">${row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':''}<span><b>${esc(row.name||row.username||'Connected')}</b>${row.username?'<small>@'+esc(row.username)+'</small>':''}${stats?'<small>'+stats+'</small>':''}${row.verifiedFromProvider?'<small>Authenticated with '+esc(n)+' · verified just now</small>':''}</span>${row.link?'<a class="orbit-hotlink" href="'+esc(row.link)+'" target="_blank" rel="noopener noreferrer">Open ↗</a>':k==='snapchat'&&!links[k]?'<small>Snapchat connected. Add your public profile URL using Link via URL to share a quick link.</small>':k==='tumblr'&&!links[k]?'<small>Connected, but no public blog URL returned. Add your Tumblr blog link below.</small>':''}${k==='snapchat'?'<small>Spotlight imports require Snapchat Public Profile API access; Login Kit alone only shares account identity and optional Bitmoji.</small>':''}</div>`
+        :(k==='instagram'?'<div class="orbit-not-connected">'+(links[k]?'Profile link saved · no automatic sync.':'Personal account? Add your profile link. Live sync requires a creator or business account.')+'</div>':'<div class="orbit-not-connected">'+(links[k]?'Profile link saved.':k==='threads'&&pending?'Save your Threads profile URL below.':'Connect to show your account preview.')+'</div>'))+'</div>'+
+       `<div class="module-actions">${row&&ORBIT_OAUTH_PROVIDERS.includes(k)?'<button class="module-action ghost" type="button" data-orbit-verify="'+k+'">Verify status</button>':''}${k==='instagram'?'<button class="module-action" type="button" data-orbit-edit-link="instagram">'+urlLabel+'</button>':''}<button class="module-action${k==='instagram'?' ghost':''}" type="button" data-orbit-connect="${k}" ${!ORBIT_HANDS(k)||k==='threads'&&pending?'disabled':''}>${connectLabel}</button>${k==='tiktok'?'<button class="module-action ghost" type="button" data-orbit-tiktok-sync="1" title="Refresh TikTok profile and sync authorized posts without reopening Login Kit">Sync now</button>':''}${k==='x'?'<button class="module-action ghost" type="button" data-orbit-x-basic="1" title="Diagnostic: request only X profile access, without Tweet or offline permissions">Test basic X login</button>':''}${k==='facebook'?'<button class="module-action ghost" type="button" data-facebook-legacy-connect="1">Meta Business</button>':''}${row?`<button class="module-action ghost" type="button" data-orbit-unlink="${k}">Unlink</button>`:''}${k==='instagram'?'':`<button class="module-action ghost orbit-inline-link" type="button" data-orbit-edit-link="${k}">${urlLabel}</button>`}${orbitBadge(g,t)}</div>`+
+       orbitLinkEditor(k,n,links[k]||'')+'</div>';
      }
-     return `<div class="module-orbit-row is-profile-link" data-orbit-row="${k}"><header><b>${n}</b><em class="orbit-state${links[k]?' is-on':''}">${links[k]?'Linked':'Not linked'}</em></header><div class="orbit-main"><div class="orbit-link-summary">${links[k]?'Your profile link is saved.':'Connect by adding your profile link.'}</div></div><div class="module-actions"><button class="module-action" type="button" data-orbit-edit-link="${k}">${links[k]?'Edit link':'Connect link'}</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open</button>${orbitBadge(g,t)}</div>`+orbitLinkEditor(k,n,links[k]||'')+'</div>';
+     return `<div class="module-orbit-row is-profile-link" data-orbit-row="${k}"><header><b>${n}</b><em class="orbit-state${links[k]?' is-on':''}">${links[k]?'Linked':'Not linked'}</em></header><div class="orbit-main"><div class="orbit-link-summary">${links[k]?'Your profile link is saved.':'Save your profile URL.'}</div></div><div class="module-actions"><button class="module-action" type="button" data-orbit-edit-link="${k}">${links[k]?'Edit URL':'Link via URL'}</button><button class="module-action ghost" type="button" data-orbit-open="${k}" ${links[k]?'':'disabled'}>Open</button>${orbitBadge(g,t)}</div>`+orbitLinkEditor(k,n,links[k]||'')+'</div>';
      }).join('')}</div></section></div>`;
     enforceOrbitCardGeometry();
     renderOrbitAccountManagement();
     /* Looked up after the markup exists, so the status line is the node that is actually
        on the page rather than one from a previous render. */
-    const status=$('#orbitPageStatus',body);
-    const say=text=>{if(status){status.textContent=text;status.classList.add('ok')}};
+    const say=text=>{const status=$('#orbitPageStatus',body);if(status)status.textContent=text;};
     body.onclick=async e=>{
      const editLink=e.target.closest('[data-orbit-edit-link]');
      if(editLink){
@@ -1639,7 +1649,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
      const check=e.target.closest('[data-orbit-verify]');
      if(check){
        const id=check.dataset.orbitVerify;
-       if(!['x','tumblr','snapchat'].includes(id))return;
+       if(!ORBIT_OAUTH_PROVIDERS.includes(id))return;
        check.disabled=true;
        try{
          await window.BigLWAOrbitOAuth?.load?.();
@@ -1683,7 +1693,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
      const connect=e.target.closest('[data-orbit-connect]');
      if(connect){
        const k=connect.dataset.orbitConnect;
-       if(['x','snapchat','tumblr'].includes(k)){
+       if(ORBIT_OAUTH_PROVIDERS.includes(k)){
          connect.disabled=true;say('Checking '+ORBIT_APP_NAMES[k]+' authorization…');
          try{await window.BigLWAOrbitOAuth.connect(k)}
          catch(error){say(error?.message||'Authorization is not ready yet.');connect.disabled=false}
@@ -1704,12 +1714,12 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
      if(unlink){
        const k=unlink.dataset.orbitUnlink;unlink.disabled=true;say('Unlinking…');
        try{
-         if(['x','snapchat','tumblr'].includes(k))await window.BigLWAOrbitOAuth.disconnect(k);
+         if(ORBIT_OAUTH_PROVIDERS.includes(k))await window.BigLWAOrbitOAuth.disconnect(k);
          else if(['youtube','calendar','drive'].includes(k))await window.__biglwaGoogleOrbit?.disconnect?.();
          else if(k==='facebook'&&window.BigLWAFacebookPersonal?.state?.connected)await window.BigLWAFacebookPersonal.disconnect();
          else if(k==='facebook'&&window.__biglwaFacebookOrbit?.state?.connected)await window.__biglwaFacebookOrbit.disconnect();
          else await window.__biglwaConnections?.forget?.(k);
-         say(ORBIT_APP_NAMES[k]+' unlinked.');renderOrbitPage();
+         if(workspace.dataset.moduleKey==='orbit'){renderOrbitPage();say(ORBIT_APP_NAMES[k]+' unlinked.');}
        }catch(error){say(error?.message||'Unable to unlink this connection.');unlink.disabled=false}
        return;
      }
@@ -1717,7 +1727,9 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
      if(save){
        const k=save.dataset.orbitSave,url=$('[data-orbit-path="'+k+'"]',body).value.trim();
        const manager=window.BigLWAOrbitAccountLinks;
-       save.disabled=true;say('Saving '+(ORBIT_APP_NAMES[k]||'Orbit')+' link to your account…');
+       const dialog=save.closest('dialog');
+       const linkStatus=$('[data-orbit-link-status]',dialog);
+       save.disabled=true;linkStatus.textContent='Saving to your account…';
        try{
          if(!manager?.save)throw Error('Account link storage is still loading.');
          if(k==='instagram'&&url){
@@ -1737,9 +1749,13 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
          if(linkKey&&orbitConnected().some(row=>row&&row.id!==k&&orbitLinkKey(row.link)===linkKey))
            throw Error('This destination is already connected in Orbit; it cannot be added twice.');
          await manager.save(k,url);
-         say((ORBIT_APP_NAMES[k]||'Orbit')+' link saved to your BIGLWA account.');
-         renderOrbitPage();
-       }catch(error){say(error?.message||'Could not save this Orbit link.')}
+         if(dialog.isConnected&&workspace.dataset.moduleKey==='orbit'){
+           dialog.close();
+           renderOrbitPage();
+           const status=$('#orbitPageStatus',body);
+           if(status)status.textContent=ORBIT_APP_NAMES[k]+(url?' link saved to your BIG LWA account.':' link removed.');
+         }
+       }catch(error){linkStatus.textContent=error?.message||'Could not save this Orbit link.'}
        finally{save.disabled=false}
        return;
      }
@@ -2156,7 +2172,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     profilesPanel.innerHTML='<h2>Additional social profiles</h2>'+
       '<p>Manage additional public links for your Orbit apps. These are account-saved links, not verified OAuth connections.</p>'+
       '<div class="module-actions" style="display:flex;gap:8px;flex-wrap:wrap">'+
-      '<select id="extraProfileProvider" class="module-input" style="width:auto"><option value="tiktok">TikTok</option><option value="instagram">Instagram</option><option value="x">X</option><option value="snapchat">Snapchat</option><option value="facebook">Facebook</option><option value="pinterest">Pinterest</option><option value="tumblr">Tumblr</option><option value="youtube">YouTube</option></select>'+
+      '<select id="extraProfileProvider" class="module-input" style="width:auto"><option value="tiktok">TikTok</option><option value="instagram">Instagram</option><option value="threads">Threads</option><option value="x">X</option><option value="snapchat">Snapchat</option><option value="facebook">Facebook</option><option value="pinterest">Pinterest</option><option value="tumblr">Tumblr</option><option value="youtube">YouTube</option></select>'+
       '<input id="extraProfileUrl" class="module-input" style="flex:1 1 240px" type="url" placeholder="https://www.tiktok.com/@username">'+
       '<button class="module-action" type="button" id="saveExtraProfile">Add profile</button></div>'+
       '<div id="extraProfileList" class="module-list"></div><p id="extraProfileStatus" class="module-status" role="status"></p>';
@@ -4128,7 +4144,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     const clients={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.__biglwaFacebookOrbit,youtube:window.__biglwaGoogleOrbit};
     const connected=Object.fromEntries(orbitConnected().map(r=>[r.id,r]));
     const rows=[...ORBIT_APPS,...PLANETARY_APPS].map(([k,g,n,t])=>{
-      if(ORBIT_CONNECTED.has(k)){
+      if(ORBIT_CONNECTED.has(k)&&!ORBIT_OAUTH_PROVIDERS.includes(k)){
         const row=connected[k];
         return '<div class="module-orbit-row is-oauth" data-orbit-row="'+esc(k)+'"><header><b>'+esc(n)+'</b>'+(row?'<em class="orbit-state is-on">Connected</em>':'<em class="orbit-state">Not connected</em>')+'</header>'+orbitBadge(g,t)+
           (row?'<div class="orbit-connected-card">'+(row.avatarUrl?'<img src="'+esc(row.avatarUrl)+'" alt="" width="46" height="46">':'')+'<span><b>'+esc(row.name||row.username||'Connected')+'</b>'+(row.username?'<small>@'+esc(row.username)+'</small>':'')+'</span><a class="orbit-hotlink" href="'+esc(row.link)+'" target="_blank" rel="noopener noreferrer">Open ↗</a></div>':'<p class="orbit-not-connected">Connect to fill this in and add your public link.</p>')+

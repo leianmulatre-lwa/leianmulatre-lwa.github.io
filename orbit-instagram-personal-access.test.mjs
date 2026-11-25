@@ -17,7 +17,7 @@ test('default Instagram action does not launch Business Login; explicit sync sti
 });
 test('personal links are explicitly distinct from authorized syncing',()=>{
  assert.doesNotThrow(()=>new Script(pages));assert.doesNotThrow(()=>new Script(ig));
- assert.match(pages,/Link personal account/);assert.match(pages,/Live sync · pro/);
+ assert.match(pages,/Link via URL/);assert.match(pages,/Live sync · pro/);
  assert.match(pages,/Profile link saved · no automatic sync/);
  assert.match(pages,/does not verify ownership or sync media/);
  assert.match(pages,/await manager.save\(k,url\)/);

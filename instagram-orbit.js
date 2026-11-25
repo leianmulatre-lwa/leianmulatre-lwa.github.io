@@ -290,7 +290,6 @@
     try {
       const linked=!!window.BigLWAOrbitAccountLinks?.get?.().instagram;
       all('[data-orbit-app="instagram"]').forEach(function (tile) { tile.classList.toggle('orbit-connected', state.connected); tile.classList.toggle('is-linked',linked); tile.setAttribute('aria-label', state.connected ? 'View connected Instagram account' : 'Manage Instagram profile link or live sync'); var small = one('small', tile); if (small) small.textContent = state.connected ? 'Connected' : linked ? 'Linked' : 'Link'; });
-      all('[data-orbit-path="instagram"]').forEach(function (input) { var row = input.closest('.module-orbit-row'); var actions = row ? one('.module-actions', row) : null; if (!actions) return; if(one('[data-orbit-connect="instagram"]',actions)){one('[data-instagram-connect]',actions)?.remove();return;} var button = one('[data-instagram-connect]', actions); if (!button) { button = document.createElement('button'); button.type = 'button'; button.className = 'module-action'; button.setAttribute('data-instagram-connect', '1'); actions.insertBefore(button, actions.firstChild); } button.textContent = state.connected ? 'Connected' : 'Manage Instagram'; button.setAttribute('aria-pressed', state.connected ? 'true' : 'false'); });
       renderFeed();
     } catch (error) { console.error('BIGLWA Instagram render isolated:', error); }
   }
@@ -570,7 +569,7 @@
       if (card) card.remove();
       return;
     }
- var target = event.target && event.target.closest ? event.target : null; if (!target) return; if (target.closest('[data-orbit-app="instagram"],[data-instagram-connect]')) { event.preventDefault(); event.stopImmediatePropagation(); if(!state.connected)connect(); else window.openBIGLWAModule?.('orbit'); return; } if (target.closest('[data-instagram-disconnect]')) { event.preventDefault(); disconnect(); return; } if (target.closest('[data-open="orbit"],[data-open="feed"]')) setTimeout(render, 80); }, true);
+ var target = event.target && event.target.closest ? event.target : null; if (!target) return; if (target.closest('[data-orbit-app="instagram"]')) { event.preventDefault(); event.stopImmediatePropagation(); if(!state.connected)connect(); else window.openBIGLWAModule?.('orbit'); return; } if (target.closest('[data-instagram-disconnect]')) { event.preventDefault(); disconnect(); return; } if (target.closest('[data-open="orbit"],[data-open="feed"]')) setTimeout(render, 80); }, true);
   window.__biglwaInstagramOrbit = { connect: connect, disconnect: disconnect, restore: restore, state: state, render: render, renderFeed: renderFeed };
   window.addEventListener('biglwa:orbit-links-synced',render);
   // Do not touch providers until a persisted Big LWA Firebase account has

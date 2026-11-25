@@ -535,7 +535,7 @@ export default {
       try{return await facebookPersonalRoute(request,config)}
       catch(error){return json({error:'Facebook authorization could not be completed.'},502,request,config)}
     }
-    if (/^\/(?:x|tumblr|snapchat)\//.test(new URL(request.url).pathname)) {
+    if (/^\/(?:x|tumblr|snapchat|threads)\//.test(new URL(request.url).pathname)) {
       const config={...env,SITE_URL:env.SITE_URL||'https://biglwa.com'};
       return handleAdditionalOrbit(request,config,mediaUser);
     }
@@ -1867,7 +1867,7 @@ async function mediaDelete(request, env, { uid, key, name }) {
 }
 
 
-/* BIG LWA additional Orbit OAuth — X, Tumblr, Snapchat Login Kit.
+/* BIG LWA additional Orbit OAuth — X, Tumblr, Snapchat Login Kit, Threads.
  * Read-only profile authorization. Firebase session identifies the owner before
  * authorization; all tokens remain server-side in OAUTH_SESSIONS KV.
  * Callback is https://api.biglwa.com/{provider}/callback.
@@ -1877,6 +1877,8 @@ const PROVIDERS={
     token:'https://api.x.com/2/oauth2/token',scope:'users.read tweet.read offline.access'},
  tumblr:{id:'TUMBLR_CONSUMER_KEY',secret:'TUMBLR_CONSUMER_SECRET',authorize:'https://www.tumblr.com/oauth2/authorize',
     token:'https://api.tumblr.com/v2/oauth2/token',scope:'basic offline_access'},
+ threads:{id:'THREADS_APP_ID',secret:'THREADS_APP_SECRET',authorize:'https://www.threads.com/oauth/authorize',
+    token:'https://graph.threads.net/oauth/access_token',scope:'threads_basic'},
  snapchat:{id:'SNAPCHAT_CLIENT_ID',secret:'SNAPCHAT_CLIENT_SECRET',authorize:'https://accounts.snapchat.com/accounts/oauth2/auth',
     token:'https://accounts.snapchat.com/accounts/oauth2/token',
     scope:'https://auth.snapchat.com/oauth2/api/user.external_id https://auth.snapchat.com/oauth2/api/user.display_name https://auth.snapchat.com/oauth2/api/user.bitmoji.avatar'}
@@ -1952,7 +1954,7 @@ async function oaExchange(provider,code,verifier,env,callback){
  if(provider==='x'){
   form.set('code_verifier',verifier);
   headers.Authorization='Basic '+btoa(env[c.id]+':'+env[c.secret]);
- }else if(provider==='tumblr'){
+ }else if(provider==='tumblr'||provider==='threads'){
   form.set('client_secret',env[c.secret]);
  }else{
   form.set('client_secret',env[c.secret]);
@@ -1965,10 +1967,34 @@ async function oaExchange(provider,code,verifier,env,callback){
   if(provider==='x')oaError(oaXFailure(code,resp.status,'token exchange'),502);
   oaError(provider+' OAuth token request failed (HTTP '+resp.status+', '+code.replace(/[^a-zA-Z0-9_.-]/g,'').slice(0,45)+'). Check registered callback and app credentials.',502);
  }
+ if(provider==='threads'){
+  const uri=new URL('https://graph.threads.net/access_token');
+  uri.searchParams.set('grant_type','th_exchange_token');
+  uri.searchParams.set('client_secret',String(env[c.secret]));
+  const response=await fetch(uri,{headers:{Authorization:'Bearer '+result.access_token},redirect:'error'});
+  const longLived=await response.json().catch(()=>({}));
+  if(!response.ok||!longLived.access_token||!(Number(longLived.expires_in)>0))
+   oaError('Threads could not extend your session. Try connecting again.',502);
+  return longLived;
+ }
  return result;
 }
 // Refresh server-side OAuth access without asking the member to connect again.
 async function oaRefreshSaved(provider,saved,env,key){
+ if(provider==='threads'){
+  const remaining=Number(saved?.expiresAt)-Date.now();
+  if(!saved?.accessToken||!(remaining>0&&remaining<7*86400000))return saved;
+  try{
+   const response=await fetch('https://graph.threads.net/refresh_access_token?grant_type=th_refresh_token',{
+    headers:{Authorization:'Bearer '+saved.accessToken},redirect:'error'
+   });
+   const result=await response.json().catch(()=>({}));
+   if(!response.ok||!result.access_token||!(Number(result.expires_in)>0))return saved;
+   const next={...saved,accessToken:result.access_token,expiresAt:Date.now()+Number(result.expires_in)*1000};
+   await env.OAUTH_SESSIONS.put(key,JSON.stringify(next),{expirationTtl:7776000});
+   return next;
+  }catch{return saved}
+ }
  if(!saved||!['x','tumblr'].includes(provider)||!saved.refreshToken||
     !saved.expiresAt||saved.expiresAt>Date.now()+60000)return saved;
  const conf=PROVIDERS[provider],form=new URLSearchParams({
@@ -2000,6 +2026,8 @@ async function oaProfile(provider,token){
   endpoint='https://api.x.com/2/users/me?user.fields=name,username,profile_image_url,public_metrics';
  }else if(provider==='tumblr'){
   endpoint='https://api.tumblr.com/v2/user/info';
+ }else if(provider==='threads'){
+  endpoint='https://graph.threads.net/me?fields=id,username,threads_profile_picture_url';
  }else{
   endpoint='https://kit.snapchat.com/v1/me';
   options={method:'POST',headers:{...headers,'Content-Type':'application/json'},
@@ -2013,6 +2041,12 @@ async function oaProfile(provider,token){
    oaError(oaXFailure(error,resp.status,'profile lookup'),502);
   }
   oaError(provider+' authorized, but its profile API could not be read. Confirm the app has the requested permissions.',502);
+ }
+ if(provider==='threads'){
+   const username=String(data.username||'');
+   if(!data.id||!/^[a-z0-9._]{1,30}$/i.test(username))oaError('Threads did not return an authorized profile.',502);
+   return {id:'threads',sourceUserId:String(data.id),name:username,username,
+    avatarUrl:oaPhoto(data.threads_profile_picture_url),link:'https://www.threads.com/@'+username};
  }
  if(provider==='x'){
    const u=data.data||{};
@@ -2210,6 +2244,7 @@ async function oaTextImports(provider,saved,env){
     scopes:saved?.scopes||PROVIDERS[provider].scope},200,request);
   }
   if(action==='imports'){
+    if(provider==='threads')return oaReply({error:'Threads in Orbit supports profile connections.'},404,request);
     const saved=await oaRefreshSaved(provider,await env.OAUTH_SESSIONS.get(accountKey,'json'),env,accountKey);
     if(!saved)return oaReply({error:'Connect '+provider+' from Orbit before importing posts.'},401,request);
     const result=await oaTextImports(provider,saved,env);
