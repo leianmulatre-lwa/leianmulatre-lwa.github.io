@@ -8,7 +8,7 @@
  const settings=location.pathname.startsWith('/settings');
  const eligible=()=>settings||location.pathname==='/'||/^\/studio\/?$/.test(location.pathname);
  if(!eligible())return;
- let registration=null,installPrompt=null,portraitAllowed=false,messaging=null,messagingSdk=null;
+ let registration=null,installPrompt=null,portraitAllowed=false;
  const status=document.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  const setStatus=value=>{status.textContent=value;};
  const button=(label,fn)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',fn);return b;};
@@ -17,6 +17,31 @@
   await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='/biglwa-push-config.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});
   return window.BIGLWA_PUSH_CONFIG;
  };
+ const keyBytes=value=>Uint8Array.from(atob(value.replace(/-/g,'+').replace(/_/g,'/')+'='.repeat((4-value.length%4)%4)),c=>c.charCodeAt(0));
+ async function pilotAuth(config){
+  const [appSdk,authSdk]=await Promise.all([import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js')]);
+  const app=appSdk.getApps().find(a=>a.name==='[DEFAULT]')||appSdk.initializeApp(config.firebase);
+  const auth=authSdk.getAuth(app);await auth.authStateReady();
+  if(!auth.currentUser)throw Error('Sign in to BIG LWA before testing remote delivery.');
+  return auth.currentUser;
+ }
+ async function remoteTest(config){
+  if(!config?.vapidKey||!config?.apiOrigin)throw Error('Remote push pilot is not configured yet.');
+  const endpoint=new URL(config.apiOrigin);
+  if(endpoint.protocol!=='https:'||endpoint.username||endpoint.password||endpoint.pathname!=='/'||endpoint.search||endpoint.hash)throw Error('Invalid notification server configuration.');
+  const user=await pilotAuth(config);
+  // Existing subscription must belong to the same VAPID key; don't silently replace it.
+  const expected=keyBytes(config.vapidKey);
+  let sub=await registration.pushManager.getSubscription();
+  if(sub){
+   const actual=new Uint8Array(sub.options.applicationServerKey||[]);
+   if(actual.length!==expected.length||actual.some((v,i)=>v!==expected[i]))throw Error('Disable the old subscription on this device before setting up BIG LWA push.');
+  }else sub=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:expected});
+  const response=await fetch(new URL('/v1/test',endpoint),{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+await user.getIdToken()},body:JSON.stringify({subscription:sub.toJSON()}),cache:'no-store',credentials:'omit',redirect:'error'});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw Error(result.error||'Remote notification server unavailable.');
+  return result;
+ }
  const swReady='serviceWorker' in navigator&&window.isSecureContext?
   navigator.serviceWorker.register('/biglwa-sw.js',{scope:'/'}).then(()=>navigator.serviceWorker.ready).then(r=>{registration=r;return r;}).catch(()=>null):Promise.resolve(null);
  window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;});
@@ -41,30 +66,16 @@
      if(permission!=='granted'){setStatus('Notifications are off. You can change them in device settings.');return;}
      await registration.showNotification('BIG LWA',{body:'Your test notification is working.',icon:'/apple-touch-icon.png',tag:'biglwa-local-test',data:{url:'/studio'}});
      const config=await cfg();
-     if(!config?.vapidKey){setStatus('Local test sent. Remote push delivery is not configured yet.');return;}
+     if(!config?.vapidKey||!config?.apiOrigin){setStatus('Local test sent. Remote push delivery is not configured yet.');return;}
      if(!('PushManager' in window)){setStatus('Local test sent. Remote push is unsupported on this device.');return;}
-     const [appSdk,msdk]=await Promise.all([import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/12.18.0/firebase-messaging.js')]);
-     if(!await msdk.isSupported()){setStatus('Local test sent. Firebase remote push is not supported here.');return;}
-     const app=appSdk.getApps().find(a=>a.name==='biglwa-push')||appSdk.initializeApp(config.firebase,'biglwa-push');
-     messagingSdk=msdk;messaging=msdk.getMessaging(app);
-     const token=await msdk.getToken(messaging,{vapidKey:config.vapidKey,serviceWorkerRegistration:registration});
-     // No account token storage or automated sender until the trusted backend is connected.
-     setStatus(token?'Remote push registration succeeded. Account alerts are not connected yet.':'Local test sent; remote registration did not return a token.');
-     if(token){const copy=button('Copy device token for Firebase test',async()=>{try{await navigator.clipboard.writeText(token);setStatus('Device token copied. Keep it private; use it only for a Firebase test.');}catch{setStatus('Clipboard unavailable.');}});copy.dataset.pwaToken='1';host.querySelector('[data-pwa-token]')?.remove();host.append(copy);}
+     await remoteTest(config);
+     setStatus('The push gateway accepted your remote test. Check your device notifications. Account event alerts are not connected yet.');
     }catch(error){setStatus('Notification setup failed: '+(error.message||'Try again.'));}finally{enable.disabled=false;}
    });
    const disable=button('Disable remote notifications on this device',async()=>{
     try{
-     const config=await cfg();
-     if(config?.vapidKey&&await swReady){
-      if(!messaging){
-       const [appSdk,msdk]=await Promise.all([import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),import('https://www.gstatic.com/firebasejs/12.18.0/firebase-messaging.js')]);
-       if(await msdk.isSupported()){messagingSdk=msdk;messaging=msdk.getMessaging(appSdk.getApps().find(a=>a.name==='biglwa-push')||appSdk.initializeApp(config.firebase,'biglwa-push'));}
-      }
-      if(messaging)await messagingSdk.deleteToken(messaging);
-     }
-     const sub=await registration?.pushManager?.getSubscription();if(sub)await sub.unsubscribe();
-     host.querySelector('[data-pwa-token]')?.remove();
+     await swReady;
+     const sub=await registration?.pushManager?.getSubscription();if(sub&&!await sub.unsubscribe())throw Error('Browser could not unsubscribe.');
      setStatus('Remote subscription removed. To revoke local alerts too, turn off BIG LWA in device notification settings.');
     }catch(error){setStatus('Could not remove the subscription: '+(error.message||'Try again.'));}
    });

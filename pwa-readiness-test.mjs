@@ -9,9 +9,9 @@ const config=read('biglwa-push-config.js'),client=read('biglwa-pwa.js'),worker=r
 for(const s of [config,client,worker])assert.doesNotThrow(()=>new vm.Script(s));
 assert(!/addEventListener\(['"]fetch/.test(worker),'Private and mutable site content must not be cached by service worker');
 assert(client.includes('Notification.requestPermission()')&&client.includes('registration.showNotification'));
-assert(client.includes('messagingSdk.deleteToken')&&client.includes('sub.unsubscribe()'));
+assert(client.includes('sub.unsubscribe()')&&client.includes('registration.pushManager.subscribe'));
 assert(client.includes('Continue in portrait')&&client.includes('Remote push delivery is not configured yet.'));
 for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html','settings/index.html']){
- const shell=read(path);assert(shell.includes('/biglwa.webmanifest'));assert(shell.includes('/biglwa-pwa.js?v=1'));assert(shell.includes('viewport-fit=cover'));
+ const shell=read(path);assert(shell.includes('/biglwa.webmanifest'));assert(shell.includes('/biglwa-pwa.js?v=2'));assert(shell.includes('viewport-fit=cover'));
 }
 console.log('PASS install manifest, shell wiring, opt-in notification controls, no fetch cache, portrait alternative');

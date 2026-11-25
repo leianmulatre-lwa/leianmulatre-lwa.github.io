@@ -8,6 +8,9 @@ globalThis.BIGLWA_PUSH_CONFIG=Object.freeze({
   "messagingSenderId": "83232670555",
   "appId": "1:83232670555:web:e04927b20458390b3b507e"
 },
- // Add the PUBLIC Web Push certificate key from Firebase Console > Project settings > Cloud Messaging.
- vapidKey:''
+ // Independent BIG LWA sender. Leave blank until a private pilot is deployed.
+ // Only a public VAPID key and HTTPS API origin belong in the browser.
+ transport:'web-push',
+ vapidKey:'',
+ apiOrigin:''
 });
