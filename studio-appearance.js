@@ -296,6 +296,9 @@
     clearWallpaperDisplay();
     const url=media.blob?(activeObjectUrl=URL.createObjectURL(media.blob)):String(media.url);
     activeWallpaperSource=url;activeWallpaperKind=isVideoMedia(media)?'video':'image';
+    wallpaperImage=null;
+    if(!sizeObserver&&window.ResizeObserver){sizeObserver=new ResizeObserver(paintZoom);sizeObserver.observe(page);sizeObserver.observe(preview)}
+    if(!isVideoMedia(media)){wallpaperImage=new Image();wallpaperImage.onload=paintZoom;wallpaperImage.src=url}
     if(isVideoMedia(media)){
       page.classList.add('biglwa-video-wallpaper');
       [video,previewVideo].forEach(el=>{el.src=url;el.style.display='block'});
@@ -328,8 +331,25 @@
     }
     select.value=valid;
   }
+  let wallpaperZoom=1,wallpaperImage=null,sizeObserver=null;
+  const validZoom=value=>Math.max(.5,Math.min(3,Number(value)||1));
+  function paintZoom(){
+    const {page,preview,video,previewVideo}=getWallpaperElements();
+    if(!page)return;
+    const {fit,position}=currentWallpaperSettings();
+    for(const surface of [page,preview]){
+      let size=fit;
+      if(wallpaperZoom!==1&&wallpaperImage?.naturalWidth&&surface.clientWidth&&surface.clientHeight){
+        const scale=(fit==='contain'?Math.min:Math.max)(surface.clientWidth/wallpaperImage.naturalWidth,surface.clientHeight/wallpaperImage.naturalHeight);
+        size=(scale*wallpaperImage.naturalWidth*wallpaperZoom)+'px '+(scale*wallpaperImage.naturalHeight*wallpaperZoom)+'px';
+      }
+      surface.style.backgroundSize=size;surface.style.setProperty('--page-size',size);
+      surface.style.backgroundRepeat='no-repeat';
+    }
+    for(const element of [video,previewVideo]){element.style.transform='scale('+wallpaperZoom+')';element.style.transformOrigin=position}
+  }
   function currentWallpaperSettings(){
-    return {fit:$('#fitSelect')?.value||'cover',position:$('#positionSelect')?.value||'center',blur:$('#blurRange')?.value||'0',overlay:$('#overlayRange')?.value||'18'};
+    return {zoom:wallpaperZoom,fit:$('#fitSelect')?.value||'cover',position:$('#positionSelect')?.value||'center',blur:$('#blurRange')?.value||'0',overlay:$('#overlayRange')?.value||'18'};
   }
 
   function applyWallpaperSettings(save=true){
@@ -338,6 +358,7 @@
     page.style.setProperty('--page-blur',`${settings.blur}px`);page.style.setProperty('--page-overlay',Number(settings.overlay)/100);
     if(preview){preview.style.backgroundSize=settings.fit;preview.style.backgroundPosition=settings.position}
     [video,previewVideo].forEach(media=>{media.style.objectFit=settings.fit;media.style.objectPosition=settings.position});
+    paintZoom();
     const labels={blurValue:`${settings.blur}%`,overlayValue:`${settings.overlay}%`};Object.entries(labels).forEach(([id,value])=>{const el=$('#'+id);if(el)el.textContent=value});
     if(save&&!appearanceDraft)saveOwned(WALLPAPER_SETTINGS_KEY,settings)
   }
@@ -353,7 +374,7 @@
 
   function restoreWallpaperSettings(){
     let settings=readOwned(WALLPAPER_SETTINGS_KEY)
-    if(settings){const mapping={fitSelect:'fit',blurRange:'blur',overlayRange:'overlay'};Object.entries(mapping).forEach(([id,key])=>{const input=$('#'+id);if(input&&settings[key]!=null)input.value=settings[key]});setWallpaperPosition(settings.position)}
+    if(settings){wallpaperZoom=validZoom(settings.zoom);const mapping={fitSelect:'fit',blurRange:'blur',overlayRange:'overlay'};Object.entries(mapping).forEach(([id,key])=>{const input=$('#'+id);if(input&&settings[key]!=null)input.value=settings[key]});setWallpaperPosition(settings.position)}
     applyWallpaperSettings(false);
   }
 
@@ -495,10 +516,10 @@
         const src=activeWallpaperSource||elements.previewVideo?.currentSrc||elements.previewVideo?.src||'';
         if(!src){setSafetyStatus('idle','Choose a wallpaper before adjusting it.');return}
         const settings=currentWallpaperSettings();
-        editor.open({type:'wallpaper',url:src,video:activeWallpaperKind==='video',fit:settings.fit,position:settings.position,
+        editor.open({type:'wallpaper',url:src,video:activeWallpaperKind==='video',fit:settings.fit,position:settings.position,zoom:settings.zoom,
           onSave:async changes=>{
             const fit=$('#fitSelect');if(fit)fit.value=changes.fit;
-            setWallpaperPosition(changes.position);applyWallpaperSettings(true);
+            wallpaperZoom=validZoom(changes.zoom);setWallpaperPosition(changes.position);applyWallpaperSettings(true);
             // Keep the authenticated account and approved public preview aligned, not just this device.
             if(!appearanceDraft&&window.BigLWAUserDirectory?.saveCustomizations){
               const ok=await window.BigLWAUserDirectory.saveCustomizations({wallpaper:currentWallpaperSettings()});
@@ -552,7 +573,7 @@
       Object.entries(mapping).forEach(([id,key])=>{const input=$('#'+id);if(input)input.value=draft.appearance[key]});
       const mappingWallpaper={fitSelect:'fit',blurRange:'blur',overlayRange:'overlay'};
       Object.entries(mappingWallpaper).forEach(([id,key])=>{const input=$('#'+id);if(input)input.value=draft.wallpaper[key]});
-      setWallpaperPosition(draft.wallpaper.position);applyAppearance(false);applyWallpaperSettings(false);
+      wallpaperZoom=validZoom(draft.wallpaper.zoom);setWallpaperPosition(draft.wallpaper.position);applyAppearance(false);applyWallpaperSettings(false);
       syncColorChoices('widgetColor');syncColorChoices('auraColor');
     },
     save(){appearanceDraft=null;applyAppearance(true);applyWallpaperSettings(true);return true},
@@ -568,7 +589,7 @@
           const auraInput=$('#auraColor');if(auraInput&&ap.aura!=null)auraInput.value=ap.aura;
         }
         if(values&&typeof values.wallpaper==='object'){
-          const ws=values.wallpaper;
+          const ws=values.wallpaper;wallpaperZoom=validZoom(ws.zoom);
           const fit=$('#fitSelect');if(fit&&ws.fit!=null)fit.value=ws.fit;
           if(ws.position!=null)setWallpaperPosition(ws.position);
           const blur=$('#blurRange');if(blur&&ws.blur!=null)blur.value=Number(ws.blur);

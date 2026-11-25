@@ -19,6 +19,7 @@ const css=String.raw`
 #biglwaMediaAdjust .media-adjust-stage img,#biglwaMediaAdjust .media-adjust-stage video{position:absolute;inset:0;width:100%;height:100%;display:block;object-fit:cover;object-position:50% 50%;pointer-events:none;user-select:none}
 #biglwaMediaAdjust .media-adjust-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:end;margin-top:12px}
 #biglwaMediaAdjust .media-adjust-controls label{display:grid;gap:5px;min-width:125px;font:700 11px/1.2 system-ui}
+#biglwaMediaAdjust .media-adjust-controls [hidden]{display:none}
 #biglwaMediaAdjust .media-adjust-controls select{font:600 12px system-ui;border:1px solid #c2a0a7;border-radius:8px;background:#fffdf9;color:#3f3135;padding:9px}
 #biglwaMediaAdjust button{font:700 12px system-ui;border:1px solid #b99fa5;border-radius:8px;background:#fffaf5;color:#543e47;cursor:pointer;padding:10px 14px}
 #biglwaMediaAdjust button:focus-visible,#biglwaMediaAdjust select:focus-visible,#biglwaMediaAdjust .media-adjust-stage:focus-visible{outline:2px solid #653f83;outline-offset:3px}
@@ -28,6 +29,7 @@ const css=String.raw`
 @media(max-width:480px){#biglwaMediaAdjust{padding:13px}#biglwaMediaAdjust .media-adjust-stage{height:210px}}
 `;
 const style=document.createElement('style');style.id='biglwa-media-adjust-style';style.textContent=css;document.head.append(style);
+const zoomValue=v=>Math.max(.5,Math.min(3,Number(v)||1));
 const clamp=x=>Math.max(0,Math.min(100,Number(x)||0));
 const parsePosition=value=>{
  const parts=String(value||'center').toLowerCase().trim().split(/\s+/);
@@ -40,21 +42,33 @@ const parsePosition=value=>{
 };
 const positionString=(x,y)=>clamp(x).toFixed(1)+'% '+clamp(y).toFixed(1)+'%';
 let dialog=null,state=null,stage=null,media=null,status=null;
+function sizeImportStage(){
+ if(!state?.isImport||!media?.naturalWidth)return;
+ const ratioField=dialog.querySelector('#mediaRatio');
+ const ratio=Number(ratioField.value)||media.naturalWidth/media.naturalHeight;
+ const available=Math.max(1,dialog.clientWidth-50),height=Math.min(window.innerHeight*.44,380,available/ratio);
+ stage.style.width=height*ratio+'px';stage.style.height=height+'px';stage.style.margin='auto';
+}
 function setup(){
  if(dialog)return;
  dialog=document.createElement('dialog');dialog.id='biglwaMediaAdjust';
- dialog.innerHTML='<header><span class="media-adjust-dots" aria-hidden="true"><i></i><i></i><i></i></span><h2 id="mediaAdjustTitle">Adjust picture</h2></header><p class="media-adjust-help">Drag the image to frame it. Use the arrow keys for small adjustments.</p><div id="mediaAdjustStage" class="media-adjust-stage" role="slider" tabindex="0" aria-label="Drag image position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div><div class="media-adjust-controls"><label id="mediaAdjustFitLabel">Fit<select id="mediaAdjustFit"><option value="cover">Fill frame</option><option value="contain">Show whole image</option></select></label><button id="mediaAdjustCenter" type="button">Center</button><span class="media-adjust-status" id="mediaAdjustStatus" role="status"></span></div><footer class="media-adjust-actions"><button id="mediaAdjustCancel" type="button">Cancel</button><button id="mediaAdjustSave" class="media-adjust-commit" type="button">Save position</button></footer>';
+ dialog.innerHTML='<header><span class="media-adjust-dots" aria-hidden="true"><i></i><i></i><i></i></span><h2 id="mediaAdjustTitle">Adjust picture</h2></header><p class="media-adjust-help">Drag the image to frame it. Use the arrow keys for small adjustments.</p><div id="mediaAdjustStage" class="media-adjust-stage" role="slider" tabindex="0" aria-label="Drag image position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div><div class="media-adjust-controls"><label id="mediaRatioLabel">Frame<select id="mediaRatio"><option value="original">Original shape</option><option value="1">Square</option><option value="0.8">Portrait 4 × 5</option><option value="1.7777778">Wide 16 × 9</option></select></label><label id="mediaAdjustFitLabel">Fit<select id="mediaAdjustFit"><option value="cover">Fill frame</option><option value="contain">Show whole image</option></select></label><label>Zoom <output id="mediaZoomLabel">100%</output><input type="range" id="mediaZoom" min="50" max="300" step="5" value="100"></label><button id="mediaAdjustCenter" type="button">Center</button><span class="media-adjust-status" id="mediaAdjustStatus" role="status"></span></div><footer class="media-adjust-actions"><button id="mediaAdjustCancel" type="button">Cancel</button><button id="mediaAdjustSave" class="media-adjust-commit" type="button">Save position</button></footer>';
  dialog.setAttribute('aria-labelledby','mediaAdjustTitle');
  document.body.append(dialog);
  stage=dialog.querySelector('#mediaAdjustStage');status=dialog.querySelector('#mediaAdjustStatus');
+ dialog.querySelector('#mediaRatio').onchange=sizeImportStage;
  const fit=dialog.querySelector('#mediaAdjustFit');
  const update=()=>{
   if(!state||!media)return;
   media.style.objectPosition=positionString(state.x,state.y);
   media.style.objectFit=state.fit;
+  media.style.transform='scale('+state.zoom+')';
+  media.style.transformOrigin=media.style.objectPosition;
+  dialog.querySelector('#mediaZoomLabel').textContent=Math.round(state.zoom*100)+'%';
   stage.setAttribute('aria-valuenow',String(Math.round(state.x)));
   stage.setAttribute('aria-valuetext','Horizontal '+Math.round(state.x)+'%, vertical '+Math.round(state.y)+'%');
  };
+ dialog.querySelector('#mediaZoom').oninput=e=>{if(state){state.zoom=zoomValue(e.target.value/100);update()}};
  fit.addEventListener('change',()=>{if(state){state.fit=fit.value;update()}});
  dialog.querySelector('#mediaAdjustCenter').addEventListener('click',()=>{if(state){state.x=50;state.y=50;update()}});
  let down=null;
@@ -73,7 +87,7 @@ function setup(){
   let rangeX=-width,rangeY=-height;
   if(naturalW>0&&naturalH>0&&width>0&&height>0){
    const scale=state.fit==='contain'?Math.min(width/naturalW,height/naturalH):Math.max(width/naturalW,height/naturalH);
-   rangeX=width-naturalW*scale;rangeY=height-naturalH*scale;
+   rangeX=width-naturalW*scale*state.zoom;rangeY=height-naturalH*scale*state.zoom;
   }
   // 0 aligns the near edge; 100 aligns the far edge. The image moves exactly with the pointer.
   const dx=e.clientX-down.startX,dy=e.clientY-down.startY;
@@ -103,7 +117,7 @@ function setup(){
  dialog.addEventListener('cancel',e=>{e.preventDefault();close()});
  dialog.querySelector('#mediaAdjustSave').addEventListener('click',async()=>{
   if(!state)return;
-  const fn=state.onSave,data={x:state.x,y:state.y,fit:state.fit,position:positionString(state.x,state.y)};
+  const fn=state.onSave,data={zoom:state.zoom,x:state.x,y:state.y,fit:state.fit,position:positionString(state.x,state.y)};
   const button=dialog.querySelector('#mediaAdjustSave');
   button.disabled=true;status.textContent='Saving position…';
   try{await fn(data);close()}catch(error){status.textContent=error?.message||'Could not save position.'}
@@ -111,14 +125,19 @@ function setup(){
  });
  dialog.addEventListener('close',()=>{stop();state=null;media=null});
 }
-function open({type='wallpaper',url='',video=false,position='center',fit='cover',onSave}={}){
+function open({type='wallpaper',url='',video=false,position='center',fit='cover',zoom=1,onSave}={}){
  setup();
  if(!url||typeof onSave!=='function')return false;
  if(dialog.open)dialog.close();
  const xy=parsePosition(position);
- state={...xy,fit:fit==='contain'?'contain':'cover',onSave};
+ state={...xy,isImport:type==='import',zoom:zoomValue(zoom),fit:fit==='contain'?'contain':'cover',onSave};
+ dialog.querySelector('#mediaZoom').value=String(Math.round(state.zoom*100));
+ dialog.querySelector('#mediaZoomLabel').textContent=Math.round(state.zoom*100)+'%';
+ dialog.querySelector('#mediaRatioLabel').hidden=!state.isImport;
+ dialog.querySelector('#mediaRatio').value='original';
+ stage.removeAttribute('style');
  stage.className='media-adjust-stage'+(type==='photo'?' is-photo':'');
- dialog.querySelector('#mediaAdjustTitle').textContent=type==='photo'?'Adjust profile picture':'Adjust wallpaper';
+ dialog.querySelector('#mediaAdjustTitle').textContent=type==='photo'?'Adjust profile picture':type==='import'?'Frame image':'Adjust wallpaper';
  dialog.querySelector('#mediaAdjustFitLabel').hidden=type==='photo';
  const fitField=dialog.querySelector('#mediaAdjustFit');fitField.value=state.fit;
  stage.replaceChildren();
@@ -126,13 +145,52 @@ function open({type='wallpaper',url='',video=false,position='center',fit='cover'
  if(video){media.muted=true;media.loop=true;media.playsInline=true;media.autoplay=true;media.controls=false;media.src=url;media.addEventListener('loadedmetadata',()=>media.play().catch(()=>{}),{once:true})}
  else {media.alt='Image positioning preview';media.src=url}
  media.style.objectFit=state.fit;media.style.objectPosition=positionString(state.x,state.y);
+ media.addEventListener('load',sizeImportStage,{once:true});
+ media.style.transform='scale('+state.zoom+')';media.style.transformOrigin=media.style.objectPosition;
  stage.append(media);
  stage.setAttribute('aria-valuenow',String(Math.round(state.x)));
  stage.setAttribute('aria-valuetext','Horizontal '+Math.round(state.x)+'%, vertical '+Math.round(state.y)+'%');
  status.textContent='';
- dialog.showModal();
+ dialog.showModal();sizeImportStage();
  stage.focus();
  return true;
 }
-window.BIGLWAMediaAdjust={open,parsePosition,positionString};
+// Export a framed still through the destination's ordinary upload and moderation path.
+async function framedFile(url,frame,aspect,name='framed-image'){
+ const img=new Image();img.crossOrigin='anonymous';img.src=url;await img.decode();
+ const width=Math.min(2048,Math.max(1,img.naturalWidth),Math.max(1,Math.round(img.naturalHeight*aspect)));
+ const canvas=document.createElement('canvas');canvas.width=width;canvas.height=Math.max(1,Math.round(width/aspect));
+ const scale=(frame.fit==='contain'?Math.min:Math.max)(width/img.naturalWidth,canvas.height/img.naturalHeight)*zoomValue(frame.zoom);
+ const w=img.naturalWidth*scale,h=img.naturalHeight*scale;
+ canvas.getContext('2d').drawImage(img,(width-w)*frame.x/100,(canvas.height-h)*frame.y/100,w,h);
+ const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',.92));
+ if(!blob)throw Error('The framed image could not be prepared.');
+ return new File([blob],name.replace(/\.[^.]+$/,'')+'-framed.webp',{type:blob.type});
+}
+function addFrameOption(input){
+ if(!input.accept.split(',').some(value=>['image/*','image/webp'].includes(value.trim().toLowerCase())))return;
+ if(input.closest('#studioAvatarCard,[data-module-key="avatar"]')||/skin|sprite|texture/i.test(input.id+' '+input.name))return;
+ if(!input.isConnected||input.dataset.frameOption||input.disabled||!input.accept.toLowerCase().includes('image')||input.hasAttribute('capture'))return;
+ input.dataset.frameOption='1';
+ const btn=document.createElement('button');btn.type='button';btn.textContent='Import framed image';btn.className='secondary-btn';
+ const host=input.closest('label')||input;host.after(btn);
+ btn.onclick=()=>{
+  const picker=document.createElement('input');picker.type='file';picker.accept='image/jpeg,image/png,image/webp';
+  picker.onchange=()=>{
+   const file=picker.files[0];if(!file)return;
+   const url=URL.createObjectURL(file);
+   const cleanup=()=>URL.revokeObjectURL(url);
+   open({url,type:'import',fit:'contain',onSave:async frame=>{
+    const result=await framedFile(url,frame,stage.clientWidth/stage.clientHeight,file.name);
+    const transfer=new DataTransfer();transfer.items.add(result);input.files=transfer.files;
+    input.dispatchEvent(new Event('change',{bubbles:true}));
+   }});
+   dialog.addEventListener('close',cleanup,{once:true});
+  };picker.click();
+ };
+}
+const scan=node=>{if(node.nodeType!==1)return;if(node.matches('input[type=file]'))addFrameOption(node);node.querySelectorAll('input[type=file]').forEach(addFrameOption)};
+function watchImports(){scan(document.body);new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(scan))).observe(document.body,{childList:true,subtree:true})}
+if(document.body)watchImports();else document.addEventListener('DOMContentLoaded',watchImports,{once:true});
+window.BIGLWAMediaAdjust={open,parsePosition,positionString,framedFile};
 })();

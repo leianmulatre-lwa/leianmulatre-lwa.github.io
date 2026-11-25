@@ -189,6 +189,7 @@ function sanitizeHighlightEdits(raw){
   };
   const keep=entry=>({
     title:safeText(entry?.title,48),cover:cover(entry?.cover),
+    zoom:Math.max(.5,Math.min(3,Number(entry?.zoom)||1.12)),
     x:Math.max(0,Math.min(100,entry?.x==null||!Number.isFinite(Number(entry.x))?50:Number(entry.x))),y:Math.max(0,Math.min(100,entry?.y==null||!Number.isFinite(Number(entry.y))?50:Number(entry.y))),
     hidden:!!entry?.hidden,
     order:Array.isArray(entry?.order)?[...new Set(entry.order.filter(i=>Number.isInteger(i)&&i>=0&&i<100))].slice(0,50):null,
@@ -229,6 +230,7 @@ async function savePublicLook(custom={}){
       layout:account.accountVisibility==='private'?{}:sanitizeLayout(custom.layout),
       highlights:account.accountVisibility==='private'?{version:1,imported:{},custom:[]}:sanitizeHighlightEdits(custom.session?.highlightEdits),
       wallpaper:{
+        zoom:Math.min(3,Math.max(.5,safeNumber(wallpaper.zoom,1))),
         fit:safeText(wallpaper.fit,16),
         position:safeText(wallpaper.position,32),
         blur:safeNumber(wallpaper.blur,0),
@@ -359,6 +361,7 @@ async function loadPublicProfile(rawUsername){
           scoreboardPlate:look.scoreboardPlate==='clear'?'clear':'maroon'
         },
         wallpaper:{
+          zoom:Math.min(3,Math.max(.5,safeNumber(look.wallpaper?.zoom,1))),
           fit:clean(look.wallpaper&&look.wallpaper.fit),
           position:clean(look.wallpaper&&look.wallpaper.position),
           blur:safeNumber(look.wallpaper&&look.wallpaper.blur,0),

@@ -35,6 +35,7 @@
   cover:cleanUrl(raw.cover,true),
   x:raw.x==null||!Number.isFinite(Number(raw.x))?50:Math.max(0,Math.min(100,Number(raw.x))),
   y:raw.y==null||!Number.isFinite(Number(raw.y))?50:Math.max(0,Math.min(100,Number(raw.y))),
+  zoom:Math.max(.5,Math.min(3,Number(raw.zoom)||1.12)),
   hidden:!!raw.hidden,
   order:Array.isArray(raw.order)?[...new Set(raw.order.filter(x=>Number.isInteger(x)&&x>=0&&x<100))].slice(0,50):null,
   added:Array.isArray(raw.added)?raw.added.map(cleanItem).filter(Boolean).slice(0,12):[],
@@ -87,7 +88,7 @@
   img.style.objectPosition=x+'% '+y+'%';
   // A square image naturally has no object-fit overflow to pan. Give both
   // axes a small real framing margin, including once shown on the banner.
-  img.style.transform='translate('+((50-x)*.24).toFixed(2)+'%, '+((50-y)*.24).toFixed(2)+'%) scale(1.12)';
+  img.style.transform='translate('+((50-x)*.24).toFixed(2)+'%, '+((50-y)*.24).toFixed(2)+'%) scale('+(record.zoom||1.12)+')';
  }
  function customize(group,index){
   const entry=get().imported[String(index)];
@@ -96,11 +97,11 @@
   const count=Array.isArray(group.items)?group.items.length:0;
   const order=entry.order===null?[...Array(count).keys()]:entry.order.filter(i=>i<count);
   return {...group,title:entry.title||group.title,cover:entry.cover||group.cover,
-   coverX:entry.x,coverY:entry.y,
+   coverX:entry.x,coverY:entry.y,coverZoom:entry.zoom,
    items:[...order.map(i=>group.items[i]),...entry.added]};
  }
  const current=()=>get().custom.filter(x=>!x.hidden&&x.added.length).map(x=>({
-  title:x.title||'Highlight',cover:x.cover||'',coverX:x.x,coverY:x.y,
+  title:x.title||'Highlight',cover:x.cover||'',coverX:x.x,coverY:x.y,coverZoom:x.zoom,
   platform:platformOf(x),items:x.added,customId:x.id
  }));
  function refresh(){window.dispatchEvent(new Event('biglwa:highlight-config-changed'))}
@@ -263,6 +264,10 @@
   head.append(circle,headActions);wrap.append(head);
   // Explicit opt-in dragging: crop positions are persisted with the existing
   // Highlight record (x/y), without modifying the imported original image.
+  const zoomLabel=make('label','','Cover zoom');
+  const zoom=make('input');zoom.type='range';zoom.min='50';zoom.max='300';zoom.step='1';
+  zoom.value=String(Math.round((data.zoom||1.12)*100));zoomLabel.append(zoom);zoomLabel.hidden=true;headActions.append(zoomLabel);
+  zoom.oninput=()=>{data.zoom=Number(zoom.value)/100;applyCover(picture,data);touchDraft()};
   let adjusting=false,drag=null;
   const clearDrag=()=>{
    drag=null;
@@ -273,7 +278,7 @@
   const clamp=v=>Math.max(0,Math.min(100,Math.round(v)));
   const place=(x,y)=>{data.x=clamp(x);data.y=clamp(y);applyCover(picture,data);touchDraft()};
   const enableAdjust=on=>{
-   adjusting=on;clearDrag();
+   adjusting=on;zoomLabel.hidden=!on;clearDrag();
    circle.classList.toggle('is-adjusting',on);
    circle.style.touchAction=on?'none':'';
    circle.tabIndex=on?0:-1;
@@ -642,11 +647,24 @@
       if(!current.url){pictureStatus('Choose a profile picture before adjusting it.');return}
       const editor=window.BIGLWAMediaAdjust;
       if(!editor){pictureStatus('Alignment editor unavailable. Reload Studio to try again.');return}
-      editor.open({type:'photo',url:current.url,position:(current.position.x??50)+'% '+(current.position.y??50)+'%',fit:'cover',
+      const directory=window.BigLWAUserDirectory;
+      const account=await directory.loadProfile();
+      const saved=account?.customization?.session?.photoFrame;
+      const recipe=saved?.result===current.url?saved:null;
+      const source=recipe?.source||current.url;
+      const pos=recipe||current.position;
+      editor.open({type:'photo',url:source,position:(pos.x??50)+'% '+(pos.y??50)+'%',fit:'cover',zoom:recipe?.zoom||1,
         onSave:async changes=>{
-          await api.saveProfilePhotoPosition(changes);
-          showPhotoPreview(current.url,changes);
-          pictureStatus('Profile picture alignment saved to your account.');
+          if(changes.zoom===1&&!recipe){
+            await api.saveProfilePhotoPosition(changes);
+            showPhotoPreview(current.url,changes);
+          }else{
+            const file=await editor.framedFile(source,changes,1,'profile-picture');
+            const result=await api.uploadProfilePhoto(file);
+            if(!await directory.saveCustomizations({session:{photoFrame:{source,result:result.url,x:changes.x,y:changes.y,zoom:changes.zoom}}}))throw Error('Photo saved, but its editable framing could not sync. Try saving again.');
+            showPhotoPreview(result.url,{x:50,y:50});
+          }
+          pictureStatus('Profile picture framing saved to your account.');
         }});
     }catch(e){pictureStatus(e.message||'Could not open profile picture adjustment.')}
   });

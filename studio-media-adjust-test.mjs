@@ -43,5 +43,15 @@ assert.equal(editor.open({type:'photo',url:'https://example.com/photo.jpg',posit
 assert(stage.classList.contains('is-photo'),'Photo preview uses a round crop');
 q('#mediaAdjustCenter').click();assert.equal(stage.querySelector('img').style.objectPosition,'50.0% 50.0%');
 q('#mediaAdjustCancel').click();assert(!dialog.open,'Cancel exits without committing');
+editor.open({type:'photo',url:'https://example.com/p.jpg',zoom:1.5,onSave:data=>{saved=data}});
+assert.equal(q('#mediaZoom').value,'150');
+q('#mediaZoom').value='65';q('#mediaZoom').dispatchEvent(new w.Event('input'));
+assert.equal(stage.querySelector('img').style.transform,'scale(0.65)');
+assert.equal(q('#mediaZoomLabel').textContent,'65%');
+q('#mediaAdjustSave').click();await new Promise(resolve=>setTimeout(resolve,1));
+assert.equal(saved.zoom,.65);
+const input=w.document.createElement('input');input.type='file';input.accept='image/*';w.document.body.append(input);
+await new Promise(resolve=>setTimeout(resolve,1));
+assert.equal(input.nextElementSibling.textContent,'Import framed image');
 dom.window.close();
 console.log('PASS wallpaper and profile photo drag-to-align; correct layout, persistent account position, cancel/reset, public mirror');
