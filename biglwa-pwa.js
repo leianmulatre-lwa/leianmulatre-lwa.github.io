@@ -25,18 +25,7 @@
   if(!auth.currentUser)throw Error('Sign in to BIG LWA before testing remote delivery.');
   return auth.currentUser;
  }
- async function remoteTest(config){
-  if(!config?.vapidKey||!config?.apiOrigin)throw Error('Remote push pilot is not configured yet.');
-  const endpoint=new URL(config.apiOrigin);
-  if(endpoint.protocol!=='https:'||endpoint.username||endpoint.password||endpoint.pathname!=='/'||endpoint.search||endpoint.hash)throw Error('Invalid notification server configuration.');
-  const user=await pilotAuth(config);
-  // Existing subscription must belong to the same VAPID key; don't silently replace it.
-  const expected=keyBytes(config.vapidKey);
-  let sub=await registration.pushManager.getSubscription();
-  if(sub){
-   const actual=new Uint8Array(sub.options.applicationServerKey||[]);
-   if(actual.length!==expected.length||actual.some((v,i)=>v!==expected[i]))throw Error('Disable the old subscription on this device before setting up BIG LWA push.');
-  }else sub=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:expected});
+ async function sendRemoteTest(endpoint,user,sub){
   const response=await fetch(new URL('/v1/test',endpoint),{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+await user.getIdToken()},body:JSON.stringify({subscription:sub.toJSON()}),cache:'no-store',credentials:'omit',redirect:'error'});
   const result=await response.json().catch(()=>({}));
   if(!response.ok)throw Error(result.error||'Remote notification server unavailable.');
@@ -55,7 +44,7 @@
     if(installPrompt){await installPrompt.prompt();installPrompt=null;return;}
     setStatus(ios()?'In Safari, open Share → Add to Home Screen, then launch BIG LWA from its icon.':'Use your browser menu to install this app or add it to your home screen.');
    });
-   const enable=button('Enable notifications / send a test',async()=>{
+   const enable=button('Enable notifications / send a local test',async()=>{
     if(ios()&&!standalone()){setStatus('Install BIG LWA on your home screen and open it there before enabling notifications.');return;}
     if(!('Notification' in window)||!('serviceWorker' in navigator)){setStatus('Notifications are unavailable on this browser.');return;}
     if(!registration){setStatus('The app is still preparing. Try again once the notification service is ready.');return;}
@@ -65,13 +54,37 @@
      const permission=Notification.permission==='granted'?'granted':await Notification.requestPermission();
      if(permission!=='granted'){setStatus('Notifications are off. You can change them in device settings.');return;}
      await registration.showNotification('BIG LWA',{body:'Your test notification is working.',icon:'/apple-touch-icon.png',tag:'biglwa-local-test',data:{url:'/studio'}});
-     const config=await cfg();
-     if(!config?.vapidKey||!config?.apiOrigin){setStatus('Local test sent. Remote push delivery is not configured yet.');return;}
-     if(!('PushManager' in window)){setStatus('Local test sent. Remote push is unsupported on this device.');return;}
-     await remoteTest(config);
-     setStatus('The push gateway accepted your remote test. Check your device notifications. Account event alerts are not connected yet.');
+     setStatus('Local test sent. Remote push delivery is not configured yet unless the private pilot button below is available.');
     }catch(error){setStatus('Notification setup failed: '+(error.message||'Try again.'));}finally{enable.disabled=false;}
    });
+   let prepared=null;
+   const remote=button('Enable remote push / send a remote test',async()=>{
+    if(!prepared){setStatus('The private remote pilot is not ready.');return;}
+    if(ios()&&!standalone()){setStatus('Open BIG LWA from its home-screen icon first.');return;}
+    remote.disabled=true;
+    const {endpoint,user,expected}=prepared;
+    try{
+     // Invoke subscribe directly from this trusted click; all configuration,
+     // service-worker setup and account discovery have already completed.
+     const sub=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:expected});
+     await sendRemoteTest(endpoint,user,sub);
+     setStatus('The push gateway accepted your remote test. Check your device notifications. Account event alerts are not connected yet.');
+    }catch(error){setStatus('Remote push test failed: '+(error.message||'Try again. Disable an old subscription before retrying if the key changed.'));}
+    finally{remote.disabled=false;}
+   });
+   remote.disabled=true;remote.hidden=true;
+   void (async()=>{
+    try{
+     const config=await cfg();
+     if(!config?.vapidKey||!config?.apiOrigin||!('PushManager' in window)||!await swReady)return;
+     if(ios()&&!standalone())return;
+     const endpoint=new URL(config.apiOrigin);
+     if(endpoint.protocol!=='https:'||endpoint.username||endpoint.password||endpoint.pathname!=='/'||endpoint.search||endpoint.hash)throw Error('Invalid notification server configuration.');
+     const user=await pilotAuth(config),expected=keyBytes(config.vapidKey);
+     if(expected.length!==65||expected[0]!==4)throw Error('Invalid public VAPID key.');
+     prepared={endpoint,user,expected};remote.hidden=false;remote.disabled=false;
+    }catch(error){setStatus('Remote pilot is not ready: '+(error.message||'Sign in and retry.'));}
+   })();
    const disable=button('Disable remote notifications on this device',async()=>{
     try{
      await swReady;
@@ -79,8 +92,8 @@
      setStatus('Remote subscription removed. To revoke local alerts too, turn off BIG LWA in device notification settings.');
     }catch(error){setStatus('Could not remove the subscription: '+(error.message||'Try again.'));}
    });
-   host.prepend(install,enable,disable);
-   void swReady.then(r=>setStatus(r?'Notifications are opt-in. Tap to send a local test.':'Notification service unavailable.'));
+   host.prepend(install,enable,remote,disable);
+   void swReady.then(r=>{if(!status.textContent)setStatus(r?'Notifications are opt-in. Tap to send a local test.':'Notification service unavailable.');});
    return;
   }
   if(!mobile())return;

@@ -12,6 +12,8 @@ assert(client.includes('Notification.requestPermission()')&&client.includes('reg
 assert(client.includes('sub.unsubscribe()')&&client.includes('registration.pushManager.subscribe'));
 assert(client.includes('Continue in portrait')&&client.includes('Remote push delivery is not configured yet.'));
 for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html','settings/index.html']){
- const shell=read(path);assert(shell.includes('/biglwa.webmanifest'));assert(shell.includes('/biglwa-pwa.js?v=2'));assert(shell.includes('viewport-fit=cover'));
+ const shell=read(path);assert(shell.includes('/biglwa.webmanifest'));assert(shell.includes('/biglwa-pwa.js?v=3'));assert(shell.includes('viewport-fit=cover'));
 }
 console.log('PASS install manifest, shell wiring, opt-in notification controls, no fetch cache, portrait alternative');
+
+assert(client.indexOf('const sub=await registration.pushManager.subscribe')<client.indexOf('await sendRemoteTest(endpoint,user,sub)'),'Subscribe occurs before remote network call');
