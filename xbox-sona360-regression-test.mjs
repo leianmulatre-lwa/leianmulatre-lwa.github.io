@@ -36,7 +36,83 @@ const sample='https://360sona.com/w/k_JKIiB9soQQcIj77klMY';
 assert.equal(validate(sample),sample);
 assert.equal(validate('https://evil.com/w/k_JKIiB9soQQcIj77klMY'),'');
 assert.equal(validate('javascript:alert(1)'),'');
-assert.equal(validate(sample+'?redirect=evil'),'');
+const pasteCases=[
+  [
+    "https://360sona.com/w/k_JKIiB9soQQcIj77klMY",
+    "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+  ],
+  [
+    "https://360sona.com/w/k_JKIiB9soQQcIj77klMY?theme=dark#preview",
+    "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+  ],
+  [
+    "https://360sona.com/w/k_JKIiB9soQQcIj77klMY?redirect=evil",
+    "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+  ],
+  [
+    "https://360sona.com/w/k_JKIiB9soQQcIj77klMY/",
+    "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+  ],
+  [
+    "  https://360sona.com/w/k_JKIiB9soQQcIj77klMY  ",
+    "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+  ],
+  [
+    "360sona.com/w/k_JKIiB9soQQcIj77klMY",
+    "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+  ],
+  [
+    "//360sona.com/w/k_JKIiB9soQQcIj77klMY",
+    "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+  ],
+  [
+    "<iframe width=\"265\"\\n src=\"https://360sona.com/w/k_JKIiB9soQQcIj77klMY?theme=dark\" height=\"170\"></iframe>",
+    "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+  ],
+  [
+    "<iframe src='https://360sona.com/w/k_JKIiB9soQQcIj77klMY'></iframe>",
+    "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+  ],
+  [
+    "<iframe src=https://360sona.com/w/k_JKIiB9soQQcIj77klMY></iframe>",
+    "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+  ],
+  [
+    "https://360sona.com.evil.test/w/k_JKIiB9soQQcIj77klMY",
+    ""
+  ],
+  [
+    "https://360sona.com@evil.test/w/k_JKIiB9soQQcIj77klMY",
+    ""
+  ],
+  [
+    "https://360sona.com:444/w/k_JKIiB9soQQcIj77klMY",
+    ""
+  ],
+  [
+    "javascript:alert(1)",
+    ""
+  ],
+  [
+    "https://360sona.com/not-a-widget",
+    ""
+  ],
+  [
+    "<iframe src=\"https://evil.test/w/k_JKIiB9soQQcIj77klMY\"></iframe>",
+    ""
+  ],
+  [
+    "<iframe data-src=\"https://360sona.com/w/k_JKIiB9soQQcIj77klMY\" src=\"https://evil.test/\"></iframe>",
+    ""
+  ],
+  [
+    "http://360sona.com/w/k_JKIiB9soQQcIj77klMY",
+    ""
+  ]
+];
+for(const [input,expected] of pasteCases)assert.equal(validate(input),expected,input);
+assert.ok(source.includes("inp.addEventListener('paste'"),'Clipboard is read on the input');
+assert.ok(source.includes("previewSonaInput(inp)"),'Paste updates preview');
 assert.equal(validate('https://360sona.com@bad.site/w/k_JKIiB9soQQcIj77klMY'),'');
 assert.equal(validate('https://360sona.com/not-a-widget'),'');
 assert.equal(provided.v,1);

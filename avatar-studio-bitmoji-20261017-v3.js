@@ -13,12 +13,18 @@
   });
   // A creator's shared widget is not a default for every member.
   const sonaUrl=value=>{
-    try{
-      const u=new URL(String(value||'').trim());
-      return u.protocol==='https:'&&['360sona.com','www.360sona.com'].includes(u.hostname)&&
-        !u.username&&!u.password&&!u.search&&!u.hash&&/^\/w\/[A-Za-z0-9_-]{8,96}\/?$/.test(u.pathname)
-          ?u.origin+u.pathname:'';
-    }catch{return ''}
+    let raw=String(value||'').trim();
+    // The 360sona creator copies iframe code as well as plain display-case URLs.
+    // Extract only its src as text; never insert clipboard HTML into the page.
+    if(raw.includes('<')){
+      const embed=raw.match(/<iframe\b[^>]*?\s+src\s*=\s*(?:"([^"]+)"|'([^']+)'|([^\s"'=<>]+))/i);
+      if(!embed)return '';
+      raw=(embed[1]||embed[2]||embed[3]||'').trim();
+    }
+    // Exact host and public widget path only. Discard query/fragment metadata
+    // rather than forwarding arbitrary parameters into the third-party frame.
+    const match=raw.match(/^(?:https:\/\/|\/\/)?((?:www\.)?360sona\.com)\/w\/([A-Za-z0-9_-]{8,96})\/?(?:[?#][^\s<>"']*)?$/i);
+    return match?'https://'+match[1].toLowerCase()+'/w/'+match[2]:'';
   };
   const state={loadedUid:'',skinViewer:null,skinLibrary:null,avatar:null,busy:false,layout:null,minecraftSlim:false};
   const one=(selector,root=document)=>root.querySelector(selector);
@@ -245,16 +251,30 @@
     const preview=one('#biglwaAvatarProfilePreview');if(preview){disposeViewer(preview);preview.replaceChildren();preview.dataset.avatarSrc='';}
     if(name==='sona360'){
       const owned=state.avatar?.type==='sona360'?sonaUrl(state.avatar.url):'';
-      mount.innerHTML='<p>Paste your public 360sona display-case link. Never enter your 360sona password into BIGLWA. Outfits and animation settings are controlled at 360sona.</p>'+
+      mount.innerHTML='<p>Paste your public 360sona display-case link or its copied embed code. Never enter your 360sona password into BIGLWA. Outfits and animation settings are controlled at 360sona.</p>'+
         '<label class="biglwa-sona-label" for="biglwaSonaWidgetURL">360sona widget link</label>'+
-        '<input id="biglwaSonaWidgetURL" type="url" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://360sona.com/w/your-widget-id" aria-label="360sona display case URL">'+
+        '<input id="biglwaSonaWidgetURL" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://360sona.com/w/your-widget-id" aria-label="360sona display case URL">'+
         '<div class="biglwa-sona-actions"><button type="button" data-sona-preview>Preview</button><button type="button" data-sona-save>Save Avatar</button>'+
         '<button type="button" data-sona-example>Use supplied example</button></div>'+
         '<div id="biglwaSonaLivePreview" class="biglwa-sona-editor-preview" aria-label="360sona live display-case preview"><span>Your widget will appear here when you provide its link.</span></div>'+
         '<div class="biglwa-sona-creator-actions"><button type="button" data-sona-creator aria-expanded="false" aria-controls="biglwaSonaCreator">Create here ▾</button><a class="biglwa-sona-external" href="https://360sona.com/" target="_blank" rel="noopener noreferrer">Open creator in new tab ↗</a></div>'+ '<div id="biglwaSonaCreator" hidden><p>This is 360sona in a browser frame. If its website blocks embedding, use the new-tab link above, then paste the finished widget URL here.</p><iframe title="360sona avatar creator" loading="lazy" referrerpolicy="no-referrer" data-sona-editor></iframe></div>'+
         '<small class="biglwa-sona-note">Display case: 320 × 546, full avatar, original 360sona theme. BIGLWA does not control the third-party editor.</small>';
       const inp=one('#biglwaSonaWidgetURL',mount);
-      if(inp)inp.value=owned;
+      if(inp){
+        inp.value=owned;
+        inp.addEventListener('paste',event=>{
+          const raw=event.clipboardData?.getData('text/plain')||event.clipboardData?.getData('text/html');
+          if(!raw)return;
+          event.preventDefault();event.stopPropagation();
+          inp.value=sonaUrl(raw)||raw;
+          previewSonaInput(inp);
+        });
+        inp.addEventListener('change',()=>{if(sonaUrl(inp.value))previewSonaInput(inp)});
+        inp.addEventListener('keydown',event=>{
+          if(event.key!=='Enter'||event.isComposing)return;
+          event.preventDefault();event.stopPropagation();previewSonaInput(inp);
+        });
+      }
       if(owned)renderSonaFrame(one('#biglwaSonaLivePreview',mount),owned);
     }else if(name==='bitmoji'){
       mount.innerHTML='<p>Use the Bitmoji from your connected Snapchat account. Connect Snapchat in Orbit first, then return here.</p>'+ 
@@ -448,10 +468,20 @@
     }catch(error){setStatus('Model preview updated; account save failed: '+(error.message||'Retry.'))}
     finally{state.busy=false;}
   }
+  function previewSonaInput(input){
+    const url=sonaUrl(input?.value);
+    if(!url){setStatus('Paste a public 360sona display-case link (360sona.com/w/…) or the copied iframe embed code.');return false;}
+    input.value=url;
+    const preview=one('#biglwaSonaLivePreview');
+    if(preview?.querySelector('iframe[data-sona-widget]')?.getAttribute('src')!==url)renderSonaFrame(preview,url);
+    setStatus('Previewing your display case. Save to show it on your profile.');
+    return true;
+  }
   async function saveSona(){
     const input=one('#biglwaSonaWidgetURL');
     const url=sonaUrl(input?.value);
-    if(!url){setStatus('Paste a valid HTTPS 360sona public link (https://360sona.com/w/…).');return false;}
+    if(!url){setStatus('Paste a public 360sona display-case link (360sona.com/w/…) or the copied iframe embed code.');return false;}
+    input.value=url;
     if(state.busy)return false;
     state.busy=true;setStatus('Saving your Avatar to your account…');
     try{
@@ -654,10 +684,7 @@
       return;
     }
     if(e.target.closest('#profileAvatarEditor [data-sona-preview]')){
-      e.preventDefault();const url=sonaUrl(one('#biglwaSonaWidgetURL')?.value);
-      if(!url){setStatus('Paste your public 360sona widget URL first.');return;}
-      renderSonaFrame(one('#biglwaSonaLivePreview'),url);
-      setStatus('Previewing your display case. Save to show it on your profile.');return;
+      e.preventDefault();previewSonaInput(one('#biglwaSonaWidgetURL'));return;
     }
     const creator=e.target.closest('#profileAvatarEditor [data-sona-creator]');
     if(creator){

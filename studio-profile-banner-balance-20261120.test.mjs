@@ -187,3 +187,89 @@ test('identity controls and thicker square scoreboard clock',()=>{
  assert.match(css,/\.biglwa-profile-scoreboard \.biglwa-score-clock-face\{\s*border-radius:0!important/);
  for(const shell of shells)assert.match(read(shell),/studio-profile-banner-balance-20261120\.css\?[^"']*thickframe=20261124-1/);
 });
+
+
+test('360sona accepts copied display-case links and embed code safely',()=>{
+ const source=read('avatar-studio-bitmoji-20261017-v3.js');
+ const a=source.indexOf('  const sonaUrl=value=>'),b=source.indexOf('  const state=',a);
+ const validate=new Function(source.slice(a,b)+'\nreturn sonaUrl;')();
+ const pasteCases=[
+   [
+     "https://360sona.com/w/k_JKIiB9soQQcIj77klMY",
+     "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+   ],
+   [
+     "https://360sona.com/w/k_JKIiB9soQQcIj77klMY?theme=dark#preview",
+     "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+   ],
+   [
+     "https://360sona.com/w/k_JKIiB9soQQcIj77klMY?redirect=evil",
+     "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+   ],
+   [
+     "https://360sona.com/w/k_JKIiB9soQQcIj77klMY/",
+     "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+   ],
+   [
+     "  https://360sona.com/w/k_JKIiB9soQQcIj77klMY  ",
+     "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+   ],
+   [
+     "360sona.com/w/k_JKIiB9soQQcIj77klMY",
+     "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+   ],
+   [
+     "//360sona.com/w/k_JKIiB9soQQcIj77klMY",
+     "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+   ],
+   [
+     "<iframe width=\"265\"\\n src=\"https://360sona.com/w/k_JKIiB9soQQcIj77klMY?theme=dark\" height=\"170\"></iframe>",
+     "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+   ],
+   [
+     "<iframe src='https://360sona.com/w/k_JKIiB9soQQcIj77klMY'></iframe>",
+     "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+   ],
+   [
+     "<iframe src=https://360sona.com/w/k_JKIiB9soQQcIj77klMY></iframe>",
+     "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"
+   ],
+   [
+     "https://360sona.com.evil.test/w/k_JKIiB9soQQcIj77klMY",
+     ""
+   ],
+   [
+     "https://360sona.com@evil.test/w/k_JKIiB9soQQcIj77klMY",
+     ""
+   ],
+   [
+     "https://360sona.com:444/w/k_JKIiB9soQQcIj77klMY",
+     ""
+   ],
+   [
+     "javascript:alert(1)",
+     ""
+   ],
+   [
+     "https://360sona.com/not-a-widget",
+     ""
+   ],
+   [
+     "<iframe src=\"https://evil.test/w/k_JKIiB9soQQcIj77klMY\"></iframe>",
+     ""
+   ],
+   [
+     "<iframe data-src=\"https://360sona.com/w/k_JKIiB9soQQcIj77klMY\" src=\"https://evil.test/\"></iframe>",
+     ""
+   ],
+   [
+     "http://360sona.com/w/k_JKIiB9soQQcIj77klMY",
+     ""
+   ]
+ ];
+ for(const [input,expected] of pasteCases)assert.equal(validate(input),expected,input);
+ assert.ok(source.includes("inp.addEventListener('paste'"),'Clipboard is read on the input');
+ assert.ok(source.includes("previewSonaInput(inp)"),'Paste updates preview');
+ 
+ for(const shell of shells)assert.match(read(shell),/avatar-studio-bitmoji-20261017-v3\.js\?[^"']*sonapaste=20261124-1/);
+});
