@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261124-1&callback=20261124-2&threads=20261125-1';
+        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261124-1&callback=20261124-2&threads=20261125-1&avatarload=20261125-1';
         document.head.appendChild(script);
       }, 250);
     }
@@ -3108,15 +3108,8 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         const trusted='https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/profile-photo/';
         const raw=String(record?.url||'');
         const url=raw.startsWith(trusted)?raw:'';
-        let sona='';
-        if(record?.type==='sona360'){
-          try{
-            const u=new URL(raw);
-            if(u.protocol==='https:'&&['360sona.com','www.360sona.com'].includes(u.hostname)&&
-               new RegExp('^/w/[A-Za-z0-9_-]{8,96}/?$').test(u.pathname)&&!u.search&&!u.hash)
-              sona=u.origin+u.pathname;
-          }catch{}
-        }
+        const display=window.BigLWAAvatarDisplay;
+        const sona=record?.type==='sona360'?display?.url(raw):'';
         const label=record?.type==='mii'?String(record?.preset?.name||'your Mii').slice(0,32):
           record?.type==='minecraft'?'minecraft character':record?.type==='sona360'?'360sona':'your character';
         badge.querySelector('strong').textContent='playing as '+(record?.type?label:'yourself');
@@ -3131,10 +3124,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
             art.className='biglwa-game-avatar-photo';art.onerror=()=>art.replaceWith(document.createTextNode('◉'));
             live.replaceChildren(art);}
         }else if(sona&&live){
-          const frame=document.createElement('iframe');frame.src=sona;frame.title='Interactive 360sona avatar';
-          frame.loading='lazy';frame.referrerPolicy='no-referrer';
-          frame.setAttribute('allow','fullscreen');frame.setAttribute('allowfullscreen','');
-          frame.className='biglwa-game-sona-frame';live.replaceChildren(frame);
+          if(display.render(live,sona,true))live.firstElementChild.classList.add('biglwa-game-sona-frame');
         }
       }catch(error){console.warn('[BIGLWA Arcade] Avatar preview unavailable:',error)}
     };

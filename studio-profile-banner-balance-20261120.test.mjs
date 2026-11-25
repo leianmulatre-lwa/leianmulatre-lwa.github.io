@@ -279,8 +279,8 @@ test('360sona Enter and Preview force a fresh eager visible iframe and preserve 
  const source=read('avatar-studio-bitmoji-20261017-v3.js');
  assert(source.includes("previewSonaInput(inp,true)"));
  assert(source.includes("previewSonaInput(one('#biglwaSonaWidgetURL'),true)"));
- assert(source.includes("iframe.loading=compact?'lazy':'eager'"));
+ assert(source.includes("iframe.loading='eager'"));
  assert(source.includes("iframe.referrerPolicy='strict-origin'"));
- assert(source.includes('frame.isConnected&&preview.querySelector'));
- assert(source.includes('Only on'));
+ assert(source.includes('!iframe.isConnected||iframe.parentElement!==wrap'));
+ assert(source.includes('published and allowed on biglwa.com'));
 });

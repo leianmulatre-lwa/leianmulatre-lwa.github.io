@@ -21,15 +21,14 @@
       if(!embed)return '';
       raw=(embed[1]||embed[2]||embed[3]||'').trim();
     }
-    // Exact host and public widget path only. Discard query/fragment metadata
-    // rather than forwarding arbitrary parameters into the third-party frame.
-    const match=raw.match(/^(?:https:\/\/|\/\/)?((?:www\.)?360sona\.com)\/w\/([A-Za-z0-9_-]{8,96})\/?(?:[?#][^\s<>"']*)?$/i);
-    return match?'https://'+match[1].toLowerCase()+'/w/'+match[2]:'';
+    // Display Case and Share each publish a public, embeddable URL.
+    const match=raw.match(/^(?:https:\/\/|\/\/)?((?:www\.)?360sona\.com)\/(w\/[A-Za-z0-9_-]{4,64}|s\/[A-Za-z0-9_-]{12})\/?(?:[?#][^\s<>"']*)?$/i);
+    return match?'https://'+match[1].toLowerCase()+'/'+match[2]:'';
   };
-  const state={loadedUid:'',skinViewer:null,skinLibrary:null,avatar:null,busy:false,layout:null,minecraftSlim:false};
+  const state={restoring:false,loadedUid:'',skinViewer:null,skinLibrary:null,avatar:null,busy:false,layout:null,minecraftSlim:false};
   const one=(selector,root=document)=>root.querySelector(selector);
   const current=()=>window.__biglwaIdentity?.uid||'';
-  let firebasePromise=null;
+  let firebasePromise=null,restoreRequest=0;
   async function firebase(){
     if(!firebasePromise)firebasePromise=Promise.all([
       import('https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js'),
@@ -39,7 +38,7 @@
       const app=appMod.getApps()[0];
       if(!app)throw Error('BIGLWA account is still loading.');
       return {auth:authMod.getAuth(app),db:store.getFirestore(app),...store};
-    });
+    }).catch(error=>{firebasePromise=null;throw error;});
     return firebasePromise;
   }
   const setStatus=message=>{for(const id of ['#biglwaAvatarStatus','#biglwaAvatarCompactStatus']){const el=one(id);if(el)el.textContent=message;}};
@@ -70,12 +69,10 @@
     const key=atlasUrl+':'+(large?'large':'small')+':'+skinType;
     if(root.dataset.minecraftSkin===key&&root._biglwaMinecraftModel)return true;
     disposeViewer(root);
+    root.dataset.sonaFrameUrl='';
     root.dataset.minecraftSkin=key;
     root.replaceChildren();
-    const loading=document.createElement('span');
-    loading.className='biglwa-minecraft-loading';
-    loading.textContent='Loading Minecraft character…';
-    root.append(loading);
+    const loading=avatarLoader(root);
     try{
       const viewer=await loadMannequin();
       if(!root.isConnected||root.dataset.minecraftSkin!==key)return false;
@@ -85,7 +82,10 @@
         onError:error=>{if(root.dataset.minecraftSkin===key)setStatus(error?.message||'Minecraft texture could not load.');}
       });
       root._biglwaMinecraftModel=model;
+      const stage=root.querySelector('.biglwa-mc-stage');
+      if(stage)stage.append(loading);
       await model.ready;
+      loading.remove();
       return true;
     }catch(error){
       if(root.isConnected&&root.dataset.minecraftSkin===key){
@@ -99,22 +99,60 @@
       return false;
     }
   }
-  function renderSonaFrame(root,value,compact=false){
+  function avatarPlaceholder(root,message,url=''){
+    root.replaceChildren();
+    const placeholder=document.createElement('div');
+    placeholder.className='biglwa-avatar-empty';
+    placeholder.setAttribute('role','group');
+    const symbol=document.createElement('img');
+    symbol.src='/sesa-wo-suban-medium.png';symbol.alt='';symbol.width=42;symbol.height=42;
+    placeholder.append(symbol);
+    if(url){
+      const link=document.createElement('a');
+      link.href=url;link.target='_blank';link.rel='noopener noreferrer';
+      link.textContent='Open on 360sona ↗';link.setAttribute('aria-label',message+' Open on 360sona.');
+      placeholder.append(link);
+    }else placeholder.setAttribute('aria-label',message);
+    root.append(placeholder);
+  }
+  function avatarLoader(root){
+    const curtain=document.createElement('div');
+    curtain.className='biglwa-avatar-loading';
+    curtain.setAttribute('role','status');curtain.setAttribute('aria-label','Loading avatar');
+    root.append(curtain);
+    return curtain;
+  }
+  function renderSonaFrame(root,value,compact=false,{retry=false,onState,publicView=false}={}){
     if(!root)return false;
     const url=sonaUrl(value);
-    if(!url){root.textContent='Add a valid 360sona display case URL.';return false;}
-    disposeViewer(root);root.replaceChildren();
+    if(!url)return false;
+    if(!retry&&root.dataset.sonaFrameUrl===url&&root.querySelector('iframe[data-sona-widget], .biglwa-sona-frame>.biglwa-avatar-empty'))return true;
+    disposeViewer(root);root.dataset.minecraftSkin='';root.replaceChildren();
+    root.dataset.sonaFrameUrl=url;
     const wrap=document.createElement('div');wrap.className='biglwa-sona-frame'+(compact?' is-compact':'');
     const iframe=document.createElement('iframe');
-    iframe.src=url;iframe.title='Avatar · 360sona display case';
-    iframe.width='265';iframe.height='170';iframe.loading=compact?'lazy':'eager';
-    // Only the site origin is sent, never the member's profile path or query.
-    // Published 360sona cases can restrict which sites may embed them.
+    iframe.title='Avatar · 360sona display case';
+    iframe.width='265';iframe.height='170';iframe.loading='eager';
     iframe.referrerPolicy='strict-origin';iframe.setAttribute('allow','fullscreen');
+    if(publicView)iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-popups');
     iframe.setAttribute('data-sona-widget','1');iframe.style.border='0';
-    // Preserve actual interaction (drag/rotate/pet gestures) in the compact display case.
-    wrap.append(iframe);root.append(wrap);return true;
+    const curtain=avatarLoader(wrap);
+    const finish=status=>{
+      clearTimeout(timer);
+      if(!iframe.isConnected||iframe.parentElement!==wrap)return;
+      if(status==='ready')curtain.remove();
+      else avatarPlaceholder(wrap,'Avatar unavailable.',url);
+      onState?.(status);
+    };
+    const timer=setTimeout(()=>finish('timeout'),12000);
+    iframe.addEventListener('load',()=>finish('ready'),{once:true});
+    iframe.addEventListener('error',()=>finish('error'),{once:true});
+    iframe.src=url;
+    wrap.prepend(iframe);root.append(wrap);
+    onState?.('loading');
+    return true;
   }
+  window.BigLWAAvatarDisplay={url:sonaUrl,render:renderSonaFrame,placeholder:avatarPlaceholder};
   function mediaNode(){return one('#biglwaAvatarMedia')}
   function showAvatar(){
     syncEditorPreview();
@@ -127,18 +165,21 @@
     }
     if(a?.type==='sona360'&&sonaUrl(a.url)){renderSonaFrame(view,a.url,true);return;}
     disposeViewer(view);view.dataset.minecraftSkin='';
-    view.replaceChildren();
+    view.replaceChildren();view.dataset.sonaFrameUrl='';
     if(!a?.url){
-      view.innerHTML='<div class="biglwa-avatar-empty" aria-hidden="true">◉<span>your character</span></div>';
+      if(state.restoring)avatarLoader(view);
+      else avatarPlaceholder(view,'No avatar saved');
       return;
     }
     showImageFallback(view,a.url);
   }
   function showImageFallback(view,url){
     disposeViewer(view);view.replaceChildren();
-    const image=new Image();image.src=url;image.alt='Saved avatar image';image.loading='lazy';
-    image.onerror=()=>{view.textContent='Stored avatar image could not be loaded.'};
-    view.append(image);
+    const curtain=avatarLoader(view);
+    const image=new Image();image.alt='Saved avatar image';
+    image.onload=()=>curtain.remove();
+    image.onerror=()=>{if(image.isConnected)avatarPlaceholder(view,'Avatar image unavailable');};
+    view.append(image);image.src=url;
   }
   function openAvatarLarge(){
     const a=state.avatar;
@@ -204,7 +245,7 @@
     if(kind==='sona360'&&sonaUrl(url)){renderSonaFrame(preview,url,true);return}
     disposeViewer(preview);preview.replaceChildren();
     if(url){const img=new Image();img.src=url;img.alt='Your saved character';preview.append(img)}
-    else preview.innerHTML='<span aria-hidden="true">◉</span><small>No saved character yet</small>';
+    else avatarPlaceholder(preview,'No avatar saved');
   }
   function mountEditor(){
     const panel=one('#studioApp #wallpaperPanel'),tabs=one('#profileEditorTabs',panel||document);
@@ -253,7 +294,7 @@
     const preview=one('#biglwaAvatarProfilePreview');if(preview){disposeViewer(preview);preview.replaceChildren();preview.dataset.avatarSrc='';}
     if(name==='sona360'){
       const owned=state.avatar?.type==='sona360'?sonaUrl(state.avatar.url):'';
-      mount.innerHTML='<p>Paste your public 360sona display-case link or its copied embed code. Never enter your 360sona password into BIGLWA. Outfits and animation settings are controlled at 360sona.</p>'+
+      mount.innerHTML='<p>Paste your 360sona Display Case link, Share link, or copied iframe code. Never enter your 360sona password into BIGLWA. Outfits and animation settings are controlled at 360sona.</p>'+
         '<label class="biglwa-sona-label" for="biglwaSonaWidgetURL">360sona widget link</label>'+
         '<input id="biglwaSonaWidgetURL" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://360sona.com/w/your-widget-id" aria-label="360sona display case URL">'+
         '<div class="biglwa-sona-actions"><button type="button" data-sona-preview>Preview</button><button type="button" data-sona-save>Save Avatar</button>'+
@@ -262,7 +303,7 @@
         '<p id="biglwaSonaFrameStatus" role="status" aria-live="polite" hidden></p>'+
         '<a data-sona-open-preview class="biglwa-sona-external" target="_blank" rel="noopener noreferrer" hidden>Open this display case directly ↗</a>'+
         '<div class="biglwa-sona-creator-actions"><button type="button" data-sona-creator aria-expanded="false" aria-controls="biglwaSonaCreator">Create here ▾</button><a class="biglwa-sona-external" href="https://360sona.com/" target="_blank" rel="noopener noreferrer">Open creator in new tab ↗</a></div>'+ '<div id="biglwaSonaCreator" hidden><p>This is 360sona in a browser frame. If its website blocks embedding, use the new-tab link above, then paste the finished widget URL here.</p><iframe title="360sona avatar creator" loading="lazy" referrerpolicy="no-referrer" data-sona-editor></iframe></div>'+
-        '<small class="biglwa-sona-note">Display case: 320 × 546, full avatar, original 360sona theme. BIGLWA does not control the third-party editor.</small>';
+        '<small class="biglwa-sona-note">Set your display case to Full body and Just the avatar in 360sona for a clear widget preview.</small>';
       const inp=one('#biglwaSonaWidgetURL',mount);
       if(inp){
         inp.value=owned;
@@ -270,7 +311,7 @@
           const raw=event.clipboardData?.getData('text/plain')||event.clipboardData?.getData('text/html');
           if(!raw)return;
           event.preventDefault();event.stopPropagation();
-          inp.value=sonaUrl(raw)||raw;
+          inp.value=sonaUrl(raw)||sonaUrl(event.clipboardData?.getData('text/html'))||raw;
           previewSonaInput(inp);
         });
         inp.addEventListener('change',()=>{if(sonaUrl(inp.value))previewSonaInput(inp)});
@@ -479,25 +520,19 @@
     const status=mount&&one('#biglwaSonaFrameStatus',mount);
     const external=mount&&one('[data-sona-open-preview]',mount);
     if(!url||!preview){
-      const message='Paste a published 360sona display-case link (360sona.com/w/…) or its copied iframe code.';
+      const message='Paste a published 360sona Display Case or Share link, or its copied iframe code.';
       if(status){status.hidden=false;status.textContent=message;}
       setStatus(message);return false;
     }
     input.value=url;
     if(external){external.href=url;external.hidden=false;}
-    const previous=preview.querySelector('iframe[data-sona-widget]');
-    if(!force&&previous?.getAttribute('src')===url)return true;
-    if(!renderSonaFrame(preview,url))return false;
-    const frame=preview.querySelector('iframe[data-sona-widget]');
-    if(!frame)return false;
-    const hint='If the avatar stays blank, open the display case directly. Publish it in 360sona and leave “Only on” empty or allow biglwa.com.';
-    if(status){status.hidden=false;status.textContent='Loading your 360sona display case…';}
-    const active=()=>frame.isConnected&&preview.querySelector('iframe[data-sona-widget]')===frame;
-    let timer=0;
-    const finish=message=>{clearTimeout(timer);if(active()&&status)status.textContent=message;};
-    frame.addEventListener('load',()=>finish(hint),{once:true});
-    frame.addEventListener('error',()=>finish('360sona could not load. '+hint),{once:true});
-    timer=setTimeout(()=>finish('360sona is taking longer than expected. '+hint),12000);
+    const hint='If the avatar stays blank, open the display case directly and check that it is published and allowed on biglwa.com.';
+    if(!renderSonaFrame(preview,url,false,{retry:force,onState:phase=>{
+      if(!status)return;
+      status.hidden=false;
+      status.textContent=phase==='loading'?'Loading your 360sona display case…':
+        phase==='ready'?hint:'360sona could not load here. '+hint;
+    }}))return false;
     setStatus('Display case requested. Save Avatar to keep this link on your profile.');
     if(force)preview.scrollIntoView?.({block:'nearest',behavior:'auto'});
     return true;
@@ -505,9 +540,10 @@
   async function saveSona(){
     const input=one('#biglwaSonaWidgetURL');
     const url=sonaUrl(input?.value);
-    if(!url){setStatus('Paste a public 360sona display-case link (360sona.com/w/…) or the copied iframe embed code.');return false;}
+    if(!url){setStatus('Paste a public 360sona Display Case or Share link, or its copied iframe code.');return false;}
     input.value=url;
     if(state.busy)return false;
+    previewSonaInput(input);
     state.busy=true;setStatus('Saving your Avatar to your account…');
     try{
       const f=await firebase();await f.auth.authStateReady();
@@ -518,7 +554,7 @@
         studioAvatar:{type:'sona360',url,updatedAt:f.serverTimestamp()}
       },{mergeFields:['studioAvatar']});
       if(f.auth.currentUser?.uid!==uid)throw Error('Account switched. Reload your avatar.');
-      state.avatar={type:'sona360',url};state.loadedUid=uid;
+      ++restoreRequest;state.restoring=false;state.avatar={type:'sona360',url};state.loadedUid=uid;
       try{await publishStudioAvatar(f,uid,state.avatar)}catch(error){console.warn('[BIG LWA] Public 360sona sync will retry:',error)}
       showAvatar();
       // Saving the account must not destroy the already-loaded editor frame.
@@ -530,29 +566,39 @@
     finally{state.busy=false}
   }
   async function restore(){
+    const uidBefore=current();
+    if(uidBefore&&state.loadedUid===uidBefore)return;
+    const request=++restoreRequest;
+    if(!state.avatar&&(!state.loadedUid||uidBefore!==state.loadedUid)){
+      state.restoring=true;
+      showAvatar();
+    }
     try{
       const f=await firebase();await f.auth.authStateReady();
-      const user=f.auth.currentUser;if(!user){state.loadedUid='';state.avatar=null;showAvatar();return;}
-      if(state.loadedUid===user.uid)return;
-      state.loadedUid=user.uid;
-      // Never show the last signed-in person's avatar while this account loads.
-      state.avatar=null;showAvatar();
+      if(request!==restoreRequest)return;
+      const user=f.auth.currentUser;
+      if(!user){state.loadedUid='';state.avatar=null;return;}
+      if(state.loadedUid===user.uid){state.restoring=false;return;}
+      state.restoring=true;state.avatar=null;showAvatar();
       const snap=await f.getDoc(f.doc(f.db,'users',user.uid));
-      if(state.loadedUid!==user.uid||f.auth.currentUser?.uid!==user.uid)return;
+      if(request!==restoreRequest||f.auth.currentUser?.uid!==user.uid)return;
       const avatar=snap.data()?.studioAvatar;
       const url=avatar?.type==='sona360'?sonaUrl(avatar?.url):String(avatar?.url||'');
       const backedMedia=url&&(url.startsWith(API+'/media/profile-photo/')||url.startsWith(API+'/media/feed-image/')||
         (avatar?.type==='bitmoji'&&/^https:\/\/[^/]+\//.test(url)));
+      state.loadedUid=user.uid;
       if((avatar?.type==='sona360'&&url)||(['minecraft','mii','imvu','bitmoji'].includes(avatar?.type)&&backedMedia)){
         state.avatar={type:avatar.type,url,...(avatar.type==='minecraft'?{slim:avatar.slim===true}:{})};
         if(avatar.type==='minecraft')state.minecraftSlim=avatar.slim===true;
-        showAvatar();setStatus('Saved Avatar restored from your account.');
-        // Backfill avatars saved before the public projection was introduced.
+        setStatus('Saved Avatar restored from your account.');
         if(!document.documentElement.classList.contains('biglwa-preview-mode')){
           void publishStudioAvatar(f,user.uid,state.avatar,snap).catch(error=>console.warn('[BIG LWA] Public Avatar backfill deferred:',error));
         }
       }
-    }catch(error){setStatus('Could not load account avatar: '+(error?.message||'Please try again.'))}
+    }catch(error){if(request===restoreRequest)setStatus('Could not load account avatar: '+(error?.message||'Please try again.'))}
+    finally{
+      if(request===restoreRequest){state.restoring=false;showAvatar();}
+    }
   }
   const VISIBILITY_PREFIX='biglwaAvatarWidgetVisibility:v2:';
   let appearanceUid=null;
@@ -809,7 +855,7 @@
     window.addEventListener('pageshow',mount);
     window.addEventListener('biglwa:session-verified',()=>requestAnimationFrame(()=>{mount();restore()}));
     document.addEventListener('biglwa:module-close',()=>requestAnimationFrame(mount));
-    window.addEventListener('biglwa:identity-updated',()=>{one('#biglwaAvatarLarge')?.close();clearMinecraftDraft();appearanceUid=null;state.loadedUid='';state.avatar=null;showAvatar();restore();mount()});
+    window.addEventListener('biglwa:identity-updated',()=>{if(state.loadedUid&&state.loadedUid===current())return;one('#biglwaAvatarLarge')?.close();clearMinecraftDraft();appearanceUid=null;state.loadedUid='';state.avatar=null;showAvatar();restore();mount()});
     mount();mountEditor();watchAura();
   }
   const style=document.createElement('style');style.id='biglwaAvatarLayoutV4';style.textContent=`
@@ -1222,6 +1268,10 @@
  background:radial-gradient(ellipse at 48% 50%,rgba(var(--aura-rgb,216,95,109),.55) 0%,rgba(var(--aura-rgb,216,95,109),.22) 43%,rgba(var(--aura-rgb,216,95,109),.05) 75%,transparent 100%)!important;
 }
 #studioApp .biglwa-sona-frame{background:transparent!important}
+.biglwa-sona-frame>.biglwa-avatar-empty{position:absolute;inset:0;display:grid;align-content:center;justify-items:center;gap:5px}
+.biglwa-avatar-lightbox-media{position:relative}
+#studioApp #biglwaAvatarProfilePreview{position:relative}
+
 
 `;
   document.head.append(style);

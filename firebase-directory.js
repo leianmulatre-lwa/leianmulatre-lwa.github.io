@@ -325,7 +325,7 @@ async function loadPublicProfile(rawUsername){
       studioAvatarPublic:(()=>{
        const avatar=data.studioAvatarPublic,url=String(avatar?.url||'');
        const owned= /^https:\/\/biglwa-instagram-api\.leianmulatre-284\.workers\.dev\/media\/(?:profile-photo|feed-image)\//.test(url);
-       const sona=avatar?.type==='sona360' && /^https:\/\/(?:www\.)?360sona\.com\/w\/[a-zA-Z0-9_-]+\/?(?:[?#].*)?$/.test(url);
+       const sona=avatar?.type==='sona360' && /^https:\/\/(?:www\.)?360sona\.com\/(?:w\/[a-zA-Z0-9_-]{4,64}|s\/[a-zA-Z0-9_-]{12})\/?(?:[?#].*)?$/.test(url);
        if(!avatar||!['minecraft','mii','imvu','bitmoji','sona360'].includes(avatar.type)||!(owned||sona))return null;
        return {type:avatar.type,url,...(avatar.type==='minecraft'?{slim:avatar.slim===true}:{})};
       })(),

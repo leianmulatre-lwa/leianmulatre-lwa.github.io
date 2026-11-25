@@ -175,7 +175,7 @@
   img.addEventListener('load',done,{once:true});img.addEventListener('error',done,{once:true});if(img.complete)done();
  }
  const scan=()=>document.querySelectorAll('#studioApp img').forEach(bindImage);
- let moduleKey='',moduleStarted=0,avatarStarted=0,avatarChanged=0,moduleCurtain=null,avatarCurtain=null,viewAnywayFor='';
+ let moduleKey='',moduleStarted=0,moduleCurtain=null,viewAnywayFor='';
  // Loading readiness is a one-way transition for a mounted module.
  // A late image, tiny aria-busy pulse, or hydration mutation cannot flash the
  // pixel curtain back over content after it has been revealed.
@@ -184,26 +184,25 @@
   moduleReadyCandidateAt=0;moduleRevealedFor='';
   if(moduleStableTimer){clearTimeout(moduleStableTimer);moduleStableTimer=0}
  };
- function curtain(container,label,kind){
-  const el=document.createElement('div');el.className='lwa-curtain';el.dataset.lwaCurtain=kind;
+ function curtain(container,label){
+  const el=document.createElement('div');el.className='lwa-curtain lwa-pixel-curtain';el.dataset.lwaCurtain='module';
   label=String(label||'loading').toLowerCase();
   el.setAttribute('role','status');el.setAttribute('aria-label',label);
   const mark=document.createElement('div');mark.className='lwa-curtain-brand';
   mark.setAttribute('aria-hidden','true');
   mark.innerHTML='<span class="lwa-curtain-brand-b">big</span><span class="lwa-curtain-brand-w">lwa</span>';
   el.append(mark);
-  el.append(make(kind==='avatar'?'pulse':'floating'));
+  const scene=window.BigLWAPixelCurtain?.scene();
+  if(scene)el.append(scene);
   const t=document.createElement('span');t.className='lwa-curtain-label';t.textContent=label;el.append(t);
-  if(kind==='module'){
-   const progress=document.createElement('span');progress.className='lwa-curtain-progress';
-   progress.textContent='Preparing your view…';progress.setAttribute('aria-live','polite');el.append(progress);
-   const skip=document.createElement('button');skip.type='button';skip.className='lwa-curtain-bypass';
-   skip.textContent='Who’s you? →';skip.setAttribute('aria-label','View anyway before loading finishes');
-   skip.title='View anyway';skip.addEventListener('click',event=>{
-     event.preventDefault();event.stopPropagation();
-     viewAnywayFor=moduleKey;el.hidden=true;container.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');setModuleLoading(false);
-   });el.append(skip);
-  }
+  const progress=document.createElement('span');progress.className='lwa-curtain-progress';
+  progress.textContent='Preparing your view…';progress.setAttribute('aria-live','polite');el.append(progress);
+  const skip=document.createElement('button');skip.type='button';skip.className='lwa-curtain-bypass';
+  skip.textContent='Who’s you? →';skip.setAttribute('aria-label','View anyway before loading finishes');
+  skip.title='View anyway';skip.addEventListener('click',event=>{
+    event.preventDefault();event.stopPropagation();
+    viewAnywayFor=moduleKey;el.hidden=true;container.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');setModuleLoading(false);
+  });el.append(skip);
   container.append(el);return el
  }
  function unresolvedImages(el){
@@ -219,8 +218,7 @@
   if(key&&key!==moduleKey){resetModuleReadiness();moduleKey=key;viewAnywayFor='';moduleStarted=Date.now();moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');moduleCurtain?.remove();moduleCurtain=null;setTimeout(schedule,380)}
   if(!key){if(moduleKey)resetModuleReadiness();moduleKey='';viewAnywayFor='';moduleCurtain?.parentElement?.classList.remove('lwa-curtain-veve-pending','lwa-curtain-loading');moduleCurtain?.remove();moduleCurtain=null;setModuleLoading(false)}
   if(shell&&key){
-   if(!moduleCurtain||!shell.contains(moduleCurtain))moduleCurtain=curtain(shell,'Loading '+key,'module');
-   moduleCurtain.querySelector('.lwa-curtain-label').textContent='loading '+key;
+   if(!moduleCurtain||!shell.contains(moduleCurtain))moduleCurtain=curtain(shell,'Loading '+key);
    const heading=shell.querySelector('.module-heading');const bounds=shell.getBoundingClientRect();const head=heading?.getBoundingClientRect();
    const curtainOffset=head?Math.max(0,Math.ceil(head.bottom-bounds.top)+16):16;shell.style.setProperty('--lwa-loading-top',curtainOffset+'px');moduleCurtain.style.top=curtainOffset+'px';
    const busy=[...space.querySelectorAll('[aria-busy="true"]:not(.lwa-curtain)')].find(node=>node!==shell);
@@ -257,20 +255,15 @@
    shell.classList.toggle('lwa-curtain-veve-pending',veve&&visible);
    shell.classList.toggle('lwa-curtain-loading',visible);
    const progress=moduleCurtain.querySelector('.lwa-curtain-progress');
-   if(progress)progress.textContent=(veve
+   const message=(veve
      ?String(feed?.stage||'Connecting to public collections…')
      :(busy?'Loading page data…':unresolvedImages(shell)?'Preparing images…':'Opening '+key+'…')).toLowerCase();
+   if(progress&&progress.textContent!==message)progress.textContent=message;
    // The view-anyway control is for Veve; every other widget can still be
    // revealed on demand if its own data request stalls.
    if(!visible&&veve)moduleCurtain.setAttribute('data-lwa-ready','true');
   }
-  const avatar=app.querySelector('#studioAvatarCard');
-  if(avatar){
-   if(!avatarCurtain||!avatar.contains(avatarCurtain)){avatarCurtain=curtain(avatar,'Loading avatar','avatar');avatarStarted=Date.now();setTimeout(schedule,380)}
-   const presentation=avatar.querySelector('#biglwaAvatarMedia > :not(.lwa-curtain),canvas,iframe,img');
-   const pending=unresolvedImages(avatar)||!!avatar.querySelector('[aria-busy="true"]');
-   avatarCurtain.hidden=!!presentation && !pending && Date.now()-avatarStarted>320;
-  }
+
  }
  const schedule=(()=>{let pending=false;return()=>{if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;loadingState()})}})();
  let wasStudio=studioVisible();

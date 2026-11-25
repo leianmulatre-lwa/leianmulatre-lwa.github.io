@@ -19,7 +19,7 @@ assert.doesNotMatch(source,/data-avatar-unity-open/,'No unusable Unity launcher'
 assert.ok(source.includes('iframe.width=')&&source.includes("iframe.width='265'")&&source.includes("iframe.height='170'"),'Landscape frame uses the selected 360sona bare embed dimensions');
 assert.ok(source.includes("iframe.referrerPolicy='strict-origin'"),'Third-party iframe receives only the site origin for domain restrictions');
 assert.ok(source.includes("renderSonaFrame(view,a.url,true)"),'Saved 360sona avatar renders in Studio widget');
-assert.ok(source.includes("renderSonaFrame(preview,url)"),'Editor shows iframe preview');
+assert.ok(source.includes("renderSonaFrame(preview,url,false"),'Editor shows iframe preview');
 assert.ok(source.includes("data-sona-preview")&&source.includes("data-sona-save"),'Preview and Save are real controls');
 assert.ok(source.includes("type:'sona360',url,updatedAt:f.serverTimestamp()"),"User's selected link is saved under Firebase account");
 assert.ok(source.includes("f.doc(f.db,'users',uid)"),'Firebase write explicitly uses verified UID');
@@ -37,6 +37,8 @@ assert.equal(validate(sample),sample);
 assert.equal(validate('https://evil.com/w/k_JKIiB9soQQcIj77klMY'),'');
 assert.equal(validate('javascript:alert(1)'),'');
 const pasteCases=[
+  ['https://360sona.com/s/Abc123def456?source=share', 'https://360sona.com/s/Abc123def456'],
+  ['https://360sona.com/s/too-short', ''],
   [
     "https://360sona.com/w/k_JKIiB9soQQcIj77klMY",
     "https://360sona.com/w/k_JKIiB9soQQcIj77klMY"

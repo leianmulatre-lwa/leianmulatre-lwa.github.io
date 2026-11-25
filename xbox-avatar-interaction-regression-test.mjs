@@ -31,7 +31,7 @@ assert.ok(src.includes("flex-wrap:nowrap")&&src.includes('overflow-x:auto'),'Sna
 assert.ok(src.includes("data-sona-creator")&&src.includes("iframe.src='https://360sona.com/'"),'Optional actual browser editor iframe');
 assert.ok(src.includes('360sona blocks embedding')||src.includes('website blocks embedding'),'Editor informs users about site framing limitations');
 assert.ok(src.includes('Open creator in new tab'),'Unframeable creator always has an accessible fallback');
-assert.ok(src.includes("if(state.loadedUid!==user.uid||f.auth.currentUser?.uid!==user.uid)return"),'Late Firebase response cannot restore another user avatar');
+assert.ok(src.includes("if(request!==restoreRequest||f.auth.currentUser?.uid!==user.uid)return"),'Late Firebase response cannot restore another user avatar');
 assert.ok(src.includes("one('#biglwaAvatarLarge')?.close();clearMinecraftDraft()"),'Account switch closes any old private preview');
 assert.doesNotMatch(src,/data-avatar-source="(?:mii|imvu)"/,'Broken editor options do not return');
 console.log('PASS interactive Xbox thumbnail, authenticated large viewer, 360sona creator fallback, Minecraft Alex arms, Snapchat row and account separation');

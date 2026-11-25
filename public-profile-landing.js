@@ -52,6 +52,8 @@
  function decorateAvatar(){
   const card=$('#studioAvatarCard');if(!card)return;
   const published=publicProfile?.studioAvatarPublic;
+  const display=window.BigLWAAvatarDisplay;
+  if(published?.type==='sona360'&&!display)return;
   const url=imageUrl(published?.url||publicProfile?.profilePhotoUrl);
   let photo=$('.biglwa-public-avatar-preview',card);
   if(!photo){photo=make('div','','biglwa-public-avatar-preview');card.append(photo)}
@@ -68,12 +70,9 @@
      if(photo.dataset.avatarSource===sig)photo.textContent='This character could not be displayed.';
     });
    }).catch(()=>{if(photo.dataset.avatarSource===sig)photo.textContent='3D character unavailable'});
-  }else if(url&&published?.type==='sona360'){
-   photo.replaceChildren();
-   const frame=make('iframe');frame.src=url;frame.title=(publicProfile?.name||'Member')+' 360sona avatar';
-   frame.loading='lazy';frame.referrerPolicy='strict-origin-when-cross-origin';
-   frame.setAttribute('allow','fullscreen');frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-popups');
-   frame.className='biglwa-public-sona-frame';photo.append(frame);
+  }else if(published?.type==='sona360'){
+   photo.setAttribute('aria-label',(publicProfile?.name||'Member')+' 360sona avatar');
+   if(!display.render(photo,url,true,{publicView:true}))display.placeholder(photo,'Avatar unavailable');
   }else if(url){
    photo.replaceChildren();
    const img=make('img');img.src=url;img.alt=(publicProfile?.name||'Member')+' '+(published?'avatar preview':'profile picture');img.loading='lazy';
@@ -86,7 +85,8 @@
   }else{
    // Never put someone's monogram in the Avatar: initials belong on the Journal cover.
    photo.replaceChildren();
-   photo.append(make('span','Avatar not shared','biglwa-public-avatar-empty'));
+   const symbol=make('img');symbol.src='/sesa-wo-suban-medium.png';symbol.alt='';
+   const empty=make('div','','biglwa-avatar-empty');empty.append(symbol);photo.append(empty);
    photo.setAttribute('aria-label','This member has not published an Avatar');
   }
   card.dataset.publicAvatar='1';
@@ -284,8 +284,7 @@
  html.biglwa-preview-mode #studioApp .biglwa-guest-v2-preview .biglwa-guest-v2-head b{font:700 8px/1.2 system-ui!important}
  html.biglwa-preview-mode #studioApp .biglwa-guest-v2-preview .biglwa-guest-v2-empty{padding:8px 0!important;margin:0!important;font-size:10px!important}
 
- html.biglwa-preview-mode #studioAvatarCard .biglwa-public-sona-frame{width:100%;height:100%;border:0;border-radius:11px;background:transparent}
- html.biglwa-preview-mode #studioAvatarCard .biglwa-public-avatar-empty{font:600 13px/1.3 system-ui;color:#6b5961;text-align:center;padding:18px}
+ html.biglwa-preview-mode #studioAvatarCard .biglwa-public-avatar-preview>.biglwa-avatar-empty img{width:42px;height:42px;object-fit:contain}
  html.biglwa-preview-mode #studioApp .guest-check-card .biglwa-public-guest-paper,
  html.biglwa-preview-mode .biglwa-public-guest-dialog .biglwa-public-guest-paper{
   display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,2.2fr) minmax(68px,.85fr)!important;
