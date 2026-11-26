@@ -168,6 +168,7 @@ async function framedFile(url,frame,aspect,name='framed-image'){
  return new File([blob],name.replace(/\.[^.]+$/,'')+'-framed.webp',{type:blob.type});
 }
 function addFrameOption(input){
+ if(input.matches(".bl-search-file-input"))return;
  if(!input.accept.split(',').some(value=>['image/*','image/webp'].includes(value.trim().toLowerCase())))return;
  if(input.closest('#studioAvatarCard,[data-module-key="avatar"]')||/skin|sprite|texture/i.test(input.id+' '+input.name))return;
  if(!input.isConnected||input.dataset.frameOption||input.disabled||!input.accept.toLowerCase().includes('image')||input.hasAttribute('capture'))return;
