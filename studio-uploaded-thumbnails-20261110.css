@@ -178,7 +178,7 @@ body.night-mode #studioApp #camera .photobooth-reference-preview > img {
   content:normal!important; /* photos must not inherit neon replacement from old generic img rule */
   opacity:1!important;
   filter:none!important;
-  transform:none!important;
+  transform:scale(1.06)!important;
 }
 /* Never reveal the signed-in member's private Booth strip in profile preview. */
 /* In public previews, samples are safe but member photos are not. */
