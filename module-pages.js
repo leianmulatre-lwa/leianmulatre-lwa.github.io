@@ -1433,6 +1433,22 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
           link:tt.profile.profile_deep_link||window.BigLWAOrbitAccountLinks?.get?.().tiktok||'',verifiedFromProvider:true});
       }
     }catch{}
+    /* Instagram verifies the live session on the Worker. Show that verified state
+       immediately, even when a Firestore quota rejection delayed the account record;
+       the row can say "Account sync pending" without pretending the grant failed. */
+    try{
+      const ig=window.__biglwaInstagramOrbit?.state;
+      const viewerUid=String(window.__biglwaIdentity?.uid||'');
+      if(ig?.connected&&ig.uid&&(!viewerUid||ig.uid===viewerUid)){
+        const handle=String(ig.profile?.username||'').trim();
+        rows.push({id:'instagram',label:'Instagram',name:ig.profile?.name||handle||'Instagram',
+          username:handle,avatarUrl:ig.profile?.profile_picture_url||'',
+          link:handle?'https://www.instagram.com/'+encodeURIComponent(handle)+'/':
+            (window.BigLWAOrbitAccountLinks?.get?.().instagram||''),
+          stats:{followers:ig.profile?.followers_count,mediaCount:ig.profile?.media_count},
+          verifiedFromProvider:true,accountSaveFailed:!!ig.accountSaveFailed});
+      }
+    }catch{}
     /* Facebook authorises in the browser through its own SDK, so its state lives on the
        client, not in the shared connections hub. It is merged here so the Orbit page's row
        says Connected when that login has completed. */
@@ -1618,6 +1634,10 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     /* Looked up after the markup exists, so the status line is the node that is actually
        on the page rather than one from a previous render. */
     const say=text=>{const status=$('#orbitPageStatus',body);if(status)status.textContent=text;};
+    // Replay the OAuth return acknowledgement on every repaint. Provider
+    // refreshes can rebuild this markup and would otherwise erase the notice.
+    const instagramNotice=String(window.__biglwaInstagramOrbit?.notice?.()||'');
+    if(instagramNotice)say(instagramNotice);
     body.onclick=async e=>{
      const editLink=e.target.closest('[data-orbit-edit-link]');
      if(editLink){
@@ -1778,6 +1798,9 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
      if(routeName.textContent==='Orbit'&&!workspace.hidden)renderOrbitPage();
    });
    document.addEventListener('biglwa:new-orbit-status',()=>{
+     if(routeName.textContent==='Orbit'&&!workspace.hidden)renderOrbitPage();
+   });
+   document.addEventListener('biglwa:instagram-restored',()=>{
      if(routeName.textContent==='Orbit'&&!workspace.hidden)renderOrbitPage();
    });
    document.addEventListener('biglwa:facebook-personal-status',()=>{

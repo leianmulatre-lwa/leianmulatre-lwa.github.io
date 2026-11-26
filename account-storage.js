@@ -56,10 +56,30 @@ async function flush(){
    }catch(error){
     if(turn!==epoch)break;
     if(error.message==='conflict'){if(pending[key])pending[key].conflict=true;saveQueue();status('Another device changed the same collection. Your local edits are preserved; resolve this in Settings.');}
-    else{const quota=String(error.code||error.message).includes('resource-exhausted')||/quota exceeded/i.test(error.message);
+    else{
+     // Firestore quota failures must not become lost edits. The Worker-backed
+     // outbox keeps the same revisioned write until the mirror catches up.
+     const fallback=window.BigLWAAccountSync;
+     if(fallback?.save){
+      const result=await fallback.save({uid:owner,scope:'studioState',
+        path:'studioState/'+key,value:edit.value,baseRevision:edit.base,editId:edit.editId});
+      if(result.ok||result.queued){
+       versions[key]=Number(result.revision)||edit.base||0;
+       if(result.queued)status('Saved to your account backup. Firestore mirror will retry when quota recovers.');
+       if(pending[key]?.editId===edit.editId)delete pending[key];
+       else if(pending[key]){pending[key].base=versions[key];retryNewer=true;}
+       saveQueue();continue;
+      }
+      if(result.code==='conflict'){
+       if(pending[key])pending[key].conflict=true;saveQueue();
+       status('A newer cloud revision exists. Your local edit is preserved; resolve this in Settings.');break;
+      }
+     }
+     const quota=String(error.code||error.message).includes('resource-exhausted')||/quota exceeded/i.test(error.message);
      retryDelay=Math.min(1800000,Math.max(quota?60000:15000,retryDelay*2));
      nextAttempt=Date.now()+retryDelay+Math.random()*retryDelay*.15;
-     status('Saved on this device; cloud sync needs retry. '+error.message);break;}
+     status('Saved on this device; cloud sync needs retry. '+error.message);break;
+    }
    }
   }
   if(!Object.keys(pending).length)status(changed?'Account updates are available. Reload to show them.':'Saved to your account');

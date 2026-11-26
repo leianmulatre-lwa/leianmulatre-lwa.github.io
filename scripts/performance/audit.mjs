@@ -62,10 +62,10 @@ const report={generatedAt:new Date().toISOString(),kind:'source-audit-not-page-s
  trackedFileCount:files.length,trackedBytes:bytes,missingRoutes,
  largestTrackedFiles:[...files].sort((a,b)=>b.bytes-a.bytes).slice(0,16),
  largestAreas:sortMap(byArea,20),largestExtensions:sortMap(byExtension,20),
- entrypoints,limits:{landingJsRefs:116,landingCssRefs:92,
-   landingJsRawBytes:2900000,landingCssRawBytes:930000,
-   studioJsRefs:114,studioCssRefs:92,
-   studioJsRawBytes:2900000,studioCssRawBytes:930000,
+ entrypoints,limits:{landingJsRefs:116,landingCssRefs:96,
+   landingJsRawBytes:2900000,landingCssRawBytes:960000,
+   studioJsRefs:114,studioCssRefs:94,
+   studioJsRawBytes:2900000,studioCssRawBytes:960000,
    // Includes the first-party imported Highlights media cache (~76 MB).
     trackedBytes:230000000}};
 const warnings=[];

@@ -68,6 +68,7 @@ const SOURCES = [
 ];
 
 const clean = (v) => String(v == null ? "" : v).trim();
+const editId = () => String(globalThis.crypto?.randomUUID?.() || Date.now() + '-' + Math.random().toString(36).slice(2));
 
 /* Both the other sources keep their credential in local storage, and Pinterest now does
    too, but a session left behind by an older build is still worth finding. */
@@ -304,6 +305,15 @@ async function write(uid, id, record) {
     return true;
   } catch (error) {
     console.warn("BIG LWA could not persist Orbit connection:", id, error);
+    // Firestore quota is not a reason to lose a verified provider connection.
+    // The durable Worker outbox keeps the same owner-only record until the
+    // Firestore mirror catches up.
+    const fallback = window.BigLWAAccountSync;
+    if (fallback?.save) {
+      const result = await fallback.save({ uid, scope: "user", path: "users/" + uid,
+        value: { connections: { [id]: record } }, editId: editId() });
+      if (result.ok || result.queued) return true;
+    }
     return false;
   }
 }
@@ -363,41 +373,74 @@ function publicLink(id, record) {
 
 async function mirrorPublic(uid, records) {
   if (!uid) return;
+  const fallback = window.BigLWAAccountSync;
+  let accountData = null;
+  let prior = {};
+  let firestore = null;
+  let fromDurable = false;
   try {
-    const { db, doc, getDoc, setDoc, serverTimestamp } = await firebase();
-    /* The username lives on the owner-only account doc; the rules trust that binding, so
-       reading it here is also what makes this write look like it came from the owner. */
-    const account = await getDoc(doc(db, "users", uid));
-    if (!account.exists()) return;
-    const username = clean(account.data().usernameLower || account.data().username);
-    if (!username) return;
+    firestore = await firebase();
+    const account = await firestore.getDoc(firestore.doc(firestore.db, "users", uid));
+    if (account.exists()) accountData = account.data();
+  } catch { /* quota and offline errors are handled by the durable account state */ }
+  if (!accountData && fallback?.state) {
+    try {
+      const state = await fallback.state();
+      accountData = state?.user?.["users/" + uid]?.value || null;
+      if (accountData) {
+        const name = clean(accountData.usernameLower || accountData.username);
+        prior = state?.public?.["usernames/" + name]?.value?.socials || {};
+        fromDurable = true;
+      }
+    } catch { /* the public mirror remains a convenience */ }
+  }
+  if (!accountData) return;
+  const username = clean(accountData.usernameLower || accountData.username);
+  if (!username) return;
 
-    const socials = {};
-    // The Orbit profile tab saves manually selected links separately from OAuth.
-    // Publish only provider-host links, not tokens, counts or account IDs.
-    for (const [id, url] of Object.entries(account.data().orbitLinks || {})) {
-      const link=publicLink(id,{link:url,label:id});
-      if(link)socials[id]=link;
-    }
-    for (const [id, record] of Object.entries(account.data().orbitConnectedProfiles || {})) {
-      const link=publicLink(id,record);
-      if(link)socials[id]=link;
-    }
-    for (const [id, record] of Object.entries(records || {})) {
-      // A provider that could not be saved to the owner's account must not be
-      // published as if it were a durable connection.
-      if (record?.accountSaveFailed) continue;
-      const link = publicLink(id, record);
-      if (link) socials[id] = link;
-    }
-    const ref=doc(db,"usernames",username);
-    const prior=(await getDoc(ref)).data()?.socials||{};
-    const sorted=value=>JSON.stringify(Object.keys(value).sort().map(key=>[key,value[key]?.url,value[key]?.handle,value[key]?.label]));
-    if(sorted(prior)!==sorted(socials))await setDoc(ref,{socials,updatedAt:serverTimestamp()},{mergeFields:['socials','updatedAt']});
-  } catch {
+  const socials = {};
+  // The Orbit profile tab saves manually selected links separately from OAuth.
+  // Publish only provider-host links, not tokens, counts or account IDs.
+  for (const [id, url] of Object.entries(accountData.orbitLinks || {})) {
+    const link=publicLink(id,{link:url,label:id});
+    if(link)socials[id]=link;
+  }
+  for (const [id, record] of Object.entries(accountData.orbitConnectedProfiles || {})) {
+    const link=publicLink(id,record);
+    if(link)socials[id]=link;
+  }
+  for (const [id, record] of Object.entries(records || {})) {
+    // A provider that could not be saved to the owner's account must not be
+    // published as if it were a durable connection.
+    if (record?.accountSaveFailed) continue;
+    const link = publicLink(id, record);
+    if (link) socials[id] = link;
+  }
+  const sorted=value=>JSON.stringify(Object.keys(value).sort().map(key=>[key,value[key]?.url,value[key]?.handle,value[key]?.label]));
+  if(sorted(prior)===sorted(socials))return;
+  const writeDurable=async()=>{
+    if (!fallback?.save) return false;
+    const result = await fallback.save({ uid, scope: "public",
+      path: "usernames/" + username, value: { socials }, editId: editId() });
+    return !!(result.ok || result.queued);
+  };
+  const writeFirestore=async()=>{
     /* The public mirror is a convenience. Not being able to reach it must not disturb the
        connection itself, which has already been recorded on the account. */
-  }
+    try {
+      if (!firestore) firestore = await firebase();
+      const ref=firestore.doc(firestore.db,"usernames",username);
+      if (!Object.keys(prior).length) prior = (await firestore.getDoc(ref)).data()?.socials || {};
+      if(sorted(prior)!==sorted(socials))await firestore.setDoc(ref,{socials,updatedAt:firestore.serverTimestamp()},{mergeFields:['socials','updatedAt']});
+      return true;
+    } catch { return false; }
+  };
+  // Firestore stays the first writer whenever it is readable. If its quota is
+  // already exhausted, or the owner record only exists in D1, use the durable
+  // outbox instead so the public link is not silently lost.
+  if (fromDurable) { await writeDurable(); return; }
+  if (await writeFirestore()) return;
+  await writeDurable();
 }
 
 /* Reads what the account already records, so a connection made on another device is
@@ -511,7 +554,11 @@ async function clearStored(uid, id) {
   try {
     const { db, doc, setDoc, serverTimestamp } = await firebase();
     await setDoc(doc(db, "users", uid), { connections: { [id]: null }, updatedAt: serverTimestamp() }, { merge: true });
-  } catch { /* the account entry is a convenience, not the credential */ }
+  } catch {
+    const fallback = window.BigLWAAccountSync;
+    if (fallback?.save) void fallback.save({ uid, scope: "user", path: "users/" + uid,
+      value: { connections: { [id]: null } }, editId: editId() });
+  }
 }
 
 /* Forgets a connection on the account and this device. The provider is asked to end the
