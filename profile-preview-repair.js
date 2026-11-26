@@ -104,6 +104,8 @@ async function openLocker(dialog){
   doors.replaceChildren();
   slots.forEach(({preset,revision,legacyUnavailable},index)=>{
    const n=index+1,door=document.createElement('section');
+   const savedAura=preset?.appearance?.aura;
+   if(/^#[0-9a-f]{6}$/i.test(savedAura))door.style.setProperty('--locker-color',savedAura);
    door.innerHTML='<strong>Locker '+n+'</strong><button type="button" data-save></button><button type="button" data-use>Apply</button>';
    const save=door.querySelector('[data-save]'),use=door.querySelector('[data-use]');
    save.textContent=preset?'Replace':legacyUnavailable?'Save new look':'Save look';use.disabled=!preset;

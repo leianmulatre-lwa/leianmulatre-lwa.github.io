@@ -383,7 +383,7 @@ body.night-mode #studioApp .hero.biglwa-scoreboard-ready .profile-card .biglwa-p
 .profile-locker-dialog::backdrop{background:#170b12a8}
 .profile-locker-dialog h2{margin:0 0 12px}
 .locker-doors{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:16px}
-.locker-doors section{display:flex;flex-direction:column;gap:8px;align-items:stretch;justify-content:flex-end;padding:10px 6px;min-height:9rem;background:linear-gradient(100deg,color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 40%,white),color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 70%,white));border:3px ridge rgb(var(--aura-rgb,216,95,109));color:#211b21}
-.locker-doors section::before{content:"";height:20px;margin:0 14% auto;background:repeating-linear-gradient(color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 65%,black) 0 2px,#fff8 2px 3px,transparent 3px 6px)}
+.locker-doors section{display:flex;flex-direction:column;gap:8px;align-items:stretch;justify-content:flex-end;padding:10px 6px;min-height:9rem;background:linear-gradient(100deg,color-mix(in srgb,var(--locker-color,rgb(var(--aura-rgb,216,95,109))) 40%,white),color-mix(in srgb,var(--locker-color,rgb(var(--aura-rgb,216,95,109))) 70%,white));border:3px ridge var(--locker-color,rgb(var(--aura-rgb,216,95,109)));color:#211b21}
+.locker-doors section::before{content:"";height:20px;margin:0 14% auto;background:repeating-linear-gradient(color-mix(in srgb,var(--locker-color,rgb(var(--aura-rgb,216,95,109))) 65%,black) 0 2px,#fff8 2px 3px,transparent 3px 6px)}
 .locker-doors button{min-height:32px}.locker-doors strong{text-align:center}
 @media(max-width:420px){.locker-doors{grid-template-columns:repeat(2,minmax(0,1fr))}.locker-doors section{min-height:7rem}}

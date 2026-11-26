@@ -19,7 +19,7 @@
   will-change:transform}
 .biglwa-mc-stage .biglwa-mc-part{position:absolute;transform-style:preserve-3d}
 .biglwa-mc-stage .biglwa-mc-face{position:absolute;display:block;box-sizing:border-box;
-  background-color:#bf9472;background-repeat:no-repeat;image-rendering:pixelated;backface-visibility:hidden}
+  background-color:transparent;background-repeat:no-repeat;image-rendering:pixelated;backface-visibility:hidden}
 .biglwa-mc-stage .biglwa-mc-hat .biglwa-mc-face{background-color:transparent}
 .biglwa-mc-stage .biglwa-mc-help{position:absolute;bottom:5px;right:8px;
   font:600 9px/1.2 system-ui;color:inherit;opacity:.62;pointer-events:none}
@@ -79,9 +79,10 @@
       bottom:'rotateX(-90deg) translateZ('+(height*unit/2)+'px)'
     };
     face.style.transform=transforms[name];
-    const [x,y]=uv;face.style.backgroundImage='url("'+url.replace(/"/g,'%22')+'")';
-    face.style.backgroundSize=(atlasWidth*unit)+'px '+(atlasHeight*unit)+'px';
-    face.style.backgroundPosition=(-x*unit)+'px '+(-y*unit)+'px';
+    const [x,y,uvWidth,uvHeight]=uv;
+    const scaleX=fw/uvWidth,scaleY=fh/uvHeight;face.style.backgroundImage='url("'+url.replace(/"/g,'%22')+'")';
+    face.style.backgroundSize=(atlasWidth*scaleX)+'px '+(atlasHeight*scaleY)+'px';
+    face.style.backgroundPosition=(-x*scaleX)+'px '+(-y*scaleY)+'px';
     return face;
   }
   function bodyPart(name,rect,map,unit,url,atlasW,atlasH){
@@ -89,7 +90,7 @@
     const part=document.createElement('div');part.className='biglwa-mc-part biglwa-mc-'+name;
     part.style.width=width*unit+'px';part.style.height=height*unit+'px';
     part.style.left=(left*unit)+'px';part.style.top=(top*unit)+'px';
-    const sides=['front','back','left','right','top','bottom'];
+    const sides=['front','back','right','left','top','bottom'];
     sides.forEach((side,i)=>part.append(makeFace(side,width,height,depth,map[i],unit,url,atlasW,atlasH)));
     return part;
   }
@@ -122,7 +123,7 @@
         const all=[
           ['head',[-4,0,8,8,8],maps.head],
           ['torso',[-4,8,4,8,12],maps.torso],
-          ['rightArm',[-8,8,4,slim?3:4,12],slim?slimArm.right:maps.rightArm],
+          ['rightArm',[slim?-7:-8,8,4,slim?3:4,12],slim?slimArm.right:maps.rightArm],
           ['leftArm',[4,8,4,slim?3:4,12],legacy?maps.rightArm:(slim?slimArm.left:maps.leftArm)],
           ['rightLeg',[-4,20,4,4,12],maps.rightLeg],
           ['leftLeg',[0,20,4,4,12],legacy?maps.rightLeg:maps.leftLeg]
@@ -135,7 +136,7 @@
           // These are the same official second-layer UV positions as the game.
           turntable.append(bodyPart('hat',[-4.35,-.35,8.7,8.7,8.7],maps.hat,unit,url,atlasW,atlasH));
           turntable.append(bodyPart('jacket',[-4.15,7.85,4.3,8.3,12.3],modernOverlays.jacket,unit,url,atlasW,atlasH));
-          turntable.append(bodyPart('rightSleeve',[-8.1,7.85,4.2,(slim?3:4)+.2,12.3],slim?slimArm.rightSleeve:modernOverlays.rightSleeve,unit,url,atlasW,atlasH));
+          turntable.append(bodyPart('rightSleeve',[slim?-7.1:-8.1,7.85,4.2,(slim?3:4)+.2,12.3],slim?slimArm.rightSleeve:modernOverlays.rightSleeve,unit,url,atlasW,atlasH));
           turntable.append(bodyPart('leftSleeve',[3.9,7.85,4.2,(slim?3:4)+.2,12.3],slim?slimArm.leftSleeve:modernOverlays.leftSleeve,unit,url,atlasW,atlasH));
           turntable.append(bodyPart('rightPants',[-4.1,19.9,4.2,4.2,12.2],modernOverlays.rightPants,unit,url,atlasW,atlasH));
           turntable.append(bodyPart('leftPants',[-.1,19.9,4.2,4.2,12.2],modernOverlays.leftPants,unit,url,atlasW,atlasH));
