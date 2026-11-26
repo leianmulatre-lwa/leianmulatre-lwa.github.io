@@ -1,0 +1,43 @@
+name: Worker auth mail checks
+
+on:
+  pull_request:
+    paths:
+      - 'cloudflare-worker-instagram.js'
+      - 'mailroom-worker-mail.mjs'
+      - 'mailroom-worker-smtp.mjs'
+      - 'mailroom-worker-mail.test.mjs'
+      - 'mailroom-worker-route-test.mjs'
+      - 'mailroom-auth-client.js'
+      - 'mailroom-auth-client.test.mjs'
+      - 'settings-account.js'
+      - 'wrangler.toml'
+      - 'orbit-account-fallback-test.mjs'
+      - 'scripts/oauth-worker-config.test.mjs'
+      - 'docs/runbooks/worker-auth-mail-relay.md'
+      - '.github/workflows/worker-mail-checks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  worker-mail:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax checks
+        run: |
+          node --check cloudflare-worker-instagram.js
+          node --check mailroom-worker-mail.mjs
+          node --check mailroom-worker-smtp.mjs
+          node --check mailroom-auth-client.js
+          node --check settings-account.js
+      - name: Worker mail regression tests
+        run: node --test mailroom-worker-mail.test.mjs mailroom-worker-route-test.mjs mailroom-auth-client.test.mjs
+      - name: Worker configuration guardrails
+        run: node --test scripts/oauth-worker-config.test.mjs orbit-account-fallback-test.mjs
