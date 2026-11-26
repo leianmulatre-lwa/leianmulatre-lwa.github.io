@@ -385,3 +385,14 @@ html.biglwa-ios-bottom-dock.biglwa-ios-dock-managing body #studioApp#studioApp#s
 }
 html.biglwa-ios-bottom-dock.biglwa-ios-dock-managing body #studioApp#studioApp#studioApp aside.sidebar .sidebar-bottom{justify-content:center!important}
 @media(prefers-reduced-motion:reduce){html.biglwa-ios-bottom-dock body #studioApp#studioApp#studioApp aside.sidebar{transition:none!important}}
+
+/* Installed iOS: navigation launches only. The web browser retains the
+   editor; the optional in-app drawer is exclusively for restoring widgets. */
+html.biglwa-ios-shortcuts-readonly body #studioApp#studioApp#studioApp#studioApp aside.sidebar :is(#saveSidebarShortcuts,.sidebar-shortcut-status,.sidebar-shortcut-drag,[data-shortcut-drag-handle]){display:none!important}
+html.biglwa-ios-shortcuts-readonly.biglwa-ios-dock-managing body #studioApp#studioApp#studioApp#studioApp aside.sidebar #studioSidebarShortcutDock>.sidebar-navigation-row:not(.is-minimized),
+html.biglwa-ios-shortcuts-readonly.biglwa-ios-dock-managing body #studioApp#studioApp#studioApp#studioApp aside.sidebar #studioSidebarAvailableDock>.sidebar-navigation-row:not(.is-widget-removed),
+html.biglwa-ios-shortcuts-readonly.biglwa-ios-dock-managing body #studioApp#studioApp#studioApp#studioApp aside.sidebar #studioSidebarShortcutDock:not(:has(.is-minimized)),
+html.biglwa-ios-shortcuts-readonly.biglwa-ios-dock-managing body #studioApp#studioApp#studioApp#studioApp aside.sidebar #studioSidebarShortcuts:not(:has(.is-minimized)),
+html.biglwa-ios-shortcuts-readonly.biglwa-ios-dock-managing body #studioApp#studioApp#studioApp#studioApp aside.sidebar #studioSidebarAvailableDock:not(:has(.is-widget-removed)){display:none!important}
+html.biglwa-ios-shortcuts-readonly.biglwa-ios-dock-managing body #studioApp#studioApp#studioApp#studioApp aside.sidebar :is(.sidebar-navigation-row,.sidebar-shortcut-row){grid-template-columns:36px 22px!important;min-width:60px!important}
+html.biglwa-ios-shortcuts-readonly body #studioApp#studioApp .hero-action-bar :is([data-shortcut-route],[data-folder-members]){cursor:pointer!important;touch-action:pan-x!important}

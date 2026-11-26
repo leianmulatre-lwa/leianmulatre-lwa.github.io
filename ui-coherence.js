@@ -200,7 +200,13 @@
     }catch{}
     return [...new Set(fallback.map(String).filter(key=>key&&key!=='create'))].slice(0,SHORTCUT_LIMIT);
   }
+  // Installed iOS is a launch-only client for shortcuts. Browser web stays editable.
+  function shortcutsReadOnly(){
+    const ios=/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+    return ios&&(navigator.standalone===true||window.matchMedia?.('(display-mode: standalone)').matches===true);
+  }
   function writeNavigationShortcuts(items,persist=true){
+    if(persist&&shortcutsReadOnly())return readNavigationShortcuts(initialNavigationShortcuts||[]);
     const next=[...new Set((items||[]).map(String).filter(key=>key&&key!=='create'))].slice(0,SHORTCUT_LIMIT);
     try{localStorage.setItem(NAV_SHORTCUT_KEY,JSON.stringify(next))}catch{}
     if(persist)syncLayoutToAccount();
@@ -727,11 +733,12 @@
     });reconcileChildren(dock,nodes);
   }
   const folderKey='biglwaShortcutFoldersV1';
-  function canArrange(){
+  function canReadFolders(){
     return !!window.BigLWAAccountStorage?.uid&&!window.__biglwaPublicStorageView&&!document.documentElement.classList.contains('biglwa-preview-mode');
   }
+  function canArrange(){return canReadFolders()&&!shortcutsReadOnly()}
   function readFolders(){
-    if(!canArrange())return [];
+    if(!canReadFolders())return [];
     try{return JSON.parse(localStorage.getItem(folderKey)||'[]').filter(group=>Array.isArray(group)&&group.every(key=>typeof key==='string'))}catch{return []}
   }
   function saveFolders(groups){
@@ -763,7 +770,7 @@
             const app=document.createElement('button');app.type='button';app.append(byKey.get(k).querySelector('.hero-shortcut-icon').cloneNode(true),navigationCatalog.get(k).label);
             app.onclick=()=>{dialog.close();document.querySelector('#studioSidebarShortcutDock [data-sidebar-route="'+CSS.escape(k)+'"]')?.click()};dialog.append(app);
           }
-          for(const label of ['Ungroup','Close']){
+          for(const label of (shortcutsReadOnly()?['Close']:['Ungroup','Close'])){
             const action=document.createElement('button');action.type='button';action.textContent=label;
             action.onclick=()=>{dialog.close();if(label==='Ungroup')saveFolders(readFolders().filter(g=>!g.includes(key)))};dialog.append(action);
           }
@@ -847,20 +854,20 @@
     create.title='Open Veve discovery';create.setAttribute('aria-label','Open Veve discovery');
     const apps=shortcuts.map(key=>createHeroShortcut(navigationCatalog.get(key),existingByKey.get(key)));
     for(const app of apps){
-      app.style.touchAction='none';app.draggable=false;
+      app.style.touchAction=shortcutsReadOnly()?'pan-x':'none';app.draggable=false;
       app.querySelectorAll('img').forEach(image=>image.draggable=false);
     }
     const links=folderLinks(bar,apps);
     const split=Math.ceil(links.length/2);reconcileChildren(bar,[...links.slice(0,split),create,...links.slice(split)]);bar.style.setProperty('--studio-action-count',String(links.length+1));
     setSidebarCurrent(app,app.dataset.currentStudioRoute||'');
     const saveShortcutButton=$('#saveSidebarShortcuts',app);
-    if(saveShortcutButton&&saveShortcutButton.dataset.biglwaBound!=='1'){saveShortcutButton.dataset.biglwaBound='1';saveShortcutButton.addEventListener('click',()=>{const saved=writeNavigationShortcuts($$('[data-sidebar-route-row]',shortcutDock).map(row=>row.dataset.sidebarRouteRow));showShortcutStatus(app,`${saved.length} shortcut${saved.length===1?'':'s'} saved.`);window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Shortcut bar updated',source:'Studio navigation',detail:`${saved.length} shortcuts saved`,notified:false}}))})}
+    if(saveShortcutButton&&saveShortcutButton.dataset.biglwaBound!=='1'){saveShortcutButton.dataset.biglwaBound='1';saveShortcutButton.addEventListener('click',()=>{if(shortcutsReadOnly())return;const saved=writeNavigationShortcuts($$('[data-sidebar-route-row]',shortcutDock).map(row=>row.dataset.sidebarRouteRow));showShortcutStatus(app,`${saved.length} shortcut${saved.length===1?'':'s'} saved.`);window.dispatchEvent(new CustomEvent('biglwa:studio-update',{detail:{title:'Shortcut bar updated',source:'Studio navigation',detail:`${saved.length} shortcuts saved`,notified:false}}))})}
     syncPrimaryWidgetDock(app);
     bindSidebarShortcutDrag(app);
   }
 
   function moveNavigationShortcut(app,key,connected,targetKey=''){
-    if(!navigationCatalog.has(key))return false;
+    if(shortcutsReadOnly()||!navigationCatalog.has(key))return false;
     const current=readNavigationShortcuts(initialNavigationShortcuts||[]).filter(item=>navigationCatalog.has(item));
     const without=current.filter(item=>item!==key);
     if(connected){
@@ -880,7 +887,7 @@
     let state=null;
     const clear=()=>{if(!state)return;state.row.classList.remove('is-dragging');$$('.is-shortcut-drop-target',app).forEach(zone=>zone.classList.remove('is-shortcut-drop-target'));try{state.handle.releasePointerCapture(state.pointerId)}catch{}state=null};
     app.addEventListener('pointerdown',event=>{
-      const handle=event.target.closest('[data-shortcut-drag-handle]');if(!handle)return;
+      const handle=event.target.closest('[data-shortcut-drag-handle]');if(!handle||shortcutsReadOnly())return;
       const row=handle.closest('[data-sidebar-route-row]');if(!row)return;
       event.preventDefault();state={handle,row,key:row.dataset.sidebarRouteRow,pointerId:event.pointerId};row.classList.add('is-dragging');try{handle.setPointerCapture(event.pointerId)}catch{}
     });

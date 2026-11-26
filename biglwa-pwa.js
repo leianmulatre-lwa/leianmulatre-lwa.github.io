@@ -36,6 +36,7 @@
   const root=document.documentElement;
   if(root.classList.contains('biglwa-ios-bottom-dock'))return;
   root.classList.add('biglwa-ios-bottom-dock');
+  const appOnly=standalone();root.classList.toggle('biglwa-ios-shortcuts-readonly',appOnly);
   const edge=button('Show bottom dock',()=>reveal());edge.id='biglwaIosDockEdge';edge.setAttribute('aria-controls','biglwaIosDockRail');edge.setAttribute('aria-expanded','false');
   edge.innerHTML='<span aria-hidden="true"></span><span class="biglwa-dock-sr">Show bottom dock</span>';
   document.body.append(edge);
@@ -56,12 +57,16 @@
   function wire(){
    const dock=rail();
    if(dock&&!dock.querySelector('.biglwa-ios-dock-close')){
-    const done=button('Done editing shortcuts',close);done.className='biglwa-ios-dock-close';dock.prepend(done);
+    const done=button(appOnly?'Done restoring widgets':'Done editing shortcuts',close);done.className='biglwa-ios-dock-close';dock.prepend(done);
    }
    const hub=document.querySelector('#biglwaSkeletonHub');
    if(hub&&!hub.querySelector('.biglwa-ios-dock-preference')){
     const panel=document.createElement('div');panel.className='biglwa-ios-dock-options';
-    panel.append(dockPreference(),button('Manage shortcuts & closed widgets',manage));
+    panel.append(dockPreference());
+    if(appOnly){
+     const notice=document.createElement('small');notice.textContent='To add, remove, reorder or group shortcuts, open BIG LWA in your web browser. Saved changes appear here after account sync.';
+     panel.append(notice,button('Restore closed widgets',manage));
+    }else panel.append(button('Manage shortcuts & closed widgets',manage));
     hub.querySelector('.skeleton-quick-actions')?.after(panel);
    }
    // Only change state if needed: observers must not create a render loop.

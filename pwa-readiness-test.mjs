@@ -12,7 +12,7 @@ assert(client.includes('Notification.requestPermission()')&&client.includes('reg
 assert(client.includes('sub.unsubscribe()')&&client.includes('registration.pushManager.subscribe'));
 assert(client.includes('Continue in portrait')&&client.includes('Local test sent.'));
 for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html','settings/index.html']){
- const shell=read(path);assert(shell.includes('/biglwa.webmanifest'));assert(shell.includes('/biglwa-pwa.js?v=4'));assert(shell.includes('viewport-fit=cover'));
+ const shell=read(path);assert(shell.includes('/biglwa.webmanifest'));assert(shell.includes('/biglwa-pwa.js?v=5'));assert(shell.includes('viewport-fit=cover'));
 }
 console.log('PASS install manifest, shell wiring, opt-in notification controls, no fetch cache, portrait alternative');
 
@@ -21,7 +21,7 @@ assert(client.indexOf('const sub=await registration.pushManager.subscribe')<clie
 const iosCSS=read('biglwa-pwa.css');
 for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html']){
  const shell=read(path);
- assert.equal((shell.match(/\/biglwa-pwa\.css\?v=4/g)||[]).length,2,path+' both iOS stylesheets refreshed');
+ assert.equal((shell.match(/\/biglwa-pwa\.css\?v=5/g)||[]).length,2,path+' both iOS stylesheets refreshed');
 }
 assert.match(iosCSS,/--ios-rail:76px/);
 assert.match(iosCSS,/--ios-rail:42px/);
@@ -52,3 +52,8 @@ console.log('PASS iOS bottom dock, per-device preference, touch reveal, orientat
 
 assert.match(client,/window\.addEventListener\('click',event=>\{\s*if\(touchMode\(\)/);
 assert.match(iosCSS,/left:env\(safe-area-inset-left,0px\);right:env\(safe-area-inset-right,0px\);bottom:env\(safe-area-inset-bottom,0px\)/);
+
+assert.match(client,/const appOnly=standalone\(\)/);
+assert.match(client,/Restore closed widgets/);
+assert.match(client,/open BIG LWA in your web browser/);
+assert.match(iosCSS,/biglwa-ios-shortcuts-readonly/);

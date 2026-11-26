@@ -14,9 +14,18 @@ test('original shortcut drag and intentional grouping are published together wit
  assert.match(ui,/document\.body\.append\(cue\)\},600\)/);
  assert.match(ui,/else moveNavigationShortcut\(bar\.closest\('#studioApp'\),key,true,dest\)/);
  assert.match(ui,/group\.slice\(0,4\)/);
- assert.match(ui,/\['Ungroup','Close'\]/);
+ assert.match(ui,/shortcutsReadOnly\(\)\?\['Close'\]:\['Ungroup','Close'\]/);
  assert.match(ui,/localStorage\.setItem\(folderKey,JSON\.stringify\(groups\)\)/);
  assert.match(ui,/app\.draggable=false/);
  assert.match(ui,/lostpointercapture/);
  assert.match(ui,/data-shortcut-drag-handle/);
+});
+
+test('installed iOS reads saved folders but cannot edit shortcut order or membership',()=>{
+ assert.match(ui,/function shortcutsReadOnly\(\)/);
+ assert.match(ui,/if\(persist&&shortcutsReadOnly\(\)\)return readNavigationShortcuts/);
+ assert.match(ui,/function canArrange\(\)\{return canReadFolders\(\)&&!shortcutsReadOnly\(\)\}/);
+ assert.match(ui,/function readFolders\(\)\{\s*if\(!canReadFolders\(\)\)return \[\]/);
+ assert.match(ui,/if\(shortcutsReadOnly\(\)\|\|!navigationCatalog.has\(key\)\)return false/);
+ assert.match(ui,/if\(!handle\|\|shortcutsReadOnly\(\)\)return/);
 });
