@@ -30,7 +30,7 @@
   }
 
   function mailroom() {
-    if (!mailroomPromise) mailroomPromise = import('/mailroom-auth-client.js?v=20261108-titan-auth-1');
+    if (!mailroomPromise) mailroomPromise = import('/mailroom-auth-client.js?v=20261126-worker-smtp-1');
     return mailroomPromise;
   }
 

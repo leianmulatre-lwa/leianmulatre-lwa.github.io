@@ -130,6 +130,12 @@ assert.ok(schema.includes('CREATE TABLE IF NOT EXISTS account_sync_state'), 'sch
 assert.ok(schema.includes('CREATE TABLE IF NOT EXISTS account_sync_mirror'), 'schema creates the mirror queue');
 assert.ok(!/(access_token|private_key|client_secret)/i.test(schema), 'schema contains no credentials');
 assert.ok(!wrangler.includes('FIREBASE_SERVICE_ACCOUNT ='), 'service-account JSON is never committed');
+assert.ok(wrangler.includes('MAILROOM_WORKER_DELIVERY = "true"'), 'Worker auth mail relay has an explicit switch');
+assert.ok(wrangler.includes('MAILROOM_SMTP_USER'), 'the SMTP user secret is documented');
+assert.ok(wrangler.includes('MAILROOM_SMTP_PASSWORD'), 'the SMTP password secret is documented');
+assert.ok(worker.includes('/mail/auth-email'), 'the Worker exposes the member auth mail route');
+assert.ok(worker.includes('returnOobLink: true'), 'Firebase creates action links without sending mail');
+assert.ok(!worker.includes('callerSuppliedEmail'), 'callers cannot supply a recipient');
 
 assert.ok(instagram.includes("var orbitNoticeMessage = '';"), 'Instagram stores the return notice');
 assert.ok(instagram.includes("function orbitNotice(message){"), 'Instagram writes the Orbit status node');

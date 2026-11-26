@@ -566,6 +566,9 @@ export default {
     if (new URL(request.url).pathname === '/auth/handle-login' && request.method === 'POST') {
       return handleLogin(request, env);
     }
+    if (new URL(request.url).pathname === '/mail/auth-email' && request.method === 'POST') {
+      return mailAuthEmail(request, env);
+    }
     if (new URL(request.url).pathname === '/pinterest/saved') {
       const config={...env,SITE_URL:env.SITE_URL||'https://biglwa.com'};
       try{return await pnSavedRoute(request,config);}
@@ -2730,6 +2733,109 @@ async function handleLogin(request, env) {
     return json({ customToken: await createHandleCustomToken(env, uid, handle) }, 200, request, env);
   } catch (_) {
     return json({ error: 'Handle sign-in is unavailable. Try again in a moment.' }, 503, request, env);
+  }
+}
+/* Member authentication mail. Firebase still creates and validates the secure
+ * action link, but the Worker delivers the reviewed letter through the
+ * BIG LWA Titan mailbox. This bypasses Firebase Auth's outbound mail quota
+ * without requiring the paid Cloudflare Email Sending plan. */
+const MAILROOM_ACTIONS = new Set(['verify', 'reset']);
+function mailRelayEnabled(env) {
+  return env.MAILROOM_WORKER_DELIVERY === 'true' &&
+    !!env.MAILROOM_SMTP_USER && !!env.MAILROOM_SMTP_PASSWORD;
+}
+async function mailFirebaseAccountFromToken(idToken) {
+  if (!idToken) return null;
+  try {
+    const response = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=' +
+      encodeURIComponent(FIREBASE_WEB_API_KEY), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idToken })
+    });
+    if (!response.ok) return null;
+    const body = await response.json().catch(() => ({}));
+    const user = (body.users || [])[0];
+    if (!user || !user.localId) return null;
+    return { uid: String(user.localId), email: String(user.email || '') };
+  } catch (_) { return null; }
+}
+async function mailRateLimit(env, uid, type) {
+  const key = 'mailauth:' + uid + ':' + type;
+  try {
+    const saved = await env.OAUTH_SESSIONS.get(key, 'json');
+    const now = Date.now();
+    const attempts = (Array.isArray(saved?.timestamps) ? saved.timestamps : [])
+      .map((value) => Number(value)).filter((value) => Number.isFinite(value) && value > now - 15 * 60 * 1000);
+    if (attempts.length >= 3) return false;
+    attempts.push(now);
+    await env.OAUTH_SESSIONS.put(key, JSON.stringify({ timestamps: attempts }), { expirationTtl: 900 });
+    return true;
+  } catch (_) { return false; }
+}
+async function mailActionLink(env, token, email, type) {
+  const requestType = type === 'verify' ? 'VERIFY_EMAIL' : 'PASSWORD_RESET';
+  const response = await fetch('https://identitytoolkit.googleapis.com/v1/projects/' +
+    encodeURIComponent(env.FIREBASE_PROJECT_ID || 'biglwa') + '/accounts:sendOobCode', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+    // Firebase generates the secure link and returns it; it does not send mail.
+    body: JSON.stringify({ requestType, email, returnOobLink: true })
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok || typeof body.oobLink !== 'string' || !body.oobLink)
+    throw new Error('Firebase did not create an action link.');
+  return body.oobLink;
+}
+async function mailPublishedTemplate(env, token, type) {
+  const { requireApprovedCopy } = await import('./mailroom-worker-mail.mjs');
+  const doc = await accountSyncFirestoreGet('developerMailPublished/' + type, token, env);
+  const published = accountSyncFromFirestoreFields(doc?.fields || {});
+  return requireApprovedCopy(type, published);
+}
+async function mailAuthEmail(request, env) {
+  if (!allowedOrigin(request, env)) return json({ error: 'Origin not allowed.' }, 403, request, env);
+  if (!mailRelayEnabled(env))
+    return json({ error: 'Mailroom SMTP delivery is not configured yet.' }, 503, request, env);
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== 'object' || Array.isArray(body) ||
+      Object.keys(body).length !== 1 || !MAILROOM_ACTIONS.has(body.type))
+    return json({ error: 'Unsupported email action.' }, 400, request, env);
+  const header = request.headers.get('Authorization') || '';
+  const idToken = /^Bearer [A-Za-z0-9_.-]+$/.test(header) ? header.slice(7) : '';
+  if (!idToken) return json({ error: 'Sign in again to send this email.' }, 401, request, env);
+  try {
+    const session = await mailFirebaseAccountFromToken(idToken);
+    if (!session || !session.email) return json({ error: 'Sign in again to send this email.' }, 401, request, env);
+    const token = await accountSyncServiceToken(env);
+    const admin = await firebaseAdminUserByUid(env, token, session.uid);
+    if (!admin || admin.email !== session.email || admin.disabled === true)
+      return json({ error: 'That account cannot receive Mailroom email.' }, 403, request, env);
+    if (body.type === 'verify' && admin.emailVerified === true)
+      return json({ status: 'already_verified', kind: 'verify' }, 200, request, env);
+    const providers = Array.isArray(admin.providerUserInfo)
+      ? admin.providerUserInfo.map((entry) => String(entry.providerId || '')) : [];
+    if (body.type === 'reset' && !providers.includes('password'))
+      return json({ error: 'This account does not use an email-and-password sign-in.' }, 400, request, env);
+    if (!await mailRateLimit(env, session.uid, body.type))
+      return json({ error: 'Too many email requests. Wait a little, then try again.' }, 429, request, env);
+    const [template, actionUrl, profileDoc] = await Promise.all([
+      mailPublishedTemplate(env, token, body.type),
+      mailActionLink(env, token, session.email, body.type),
+      accountSyncFirestoreGet('users/' + session.uid, token, env)
+    ]);
+    const profile = accountSyncFromFirestoreFields(profileDoc?.fields || {});
+    const { composeMessage } = await import('./Services/mailroom/compose.mjs');
+    const letter = composeMessage({
+      id: body.type,
+      account: { email: session.email, displayName: String(admin.displayName || '') },
+      profile, template, mode: 'auth', actionUrl
+    });
+    const { mailSmtpConfig, createSmtpMessage } = await import('./mailroom-worker-mail.mjs');
+    const { sendSmtpMail } = await import('./mailroom-worker-smtp.mjs');
+    const config = mailSmtpConfig(env);
+    await sendSmtpMail(config, createSmtpMessage({ ...letter, from: config.from }));
+    return json({ status: 'accepted_by_smtp', kind: body.type }, 202, request, env);
+  } catch (_) {
+    return json({ error: 'Mailroom could not send that email. Please try again.' }, 503, request, env);
   }
 }
 async function accountSyncUser(request, env) {
