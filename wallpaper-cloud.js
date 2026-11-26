@@ -110,6 +110,7 @@ async function uploadMedia(file, { state = 'pending' } = {}) {
   if (!supported(file.type)) throw new Error('Choose a JPG, PNG, WebP, GIF, MP4, WebM, or MOV file.');
   const limit = isVideo(file.type) ? MAX_VIDEO_BYTES : MAX_IMAGE_BYTES;
   if (file.size > limit) throw new Error(`Keep videos under ${MAX_VIDEO_BYTES / 1024 / 1024} MB and images under ${MAX_IMAGE_BYTES / 1024 / 1024} MB.`);
+  try{const {optimizeUpload}=await import('/media-renditions.js?v=fullsize1');file=await optimizeUpload(file)}catch{}
   const headers = await mediaHeaders(user);
   const query = new URLSearchParams({ kind: isVideo(file.type) ? 'video' : 'image', state, name: clean(file.name).slice(0, 120) });
   const response = await fetch(`${MEDIA_ENDPOINT}/media/wallpaper?${query}`, {

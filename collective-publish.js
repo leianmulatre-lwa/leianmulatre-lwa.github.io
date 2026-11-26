@@ -38,7 +38,9 @@ function previewServiceReady(){
  }).catch(()=>false);
  return previewCapability;
 }
-async function uploadBlob(blob){if(!(blob instanceof Blob)||!blob.size)throw new Error("Choose or capture an image first.");const {auth}=await firebase(),user=auth.currentUser;if(!user)throw new Error("Sign in before uploading to the collective feed.");const token=await user.getIdToken();const previewSupported=previewServiceReady();const type=clean(blob.type)||"image/jpeg";const res=await fetch(WORKER+"/media/feed-image",{method:"POST",headers:{"Authorization":"Bearer "+token,"Content-Type":type},body:blob});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||"The image could not be uploaded.");
+async function uploadBlob(blob){if(!(blob instanceof Blob)||!blob.size)throw new Error("Choose or capture an image first.");const {auth}=await firebase(),user=auth.currentUser;if(!user)throw new Error("Sign in before uploading to the collective feed.");const token=await user.getIdToken();
+  try{const {optimizeUpload}=await import('/media-renditions.js?v=fullsize1');blob=await optimizeUpload(blob)}catch{}
+  const previewSupported=previewServiceReady();const type=clean(blob.type)||"image/jpeg";const res=await fetch(WORKER+"/media/feed-image",{method:"POST",headers:{"Authorization":"Bearer "+token,"Content-Type":type},body:blob});const data=await res.json().catch(()=>({}));if(!res.ok)throw new Error(data.error||"The image could not be uploaded.");
   if(await previewSupported)try{
    const {uploadFeedPreview}=await import('./media-renditions.js?v=20261116-feed-webp-v1');
    const variant=await uploadFeedPreview(blob,data,{worker:WORKER,token});

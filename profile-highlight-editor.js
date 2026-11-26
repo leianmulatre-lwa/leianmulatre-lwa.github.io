@@ -228,7 +228,9 @@
   const auth=getAuth(app);await auth.authStateReady();
   const user=auth.currentUser;
   if(!user||user.uid!==owner())throw Error('Sign in to your own account before uploading highlight media.');
-  const response=await fetch('https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/feed-image',{
+
+  try{const {optimizeUpload}=await import('/media-renditions.js?v=fullsize1');file=await optimizeUpload(file)}catch{}
+    const response=await fetch('https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/feed-image',{
    method:'POST',headers:{Authorization:'Bearer '+await user.getIdToken(),'Content-Type':file.type},body:file
   });
   const payload=await response.json().catch(()=>({}));

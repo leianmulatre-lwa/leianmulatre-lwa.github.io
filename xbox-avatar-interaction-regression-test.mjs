@@ -19,7 +19,7 @@ assert.ok(src.includes("renderMinecraftModel(media,a.url,true)"),'Interactive en
 assert.ok(src.includes("data-minecraft-model=\"steve\"")&&src.includes("data-minecraft-model=\"alex\""),'Steve and Alex selectable');
 assert.ok(src.includes("viewer.mount(root,texture,{large,slim:state.minecraftSlim"),'Slim arm geometry passed to model');
 assert.ok(minecraft.includes("slim?3:4"),'Minecraft renderer distinguishes Alex and Steve arms');
-assert.ok(src.includes('MINECRAFT_DEFAULT_SKINS')&&src.includes('/wide/steve.png')&&src.includes('/slim/alex.png'),'Official vanilla Steve and Alex texture paths differ');
+assert.ok(src.includes('MINECRAFT_DEFAULT_SKINS')&&src.includes('/steve%20skin.png')&&src.includes('/Alex%20skin.png'),'Official vanilla Steve and Alex texture paths differ');
 assert.ok(src.includes("async function saveMinecraftModelChoice()"),'Model selector persists to account without reupload');
 assert.ok(src.includes("slim:state.minecraftSlim,updatedAt:f.serverTimestamp()"),'Arm model saved under current Firebase account');
 assert.ok(src.includes("studioAvatar:{type:kind,url:result.url"),'Imported Minecraft skin still saved to account');

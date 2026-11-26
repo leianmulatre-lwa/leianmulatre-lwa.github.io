@@ -136,7 +136,9 @@ async function uploadProjectImage(file){
  if(file.size>8*1024*1024)throw Error('Images must be 8 MB or smaller.');
  projectUploadBusy=true;pickerStatus('Saving image in your BIGLWA media bucket…');
  try{
-  const token=await getProjectImageToken();
+
+  try{const {optimizeUpload}=await import('/media-renditions.js?v=fullsize1');file=await optimizeUpload(file)}catch{}
+    const token=await getProjectImageToken();
   const response=await fetch('https://biglwa-instagram-api.leianmulatre-284.workers.dev/media/feed-image',{
    method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':file.type},body:file
   });

@@ -60,6 +60,8 @@ async function authHeaders() {
 
 export async function uploadProfilePhoto(file) {
   validatePhoto(file);
+  try{const {optimizeUpload}=await import('/media-renditions.js?v=fullsize1');file=await optimizeUpload(file)}catch{}
+
   const { token } = await authHeaders();
   const headers = { Authorization: "Bearer " + token };
   headers["Content-Type"] = file.type;

@@ -5,7 +5,7 @@ if(/^[a-z0-9._-]{5,24}$/i.test(route)&&!['studio','login','settings','privacy','
 const policy=window.BigLWAStoragePolicy,raw={get:Storage.prototype.getItem,set:Storage.prototype.setItem,remove:Storage.prototype.removeItem};
 const disk=(key)=>raw.get.call(localStorage,key),put=(key,val)=>raw.set.call(localStorage,key,val),drop=key=>raw.remove.call(localStorage,key);
 let uid='',fs,db,auth,ready=false,remoteReady=false,epoch=0,timer=0,busy=false,unsubscribe=null,notice='',changed=false;
-let pending={},versions={};
+let pending={},versions={},nextAttempt=0,retryDelay=0;
 const preview=()=>Boolean(window.parent!==window&&window.parent.__biglwaPublicStorageView)||document.documentElement.classList.contains('biglwa-preview-mode')||Boolean(window.__biglwaPublicStorageView);
 const slot=(key)=>'biglwaAccountDataV1:'+uid+':'+key;
 const pendingKey=()=> 'biglwaAccountPendingV1:'+uid;
@@ -34,7 +34,7 @@ function write(key,value){
 Storage.prototype.setItem=function(key,value){if(this===localStorage&&write(key,String(value)))return;return raw.set.call(this,key,value)};
 Storage.prototype.removeItem=function(key){if(this===localStorage&&write(key,null))return;return raw.remove.call(this,key)};
 async function flush(){
- if(busy||!uid||!remoteReady||preview())return;
+ if(busy||!uid||!remoteReady||preview()||Date.now()<nextAttempt)return;
  busy=true;let retryNewer=false;const owner=uid,turn=epoch;
  try{
   for(const [key,edit] of Object.entries({...pending})){
@@ -49,14 +49,17 @@ async function flush(){
      tx.set(ref,{value:edit.value,revision:current+1,editId:edit.editId,updatedAt:fs.serverTimestamp()});return current+1;
     });
     if(turn!==epoch)break;
-    versions[key]=revision;
+    retryDelay=0;nextAttempt=0;versions[key]=revision;
     if(pending[key]?.editId===edit.editId)delete pending[key];
     else if(pending[key]){pending[key].base=revision;retryNewer=true;}
     saveQueue();
    }catch(error){
     if(turn!==epoch)break;
     if(error.message==='conflict'){if(pending[key])pending[key].conflict=true;saveQueue();status('Another device changed the same collection. Your local edits are preserved; resolve this in Settings.');}
-    else{status('Saved on this device; cloud sync needs retry. '+error.message);break;}
+    else{const quota=String(error.code||error.message).includes('resource-exhausted')||/quota exceeded/i.test(error.message);
+     retryDelay=Math.min(1800000,Math.max(quota?60000:15000,retryDelay*2));
+     nextAttempt=Date.now()+retryDelay+Math.random()*retryDelay*.15;
+     status('Saved on this device; cloud sync needs retry. '+error.message);break;}
    }
   }
   if(!Object.keys(pending).length)status(changed?'Account updates are available. Reload to show them.':'Saved to your account');
@@ -70,14 +73,19 @@ async function initialize(){
   pending=json(disk(pendingKey()),{});
   const ref=s.collection(db,'users',uid,'studioState');
   try{
-   const snap=await s.getDocs(ref);
-   for(const d of snap.docs){if(!policy.accepted(d.id))continue;const data=d.data();versions[d.id]=Number(data.revision)||0;if(!pending[d.id]){if(data.value===null)drop(slot(d.id));else if(policy.validValue(data.value))put(slot(d.id),data.value);}}
-   remoteReady=true;
-   let first=true;
-   unsubscribe=s.onSnapshot(ref,snap=>{
-    for(const d of snap.docs){if(!policy.accepted(d.id))continue;const data=d.data();versions[d.id]=Number(data.revision)||0;if(pending[d.id])continue;const value=data.value;if(!policy.validValue(value))continue;if(disk(slot(d.id))!==value){value===null?drop(slot(d.id)):put(slot(d.id),value);if(!first)notifyChange();}}
-    first=false;
-   },error=>status('Cloud updates unavailable: '+error.message));
+   await new Promise((resolve,reject)=>{
+    let first=true;
+    unsubscribe=s.onSnapshot(ref,snap=>{
+     for(const d of snap.docs){
+      if(!policy.accepted(d.id))continue;
+      const data=d.data();versions[d.id]=Number(data.revision)||0;
+      if(pending[d.id]||!policy.validValue(data.value)||disk(slot(d.id))===data.value)continue;
+      data.value===null?drop(slot(d.id)):put(slot(d.id),data.value);
+      if(!first)notifyChange();
+     }
+     remoteReady=true;first=false;resolve();
+    },error=>{if(first)reject(error);else status('Cloud updates unavailable: '+error.message)});
+   });
   }catch(error){status('Cloud restore unavailable. Cached account data remains on this device. '+error.message)}
  }
  ready=true;
