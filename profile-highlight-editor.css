@@ -245,5 +245,7 @@ body.night-mode #studioApp #archiveHighlightsPanel .highlight-item-send-status{c
 #studioApp #wallpaperPanel #profileEditorTabs{flex-wrap:wrap!important;min-width:0!important;max-width:100%!important}
 #studioApp #wallpaperPanel #profileLockerEditor{box-sizing:border-box;max-width:100%;min-width:0;overflow:auto}
 #studioApp #wallpaperPanel #profileLockerEditor[hidden]{display:none!important}
-#studioApp #profileLockerEditor .locker-doors{grid-template-columns:repeat(auto-fit,minmax(min(100%,100px),1fr))}
+#studioApp #profileLockerEditor .locker-doors{grid-template-columns:repeat(auto-fit,minmax(min(100%,96px),144px));justify-content:start}
 #studioApp #profileLockerEditor .locker-doors button{white-space:normal;overflow-wrap:anywhere;max-width:100%}
+
+#studioApp #profileLockerEditor .locker-doors section{box-sizing:border-box;aspect-ratio:2/3;width:100%;min-height:11rem}

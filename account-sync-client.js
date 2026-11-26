@@ -50,9 +50,9 @@
     return authPromise;
   }
   async function identity() {
-    const auth = await auth();
-    await auth.authStateReady();
-    const current = auth.currentUser;
+    const instance = await auth();
+    await instance.authStateReady();
+    const current = instance.currentUser;
     if (!current) throw new Error('Sign in to BIG LWA before saving to your account.');
     uid = current.uid;
     return { uid, token: await current.getIdToken() };

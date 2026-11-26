@@ -102,11 +102,13 @@ async function openLocker(dialog){
  const draw=async()=>{
   const slots=await Promise.all([1,2,3,4].map(n=>directory.profileLocker(n,undefined,0,owner)));
   doors.replaceChildren();
-  slots.forEach(({preset,revision},index)=>{
+  slots.forEach(({preset,revision,legacyUnavailable},index)=>{
    const n=index+1,door=document.createElement('section');
+   const savedAura=preset?.appearance?.aura;
+   if(/^#[0-9a-f]{6}$/i.test(savedAura))door.style.setProperty('--locker-color',savedAura);
    door.innerHTML='<strong>Locker '+n+'</strong><button type="button" data-save></button><button type="button" data-use>Apply</button>';
    const save=door.querySelector('[data-save]'),use=door.querySelector('[data-use]');
-   save.textContent=preset?'Replace':'Save look';use.disabled=!preset;
+   save.textContent=preset?'Replace':legacyUnavailable?'Save new look':'Save look';use.disabled=!preset;
    const act=fn=>async()=>{
     if(dialog.dataset.busy)return;
     dialog.dataset.busy='1';doors.inert=true;
@@ -114,11 +116,12 @@ async function openLocker(dialog){
     finally{delete dialog.dataset.busy;doors.inert=false}
    };
    save.onclick=act(async()=>{
+    if(legacyUnavailable&&!confirm('The previous Firestore slot cannot be checked. Save a new look as the active preset for this locker?'))return;
     if(preset&&!confirm('Replace the look in locker '+n+'?'))return;
     status.textContent='Saving…';
-    const [account,media]=await Promise.all([directory.loadProfile(),request()]);
-    if(account?.uid!==owner)throw Error('Your saved settings could not be loaded.');
-    const custom=account.customization||{},layout={...(window.BigLWAStudioLayout?.snapshot()||custom.layout||{})};
+    const [account,media]=await Promise.all([directory.loadProfile().catch(()=>null),request()]);
+    if(account&&account.uid!==owner)throw Error('Your saved settings could not be loaded.');
+    const custom=account?.customization||{},layout={...(window.BigLWAStudioLayout?.snapshot()||custom.layout||{})};
     if(!dialog.querySelector('input').checked){delete layout.navigation;delete layout.disconnectedNavigation}
     const live=window.BIGLWAStudioAppearance?.snapshot?.()||{};
     const saved={appearance:{...custom.appearance,...live.appearance},wallpaper:{...custom.wallpaper,...live.wallpaper},layout,
