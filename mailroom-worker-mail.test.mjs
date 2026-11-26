@@ -43,8 +43,13 @@ test("SMTP transport only accepts approved Titan-style settings", () => {
   assert.throws(() => mailSmtpConfig({ MAILROOM_SMTP_USER: "u", MAILROOM_SMTP_PASSWORD: "p", MAILROOM_SMTP_PORT: "25" }),
     /Invalid SMTP/);
   assert.throws(() => mailSmtpConfig({ MAILROOM_SMTP_USER: "u", MAILROOM_SMTP_PASSWORD: "p", MAILROOM_FROM: "other@example.com" }),
-    /Invalid SMTP/);
-  assert.throws(() => mailSmtpConfig({ MAILROOM_SMTP_USER: "u" }), /Invalid SMTP/);
+    /Invalid SMTP sender/);
+  assert.throws(() => mailSmtpConfig({ MAILROOM_SMTP_USER: "u" }), /Invalid SMTP credentials/);
+  assert.deepEqual(mailSmtpConfig({
+    MAILROOM_SMTP_USER: " u\n", MAILROOM_SMTP_PASSWORD: "p\n", MAILROOM_SMTP_PORT: " 465 "
+  }), { host: "smtp.titan.email", port: 465, user: "u", pass: "p", from: "lwazi@biglwa.com" });
+  assert.throws(() => mailSmtpConfig({ MAILROOM_SMTP_USER: "u", MAILROOM_SMTP_PASSWORD: "p\nq" }),
+    /Invalid SMTP credentials/);
 });
 
 test("SMTP message encodes UTF-8 safely and never trusts header input", () => {
