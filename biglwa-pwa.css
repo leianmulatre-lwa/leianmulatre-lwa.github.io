@@ -29,3 +29,40 @@
 @media (display-mode:standalone) and (pointer:coarse){
  #studioApp .topbar.profile-header-repaired{padding-inline-start:max(8px,env(safe-area-inset-left))!important;padding-inline-end:max(8px,env(safe-area-inset-right))!important;padding-top:env(safe-area-inset-top)!important}
 }
+
+/* One rail owns the right inset. The device safe areas are counted once. */
+html.biglwa-ios body:has(#studioApp){padding-inline:0!important}
+html.biglwa-ios #studioApp{
+ --ios-rail:124px;
+ --ios-left:env(safe-area-inset-left,0px);
+ --ios-right:env(safe-area-inset-right,0px);
+ --ios-reserved:calc(var(--ios-rail) + var(--ios-right));
+}
+html.biglwa-ios body.sidebar-collapsed #studioApp{--ios-rail:54px}
+html.biglwa-ios body.biglwa-sidebar-hidden #studioApp,
+html.biglwa-ios.biglwa-preview-mode #studioApp{--ios-rail:0px}
+html.biglwa-ios body #studioApp aside.sidebar{
+ position:fixed!important;display:flex!important;left:auto!important;right:0!important;
+ top:var(--biglwa-dock-top,60px)!important;bottom:0!important;
+ width:var(--ios-reserved)!important;box-sizing:border-box!important;
+ padding-right:calc(6px + var(--ios-right))!important;padding-bottom:max(8px,env(safe-area-inset-bottom))!important;
+ border-right:0;border-left:1px solid var(--line);min-height:0!important;
+}
+html.biglwa-ios.biglwa-preview-mode body #studioApp aside.sidebar{display:none!important}
+html.biglwa-ios body.biglwa-sidebar-hidden #studioApp aside.sidebar{transform:translateX(105%)!important}
+html.biglwa-ios #biglwaSidebarShowTab{left:auto;right:var(--ios-right,0px);transform:scaleX(-1)}
+html.biglwa-ios #studioApp #sidebarCollapse>span{display:inline-block;transform:scaleX(-1)}
+html.biglwa-ios body #studioApp #home.main{
+ box-sizing:border-box!important;width:auto!important;min-width:0!important;max-width:none!important;
+ margin-left:var(--ios-left)!important;margin-right:var(--ios-reserved)!important;padding-inline:0!important;
+}
+html.biglwa-ios #studioApp #pageWallpaper.page-wallpaper{inset:0!important}
+html.biglwa-ios #studioApp #home:not(.module-view)>#hero{margin-inline:0!important;padding-inline:8px!important}
+html.biglwa-ios #studioApp #home:not(.module-view)>.masonry{--biglwa-widget-edge:8px}
+html.biglwa-ios body #studioApp #home .widget-is-expanded{
+ left:calc(var(--ios-left) + 8px)!important;right:calc(var(--ios-reserved) + 8px)!important;
+ width:auto!important;min-width:0!important;max-width:none!important;
+}
+@media(max-width:600px) and (orientation:portrait){
+ html.biglwa-ios body:not(.sidebar-collapsed):not(.biglwa-sidebar-hidden) #studioApp #home{margin-right:calc(54px + var(--ios-right))!important}
+}

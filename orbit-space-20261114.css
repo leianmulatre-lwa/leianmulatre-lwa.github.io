@@ -393,3 +393,7 @@ body #studioApp article#orbit[data-orbit-space-mounted]::after{
  #studioApp article#orbit[data-orbit-space-mounted]>:not(#orbitGrid):not(.orbit-space-canvas){z-index:5!important}
  #studioApp article#orbit[data-orbit-space-mounted]>#orbitGrid:has(:focus-visible){z-index:6!important}
 }
+/* Touch users can see the same tiled artwork and tap a planet directly. */
+@media (hover:none) and (prefers-reduced-motion:no-preference){
+ body #studioApp article#orbit.card{background-image:var(--orbit-block)!important;background-size:25% auto!important;background-repeat:repeat!important}
+}

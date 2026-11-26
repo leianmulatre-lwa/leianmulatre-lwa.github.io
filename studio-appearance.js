@@ -109,7 +109,8 @@
       #pageWallpaper>.biglwa-wallpaper-video{position:absolute;inset:-3%;z-index:0;display:none;width:106%;height:106%;object-fit:var(--page-size,cover);object-position:var(--page-position,center);pointer-events:none}
       #pageWallpaper.biglwa-video-wallpaper{background-image:none!important}
       #pageWallpaper.biglwa-video-wallpaper>.biglwa-wallpaper-video{display:block}
-      #pageWallpaper::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(to top,rgba(var(--aura-rgb,216,95,109),.36) 0,rgba(var(--aura-rgb,216,95,109),.16) 18%,transparent 46%)}
+      #studioApp #hero::after{content:none!important}
+      #pageWallpaper::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(to bottom,rgba(255,235,227,.10),rgba(255,235,227,.05) 55%,transparent),linear-gradient(to top,rgba(var(--aura-rgb,216,95,109),.36) 0,rgba(var(--aura-rgb,216,95,109),.16) 18%,transparent 46%)}
       #pageWallpaper::after{z-index:2}
       body.night-mode #studioApp .wallpaper-safety-status{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14)}
       body.night-mode #studioApp .wallpaper-safety-status[data-state="pending"]{background:rgba(255,190,48,.1);border-color:rgba(255,202,87,.44);color:#f2cf84!important}

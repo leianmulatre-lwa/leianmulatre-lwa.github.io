@@ -5,6 +5,7 @@
  const mobile=()=>matchMedia('(pointer: coarse)').matches;
  const portrait=()=>matchMedia('(orientation: portrait)').matches;
  const ios=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ document.documentElement.classList.toggle('biglwa-ios',ios());
  const settings=location.pathname.startsWith('/settings');
  const eligible=()=>settings||location.pathname==='/'||/^\/studio\/?$/.test(location.pathname);
  if(!eligible())return;
