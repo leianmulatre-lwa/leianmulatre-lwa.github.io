@@ -59,8 +59,9 @@
     // A modest dark veil maintains contrast without hiding the picture.
     root.style.setProperty('background-image',
       'linear-gradient(rgba(21,17,27,.13),rgba(21,17,27,.13)),url("'+src+'")','important');
-    root.style.setProperty('background-size','cover,cover','important');
-    root.style.setProperty('background-position','center center,center center','important');
+    const wii=file==='098fd5e1084e9f1d04223dcaa42387b9.jpg';
+    root.style.setProperty('background-size',wii?'cover,contain':'cover,cover','important');
+    root.style.setProperty('background-position',wii?'center,center top':'center center,center center','important');
     root.style.setProperty('background-repeat','no-repeat,no-repeat','important');
     root.style.setProperty('background-attachment','scroll,scroll','important');
     root.dataset.gamesWallpaper=file;

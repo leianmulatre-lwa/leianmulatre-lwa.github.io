@@ -28,7 +28,7 @@ test('Games rotates the exact original repository folder assets, not arbitrary r
  }
  assert.match(rotator,/const PATH='\/games%20bg\/'/);
  assert.doesNotMatch(rotator,/raw\.githubusercontent|classic-wallpaper|https?:\/\//i);
- assert.match(rotator,/background-size','cover,cover'/);
+ assert.match(rotator,/wii\?'cover,contain':'cover,cover'/);
 });
 
 test('Both public packaging paths keep the actual Games folder',()=>{

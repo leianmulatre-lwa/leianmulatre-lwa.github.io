@@ -141,7 +141,10 @@ function mount(){
  const panel=document.createElement('div');panel.className='card';const title=document.createElement('h3');title.textContent='Account sync & browser migration';
  const info=document.createElement('p');info.textContent='Projects, library, map pins, saved collections and supported preferences are private account backups. Legacy data is imported only when its recorded owner matches your signed-in Firebase account; unowned browser collections remain untouched and cannot be claimed by another member. Existing cloud collections are preserved.';
  const label=document.createElement('p');label.id='accountCloudStatus';label.setAttribute('role','status');panel.append(title,info,label);
- for(const [text,fn] of [['Import my existing browser data',importLegacy],['Retry sync',()=>remoteReady?flush():location.reload()],['Download private backup',exportLocal],['Keep my local conflicting edits',()=>resolve(true)],['Use cloud conflicting edits',()=>resolve(false)],['Reload saved data',()=>location.reload()]]){const b=document.createElement('button');b.type='button';b.textContent=text;b.onclick=()=>Promise.resolve().then(fn).catch(e=>status(e.message));panel.append(b);}
+ const actions=document.createElement('div');
+ actions.style.cssText='display:flex;flex-wrap:wrap;gap:10px 12px;margin-top:10px';
+ panel.append(actions);
+ for(const [text,fn] of [['Import my existing browser data',importLegacy],['Retry sync',()=>remoteReady?flush():location.reload()],['Download private backup',exportLocal],['Keep my local conflicting edits',()=>resolve(true)],['Use cloud conflicting edits',()=>resolve(false)],['Reload saved data',()=>location.reload()]]){const b=document.createElement('button');b.type='button';b.textContent=text;b.onclick=()=>Promise.resolve().then(fn).catch(e=>status(e.message));actions.append(b);}
  host.prepend(panel);paint();
 }
 const api={ready:initialize(),flush,importLegacy,exportLocal,get uid(){return uid},get status(){return notice},get isReady(){return ready}};window.BigLWAAccountStorage=api;

@@ -330,3 +330,5 @@
 #studioApp #moduleWorkspace[data-module-key="tools"] #craftSuite .craft-viewer{
  min-width:0!important;overflow:auto!important;
 }
+
+#studioApp #moduleWorkspace[data-module-key="tools"]{background:#71a6d7 url('/assets/studio-defaults/archive-windows-hill.webp') center top/100% auto no-repeat!important}

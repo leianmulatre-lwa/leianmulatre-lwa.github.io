@@ -679,7 +679,7 @@
   const SIDEBAR_ROUTE_FALLBACKS=[
     ['studio','Studio','<img src="/assets/studio-tipi-symbol.svg?v=20261026-1" alt="" aria-hidden="true">'],
     ['politc','Politque','<img src="/assets/politc-nyame-baatanpa.svg?v=20261014-1" alt="">'],
-    ['tools','lwazi','<img src="/assets/tools-hand-eye.svg" alt="">'],
+    ['tools',"l'wazi",'<img src="/assets/tools-hand-eye.svg" alt="">'],
     ['calendar','Calendar','▦'],
     ['map','Map','⌖'],
     ['trophies','Trophies','♛'],

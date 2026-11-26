@@ -11,7 +11,7 @@
   notes:{title:'sqwibbl/r',selector:'.diary-section-nav',icon:'sqwibblR'},
   projects:{title:'visualize/r',selector:'.visualz-tabs',icon:'visualizr'},
   diary:{title:'Journal',journal:true},
-  tools:{title:'lwazi',icon:'r-editor'}
+  tools:{title:"l'wazi",icon:'r-editor'}
  };
  const workspace=()=>$('#studioApp #moduleWorkspace');
  // Typography belongs to the two title fragments, not a single inherited font.
@@ -132,7 +132,7 @@
  }
  function renameNavigation(){
   const routes=[
-    ['tools','lwazi'],['projects','visualize/r'],['camera','booth'],['notes','sqwibbl/r']
+    ['tools',"l'wazi"],['projects','visualize/r'],['camera','booth'],['notes','sqwibbl/r']
   ];
   for(const [route,name]of routes){
     for(const link of document.querySelectorAll('#studioApp [data-shortcut-route="'+route+'"],#studioApp [data-sidebar-route="'+route+'"],#studioApp [data-open="'+route+'"]')){
@@ -140,7 +140,7 @@
       if(label)paintMixedTitle(label,route,name);
       if(link.getAttribute('aria-label')===({tools:'Tools',projects:'Projects',camera:'Booth',notes:'Sqwibz'}[route]))link.setAttribute('aria-label',name);
     }
-    const widget=document.querySelector('#studioApp #'+route+' .card-head h2');
+    const widget=document.querySelector('#studioApp #'+route+' :is(.card-head,.biglwa-card-heading-row) h2');
     if(widget)paintMixedTitle(widget,route,name);
   }
  }
