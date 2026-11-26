@@ -269,3 +269,119 @@ html.biglwa-ios body #studioApp #home .widget-is-expanded{
  }
  html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>:is(.music-card,.guest-check-card)[data-upper-span]{grid-column:span 1!important}
 }
+
+/* iOS bottom navigation. Reuse the actual Skeleton Key, Veve, shortcut
+   and theme controls; no duplicated routes or independent shortcut state. */
+.biglwa-ios-dock-preference{display:grid;gap:6px;padding:9px 0;font:600 13px/1.4 system-ui}
+.biglwa-ios-dock-preference select{max-width:100%;min-height:40px;border:1px solid currentColor;border-radius:8px;padding:5px;background:var(--skeleton-rail-surface,#f7ede8);color:inherit;font:inherit}
+.biglwa-ios-dock-preference small{font-weight:400;line-height:1.4}
+.biglwa-ios-dock-options{display:grid;gap:7px;min-width:0}
+.biglwa-ios-dock-options>button{min-height:38px;border:1px solid currentColor;border-radius:8px;background:transparent;color:inherit;font:650 12px system-ui}
+#biglwaIosDockEdge,.biglwa-ios-dock-close{display:none}
+html.biglwa-ios-bottom-dock #studioApp{
+ --ios-reserved:0px!important;
+ --ios-dock-height:calc(46px + env(safe-area-inset-bottom,0px));
+}
+html.biglwa-ios-bottom-dock body #studioApp#studioApp #home.main{
+ margin-right:var(--ios-right)!important;
+ margin-left:var(--ios-left)!important;
+ padding-bottom:calc(var(--ios-dock-height) + 8px)!important;
+}
+html.biglwa-ios-bottom-dock[data-biglwa-dock-mode="touch"] body #studioApp#studioApp #home.main{
+ padding-bottom:max(8px,env(safe-area-inset-bottom,0px))!important;
+}
+html.biglwa-ios-bottom-dock body #studioApp#studioApp #home .widget-is-expanded{
+ left:calc(var(--ios-left) + 8px)!important;right:calc(var(--ios-right) + 8px)!important;
+ max-height:calc(100dvh - var(--biglwa-dock-top,60px) - var(--ios-dock-height) - 12px)!important;
+}
+html.biglwa-ios-bottom-dock body #studioApp#studioApp#studioApp aside.sidebar{
+ position:fixed!important;inset:auto 0 0 0!important;
+ display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;
+ box-sizing:border-box!important;width:100%!important;min-width:0!important;max-width:none!important;
+ height:var(--ios-dock-height)!important;min-height:0!important;max-height:none!important;
+ padding:3px max(5px,env(safe-area-inset-right,0px)) calc(3px + env(safe-area-inset-bottom,0px)) max(5px,env(safe-area-inset-left,0px))!important;
+ margin:0!important;gap:5px!important;overflow:hidden!important;
+ border:0!important;border-top:1px solid var(--line,#b4a69c)!important;border-radius:0!important;
+ background:var(--skeleton-rail-surface,#f7ede8)!important;
+ z-index:1100!important;transform:none!important;visibility:visible!important;
+ transition:transform .18s ease,visibility .18s!important;
+}
+html.biglwa-ios-bottom-dock[data-biglwa-dock-mode="touch"]:not(.biglwa-ios-dock-revealed) body #studioApp#studioApp#studioApp aside.sidebar{
+ transform:translateY(105%)!important;visibility:hidden!important;pointer-events:none!important;
+}
+html.biglwa-ios-bottom-dock body #studioApp#studioApp#studioApp aside.sidebar>.sidebar-top{
+ flex:1 1 0!important;display:flex!important;flex-direction:row!important;align-items:center!important;
+ justify-content:flex-start!important;min-width:0!important;width:auto!important;max-width:none!important;
+ height:40px!important;min-height:0!important;padding:0!important;margin:0!important;gap:4px!important;overflow:hidden!important;
+}
+html.biglwa-ios-bottom-dock body #studioApp#studioApp#studioApp aside.sidebar>.sidebar-bottom{
+ flex:0 0 auto!important;display:flex!important;flex-direction:row!important;align-items:center!important;
+ width:auto!important;min-width:0!important;max-width:none!important;padding:0!important;margin:0!important;
+}
+html.biglwa-ios-bottom-dock:not(.biglwa-ios-dock-managing) body #studioApp#studioApp#studioApp aside.sidebar>.sidebar-top>:not(#biglwaSkeletonQuickActions):not(#studioSidebarShortcuts),
+html.biglwa-ios-bottom-dock body #studioApp#studioApp#studioApp aside.sidebar>.sidebar-bottom>:not(.sidebar-theme-controls),
+html.biglwa-ios-bottom-dock:not(.biglwa-ios-dock-managing) body #studioApp#studioApp#studioApp aside.sidebar :is(#saveSidebarShortcuts,.sidebar-shortcut-status,.sidebar-shortcut-drag,.sidebar-shortcut-action,.sidebar-minimized-state,.widget-audience-lock),
+html.biglwa-ios-bottom-dock body #biglwaSidebarShowTab{display:none!important}
+html.biglwa-ios-bottom-dock body #studioApp#studioApp#studioApp aside.sidebar #biglwaSkeletonQuickActions{
+ position:static!important;display:flex!important;flex-direction:row!important;align-items:center!important;
+ flex:0 0 auto!important;width:auto!important;min-width:0!important;max-width:none!important;
+ height:40px!important;min-height:0!important;padding:0!important;margin:0!important;gap:3px!important;
+}
+html.biglwa-ios-bottom-dock body #studioApp#studioApp#studioApp aside.sidebar :is(#skeletonKeyLauncher,#skeletonVeveLauncher,.sidebar-theme-btn){
+ flex:0 0 36px!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;margin:0!important;
+}
+html.biglwa-ios-bottom-dock body #studioApp#studioApp#studioApp aside.sidebar .sidebar-theme-controls{
+ display:flex!important;flex-direction:row!important;align-items:center!important;gap:3px!important;width:auto!important;padding:0!important;margin:0!important;
+}
+html.biglwa-ios-bottom-dock:not(.biglwa-ios-dock-managing) body #studioApp#studioApp#studioApp aside.sidebar #studioSidebarShortcuts{
+ flex:1 1 0!important;display:block!important;width:auto!important;min-width:0!important;max-width:none!important;
+ height:40px!important;padding:0!important;margin:0!important;border:0!important;background:transparent!important;overflow:hidden!important;
+}
+html.biglwa-ios-bottom-dock:not(.biglwa-ios-dock-managing) body #studioApp#studioApp#studioApp aside.sidebar #studioSidebarShortcutDock{
+ display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;
+ width:100%!important;height:40px!important;min-width:0!important;gap:3px!important;padding:0!important;margin:0!important;
+ overflow-x:auto!important;overflow-y:hidden!important;overscroll-behavior-x:contain;scrollbar-width:none;touch-action:pan-x;
+}
+html.biglwa-ios-bottom-dock:not(.biglwa-ios-dock-managing) body #studioApp#studioApp#studioApp aside.sidebar #studioSidebarShortcutDock::-webkit-scrollbar{display:none}
+html.biglwa-ios-bottom-dock:not(.biglwa-ios-dock-managing) body #studioApp#studioApp#studioApp aside.sidebar #studioSidebarShortcutDock .sidebar-navigation-row{
+ display:flex!important;flex:0 0 38px!important;width:38px!important;min-width:38px!important;height:40px!important;
+ margin:0!important;padding:0!important;justify-content:center!important;touch-action:pan-x!important;
+}
+html.biglwa-ios-bottom-dock:not(.biglwa-ios-dock-managing) body #studioApp#studioApp#studioApp aside.sidebar #studioSidebarShortcutDock .sidebar-navigation-open{
+ flex:0 0 36px!important;width:36px!important;min-width:36px!important;height:36px!important;margin:0!important;padding:0!important;
+}
+html.biglwa-ios-bottom-dock #biglwaIosDockEdge:not([hidden]){
+ display:grid!important;place-items:center;position:fixed;z-index:1099;
+ left:50%;transform:translateX(-50%);bottom:env(safe-area-inset-bottom,0px);
+ width:min(150px,45vw);height:22px;min-height:22px;padding:0;border:0;border-radius:10px 10px 0 0;
+ background:transparent;color:inherit;touch-action:manipulation;
+}
+html.biglwa-ios-bottom-dock #biglwaIosDockEdge>span:first-child{width:34px;height:3px;border-radius:3px;background:currentColor;opacity:.55;pointer-events:none}
+.biglwa-dock-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+html.biglwa-ios-bottom-dock #biglwaIosDockEdge[hidden]{display:none!important}
+html.biglwa-ios-bottom-dock.biglwa-preview-mode #biglwaIosDockEdge,
+html.biglwa-ios-bottom-dock.biglwa-preview-mode body #studioApp#studioApp#studioApp aside.sidebar{display:none!important}
+html.biglwa-ios-bottom-dock.biglwa-ios-dock-managing body #studioApp#studioApp#studioApp aside.sidebar{
+ flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;
+ height:min(75dvh,470px)!important;padding-top:8px!important;overflow:hidden!important;
+}
+html.biglwa-ios-bottom-dock.biglwa-ios-dock-managing body #studioApp#studioApp#studioApp aside.sidebar>.sidebar-top{
+ flex:1 1 auto!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ height:auto!important;overflow-y:auto!important;overflow-x:hidden!important;
+}
+html.biglwa-ios-bottom-dock.biglwa-ios-dock-managing body #studioApp#studioApp#studioApp aside.sidebar #sidebarCollapse{display:none!important}
+html.biglwa-ios-bottom-dock.biglwa-ios-dock-managing body #studioApp#studioApp#studioApp aside.sidebar .biglwa-ios-dock-close{
+ display:block!important;flex:0 0 32px!important;align-self:center;min-width:150px;padding:4px 10px;
+ border:1px solid currentColor;border-radius:8px;background:transparent;color:inherit;font:650 12px system-ui;
+}
+html.biglwa-ios-bottom-dock.biglwa-ios-dock-managing body #studioApp#studioApp#studioApp aside.sidebar :is(#studioSidebarShortcutDock,#studioSidebarAvailableDock,#studioSidebarDockedWidgetDock,#minimizedWidgetDock){
+ display:flex!important;flex-flow:row wrap!important;justify-content:flex-start!important;align-items:center!important;gap:4px!important;
+}
+html.biglwa-ios-bottom-dock.biglwa-ios-dock-managing body #studioApp#studioApp#studioApp aside.sidebar :is(.sidebar-navigation-row,.sidebar-shortcut-row){
+ display:grid!important;grid-template-columns:17px 36px 17px!important;width:auto!important;min-width:70px!important;gap:2px!important;flex:0 0 auto!important;
+}
+html.biglwa-ios-bottom-dock.biglwa-ios-dock-managing body #studioApp#studioApp#studioApp aside.sidebar :is(.sidebar-shortcut-drag,.sidebar-shortcut-action){
+ display:grid!important;width:17px!important;min-width:17px!important;opacity:1!important;pointer-events:auto!important;
+}
+html.biglwa-ios-bottom-dock.biglwa-ios-dock-managing body #studioApp#studioApp#studioApp aside.sidebar .sidebar-bottom{justify-content:center!important}
+@media(prefers-reduced-motion:reduce){html.biglwa-ios-bottom-dock body #studioApp#studioApp#studioApp aside.sidebar{transition:none!important}}

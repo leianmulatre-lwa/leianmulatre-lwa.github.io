@@ -12,7 +12,7 @@ assert(client.includes('Notification.requestPermission()')&&client.includes('reg
 assert(client.includes('sub.unsubscribe()')&&client.includes('registration.pushManager.subscribe'));
 assert(client.includes('Continue in portrait')&&client.includes('Local test sent.'));
 for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html','settings/index.html']){
- const shell=read(path);assert(shell.includes('/biglwa.webmanifest'));assert(shell.includes('/biglwa-pwa.js?v=3'));assert(shell.includes('viewport-fit=cover'));
+ const shell=read(path);assert(shell.includes('/biglwa.webmanifest'));assert(shell.includes('/biglwa-pwa.js?v=4'));assert(shell.includes('viewport-fit=cover'));
 }
 console.log('PASS install manifest, shell wiring, opt-in notification controls, no fetch cache, portrait alternative');
 
@@ -21,7 +21,7 @@ assert(client.indexOf('const sub=await registration.pushManager.subscribe')<clie
 const iosCSS=read('biglwa-pwa.css');
 for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html']){
  const shell=read(path);
- assert.equal((shell.match(/\/biglwa-pwa\.css\?v=3/g)||[]).length,2,path+' both iOS stylesheets refreshed');
+ assert.equal((shell.match(/\/biglwa-pwa\.css\?v=4/g)||[]).length,2,path+' both iOS stylesheets refreshed');
 }
 assert.match(iosCSS,/--ios-rail:76px/);
 assert.match(iosCSS,/--ios-rail:42px/);
@@ -35,3 +35,17 @@ console.log('PASS iOS landscape rail, safe-area background, compact scoreboard a
 
 assert.match(iosCSS,/--ios-rail-inset:min\(16px,var\(--ios-right\)\)/);
 assert.match(iosCSS,/min-width:var\(--ios-reserved\)!important;max-width:var\(--ios-reserved\)!important/);
+
+assert.match(client,/biglwaIosBottomDockModeV1/);
+assert.match(client,/Always on bottom/);
+assert.match(client,/Reveal when bottom edge is touched/);
+assert.match(client,/edge\.addEventListener\('pointerdown',reveal\)/);
+assert.match(client,/matchMedia\('\(orientation: portrait\)'\)\.addEventListener\('change',close\)/);
+assert.match(iosCSS,/--ios-reserved:0px!important/);
+assert.match(iosCSS,/inset:auto 0 0 0!important/);
+assert.match(iosCSS,/translateY\(105%\)/);
+assert.match(iosCSS,/overflow-x:auto!important;overflow-y:hidden!important/);
+assert.match(iosCSS,/#studioSidebarShortcuts/);
+assert.match(iosCSS,/#skeletonKeyLauncher,#skeletonVeveLauncher,\.sidebar-theme-btn/);
+assert.match(iosCSS,/biglwa-ios-dock-managing/);
+console.log('PASS iOS bottom dock, per-device preference, touch reveal, orientation and existing shortcut controls');

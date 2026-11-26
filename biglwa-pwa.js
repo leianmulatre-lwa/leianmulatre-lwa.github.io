@@ -7,13 +7,88 @@
  const ios=()=>/iPhone|iPad|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
  document.documentElement.classList.toggle('biglwa-ios',ios());
  const settings=location.pathname.startsWith('/settings');
- const eligible=()=>settings||location.pathname==='/'||/^\/studio\/?$/.test(location.pathname);
+ const eligible=()=>settings||!!document.getElementById('studioApp')||location.pathname==='/'||/^\/studio\/?$/.test(location.pathname);
  if(!eligible())return;
  let registration=null,installPrompt=null,portraitAllowed=false;
  try{portraitAllowed=sessionStorage.getItem('biglwaAllowPortrait')==='1'}catch{}
  const status=document.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
  const setStatus=value=>{status.textContent=value;};
  const button=(label,fn)=>{const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',fn);return b;};
+ // A physical-device preference: the same account may have a different
+ // dock preference on another phone. No change to saved desktop shortcuts.
+ const dockKey='biglwaIosBottomDockModeV1';
+ const readDockMode=()=>{try{return localStorage.getItem(dockKey)==='touch'?'touch':'always'}catch{return 'always'}};
+ function dockPreference(){
+  const wrap=document.createElement('label');wrap.className='biglwa-ios-dock-preference';
+  const title=document.createElement('strong');title.textContent='Skeleton Key · bottom dock';
+  const select=document.createElement('select');select.setAttribute('aria-label','Bottom dock visibility');
+  for(const [value,label] of [['always','Always on bottom'],['touch','Reveal when bottom edge is touched']]){
+   const option=document.createElement('option');option.value=value;option.textContent=label;select.append(option);
+  }
+  select.value=readDockMode();
+  const hint=document.createElement('small');hint.textContent='Applies to this device in portrait and landscape. Touch just above the iOS home indicator to reveal a hidden dock.';
+  select.addEventListener('change',()=>{try{localStorage.setItem(dockKey,select.value)}catch{}window.dispatchEvent(new Event('biglwa:ios-dock-mode'))});
+  window.addEventListener('biglwa:ios-dock-mode',()=>{if(select.isConnected)select.value=readDockMode()});
+  wrap.append(title,select,hint);return wrap;
+ }
+ function mountBottomDock(){
+  if(!ios()||!document.getElementById('studioApp')||document.documentElement.classList.contains('biglwa-preview-mode')||window.__biglwaPublicStorageView)return;
+  const root=document.documentElement;
+  if(root.classList.contains('biglwa-ios-bottom-dock'))return;
+  root.classList.add('biglwa-ios-bottom-dock');
+  const edge=button('Show bottom dock',()=>reveal());edge.id='biglwaIosDockEdge';edge.setAttribute('aria-controls','biglwaIosDockRail');edge.setAttribute('aria-expanded','false');
+  edge.innerHTML='<span aria-hidden="true"></span><span class="biglwa-dock-sr">Show bottom dock</span>';
+  document.body.append(edge);
+  let open=false,managing=false;
+  const rail=()=>document.querySelector('#studioApp aside.sidebar');
+  const touchMode=()=>readDockMode()==='touch';
+  function sync(){
+   root.dataset.biglwaDockMode=readDockMode();
+   root.classList.toggle('biglwa-ios-dock-revealed',open||managing);
+   root.classList.toggle('biglwa-ios-dock-managing',managing);
+   const hidden=touchMode()&&!open&&!managing;
+   edge.hidden=!hidden;edge.setAttribute('aria-expanded',String(!hidden));
+   const dock=rail();if(dock){dock.id='biglwaIosDockRail';dock.inert=hidden;dock.setAttribute('aria-hidden',String(hidden))}
+  }
+  function reveal(){open=true;sync()}
+  function close(){open=false;managing=false;sync()}
+  function manage(){managing=true;open=true;sync();rail()?.querySelector('.biglwa-ios-dock-close')?.focus()}
+  function wire(){
+   const dock=rail();
+   if(dock&&!dock.querySelector('.biglwa-ios-dock-close')){
+    const done=button('Done editing shortcuts',close);done.className='biglwa-ios-dock-close';dock.prepend(done);
+   }
+   const hub=document.querySelector('#biglwaSkeletonHub');
+   if(hub&&!hub.querySelector('.biglwa-ios-dock-preference')){
+    const panel=document.createElement('div');panel.className='biglwa-ios-dock-options';
+    panel.append(dockPreference(),button('Manage shortcuts & closed widgets',manage));
+    hub.querySelector('.skeleton-quick-actions')?.after(panel);
+   }
+   // Only change state if needed: observers must not create a render loop.
+   if(dock&&dock.id!=='biglwaIosDockRail')sync();
+  }
+  wire();sync();
+  const app=document.getElementById('studioApp');
+  new MutationObserver(wire).observe(app,{childList:true,subtree:true});
+  edge.addEventListener('pointerdown',reveal);
+  document.addEventListener('pointerdown',event=>{
+   if(!touchMode()||managing)return;
+   if(event.target.closest?.('#biglwaIosDockEdge,#biglwaIosDockRail'))return;
+   if(open)close();
+  },true);
+  document.addEventListener('click',event=>{
+   const key=event.target.closest?.('#skeletonKeyLauncher');
+   // The original Key is a Studio card, so return from a module before opening it.
+   if(key&&rail()?.contains(key)&&document.querySelector('#home.module-view'))document.getElementById('moduleBack')?.click();
+  },true);
+  document.addEventListener('click',event=>{
+   if(touchMode()&&!managing&&event.target.closest?.('#biglwaIosDockRail :is([data-sidebar-route],#skeletonKeyLauncher,#skeletonVeveLauncher)'))close();
+  });
+  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&(open||managing)){close();if(touchMode())edge.focus()}});
+  window.addEventListener('biglwa:ios-dock-mode',close);
+  window.addEventListener('storage',event=>{if(event.key===dockKey)close()});
+  matchMedia('(orientation: portrait)').addEventListener('change',close);
+ }
  const cfg=async()=>{
   if(window.BIGLWA_PUSH_CONFIG)return window.BIGLWA_PUSH_CONFIG;
   await new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='/biglwa-push-config.js';s.onload=resolve;s.onerror=reject;document.head.append(s);});
@@ -41,6 +116,7 @@
   if(settings){
    const host=document.getElementById('biglwaPwaControls');if(!host)return;
    host.append(status);
+   if(ios())host.prepend(dockPreference());
    const install=button('Install BIG LWA',async()=>{
     if(standalone()){setStatus('You are already using the installed app.');return;}
     if(installPrompt){await installPrompt.prompt();installPrompt=null;return;}
@@ -103,6 +179,7 @@
    void swReady.then(r=>{if(!status.textContent)setStatus(r?'Notifications are opt-in. Tap to send a local test.':'Notification service unavailable.');});
    return;
   }
+  mountBottomDock();
   if(!mobile())return;
   const link=document.createElement('a');link.id='biglwaPwaSettingsLink';link.href='/settings/#biglwaPwaSettings';link.textContent=standalone()?'App settings':'Install app';document.body.append(link);
   if(!standalone())return;
