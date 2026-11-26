@@ -44,12 +44,14 @@ test("SMTP transport only accepts approved Titan-style settings", () => {
     /Invalid SMTP/);
   assert.throws(() => mailSmtpConfig({ MAILROOM_SMTP_USER: "u", MAILROOM_SMTP_PASSWORD: "p", MAILROOM_FROM: "other@example.com" }),
     /Invalid SMTP sender/);
-  assert.throws(() => mailSmtpConfig({ MAILROOM_SMTP_USER: "u" }), /Invalid SMTP credentials/);
+  assert.throws(() => mailSmtpConfig({ MAILROOM_SMTP_USER: "u" }), /SMTP password is missing/);
+  assert.throws(() => mailSmtpConfig({ MAILROOM_SMTP_USER: " ", MAILROOM_SMTP_PASSWORD: "p" }),
+    /SMTP username is missing/);
   assert.deepEqual(mailSmtpConfig({
-    MAILROOM_SMTP_USER: " u\n", MAILROOM_SMTP_PASSWORD: "p\n", MAILROOM_SMTP_PORT: " 465 "
-  }), { host: "smtp.titan.email", port: 465, user: "u", pass: "p", from: "lwazi@biglwa.com" });
-  assert.throws(() => mailSmtpConfig({ MAILROOM_SMTP_USER: "u", MAILROOM_SMTP_PASSWORD: "p\nq" }),
-    /Invalid SMTP credentials/);
+    MAILROOM_SMTP_USER: " u\n", MAILROOM_SMTP_PASSWORD: "p\na\nss", MAILROOM_SMTP_PORT: " 465 "
+  }), { host: "smtp.titan.email", port: 465, user: "u", pass: "pass", from: "lwazi@biglwa.com" });
+  assert.throws(() => mailSmtpConfig({ MAILROOM_SMTP_USER: "u", MAILROOM_SMTP_PASSWORD: "p\0q" }),
+    /unsupported control character/);
 });
 
 test("SMTP message encodes UTF-8 safely and never trusts header input", () => {

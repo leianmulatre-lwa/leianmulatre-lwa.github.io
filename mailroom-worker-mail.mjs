@@ -60,12 +60,16 @@ export function mailSmtpConfig(env = {}) {
   // control characters that could be used to inject SMTP commands.
   const host = String(env.MAILROOM_SMTP_HOST || "smtp.titan.email").trim();
   const port = Number(String(env.MAILROOM_SMTP_PORT || "465").trim());
-  const user = String(env.MAILROOM_SMTP_USER || "").trim();
-  const pass = String(env.MAILROOM_SMTP_PASSWORD || "").trim();
+  // Dashboard secrets may carry line breaks from a copied email or password.
+  // Remove those before validating; they are never part of a Titan credential.
+  const user = String(env.MAILROOM_SMTP_USER || "").replace(/[\r\n]/g, "").trim();
+  const pass = String(env.MAILROOM_SMTP_PASSWORD || "").replace(/[\r\n]/g, "").trim();
   const from = String(env.MAILROOM_FROM || "lwazi@biglwa.com").trim().toLowerCase();
   if (!/^[a-z0-9.-]+$/i.test(host)) throw new Error("Invalid SMTP host.");
   if (!ALLOWED_PORTS.has(port)) throw new Error("Invalid SMTP port.");
-  if (!user || !pass || /[\r\n\0]/.test(user + pass)) throw new Error("Invalid SMTP credentials.");
+  if (!user) throw new Error("SMTP username is missing.");
+  if (!pass) throw new Error("SMTP password is missing.");
+  if (/\0/.test(user + pass)) throw new Error("SMTP credentials contain an unsupported control character.");
   if (from !== "lwazi@biglwa.com" || /[\r\n\0]/.test(from)) throw new Error("Invalid SMTP sender.");
   return { host, port, user, pass, from };
 }
