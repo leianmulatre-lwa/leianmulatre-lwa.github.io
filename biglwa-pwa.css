@@ -1,0 +1,31 @@
+/* Mobile app presentation only: the desktop layout remains untouched. */
+#biglwaPwaSettings{margin-block:2rem;padding:1rem;border:1px solid #a5333266;border-radius:12px}
+#biglwaPwaControls{display:grid;gap:10px;max-width:580px}
+#biglwaPwaControls button,#biglwaPwaSettingsLink,#biglwaRotateGate button{font:600 15px/1.25 system-ui;min-height:44px;padding:10px 15px;border:1px solid currentColor;border-radius:8px;cursor:pointer}
+#biglwaPwaControls button{background:#742630;color:#fff2e5;text-align:left}
+#biglwaPwaControls button:disabled{opacity:.55;cursor:default}
+#biglwaPwaControls [role=status]{min-height:1.5em}
+#biglwaPwaSettingsLink{display:none}
+#biglwaRotateGate{display:none}
+@media (display-mode:standalone) and (pointer:coarse){
+ body{padding-left:env(safe-area-inset-left,0px)!important;padding-right:env(safe-area-inset-right,0px)!important;padding-bottom:env(safe-area-inset-bottom,0px)!important}
+}
+@media (max-width:650px) and (pointer:coarse){
+ #biglwaPwaSettingsLink{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:1000;display:inline-flex;align-items:center;background:#250c17;color:#f9eee4;text-decoration:none;font-size:12px}
+}
+@media (orientation:portrait) and (max-width:700px) and (pointer:coarse){
+ html.biglwa-pwa-rotate #biglwaRotateGate{position:fixed;z-index:2147483000;inset:0;display:grid;place-content:center;justify-items:center;gap:14px;text-align:center;color:#fff2e8;padding:24px;background:linear-gradient(90deg,#250c17aa,#250c17cc),url('/assets/login-curtain-film-grain-v2.webp') center/cover,#250c17}
+ #biglwaRotateGate img{width:76px;height:76px;object-fit:contain}
+ #biglwaRotateGate strong{font:600 26px/1.1 Georgia,serif}
+ #biglwaRotateGate p{margin:0;max-width:29ch;font:15px/1.45 system-ui}
+ #biglwaRotateGate button{background:#fff2e8;color:#250c17}
+ #biglwaRotateGate a{color:inherit;text-underline-offset:4px;padding:12px}
+}
+#biglwaRotateGate[hidden],#biglwaPwaSettingsLink[hidden]{display:none!important}
+@media(prefers-reduced-motion:no-preference){#biglwaRotateGate .biglwa-pwa-rotate-symbol{font-size:46px;animation:biglwaRotate 3s ease-in-out infinite}@keyframes biglwaRotate{0%,25%{transform:rotate(0deg)}65%,100%{transform:rotate(90deg)}}}
+@media(prefers-reduced-motion:reduce){#biglwaRotateGate .biglwa-pwa-rotate-symbol{font-size:46px}}
+
+#biglwaRotateGate{box-sizing:border-box;margin:0;border:0;width:100%;height:100%;max-width:none;max-height:none}
+@media (display-mode:standalone) and (pointer:coarse){
+ #studioApp .topbar.profile-header-repaired{padding-inline-start:max(8px,env(safe-area-inset-left))!important;padding-inline-end:max(8px,env(safe-area-inset-right))!important;padding-top:env(safe-area-inset-top)!important}
+}
