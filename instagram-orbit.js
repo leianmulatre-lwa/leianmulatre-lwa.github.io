@@ -5,7 +5,14 @@
   var API = 'https://biglwa-instagram-api.leianmulatre-284.workers.dev';
   var SESSION_KEY = 'biglwaInstagramSession';
   var activeAccountUid = '';
-  var state = { connected: false, profile: null, media: [], hostedById: {}, error: '', importError: '', sessionLookupError: '', importsSaved: 0, importsSkipped: 0, importsPartial: 0, importAttempted: false, importWarning: '' };
+  var state = { connected: false, uid: '', accountSaveFailed: false, profile: null, media: [], hostedById: {}, error: '', importError: '', sessionLookupError: '', importsSaved: 0, importsSkipped: 0, importsPartial: 0, importAttempted: false, importWarning: '' };
+  var orbitNoticeMessage = '';
+  function orbitNotice(message){
+    orbitNoticeMessage = String(message||'');
+    var node=document.getElementById('orbitPageStatus');
+    if(node){node.textContent=orbitNoticeMessage;return true}
+    return false;
+  }
   /* The same figures the Orbit panel shows, readable from the console, so a silent
      zero-import can be diagnosed without guessing. */
   window.__biglwaInstagramDiagnostics = state;
@@ -60,6 +67,7 @@
       // credential and cannot connect Instagram to the member's account.
       await ctx.auth.authStateReady();
       activeAccountUid=ctx.auth.currentUser?.uid||'';
+      state.uid=activeAccountUid;
       return ctx.auth.currentUser ? await ctx.auth.currentUser.getIdToken() : '';
     } catch (error) { return ''; }
   }
@@ -86,16 +94,35 @@
     } catch (error) { state.sessionLookupError = 'BIGLWA could not reach your account to restore Instagram on this device.'; return ''; }
   }
   async function persistAccount(profile, media) {
+    const uid = activeAccountUid || window.__biglwaIdentity?.uid || '';
+    const record = { connected: true, profile: profile || null,
+      mediaCount: Array.isArray(media) ? media.length : 0,
+      mediaIds: Array.isArray(media) ? media.map(function (item) { return String(item.id || ''); }).filter(Boolean).slice(0, 1000) : [],
+      syncedAt: new Date().toISOString() };
     try {
       const ctx = await firebaseContext();
       const user = ctx.auth.currentUser;
       if (!user) return false;
       await ctx.store.setDoc(ctx.store.doc(ctx.store.getFirestore(ctx.app), 'users', user.uid), {
-        orbit: { instagram: { connected: true, profile: profile || null, mediaCount: Array.isArray(media) ? media.length : 0, mediaIds: Array.isArray(media) ? media.map(function (item) { return String(item.id || ''); }).filter(Boolean).slice(0, 1000) : [], syncedAt: ctx.store.serverTimestamp() } },
-        updatedAt: ctx.store.serverTimestamp()
+        orbit: { instagram: record }, updatedAt: ctx.store.serverTimestamp()
       }, { merge: true });
+      state.accountSaveFailed = false;
       return true;
-    } catch (error) { console.warn('BIGLWA Orbit account persistence:', error); return false; }
+    } catch (error) {
+      console.warn('BIGLWA Orbit account persistence:', error);
+      const fallback = window.BigLWAAccountSync;
+      if (uid && fallback?.save) {
+        const result = await fallback.save({ uid, scope: 'user', path: 'users/' + uid,
+          value: { orbit: { instagram: record } },
+          editId: String(globalThis.crypto?.randomUUID?.() || Date.now()) });
+        if (result.ok || result.queued) {
+          state.accountSaveFailed = false;
+          return true;
+        }
+      }
+      state.accountSaveFailed = true;
+      return false;
+    }
   }
   async function waitForOrbitPosts() {
     for (var attempt = 0; attempt < 120; attempt += 1) {
@@ -273,7 +300,7 @@
     RETURNED_HANDOFF='';RETURNED_ERROR='';
     window.__biglwaInstagramReturnCode = handoff;
     if (handoff || error) markCallbackReturn();
-    if (error) { url.searchParams.delete('instagram_error'); history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash); status(error); }
+    if (error) { url.searchParams.delete('instagram_error'); history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash); status(error); orbitNotice('Instagram connection was not completed. ' + error); }
     if (!handoff) return restore({silent:true});
     url.searchParams.delete('instagram_handoff'); history.replaceState({}, '', url.pathname + (url.search ? url.search : '') + url.hash);
     return firebaseAuthToken().then(function (firebaseIdToken) {
@@ -283,7 +310,12 @@
       if(!result.persisted || !result.session)throw new Error('Instagram was not linked to your BIGLWA account. Please retry.');
       saveSession(result.session);
       return restore();
-    }).then(function () { status('Instagram is linked to your BIGLWA account.'); }).catch(function (failure) { status(failure.message); });
+    }).then(function (restored) {
+      const message = restored === false
+        ? 'Instagram was authorized, but BIG LWA could not restore the provider session. Open Orbit and try again.'
+        : '✓ Instagram is linked to your BIG LWA account.';
+      status(message);orbitNotice(message);return restored;
+    }).catch(function (failure) { status(failure.message);orbitNotice(failure.message); });
   }
   function disconnect() { return api('/instagram/disconnect', { method: 'POST' }).catch(function () {}).then(function () { saveSession(''); state.connected = false; state.profile = null; state.media = []; state.hostedById = {}; render(); status('Instagram disconnected from Orbit.'); }); }
   function render() {
@@ -570,8 +602,16 @@
       return;
     }
  var target = event.target && event.target.closest ? event.target : null; if (!target) return; if (target.closest('[data-orbit-app="instagram"]')) { event.preventDefault(); event.stopImmediatePropagation(); if(!state.connected)connect(); else window.openBIGLWAModule?.('orbit'); return; } if (target.closest('[data-instagram-disconnect]')) { event.preventDefault(); disconnect(); return; } if (target.closest('[data-open="orbit"],[data-open="feed"]')) setTimeout(render, 80); }, true);
-  window.__biglwaInstagramOrbit = { connect: connect, disconnect: disconnect, restore: restore, state: state, render: render, renderFeed: renderFeed };
+  window.__biglwaInstagramOrbit = { connect: connect, disconnect: disconnect, restore: restore, state: state, render: render, renderFeed: renderFeed, notice: function(){return orbitNoticeMessage} };
   window.addEventListener('biglwa:orbit-links-synced',render);
+  // A provider return lands before the Studio router has painted Orbit. Keep the
+  // acknowledgement until the status node actually exists, then replay it once.
+  const replayOrbitNotice=()=>{if(orbitNoticeMessage)orbitNotice(orbitNoticeMessage)};
+  document.addEventListener('biglwa:module-open',(event)=>{
+    if(event?.detail?.key==='orbit')replayOrbitNotice();
+  });
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',replayOrbitNotice,{once:true});
+  else replayOrbitNotice();
   // Do not touch providers until a persisted Big LWA Firebase account has
   // actually been restored. Provider errors have no right to change login.
   function bootProvider(){
@@ -582,7 +622,7 @@
       ctx.auth.onAuthStateChanged(function(user){
         const uid=user?.uid||'';
         if(uid===lastUid)return;
-        lastUid=uid;activeAccountUid=uid;
+        lastUid=uid;activeAccountUid=uid;state.uid=uid;
         if(!uid){
           state.connected=false;state.error='';state.sessionLookupError='';
           one('#biglwaInstagramStatus')?.remove();

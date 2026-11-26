@@ -10,9 +10,9 @@ function check(name, cond, extra = "") {
 }
 
 console.log("=== CONNECT PATH SAVES WITHOUT A PRESS ===");
-check("handoff exchanges the code then restores", /saveSession\(result\.session\); return restore\(\)/.test(src));
+check("handoff exchanges the code then restores", /saveSession\(result\.session\);\s*return restore\(/.test(src));
 check("restore runs the save", /return saveToFeedWithRetry\(\)/.test(src));
-check("restore is also called when there is no handoff", /if \(!handoff\) return restore\(\)/.test(src));
+check("restore is also called when there is no handoff", /if \(!handoff\) return restore\(\{[^}]*\}\)/.test(src));
 check("save is not behind a button on connect", !/data-instagram-resave[^\n]*await/.test(src));
 
 console.log("\n=== SELF-HEALING RETRY ===");

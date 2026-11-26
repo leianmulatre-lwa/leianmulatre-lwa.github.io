@@ -152,9 +152,17 @@
      const {getFirestore,doc,getDoc,setDoc,serverTimestamp}=await import(
        'https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js');
      const db=getFirestore(auth.app),ref=doc(db,'users',uid);
-     const snapshot=await getDoc(ref);
+     let previous={};
+     try{
+       const snapshot=await getDoc(ref);
+       previous=snapshot.data()?.orbitConnectedProfiles||{};
+     }catch(error){
+       // A quota rejection must not stop provider identity from being mirrored.
+       const fallback=window.BigLWAAccountSync;
+       const accountState=fallback?.state?await fallback.state():null;
+       previous=accountState?.user?.['users/'+uid]?.value?.orbitConnectedProfiles||{};
+     }
      if(auth.currentUser?.uid!==uid)return;
-     const previous=snapshot.data()?.orbitConnectedProfiles||{};
      // A provider whose /session check failed, or that returned no public
      // link, must not erase an earlier verified connection on a later pass.
      const profiles={...previous};
@@ -191,8 +199,17 @@
        }
      }
      if(JSON.stringify(previous)!==JSON.stringify(profiles)){
-       await setDoc(ref,{orbitConnectedProfiles:profiles,orbitProfilesUpdatedAt:serverTimestamp()},
-         {mergeFields:['orbitConnectedProfiles','orbitProfilesUpdatedAt']});
+       try{
+         await setDoc(ref,{orbitConnectedProfiles:profiles,orbitProfilesUpdatedAt:serverTimestamp()},
+           {mergeFields:['orbitConnectedProfiles','orbitProfilesUpdatedAt']});
+       }catch(error){
+         const fallback=window.BigLWAAccountSync;
+         const result=fallback?.save?await fallback.save({uid,scope:'user',
+           path:'users/'+uid,
+           value:{orbitConnectedProfiles:profiles,orbitProfilesUpdatedAt:new Date().toISOString()},
+           editId:String(globalThis.crypto?.randomUUID?.()||Date.now())}):null;
+         if(!(result?.ok||result?.queued))throw error;
+       }
      }
      // The public usernames mirror is separate from the account-only record.
      await window.__biglwaConnections?.publishPublicLinks?.(uid);

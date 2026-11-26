@@ -16,6 +16,7 @@ SITE_URL = "https://biglwa.com"
 TIKTOK_CLIENT_KEY = "sbawpulijhor3jl94n"
 X_CLIENT_ID = "TzRHMHR4VG1XekZ0UGw1cF1Eb0M6MTpjaQ"
 NEW_ORBIT_CALLBACK_ORIGIN = "https://api.biglwa.com"
+FIREBASE_PROJECT_ID = "biglwa"
 
 [[kv_namespaces]]
 binding = "OAUTH_SESSIONS"
@@ -28,6 +29,16 @@ bucket_name = "wallpaper-bucket"
 # INSTAGRAM_APP_SECRET, PINTEREST_APP_SECRET, STATE_SECRET and TIKTOK_CLIENT_SECRET
 # stay as encrypted Worker secrets and are not restated here.
 # All existing provider credentials are managed as encrypted Cloudflare secrets.
+# The Firestore mirror also needs FIREBASE_SERVICE_ACCOUNT (a service-account JSON
+# secret whose private key is never committed). Durable account writes need a D1
+# binding named BIGLWA_ACCOUNT_DB. Create it once and add the generated id here:
+#   wrangler d1 create biglwa-account-sync
+#   wrangler d1 execute biglwa-account-sync --remote --file=account-sync-schema.sql
+#   [[d1_databases]]
+#   binding = "BIGLWA_ACCOUNT_DB"
+#   database_name = "biglwa-account-sync"
+#   database_id = "<generated id>"
+# The existing WALLPAPER_BUCKET binding stores the R2 snapshots under account-sync/.
 # Wrangler validates these names at deploy time; the actual values remain on Cloudflare.
 [secrets]
 required = ["INSTAGRAM_APP_SECRET", "PINTEREST_APP_SECRET", "STATE_SECRET", "TIKTOK_CLIENT_SECRET", "SNAPCHAT_CLIENT_SECRET", "TUMBLR_CONSUMER_SECRET", "TUMBLR_CONSUMER_KEY", "X_CLIENT_SECRET", "FACEBOOK_PERSONAL_APP_SECRET"]

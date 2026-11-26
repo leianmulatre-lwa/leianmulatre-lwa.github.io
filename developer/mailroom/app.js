@@ -128,26 +128,44 @@ async function saveDraft(event) {
   $("saveButton").disabled = true;
   const id = activeId;
   const expectedRevision = activeRevision;
+  let revision;
+  let backupSaved = false;
   try {
-    const ref = dbApi.doc(dbApi.db, "developerMailTemplates", id);
-    const revision = await dbApi.runTransaction(dbApi.db, async transaction => {
-      const snapshot = await transaction.get(ref);
-      const revisionNow = snapshot.exists() ? snapshot.data().revision : 0;
-      if (revisionNow !== expectedRevision) {
-        throw new Error("A newer cloud draft exists. Reload this template before editing again.");
-      }
-      const next = revisionNow + 1;
-      transaction.set(ref, {
-        ...template, revision: next, updatedBy: user.uid, updatedAt: dbApi.serverTimestamp()
+    try {
+      const ref = dbApi.doc(dbApi.db, "developerMailTemplates", id);
+      revision = await dbApi.runTransaction(dbApi.db, async transaction => {
+        const snapshot = await transaction.get(ref);
+        const revisionNow = snapshot.exists() ? snapshot.data().revision : 0;
+        if (revisionNow !== expectedRevision) {
+          throw new Error("A newer cloud draft exists. Reload this template before editing again.");
+        }
+        const next = revisionNow + 1;
+        transaction.set(ref, {
+          ...template, revision: next, updatedBy: user.uid, updatedAt: dbApi.serverTimestamp()
+        });
+        return next;
       });
-      return next;
-    });
+    } catch (error) {
+      if (error.message && error.message.includes("newer cloud")) throw error;
+      const fallback = window.BigLWAAccountSync;
+      if (!fallback?.save) throw error;
+      revision = expectedRevision + 1;
+      const result = await fallback.save({ uid: user.uid, scope: "developer",
+        path: "developerMailTemplates/" + id,
+        value: { ...template, revision }, editId:
+          String(globalThis.crypto?.randomUUID?.() || Date.now()) });
+      if (!(result.ok || result.queued)) throw error;
+      backupSaved = true;
+    }
     activeRevision = revision;
     cache.set(id, {template:{...template},revision});
     dirty = false;
     updateFirebaseBridge();
-    message("Saved to the private developer collection · revision " + revision +
-      ". This does not change Firebase's live email templates.");
+    message((backupSaved
+      ? "Draft saved to your account backup · revision " + revision +
+        ". Firestore will mirror it when quota recovers."
+      : "Saved to the private developer collection · revision " + revision) +
+      " This does not change Firebase's live email templates.");
   } catch (error) {
     message(error.message && error.message.includes("newer cloud") ? error.message :
       "Draft not saved. Check developer access, Firestore rules, and your connection.", true);

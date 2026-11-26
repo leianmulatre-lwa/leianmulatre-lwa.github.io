@@ -50,6 +50,10 @@ async function route(request, env) {
   if (url.pathname === '/' || url.pathname === '/health') {
     return json({ ok: true, service: 'BIGLWA Instagram API' }, 200, request, env);
   }
+  if (url.pathname === '/account-sync/health' && request.method === 'GET') return accountSyncHealth(request, env);
+  if (url.pathname === '/account-sync/state' && request.method === 'GET') return accountSyncState(request, env);
+  if (url.pathname === '/account-sync/save' && request.method === 'POST') return accountSyncSave(request, env);
+  if (url.pathname === '/account-sync/retry' && request.method === 'POST') return accountSyncRetry(request, env);
   if (url.pathname === '/oauth/start' && request.method === 'GET') return startOAuth(url, env);
   if (url.pathname === '/oauth/callback' && request.method === 'GET') return finishOAuth(url, env);
   if (url.pathname === '/session/exchange' && request.method === 'POST') return exchangeHandoff(request, env);
@@ -2463,4 +2467,434 @@ async function facebookPersonalRoute(request,env){
  auth.searchParams.set('auth_type','rerequest');
  auth.searchParams.set('state',state);
  return json({ok:true,authorizeUrl:auth.toString()},200,request,env);
+}
+
+/* -------------------------------------------------------------------------
+ * Durable account writes.
+ *
+ * Firestore is still the first writer. When its quota is exhausted, signed-in
+ * members must not lose an edit. The Worker stores the accepted edit in D1,
+ * keeps a snapshot in R2, and queues a Firestore mirror with revision checks.
+ * Only the BIG LWA Firebase account that owns the document can write it; no
+ * provider token is ever accepted by these routes.
+ *
+ * D1 schema (create once with `wrangler d1 execute`):
+ *   CREATE TABLE IF NOT EXISTS account_sync_state (
+ *     uid TEXT NOT NULL, scope TEXT NOT NULL, doc_path TEXT NOT NULL,
+ *     revision INTEGER NOT NULL, edit_id TEXT, value_json TEXT NOT NULL,
+ *     updated_at TEXT NOT NULL, PRIMARY KEY (uid, scope, doc_path));
+ *   CREATE TABLE IF NOT EXISTS account_sync_mirror (
+ *     id INTEGER PRIMARY KEY AUTOINCREMENT, uid TEXT NOT NULL,
+ *     scope TEXT NOT NULL, doc_path TEXT NOT NULL, patch_json TEXT NOT NULL,
+ *     attempts INTEGER NOT NULL DEFAULT 0, next_at INTEGER NOT NULL,
+ *     done INTEGER NOT NULL DEFAULT 0, last_error TEXT);
+ * ----------------------------------------------------------------------- */
+const ACCOUNT_SYNC_STUDIO_KEYS = new Set([
+  'biglwaLibraryCatalogV1','biglwaMapPins','biglwaMapMode','biglwaDepopPath',
+  'biglwaArchiveFilters','biglwaGamesPreview','biglwaCalendarView','biglwaCalendarSelected',
+  'biglwaCustomRooms','biglwaActiveRoom','biglwaPolitcNominationsV1',
+  'biglwaPolitcVotingState','biglwaPolitcVotingZip','biglwaDYKIndex','biglwaDYKScore',
+  'biglwaWorkshopSnapshotsV1','biglwaModule_projects','biglwaModule_closet',
+  'biglwaModule_trophies','biglwaModule_calendar','biglwaModule_stream',
+  'biglwaModule_connect','biglwaModule_library',
+  'biglwaProjectCanvas','biglwaProjectZoom','biglwaStreamLastPlayedV1',
+  'biglwaAvatarWidgetVisibility'
+]);
+const ACCOUNT_SYNC_USER_FIELDS = new Set([
+  'connections','orbitConnectedProfiles','orbitProfilesUpdatedAt','orbitLinks','orbit',
+  'usernameLower','username','name','profilePhoto','profilePhotoPosition',
+  'pinterestBoardLocks','archiveVisibility','wallpaper','auraColor','aura','look',
+  'feedVisibility','shareProfile','profileSharing','updatedAt'
+]);
+const ACCOUNT_SYNC_PUBLIC_FIELDS = new Set([
+  'socials','profilePhotoUrl','profilePhotoPosition','archiveVisibility','look',
+  'url','name','username','usernameLower','uid','updatedAt'
+]);
+const ACCOUNT_SYNC_DENY_FIELD = /(token|secret|session|credential|password|privatekey|apikey|accesskey)/i;
+let accountSyncGoogleToken = { value: '', expiresAt: 0 };
+
+function accountSyncDb(env) { return env.BIGLWA_ACCOUNT_DB || null; }
+function accountSyncBucket(env) { return mediaBucketReady(env) ? mediaBucket(env) : null; }
+function accountSyncNow() { return new Date().toISOString(); }
+function accountSyncBytes(value) {
+  try { return new TextEncoder().encode(JSON.stringify(value)).length; }
+  catch (_) { return Infinity; }
+}
+function accountSyncBase64Url(bytes) {
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+function accountSyncBase64UrlText(text) {
+  return accountSyncBase64Url(new TextEncoder().encode(text));
+}
+function accountSyncPemBytes(pem) {
+  const base64 = String(pem || '')
+    .replace(/-----BEGIN PRIVATE KEY-----/g, '')
+    .replace(/-----END PRIVATE KEY-----/g, '')
+    .replace(/\s+/g, '');
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+  return bytes;
+}
+async function accountSyncServiceToken(env) {
+  const now = Date.now();
+  if (accountSyncGoogleToken.value && accountSyncGoogleToken.expiresAt > now + 60000) {
+    return accountSyncGoogleToken.value;
+  }
+  if (!env.FIREBASE_SERVICE_ACCOUNT) throw new Error('Firestore mirror is not configured yet.');
+  let serviceAccount;
+  try { serviceAccount = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT); }
+  catch (_) { throw new Error('Firestore mirror credentials are invalid.'); }
+  const issued = Math.floor(now / 1000);
+  const header = accountSyncBase64UrlText(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+  const claims = accountSyncBase64UrlText(JSON.stringify({
+    iss: serviceAccount.client_email,
+    scope: 'https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/firebase.database',
+    aud: 'https://oauth2.googleapis.com/token',
+    iat: issued,
+    exp: issued + 3600
+  }));
+  const unsigned = header + '.' + claims;
+  let key;
+  try {
+    key = await crypto.subtle.importKey('pkcs8', accountSyncPemBytes(serviceAccount.private_key),
+      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
+  } catch (_) { throw new Error('Firestore mirror credentials are invalid.'); }
+  const signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key,
+    new TextEncoder().encode(unsigned));
+  const form = new URLSearchParams();
+  form.set('grant_type', 'urn:ietf:params:oauth:grant-type:jwt-bearer');
+  form.set('assertion', unsigned + '.' + accountSyncBase64Url(new Uint8Array(signature)));
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: form
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok || !body.access_token) throw new Error('Firestore mirror credentials were refused.');
+  accountSyncGoogleToken = {
+    value: body.access_token,
+    expiresAt: now + Math.max(60, (Number(body.expires_in) || 3600) - 60) * 1000
+  };
+  return accountSyncGoogleToken.value;
+}
+function accountSyncToFirestore(value) {
+  if (value === null || value === undefined) return { nullValue: null };
+  if (typeof value === 'boolean') return { booleanValue: value };
+  if (typeof value === 'number') return Number.isInteger(value)
+    ? { integerValue: String(value) } : { doubleValue: value };
+  if (typeof value === 'string') return { stringValue: value };
+  if (Array.isArray(value)) return { arrayValue: { values: value.map(accountSyncToFirestore) } };
+  if (typeof value === 'object') {
+    const fields = {};
+    for (const [key, item] of Object.entries(value)) fields[key] = accountSyncToFirestore(item);
+    return { mapValue: { fields } };
+  }
+  return { stringValue: String(value) };
+}
+function accountSyncFromFirestore(value) {
+  if (!value || typeof value !== 'object') return null;
+  if ('stringValue' in value) return String(value.stringValue);
+  if ('booleanValue' in value) return value.booleanValue === true;
+  if ('integerValue' in value) return Number(value.integerValue);
+  if ('doubleValue' in value) return Number(value.doubleValue);
+  if ('nullValue' in value) return null;
+  if ('timestampValue' in value) return String(value.timestampValue);
+  if ('mapValue' in value) return accountSyncFromFirestoreFields(value.mapValue?.fields || {});
+  if ('arrayValue' in value) return (value.arrayValue?.values || []).map(accountSyncFromFirestore);
+  return null;
+}
+function accountSyncFromFirestoreFields(fields) {
+  const result = {};
+  for (const [key, value] of Object.entries(fields || {})) result[key] = accountSyncFromFirestore(value);
+  return result;
+}
+function accountSyncFirestoreUrl(projectId, path) {
+  const encoded = String(path).split('/').map(encodeURIComponent).join('/');
+  return 'https://firestore.googleapis.com/v1/projects/' + encodeURIComponent(projectId) +
+    '/databases/(default)/documents/' + encoded;
+}
+async function accountSyncFirestoreGet(path, token, env) {
+  const response = await fetch(accountSyncFirestoreUrl(env.FIREBASE_PROJECT_ID || 'biglwa', path), {
+    headers: { Authorization: 'Bearer ' + token }
+  });
+  if (!response.ok) return null;
+  return response.json().catch(() => ({}));
+}
+async function accountSyncVerifyPublic(env, uid, username, currentUserRow) {
+  const owner = String(currentUserRow.value?.usernameLower || currentUserRow.value?.username || '').toLowerCase();
+  if (owner) return owner === String(username).toLowerCase();
+  try {
+    const token = await accountSyncServiceToken(env);
+    const doc = await accountSyncFirestoreGet('users/' + uid, token, env);
+    const data = accountSyncFromFirestoreFields(doc?.fields || {});
+    return String(data.usernameLower || data.username || '').toLowerCase() === String(username).toLowerCase();
+  } catch (_) { return false; }
+}
+async function accountSyncVerifyDeveloper(env, uid) {
+  const token = await accountSyncServiceToken(env);
+  const doc = await accountSyncFirestoreGet('developerAdmins/' + uid, token, env);
+  return accountSyncFromFirestoreFields(doc?.fields || {}).active === true;
+}
+async function accountSyncUser(request, env) {
+  const header = request.headers.get('Authorization') || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+  return token ? firebaseUidFromToken(token, env) : '';
+}
+async function accountSyncStateRow(db, uid, scope, path) {
+  const row = await db.prepare(
+    'SELECT revision,edit_id,value_json,updated_at FROM account_sync_state ' +
+    'WHERE uid=? AND scope=? AND doc_path=? LIMIT 1').bind(uid, scope, path).first();
+  if (!row) return { revision: 0, editId: '', value: {}, updatedAt: '' };
+  let value = {};
+  try { value = JSON.parse(row.value_json || '{}'); } catch (_) {}
+  return { revision: Number(row.revision) || 0, editId: String(row.edit_id || ''), value,
+    updatedAt: String(row.updated_at || '') };
+}
+function accountSyncCleanPatch(value, allowed) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('An account backup write must be a set of fields.');
+  }
+  const clean = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (!allowed.has(key)) throw new Error('That account field cannot be synced: ' + key);
+    if (ACCOUNT_SYNC_DENY_FIELD.test(key)) throw new Error('Credentials cannot be synced to an account.');
+    if (accountSyncBytes(item) > 450000) throw new Error('That account edit is too large to sync.');
+    clean[key] = item;
+  }
+  if (!Object.keys(clean).length) throw new Error('That account write was empty.');
+  return clean;
+}
+async function accountSyncValidate(entry, uid, currentUserRow) {
+  if (!entry || typeof entry !== 'object') throw new Error('That account write was not valid.');
+  const scope = String(entry.scope || '');
+  const path = String(entry.path || '');
+  const editId = String(entry.editId || '');
+  if (!/^[A-Za-z0-9_-]{1,80}$/.test(editId)) throw new Error('That account edit has no valid id.');
+  let base = null;
+  if (entry.baseRevision !== null && entry.baseRevision !== undefined && entry.baseRevision !== '') {
+    base = Number(entry.baseRevision);
+    if (!Number.isSafeInteger(base) || base < 0) throw new Error('That account edit has an invalid revision.');
+  }
+  if (scope === 'studioState') {
+    const key = path.startsWith('studioState/') ? path.slice('studioState/'.length) : '';
+    if (!ACCOUNT_SYNC_STUDIO_KEYS.has(key)) throw new Error('That private collection cannot be synced.');
+    const value = entry.value;
+    if (value !== null && (typeof value !== 'string' || new TextEncoder().encode(value).length > 500000)) {
+      throw new Error('That private collection is too large or not text.');
+    }
+    return { scope, path, editId, base, kind: 'studio', raw: value };
+  }
+  if (scope === 'user') {
+    if (path !== 'users/' + uid) throw new Error('An account can only write its own document.');
+    const patch = accountSyncCleanPatch(entry.value, ACCOUNT_SYNC_USER_FIELDS);
+    patch.updatedAt = accountSyncNow();
+    return { scope, path, editId, base, kind: 'user', patch };
+  }
+  if (scope === 'public') {
+    const match = /^usernames\/([A-Za-z0-9._-]{5,24})$/.exec(path);
+    if (!match) throw new Error('That public profile name is not valid.');
+    if (!(await accountSyncVerifyPublic(env, uid, match[1], currentUserRow))) {
+      throw new Error('That public profile name does not belong to this account.');
+    }
+    const patch = accountSyncCleanPatch(entry.value, ACCOUNT_SYNC_PUBLIC_FIELDS);
+    patch.uid = uid;
+    patch.usernameLower = match[1].toLowerCase();
+    patch.updatedAt = accountSyncNow();
+    return { scope, path, editId, base, kind: 'public', patch };
+  }
+  if (scope === 'developer') {
+    if (!/^developerMailTemplates\/[A-Za-z0-9_-]{1,80}$/.test(path)) {
+      throw new Error('That developer draft is not valid.');
+    }
+    if (!(await accountSyncVerifyDeveloper(env, uid))) {
+      throw new Error('Developer access is required for this write.');
+    }
+    const patch = accountSyncCleanPatch(entry.value, new Set([
+      'id','subject','greeting','body','signature','revision','updatedAt','updatedBy'
+    ]));
+    patch.updatedBy = uid;
+    patch.updatedAt = accountSyncNow();
+    return { scope, path, editId, base, kind: 'developer', patch };
+  }
+  throw new Error('That account backup scope is not supported.');
+}
+async function accountSyncSnapshot(env, uid, scope, path, document) {
+  const bucket = accountSyncBucket(env);
+  if (!bucket) return false;
+  const key = 'account-sync/' + uid + '/' + scope + '/' + encodeURIComponent(path) + '.json';
+  await bucket.put(key, JSON.stringify(document), {
+    httpMetadata: { contentType: 'application/json; charset=utf-8', cacheControl: 'private, no-store' },
+    customMetadata: { uid, scope, revision: String(document.revision) }
+  });
+  return true;
+}
+async function accountSyncMirrorOnce(env, row, db) {
+  if (!env.FIREBASE_SERVICE_ACCOUNT) return { done: false, error: 'Firestore mirror is not configured yet.' };
+  if (row.scope === 'public' && db) {
+    const ownerRow = await accountSyncStateRow(db, row.uid, 'user', 'users/' + row.uid);
+    const username = row.path.slice('usernames/'.length);
+    if (!(await accountSyncVerifyPublic(env, row.uid, username, ownerRow))) {
+      return { done: false, error: 'Profile ownership changed; this mirror was not applied.' };
+    }
+  }
+  const token = await accountSyncServiceToken(env);
+  const url = new URL(accountSyncFirestoreUrl(env.FIREBASE_PROJECT_ID || 'biglwa', row.path));
+  for (const key of Object.keys(row.patch || {})) url.searchParams.append('updateMask.fieldPaths', key);
+  const response = await fetch(url.toString(), {
+    method: 'PATCH',
+    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields: Object.fromEntries(Object.entries(row.patch || {})
+      .map(([key, value]) => [key, accountSyncToFirestore(value)])) })
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    const message = String(body.error?.message || body.error || response.statusText || 'Firestore mirror failed.');
+    if (/quota|RESOURCE_EXHAUSTED/i.test(message)) {
+      return { done: false, error: 'Firestore quota is exhausted; mirror will retry.' };
+    }
+    return { done: false, error: message.slice(0, 400) };
+  }
+  return { done: true };
+}
+async function accountSyncHealth(request, env) {
+  requireOrigin(request, env);
+  const db = accountSyncDb(env);
+  let pending = null;
+  if (db) {
+    try {
+      const row = await db.prepare('SELECT COUNT(*) AS count FROM account_sync_mirror WHERE done=0').first();
+      pending = Number(row?.count || 0);
+    } catch (error) { pending = 'schema missing: ' + error.message; }
+  }
+  return json({ ok: true, service: 'BIGLWA Account Sync', d1: !!db,
+    r2: !!accountSyncBucket(env), firestoreMirror: !!env.FIREBASE_SERVICE_ACCOUNT,
+    pending }, 200, request, env);
+}
+async function accountSyncState(request, env) {
+  requireOrigin(request, env);
+  const uid = await accountSyncUser(request, env);
+  if (!uid) return json({ error: 'Sign in to read your account backup.' }, 401, request, env);
+  const db = accountSyncDb(env);
+  if (!db) return json({ error: 'Durable account storage is not configured on this Worker yet.' }, 503, request, env);
+  const result = await db.prepare(
+    'SELECT scope,doc_path,revision,value_json,updated_at FROM account_sync_state WHERE uid=?').bind(uid).all();
+  const state = {};
+  for (const row of (result.results || [])) {
+    let value = {};
+    try { value = JSON.parse(row.value_json || '{}'); } catch (_) {}
+    (state[row.scope] ||= {})[row.doc_path] = {
+      revision: Number(row.revision) || 0, value, updatedAt: String(row.updated_at || '')
+    };
+  }
+  return json({ ok: true, uid, state }, 200, request, env);
+}
+async function accountSyncSave(request, env) {
+  requireOrigin(request, env);
+  const uid = await accountSyncUser(request, env);
+  if (!uid) return json({ error: 'Sign in to save to your account.' }, 401, request, env);
+  const db = accountSyncDb(env);
+  if (!db) return json({ error: 'Durable account storage is not configured on this Worker yet.' }, 503, request, env);
+  const entry = await request.json().catch(() => ({}));
+  let validated;
+  try {
+    const currentUserRow = await accountSyncStateRow(db, uid, 'user', 'users/' + uid);
+    validated = await accountSyncValidate(entry, uid, currentUserRow);
+  } catch (error) { return json({ error: error.message }, 400, request, env); }
+  const current = await accountSyncStateRow(db, uid, validated.scope, validated.path);
+  if (current.editId === validated.editId) {
+    const pending = await db.prepare(
+      'SELECT 1 FROM account_sync_mirror WHERE uid=? AND scope=? AND doc_path=? AND done=0 LIMIT 1')
+      .bind(uid, validated.scope, validated.path).first();
+    return json({ ok: true, revision: current.revision, mirrored: !pending,
+      snapshot: true, duplicate: true, queued: !!pending }, 200, request, env);
+  }
+  if (validated.base !== null && current.revision > validated.base) {
+    return json({ ok: false, code: 'conflict', revision: current.revision,
+      error: 'A newer cloud revision exists. Reload and retry.' }, 409, request, env);
+  }
+  // The first backup write often follows a successful Firestore write whose
+  // revision D1 has never seen. Adopt that revision as the baseline instead of
+  // refusing the edit with a false conflict.
+  const revision = Math.max(current.revision, Number(validated.base) || 0) + 1;
+  const patch = validated.kind === 'studio'
+    ? { value: validated.raw, revision, editId: validated.editId, updatedAt: accountSyncNow() }
+    : validated.patch;
+  const value = { ...current.value, ...patch };
+  const updatedAt = accountSyncNow();
+  await db.batch([
+    db.prepare('INSERT INTO account_sync_state (uid,scope,doc_path,revision,edit_id,value_json,updated_at) ' +
+      'VALUES (?,?,?,?,?,?,?) ON CONFLICT(uid,scope,doc_path) DO UPDATE SET ' +
+      'revision=excluded.revision,edit_id=excluded.edit_id,value_json=excluded.value_json,updated_at=excluded.updated_at')
+      .bind(uid, validated.scope, validated.path, revision, validated.editId, JSON.stringify(value), updatedAt),
+    db.prepare('INSERT INTO account_sync_mirror (uid,scope,doc_path,patch_json,next_at,last_error) ' +
+      'VALUES (?,?,?,?,?,?)')
+      .bind(uid, validated.scope, validated.path, JSON.stringify(patch), Date.now(), '')
+  ]);
+  let snapshot = false;
+  try { snapshot = await accountSyncSnapshot(env, uid, validated.scope, validated.path,
+    { uid, scope: validated.scope, path: validated.path, revision, value, updatedAt }); }
+  catch (error) { console.warn('Account sync R2 snapshot:', error); }
+  const queueRow = await db.prepare(
+    'SELECT id FROM account_sync_mirror WHERE uid=? AND scope=? AND doc_path=? AND done=0 ORDER BY id DESC LIMIT 1')
+    .bind(uid, validated.scope, validated.path).first();
+  let mirrored = false;
+  let mirrorError = '';
+  try {
+    const result = await accountSyncMirrorOnce(env,
+      { uid, scope: validated.scope, path: validated.path, patch, revision }, db);
+    mirrored = !!result.done;
+    mirrorError = result.error || '';
+  } catch (error) { mirrorError = error.message; }
+  if (queueRow) {
+    if (mirrored) {
+      await db.prepare('UPDATE account_sync_mirror SET done=1,last_error=NULL WHERE id=?')
+        .bind(queueRow.id).run();
+    } else {
+      await db.prepare('UPDATE account_sync_mirror SET attempts=attempts+1,next_at=?,last_error=? WHERE id=?')
+        .bind(Date.now() + 5 * 60 * 1000, String(mirrorError || 'Mirror queued.').slice(0, 400), queueRow.id).run();
+    }
+  }
+  return json({ ok: true, revision, mirrored, queued: !mirrored, snapshot,
+    mirrorError, mirrorQueued: !mirrored }, 200, request, env);
+}
+async function accountSyncRetry(request, env) {
+  const uid = await accountSyncUser(request, env);
+  const cronSecret = String(request.headers.get('x-account-sync-secret') || '');
+  const cron = !uid && !!env.ACCOUNT_SYNC_CRON_SECRET && cronSecret === env.ACCOUNT_SYNC_CRON_SECRET;
+  // A Worker-to-Worker cron call has no browser Origin; everything else must
+  // come from the official BIG LWA site.
+  if (!cron) requireOrigin(request, env);
+  if (!uid && !cron) return json({ error: 'Sign in to retry account sync.' }, 401, request, env);
+  const db = accountSyncDb(env);
+  if (!db) return json({ error: 'Durable account storage is not configured on this Worker yet.' }, 503, request, env);
+  const query = cron
+    ? 'SELECT * FROM account_sync_mirror WHERE done=0 AND next_at<=? ORDER BY id LIMIT 100'
+    : 'SELECT * FROM account_sync_mirror WHERE uid=? AND done=0 AND next_at<=? ORDER BY id LIMIT 25';
+  const result = cron
+    ? await db.prepare(query).bind(Date.now()).all()
+    : await db.prepare(query).bind(uid, Date.now()).all();
+  let retried = 0;
+  for (const row of (result.results || [])) {
+    let patch = {};
+    try { patch = JSON.parse(row.patch_json || '{}'); } catch (_) {}
+    let outcome;
+    try {
+      outcome = await accountSyncMirrorOnce(env,
+        { uid: row.uid, scope: row.scope, path: row.doc_path, patch }, db);
+    } catch (error) { outcome = { done: false, error: error.message }; }
+    if (outcome.done) {
+      await db.prepare('UPDATE account_sync_mirror SET done=1,last_error=NULL WHERE id=?').bind(row.id).run();
+      retried += 1;
+    } else {
+      const attempts = Number(row.attempts || 0) + 1;
+      const nextAt = Date.now() + Math.min(60 * 60 * 1000, 5 * 60 * 1000 * (2 ** Math.min(attempts, 5)));
+      await db.prepare('UPDATE account_sync_mirror SET attempts=?,next_at=?,last_error=? WHERE id=?')
+        .bind(attempts, nextAt, String(outcome.error || 'Mirror queued.').slice(0, 400), row.id).run();
+    }
+  }
+  const pendingRow = cron
+    ? await db.prepare('SELECT COUNT(*) AS count FROM account_sync_mirror WHERE done=0').first()
+    : await db.prepare('SELECT COUNT(*) AS count FROM account_sync_mirror WHERE uid=? AND done=0').bind(uid).first();
+  return json({ ok: true, retried, pending: Number(pendingRow?.count || 0) }, 200, request, env);
 }

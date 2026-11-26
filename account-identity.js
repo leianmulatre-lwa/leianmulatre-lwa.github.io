@@ -168,20 +168,40 @@ export async function claimUsername(username) {
   if (existing.exists() && existing.data()?.uid && existing.data().uid !== user.uid) {
     throw new Error("That username is already taken.");
   }
-  await setDoc(doc(db, "users", user.uid), {
-    usernameLower: name,
-    name: clean(current?.name) || (clean(user.displayName).toLowerCase()!==name?clean(user.displayName):""),
-    updatedAt: serverTimestamp()
-  }, { merge: true });
-  await setDoc(doc(db, "usernames", name), {
-    uid: user.uid,
-    username: name,
-    usernameLower: name,
-    url: "/" + name,
-    name: clean(current?.name) || (clean(user.displayName).toLowerCase()!==name?clean(user.displayName):""),
-    look: (existing.exists() && existing.data()?.look) || {},
-    updatedAt: serverTimestamp()
-  }, { merge: true });
+  const displayName = clean(current?.name) ||
+    (clean(user.displayName).toLowerCase()!==name?clean(user.displayName):"");
+  try {
+    await setDoc(doc(db, "users", user.uid), {
+      usernameLower: name,
+      name: displayName,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    await setDoc(doc(db, "usernames", name), {
+      uid: user.uid,
+      username: name,
+      usernameLower: name,
+      url: "/" + name,
+      name: displayName,
+      look: (existing.exists() && existing.data()?.look) || {},
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+  } catch (error) {
+    // A quota rejection cannot leave a new member without a profile address.
+    // The durable Worker state carries the owner binding until Firestore recovers.
+    const fallback = window.BigLWAAccountSync;
+    if (!fallback?.save) throw error;
+    const userResult = await fallback.save({ uid: user.uid, scope: "user",
+      path: "users/" + user.uid,
+      value: { usernameLower: name, name: displayName },
+      editId: String(globalThis.crypto?.randomUUID?.() || Date.now()) });
+    if (!(userResult.ok || userResult.queued)) throw error;
+    const publicResult = await fallback.save({ uid: user.uid, scope: "public",
+      path: "usernames/" + name,
+      value: { username: name, usernameLower: name, url: "/" + name, name: displayName,
+        look: (existing.exists() && existing.data()?.look) || {} },
+      editId: String(globalThis.crypto?.randomUUID?.() || Date.now() + '-public') });
+    if (!(publicResult.ok || publicResult.queued)) throw error;
+  }
   writeCache({ ...cached(user.uid), username: name });
   current = { ...(current || {}), uid: user.uid, username: name, name: clean(current?.name) || (clean(user.displayName).toLowerCase()!==name?clean(user.displayName):"") };
   emit();
