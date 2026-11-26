@@ -7,6 +7,7 @@
 import {readdirSync,statSync,cpSync,mkdirSync,rmSync,existsSync,writeFileSync} from 'node:fs';
 import {join,extname,resolve,relative,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {installOrbitIdleArt} from './scripts/performance/orbit-idle-art.mjs';
 import {generateOgImage} from './build-og-image.mjs';
 
 const root=resolve(fileURLToPath(new URL('.',import.meta.url)));
@@ -34,6 +35,7 @@ const internalFiles=new Set([
 ]);
 const maxBytes=25*1024*1024;
 let count=0,total=0;
+const publishedGifs=[];
 rmSync(dest,{recursive:true,force:true});
 mkdirSync(dest,{recursive:true});
 function copyPublic(src,dst){
@@ -54,6 +56,7 @@ function copyPublic(src,dst){
     if(sz>maxBytes)throw Error('Cloudflare Pages asset exceeds 25MiB: '+relative(root,from));
     mkdirSync(dst,{recursive:true});
     cpSync(from,to);
+    if(ext==='.gif')publishedGifs.push(relative(dest,to).split(sep).join('/'));
     count++;total+=sz;
   }
 }
@@ -74,6 +77,7 @@ for(const dirent of readdirSync(root,{withFileTypes:true})){
   const sz=statSync(join(root,name)).size;
   if(sz>maxBytes)throw Error('Oversized top-level website asset: '+name);
   cpSync(join(root,name),join(dest,name));
+  if(extname(name).toLowerCase()==='.gif')publishedGifs.push(name);
   count++;total+=sz;
 }
 for(const required of ['index.html','404.html','assets/login-curtain-film-grain-v2.webp','google0f54272f22b5ea1f.html','leian-mulatre/index.html','affidavit/index.html','free-tools/index.html','discover/index.html','online-games/index.html','gt6-live-preview/index.html','fare-checker/index.html','live-shows/index.html','free-knowledge/index.html','power-and-politics/index.html','connect-social-platforms/index.html',
@@ -104,6 +108,7 @@ for(const hidden of ['cloudflare-worker-instagram.js','new-orbit-oauth.js','publ
   if(existsSync(join(dest,hidden)))throw Error('Restricted development file reached public output: '+hidden);
 }
 if(count>19000)throw Error('Public file count exceeds Cloudflare Pages deployment safety limit.');
+installOrbitIdleArt(dest,publishedGifs);
 generateOgImage(join(dest,'assets/brand/og-biglwa.png'));
 if(!existsSync(join(dest,'assets/brand/og-biglwa.png')))throw Error('Missing BIG LWA OG image');
 // These are app routes; legal/about/settings pages keep their real HTML.

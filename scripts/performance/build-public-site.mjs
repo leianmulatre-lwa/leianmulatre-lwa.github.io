@@ -5,6 +5,7 @@
    Does not rewrite tracked files. Cleans only its generated dist/public directory.
 */
 import fs from 'node:fs';
+import {installOrbitIdleArt} from './orbit-idle-art.mjs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
@@ -97,6 +98,7 @@ if(build){
   fs.mkdirSync(path.dirname(target),{recursive:true});
   fs.copyFileSync(path.join(root,f.path),target);
  }
+ installOrbitIdleArt(destination, final.map(file=>file.path));
  fs.writeFileSync(path.join(destination,'release-inventory.json'),
   JSON.stringify({schema:1,fileCount:final.length,bytes:report.includedBytes,restoredEditorsIncluded:report.restoredEditorsIncluded},null,2)+'\n');
 }
