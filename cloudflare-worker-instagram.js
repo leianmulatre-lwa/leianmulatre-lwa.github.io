@@ -577,6 +577,14 @@ export default {
     env = { ...env, SITE_URL: env.SITE_URL || 'https://biglwa.com' };
     try { return await ttRoute(request, env); }
     catch (error) { return json({ error: error.publicMessage || 'TikTok service could not complete the request. Please reconnect.' }, error.status || 502, request, env); }
+  },
+  // A queued Firestore mirror must keep retrying after the tab is closed. The
+  // cron trigger calls this directly, so no secret is sent over HTTP.
+  async scheduled(_controller, env, ctx) {
+    if (env.BIGLWA_PREVIEW === 'true' || !accountSyncDb(env) || !env.FIREBASE_SERVICE_ACCOUNT) return;
+    ctx.waitUntil(accountSyncRunMirror(env, '').catch(error => {
+      console.warn('Account sync scheduled mirror:', error);
+    }));
   }
 };
 function ttFail(message, status = 400) { const error = new Error(message); error.publicMessage = message; error.status = status; throw error; }
@@ -2711,7 +2719,8 @@ async function accountSyncValidate(entry, uid, currentUserRow) {
       throw new Error('Developer access is required for this write.');
     }
     const patch = accountSyncCleanPatch(entry.value, new Set([
-      'id','subject','greeting','body','signature','revision','updatedAt','updatedBy'
+      'id','subject','preheader','greeting','body','buttonText','closing','signature',
+      'revision','updatedAt','updatedBy'
     ]));
     patch.updatedBy = uid;
     patch.updatedAt = accountSyncNow();
@@ -2858,20 +2867,14 @@ async function accountSyncSave(request, env) {
   return json({ ok: true, revision, mirrored, queued: !mirrored, snapshot,
     mirrorError, mirrorQueued: !mirrored }, 200, request, env);
 }
-async function accountSyncRetry(request, env) {
-  const uid = await accountSyncUser(request, env);
-  const cronSecret = String(request.headers.get('x-account-sync-secret') || '');
-  const cron = !uid && !!env.ACCOUNT_SYNC_CRON_SECRET && cronSecret === env.ACCOUNT_SYNC_CRON_SECRET;
-  // A Worker-to-Worker cron call has no browser Origin; everything else must
-  // come from the official BIG LWA site.
-  if (!cron) requireOrigin(request, env);
-  if (!uid && !cron) return json({ error: 'Sign in to retry account sync.' }, 401, request, env);
+async function accountSyncRunMirror(env, uid) {
   const db = accountSyncDb(env);
-  if (!db) return json({ error: 'Durable account storage is not configured on this Worker yet.' }, 503, request, env);
-  const query = cron
+  if (!db || !env.FIREBASE_SERVICE_ACCOUNT) return { retried: 0, pending: 0 };
+  const allOwners = !uid;
+  const query = allOwners
     ? 'SELECT * FROM account_sync_mirror WHERE done=0 AND next_at<=? ORDER BY id LIMIT 100'
     : 'SELECT * FROM account_sync_mirror WHERE uid=? AND done=0 AND next_at<=? ORDER BY id LIMIT 25';
-  const result = cron
+  const result = allOwners
     ? await db.prepare(query).bind(Date.now()).all()
     : await db.prepare(query).bind(uid, Date.now()).all();
   let retried = 0;
@@ -2893,8 +2896,21 @@ async function accountSyncRetry(request, env) {
         .bind(attempts, nextAt, String(outcome.error || 'Mirror queued.').slice(0, 400), row.id).run();
     }
   }
-  const pendingRow = cron
+  const pendingRow = allOwners
     ? await db.prepare('SELECT COUNT(*) AS count FROM account_sync_mirror WHERE done=0').first()
     : await db.prepare('SELECT COUNT(*) AS count FROM account_sync_mirror WHERE uid=? AND done=0').bind(uid).first();
-  return json({ ok: true, retried, pending: Number(pendingRow?.count || 0) }, 200, request, env);
+  return { retried, pending: Number(pendingRow?.count || 0) };
+}
+async function accountSyncRetry(request, env) {
+  const uid = await accountSyncUser(request, env);
+  const cronSecret = String(request.headers.get('x-account-sync-secret') || '');
+  const cron = !uid && !!env.ACCOUNT_SYNC_CRON_SECRET && cronSecret === env.ACCOUNT_SYNC_CRON_SECRET;
+  // A Worker-to-Worker cron call has no browser Origin; everything else must
+  // come from the official BIG LWA site.
+  if (!cron) requireOrigin(request, env);
+  if (!uid && !cron) return json({ error: 'Sign in to retry account sync.' }, 401, request, env);
+  const db = accountSyncDb(env);
+  if (!db) return json({ error: 'Durable account storage is not configured on this Worker yet.' }, 503, request, env);
+  const result = await accountSyncRunMirror(env, cron ? '' : uid);
+  return json({ ok: true, ...result }, 200, request, env);
 }
