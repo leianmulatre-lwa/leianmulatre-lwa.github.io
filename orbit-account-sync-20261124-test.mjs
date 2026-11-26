@@ -61,6 +61,17 @@ const callbackUrls = [
   '?view=orbit&tiktok_handoff=one-use-code',
   '?view=orbit&pinterest_handoff=one-use-code'
 ];
+// Exercise the provider's actual root return before the login shell can erase it.
+const landing=html.slice(html.indexOf('  const orbitLanding='),html.indexOf('  // Keep direct Map'));
+for(const query of callbackUrls){
+  let landed;
+  new Function('location','URL','history',landing)(
+    new URL('https://biglwa.com/'+query),URL,{replaceState(_state,_title,path){landed=new URL(path,'https://biglwa.com')}});
+  assert.equal(landed.pathname,'/studio');
+  assert.equal(landed.searchParams.get('nav'),'1');
+  for(const [key,value] of new URLSearchParams(query))if(key!=='route')assert.equal(landed.searchParams.get(key),value);
+  assert.deepEqual(invoke(privateStudio,landed.pathname,landed.search),[]);
+}
 for (const query of callbackUrls) {
   assert.deepEqual(invoke(privateLogin, '/', query), [], 'login rewrite keeps callback ' + query);
   assert.deepEqual(invoke(privateStudio, '/studio', query), [], 'Studio rewrite keeps callback ' + query);

@@ -21,6 +21,16 @@
     location.replace('https://biglwa.com'+location.pathname+location.search+location.hash);
     return;
   }
+  // Normalize Orbit before the legacy sign-in shell rewrites the root URL.
+  // Keep one-use handoffs in the URL until their provider client consumes them.
+  const orbitLanding=new URL(location.href);
+  const onStudioEntry=['/','/studio','/studio/','/studio/orbit','/studio/orbit/'].includes(orbitLanding.pathname);
+  const returningToOrbit=['orbit_provider','orbit_status','instagram_handoff','instagram_error','tiktok_handoff','tiktok_error','pinterest_handoff','pinterest_error','facebook_login','facebook_login_error'].some(key=>orbitLanding.searchParams.has(key));
+  if(onStudioEntry&&(returningToOrbit||orbitLanding.searchParams.get('view')==='orbit'||/^\/studio\/orbit\/?$/.test(orbitLanding.pathname))){
+    orbitLanding.pathname='/studio';orbitLanding.searchParams.delete('route');
+    orbitLanding.searchParams.set('view','orbit');orbitLanding.searchParams.set('nav','1');
+    history.replaceState(history.state,'',orbitLanding.pathname+orbitLanding.search+orbitLanding.hash);
+  }
   // Keep direct Map and politc links on the existing signed-in Studio route.
   const legacyPanel=location.pathname.match(/^\/studio\/(map|politc)\/?$/i);
   if(legacyPanel)try{history.replaceState(history.state,'','/studio?panel='+legacyPanel[1].toLowerCase())}catch{}
