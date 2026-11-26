@@ -149,10 +149,28 @@ export async function saveProfile(profile,options={}){
   return syncAccountProfile(profile,options);
 }
 
+async function privatePreset(user,key,changes){
+  if(!user)throw Error('Sign in to save Studio settings.');
+  const response=await fetch('https://biglwa-studio-presets.leianmulatre-284.workers.dev/'+key,{
+    method:changes?'PUT':'GET',cache:'no-store',headers:{Authorization:'Bearer '+await user.getIdToken(),...(changes?{'Content-Type':'application/json'}:{})},
+    ...(changes?{body:JSON.stringify(changes)}:{})
+  });
+  if(!response.ok)throw Error(response.status===409?'This preset changed on another device. Reopen it before saving.':'Private preset storage is unavailable. Try again.');
+  if((await getFirebase()).auth.currentUser?.uid!==user.uid)throw Error('Account changed. Reopen Studio.');
+  return response.json();
+}
 async function saveCustomizations(custom={}){
   if(document.documentElement.classList.contains('biglwa-preview-mode')||window.__biglwaPublicStorageView)return false;
   try{
     const {db,auth}=await getFirebase();await auth.authStateReady();const user=auth.currentUser;if(!user)return false;
+    if(!custom.session && Object.keys(custom).every(key=>['layout','appearance','wallpaper'].includes(key))){
+      const prior=await privatePreset(user,'look'),next={...prior.value};
+      for(const key of Object.keys(custom))next[key]={...next[key],...custom[key]};
+      if(custom.layout?.updatedAtMs && prior.value?.layout?.updatedAtMs>custom.layout.updatedAtMs)throw Error('A newer layout was saved on another device.');
+      await privatePreset(user,'look',{revision:prior.revision,value:next});
+      void savePublicLook(next).catch(()=>{});
+      return true;
+    }
     const {doc,runTransaction,serverTimestamp}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
     const ref=doc(db,'users',user.uid);
     const customization=await runTransaction(db,async tx=>{
@@ -217,6 +235,8 @@ async function savePublicLook(custom={}){
     const username=normalize(account.usernameLower||account.username);
     if(!username)return false;
     const {doc,setDoc,serverTimestamp}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
+    const legacy=account.customization||{};
+    custom={...legacy,...custom,appearance:{...legacy.appearance,...custom.appearance},wallpaper:{...legacy.wallpaper,...custom.wallpaper}};
     const appearance=(custom&&typeof custom.appearance==="object"&&custom.appearance)||{};
     const wallpaper=(custom&&typeof custom.wallpaper==="object"&&custom.wallpaper)||{};
     const look={
@@ -421,7 +441,14 @@ async function downloadAccountToDevice(){
     const {auth}=await getFirebase();
     if(!auth.currentUser){window.__biglwaAccountHydrated=false;window.__biglwaRemoteCustomization=null;return false;}
     const owner=auth.currentUser.uid;
-    const remote=await loadProfile();
+    const user=auth.currentUser;
+    const [legacy,backup]=await Promise.allSettled([loadProfile(),privatePreset(user,'look')]);
+    let remote=legacy.value;
+    if(backup.value?.value){
+      const customization={...remote?.customization};
+      for(const [key,value] of Object.entries(backup.value.value))customization[key]={...customization[key],...value};
+      remote={...remote,uid:owner,customization};
+    }
     if(auth.currentUser?.uid!==owner)return false;
     if(remote&&typeof remote==="object"&&remote.uid===owner){
       window.__biglwaRemoteCustomization=remote;
@@ -555,17 +582,18 @@ async function profileLocker(slot, value, expectedRevision, owner){
   if(!owner || auth.currentUser?.uid!==owner || window.__biglwaPublicStorageView ||
      document.documentElement.classList.contains('biglwa-preview-mode'))throw Error('Open your own Studio to use your locker.');
   if(!Number.isInteger(slot)||slot<1||slot>4)throw Error('Choose a locker from 1 to 4.');
-  const {doc,getDocFromServer,runTransaction,serverTimestamp}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
-  const ref=doc(db,'users',owner,'studioState','profileLocker'+slot);
-  if(value===undefined){
-    const data=(await getDocFromServer(ref)).data();
-    return {revision:data?.revision||0,preset:data?.value?JSON.parse(data.value):null};
+  const user=auth.currentUser,key='locker-'+slot;
+  if(value!==undefined)return privatePreset(user,key,{revision:expectedRevision,value});
+  const stored=await privatePreset(user,key);
+  if(stored.value)return {revision:stored.revision,preset:stored.value};
+  try{
+    const {doc,getDocFromServer}=await import("https://www.gstatic.com/firebasejs/12.18.0/firebase-firestore.js");
+    const old=(await getDocFromServer(doc(db,'users',owner,'studioState','profileLocker'+slot))).data();
+    return {revision:0,preset:old?.value?JSON.parse(old.value):null};
+  }catch(error){
+    if(!/resource-exhausted|quota|unavailable/i.test(error.code+' '+error.message))throw error;
+    return {revision:0,preset:null,legacyUnavailable:true};
   }
-  await runTransaction(db,async tx=>{
-    const revision=(await tx.get(ref)).data()?.revision||0;
-    if(revision!==expectedRevision)throw Error('This locker changed on another device. Reopen it before saving.');
-    tx.set(ref,{value:JSON.stringify(value),revision:revision+1,editId:crypto.randomUUID(),updatedAt:serverTimestamp()});
-  });
 }
 window.BigLWAUserDirectory={profileLocker,getAccountOverview,addPerson,recordAnalyticsMonth,saveProfile,searchUsers,syncAccountProfile,saveCustomizations,loadProfile,loadPublicProfile,loadArchiveForUsername,publishJournal};
 
