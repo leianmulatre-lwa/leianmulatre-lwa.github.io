@@ -44,5 +44,9 @@ assert.doesNotMatch(video,/photobooth-before-use\.webp/,'No fake person photo is
 assert.match(pages,/function stopCamera\(\)\{[\s\S]{0,260}stopVideoTest\(\)/,'Leaving the module stops local camera preview');
 assert.doesNotMatch(thumb,/#studioApp \.photobooth-stage \.photobooth-intro/,'Thumbnail CSS cannot replace the Booth profile image');
 assert.match(thumb,/#studioApp #camera \.photobooth-reference-preview > img/,'Original Studio thumbnail remains unchanged');
+assert.match(thumb,/\.booth-recent-frame img \{[\s\S]{0,500}transform:scale\(1\.06\)!important/,'Booth thumbnail photos are zoomed slightly');
+for(const shell of ['index.html','404.html','studio/index.html','live-studio-shell.html']){
+ assert.match(read(shell),/boothzoom=20261126-1/,shell+' busts the Booth thumbnail cache');
+}
 assert.match(pages,/\.booth-vanity \.photobooth-stage\.has-intro/,'Vanity styling wins the legacy stage background rule');
 console.log('PASS Lwazi titles, original writing symbols, Booth vanity, owner photo isolation, local-only media preflight and gated matching');
