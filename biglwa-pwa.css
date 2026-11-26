@@ -66,3 +66,194 @@ html.biglwa-ios body #studioApp #home .widget-is-expanded{
 @media(max-width:600px) and (orientation:portrait){
  html.biglwa-ios body:not(.sidebar-collapsed):not(.biglwa-sidebar-hidden) #studioApp #home{margin-right:calc(54px + var(--ios-right))!important}
 }
+
+/* iPhone landscape: preserve the notch inset for interactive rail controls,
+   reclaim the unused interior width, and keep the desktop geometry untouched. */
+@media (orientation:landscape) and (max-width:1100px){
+ html.biglwa-ios #studioApp{
+  --ios-rail:88px;
+  --ios-home-left:max(8px,calc(var(--ios-left) - 12px));
+ }
+ html.biglwa-ios body.sidebar-collapsed #studioApp{--ios-rail:46px}
+ html.biglwa-ios body.biglwa-sidebar-hidden #studioApp,
+ html.biglwa-ios.biglwa-preview-mode #studioApp{--ios-rail:0px}
+ html.biglwa-ios body #studioApp#studioApp aside.sidebar{
+  padding-left:3px!important;padding-right:calc(3px + var(--ios-right))!important;
+  overflow-x:hidden!important;gap:4px!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp aside.sidebar .sidebar-top{
+  width:100%!important;min-width:0!important;box-sizing:border-box!important;
+  min-height:0!important;flex:1 1 auto!important;padding-right:0!important;
+  overflow-x:hidden!important;overflow-y:auto!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp aside.sidebar .sidebar-section{
+  padding:4px 1px!important;gap:3px!important;box-sizing:border-box!important;
+ }
+ html.biglwa-ios body:not(.sidebar-collapsed) #studioApp#studioApp aside.sidebar :is(.sidebar-navigation-row,.sidebar-shortcut-row){
+  grid-template-columns:14px 32px 14px!important;gap:1px!important;min-height:36px!important;
+ }
+ html.biglwa-ios body:not(.sidebar-collapsed) #studioApp#studioApp aside.sidebar :is(.sidebar-shortcut-drag,.sidebar-shortcut-action){width:14px!important}
+ html.biglwa-ios body #studioApp#studioApp aside.sidebar .sidebar-theme-controls{
+  grid-template-columns:repeat(2,32px)!important;gap:4px!important;justify-content:center!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp aside.sidebar .sidebar-theme-btn{width:32px!important;min-width:32px!important;height:32px!important}
+ html.biglwa-ios body #studioApp#studioApp aside.sidebar #sidebarCollapse{
+  width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;
+  padding-inline:2px!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp #home.main:not(.module-view){
+  margin-left:var(--ios-home-left)!important;
+  padding-bottom:max(8px,env(safe-area-inset-bottom,0px))!important;
+ }
+ /* The module retains its existing text inset. Only the page background
+    continues left into the previously blank safe-area gutter. */
+ html.biglwa-ios body #studioApp#studioApp #home.main.module-view #moduleWorkspace:not([hidden]){
+  position:relative!important;overflow:visible!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp #home.main.module-view #moduleWorkspace:not([hidden])::before{
+  content:""!important;display:block!important;position:absolute!important;
+  top:0;bottom:0;right:100%;width:var(--ios-left);
+  background:inherit!important;pointer-events:none!important;z-index:-1;
+ }
+ /* One coherent banner/scoreboard row. The scoreboard remains the actual
+    live metric node within the profile card, not a cloned mobile version. */
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard){
+  --ios-score-width:clamp(178px,25vw,242px);
+  --ios-banner-height:228px;--ios-banner-gap:10px;
+  display:grid!important;grid-template-columns:minmax(0,1fr) var(--ios-score-width)!important;
+  grid-template-rows:minmax(var(--ios-banner-height),auto) auto auto!important;
+  gap:12px var(--ios-banner-gap)!important;align-items:start!important;overflow:visible!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard)>.profile-card:not(.profile-is-editing){
+  display:grid!important;grid-template-columns:clamp(72px,10vw,104px) minmax(0,1fr)!important;
+  grid-column:1!important;grid-row:1!important;position:relative!important;inset:auto!important;
+  gap:9px!important;padding:10px!important;margin:0!important;width:100%!important;
+  min-width:0!important;max-width:none!important;height:auto!important;min-height:var(--ios-banner-height)!important;
+  max-height:none!important;overflow:visible!important;box-sizing:border-box!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-identity-rail{
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-start!important;
+  position:static!important;inset:auto!important;gap:7px!important;padding:0!important;margin:0!important;
+  min-width:0!important;min-height:0!important;height:auto!important;max-height:none!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-identity-rail>.profile-avatar{
+  width:min(100%,90px)!important;height:auto!important;aspect-ratio:1!important;
+  min-width:0!important;min-height:0!important;max-width:100%!important;max-height:none!important;
+  flex:0 0 auto!important;margin:0!important;transform:none!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-identity-rail>#editProfileBtn{
+  position:static!important;inset:auto!important;width:100%!important;min-width:0!important;
+  max-width:100%!important;height:auto!important;min-height:28px!important;padding:4px 2px!important;
+  font-size:10px!important;white-space:normal!important;flex:0 0 auto!important;transform:none!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-identity-rail>:is(.profile-rail-location,.real-rank-label){
+  position:static!important;inset:auto!important;width:100%!important;min-width:0!important;
+  height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;
+  margin:0!important;padding:0!important;white-space:normal!important;overflow-wrap:anywhere!important;
+  font-size:9px!important;transform:none!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard) .profile-card:not(.profile-is-editing) .profile-copy{
+  display:flex!important;flex-direction:column!important;position:static!important;inset:auto!important;
+  min-width:0!important;min-height:0!important;max-height:none!important;gap:5px!important;
+  padding:0!important;margin:0!important;overflow:visible!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-name-line{
+  min-width:0!important;max-width:100%!important;flex-wrap:wrap!important;margin:0!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .biglwa-profile-role-statline{
+  display:block!important;position:static!important;min-width:0!important;overflow:visible!important;margin:0!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .biglwa-community-badges{
+  flex-wrap:wrap!important;max-width:100%!important;min-width:0!important;gap:4px!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-copy>.biglwa-stories-ribbon{
+  display:flex!important;flex:0 0 auto!important;width:100%!important;min-width:0!important;max-width:100%!important;
+  height:auto!important;min-height:62px!important;max-height:none!important;margin:0!important;padding:0!important;overflow:visible!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .biglwa-stories-ribbon .biglwa-stories-track{
+  display:flex!important;flex-flow:row nowrap!important;justify-content:flex-start!important;align-items:flex-start!important;
+  gap:8px!important;width:100%!important;min-width:0!important;max-width:100%!important;max-height:none!important;
+  padding:4px 4px 7px!important;overflow-x:auto!important;overflow-y:hidden!important;
+  scroll-snap-type:x proximity;overscroll-behavior-x:contain;box-sizing:border-box!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .biglwa-story-bubble{
+  flex:0 0 42px!important;width:42px!important;min-width:42px!important;max-width:42px!important;scroll-snap-align:start;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero .profile-card:not(.profile-is-editing) .profile-copy>.real-rank.real-rank{
+  position:static!important;inset:auto!important;width:100%!important;min-width:0!important;
+  height:auto!important;min-height:24px!important;max-height:none!important;gap:5px!important;margin:auto 0 0!important;
+  flex-wrap:wrap!important;align-items:center!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .profile-card:not(.profile-is-editing) .real-rank.real-rank>.rank-track{
+  min-width:20px!important;flex:1 1 20px!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp:not(.profile-editor-wallpaper) .hero:has(>.profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard) .profile-card:not(.profile-is-editing) .biglwa-profile-scoreboard{
+  position:absolute!important;inset:0 auto auto calc(100% + var(--ios-banner-gap))!important;
+  width:var(--ios-score-width)!important;min-width:0!important;max-width:none!important;
+  height:100%!important;min-height:var(--ios-banner-height)!important;max-height:none!important;
+  margin:0!important;padding:10px 8px!important;box-sizing:border-box!important;
+  display:flex!important;flex-direction:column!important;justify-content:flex-start!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.biglwa-scoreboard-header{
+  flex:0 0 84px!important;height:84px!important;min-height:84px!important;
+  transform:none!important;padding:0 22px!important;font-size:9px!important;letter-spacing:.035em!important;
+  white-space:normal!important;overflow:visible!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .profile-card .biglwa-scoreboard-header::before{
+  left:0!important;top:0!important;width:17px!important;height:17px!important;font-size:17px!important;line-height:17px!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .profile-card .biglwa-scoreboard-lights{
+  right:0!important;top:17px!important;gap:2px!important;padding:1px!important;transform:none!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .profile-card .biglwa-scoreboard-lights>.window-light{
+  width:11px!important;height:11px!important;min-width:11px!important;min-height:11px!important;flex:0 0 11px!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.biglwa-score-clock{
+  top:34px!important;max-width:100%!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.stats.stats{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:repeat(2,minmax(48px,auto))!important;
+  gap:5px 3px!important;min-width:0!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.stats.stats>[data-profile-stat]{
+  font-size:clamp(7px,.85vw,9px)!important;letter-spacing:0!important;line-height:1.15!important;
+  white-space:normal!important;overflow-wrap:anywhere!important;min-width:0!important;
+  min-height:48px!important;gap:3px!important;padding:2px 0!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.stats.stats [data-profile-stat] b{
+  width:100%!important;min-width:0!important;max-width:100%!important;
+  font-size:clamp(12px,1.65vw,17px)!important;min-height:27px!important;padding:2px!important;
+ }
+ /* Reflow real upper widgets, not duplicate cards. Four mobile slots:
+    the pair can share a row with Tunes and smaller cards can fill holes. */
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail{
+  grid-column:1/-1!important;grid-row:2!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-template-rows:none!important;
+  grid-auto-rows:auto!important;grid-auto-flow:row dense!important;gap:8px!important;
+  width:100%!important;min-width:0!important;height:auto!important;max-height:none!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>:is(.music-card,.guest-check-card)[data-upper-span="1"]{grid-column:span 1!important}
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>:is(.music-card,.guest-check-card)[data-upper-span="2"]{grid-column:span 2!important}
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>#biglwaAuraAvatarPair{
+  grid-column:span 2!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>#biglwaAuraAvatarPair:is(.is-avatar-hidden,.is-aura-hidden){
+  grid-template-columns:minmax(0,1fr)!important;grid-column:span 1!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>#biglwaAuraAvatarPair:is(.is-avatar-hidden,.is-aura-hidden)[data-upper-span="2"]{grid-column:span 2!important}
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>#biglwaAuraAvatarPair>:is(.aura-card,#studioAvatarCard){
+  grid-column:span 1!important;min-width:0!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked):not(:popover-open){
+  width:100%!important;max-width:none!important;min-width:0!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .hero:has(>.hero-widget-rail)>.mobile-dock.hero-action-bar{
+  grid-column:1/-1!important;grid-row:3!important;min-width:0!important;max-width:100%!important;
+ }
+}
+@media (orientation:landscape) and (max-width:740px){
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ html.biglwa-ios body #studioApp#studioApp#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>:is(.music-card,.guest-check-card)[data-upper-span]{grid-column:span 1!important}
+}
