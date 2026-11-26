@@ -7,7 +7,7 @@ const css=readFileSync(new URL('./profile-highlight-editor.css',import.meta.url)
 const brandCss=readFileSync(new URL('./brand-policy.css',import.meta.url),'utf8');
 const ui=readFileSync(new URL('./ui-coherence.js',import.meta.url),'utf8');
 assert.ok(css.includes('row-gap:8px'),'Shortcut shelf moves only slightly closer to hero widgets');
-assert.ok(ui.includes('placeholder="#keepitcute"')&&ui.includes("dataset.moodPreview"),'Mood is a removable example, not saved text');
+assert.ok(ui.includes('type="hidden" id="profileMoodInput"')&&ui.includes("dataset.moodPreview"),'Mood is a removable example, not saved text');
 const dom=new JSDOM('<!doctype html><html><head></head><body><main id="studioApp">'+
 '<article class="profile-card"></article><div id="wallpaperPanel">'+
 '<div id="profileEditorTabs"><button type="button" role="tab" data-profile-editor-tab="profile" aria-selected="true">Profile</button>'+
