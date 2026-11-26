@@ -2829,7 +2829,7 @@ async function mailAuthEmail(request, env) {
     ]);
     stage = 'composition';
     const profile = accountSyncFromFirestoreFields(profileDoc?.fields || {});
-    const { composeMessage } = await import('./Services/mailroom/compose.mjs');
+    const { composeMessage } = await import('./services/mailroom/compose.mjs');
     const letter = composeMessage({
       id: body.type,
       account: { email: session.email, displayName: String(admin.displayName || '') },
