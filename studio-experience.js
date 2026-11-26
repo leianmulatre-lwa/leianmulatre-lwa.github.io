@@ -540,6 +540,7 @@
 
   function greenControl(widget){
     const id=widget.dataset.widgetId||widget.id||'widget',route=widget.dataset.widgetRoute||$('.arrow-btn[data-open]',widget)?.dataset.open||id;
+    if(route==='music'||id==='music'||id==='music-card')return {attribute:'data-expand-widget="'+id+'"',label:'Enlarge Music Box'};
     if(route==='aura'||id==='aura'||id==='aura-card')return {attribute:'data-expand-widget="'+id+'"',label:'Enlarge Aura widget'};
     if(route==='guest-check'||id==='guest-check')return {attribute:'data-open-guest="check"',label:'Open Guest Check'};
     if(FULL_WIDGET_ROUTES.has(route))return {attribute:`data-open="${route}"`,label:`Open full ${route.replace(/[-_]/g,' ')} interface`};
@@ -556,13 +557,14 @@
       let controls=$(':scope>.widget-window-controls',widget);
       if(!controls){controls=document.createElement('div');controls.className='widget-window-controls';widget.prepend(controls)}
       if(!$('.window-light.green',controls)){const green=greenControl(widget);controls.insertAdjacentHTML('afterbegin',`<button class="window-light green" type="button" ${green.attribute} aria-label="${green.label}" title="${green.label}"></button><button class="window-light yellow" type="button" data-minimize-widget="${widget.dataset.widgetId}" aria-label="Minimize ${widget.dataset.widgetLabel}"></button><button class="window-light red" type="button" data-dock-widget="${widget.dataset.widgetId}" aria-label="Move ${widget.dataset.widgetLabel} to toolbar"></button>`)}
-      if(widget.classList.contains('aura-card')){
+      if(widget.matches('.music-card,.aura-card')){
         const green=$('.window-light.green',controls);
         if(green){
+          green.removeAttribute('data-open');
           green.removeAttribute('data-open-widget-settings');
           green.setAttribute('data-expand-widget',widget.dataset.widgetId);
-          green.setAttribute('aria-label','Enlarge Aura widget');
-          green.title='Enlarge Aura widget';
+          green.title=widget.matches('.music-card')?'Enlarge Music Box':'Enlarge Aura widget';
+          green.setAttribute('aria-label',green.title);
         }
       }
       let handle=$('[data-studio-drag-handle]',widget);

@@ -606,3 +606,17 @@ html body #studioApp .music-card.stereo-music-widget .stereo-time-scale>.stereo-
 #studioApp#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:is([hidden],.widget-is-minimized,.widget-is-docked){
  display:none!important;visibility:hidden!important;pointer-events:none!important;
 }
+
+/* Fit each face to its own grid cell, including its padding and border. */
+#studioApp#studioApp #heroWidgetRail #biglwaAuraAvatarPair>:is(.aura-card,#studioAvatarCard):not(:popover-open):not(.avatar-is-expanded):not(.widget-is-expanded){
+  justify-self:stretch!important;width:auto!important;min-width:0!important;
+  max-width:100%!important;margin-inline:0!important;inset-inline:auto!important;box-sizing:border-box!important;
+}
+/* Enlarge the original player or Aura in the top layer so playback continues. */
+#studioApp#studioApp#studioApp .hero:has(#biglwaAuraAvatarPair) #heroWidgetRail :is(.music-card,.aura-card):popover-open{
+  position:fixed!important;inset:0!important;margin:auto!important;
+  width:min(86vw,900px)!important;height:min(65vh,440px)!important;
+  max-width:94vw!important;max-height:85vh!important;min-width:0!important;min-height:0!important;
+  box-sizing:border-box!important;align-self:center!important;
+}
+#studioApp #heroWidgetRail :popover-open::backdrop{background:rgb(0 0 0 / .55)}

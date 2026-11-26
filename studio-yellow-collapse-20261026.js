@@ -314,6 +314,22 @@
  // Its handler previously moved yellow-minimized widgets into the toolbar.
  window.addEventListener('click',event=>{
   if(isVisitor()||!(event.target instanceof Element))return;
+  const green=event.target.closest('.widget-window-controls .window-light.green');
+  const card=green?.closest('#studioApp .music-card,#studioApp .aura-card');
+  if(card&&typeof card.showPopover==='function'){
+   event.preventDefault();event.stopImmediatePropagation();
+   if(card.matches(':popover-open'))card.hidePopover();
+   else{
+    card.setAttribute('popover','auto');
+    card.addEventListener('beforetoggle',function restore(e){
+     if(e.newState!=='closed')return;
+     card.removeEventListener('beforetoggle',restore);
+     queueMicrotask(()=>{card.removeAttribute('popover');green.setAttribute('aria-expanded','false')});
+    });
+    card.showPopover();green.setAttribute('aria-expanded','true');
+   }
+   return;
+  }
   // Red restore keeps the saved size when it fits. It may return as the
   // square minimum, but never displaces another visible widget or adds slot 7.
   const redRestore=event.target.closest('[data-restore-widget],[data-avatar-restore]');
