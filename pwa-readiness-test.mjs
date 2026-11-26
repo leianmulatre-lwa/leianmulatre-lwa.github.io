@@ -21,10 +21,10 @@ assert(client.indexOf('const sub=await registration.pushManager.subscribe')<clie
 const iosCSS=read('biglwa-pwa.css');
 for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html']){
  const shell=read(path);
- assert.equal((shell.match(/\/biglwa-pwa\.css\?v=2/g)||[]).length,2,path+' both iOS stylesheets refreshed');
+ assert.equal((shell.match(/\/biglwa-pwa\.css\?v=3/g)||[]).length,2,path+' both iOS stylesheets refreshed');
 }
-assert.match(iosCSS,/--ios-rail:88px/);
-assert.match(iosCSS,/--ios-rail:46px/);
+assert.match(iosCSS,/--ios-rail:76px/);
+assert.match(iosCSS,/--ios-rail:42px/);
 assert.match(iosCSS,/--ios-home-left:max\(8px,calc\(var\(--ios-left\) - 12px\)\)/);
 assert.match(iosCSS,/#moduleWorkspace:not\(\[hidden\]\)::before/);
 assert.match(iosCSS,/right:100%;width:var\(--ios-left\)/);
@@ -32,3 +32,6 @@ assert.match(iosCSS,/grid-auto-flow:row dense!important/);
 assert.match(iosCSS,/--ios-score-width:clamp\(178px,25vw,242px\)/);
 assert.match(iosCSS,/scroll-snap-type:x proximity/);
 console.log('PASS iOS landscape rail, safe-area background, compact scoreboard and upper widget reflow');
+
+assert.match(iosCSS,/--ios-rail-inset:min\(16px,var\(--ios-right\)\)/);
+assert.match(iosCSS,/min-width:var\(--ios-reserved\)!important;max-width:var\(--ios-reserved\)!important/);

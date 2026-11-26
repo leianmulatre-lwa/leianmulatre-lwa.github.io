@@ -71,16 +71,28 @@ html.biglwa-ios body #studioApp #home .widget-is-expanded{
    reclaim the unused interior width, and keep the desktop geometry untouched. */
 @media (orientation:landscape) and (max-width:1100px){
  html.biglwa-ios #studioApp{
-  --ios-rail:88px;
+  --ios-rail:76px;
+  /* Do not add the entire landscape safe-area inset to the visible rail. */
+  --ios-rail-inset:min(16px,var(--ios-right));
+  --ios-reserved:calc(var(--ios-rail) + var(--ios-rail-inset));
   --ios-home-left:max(8px,calc(var(--ios-left) - 12px));
  }
- html.biglwa-ios body.sidebar-collapsed #studioApp{--ios-rail:46px}
+ html.biglwa-ios body.sidebar-collapsed #studioApp{--ios-rail:42px}
  html.biglwa-ios body.biglwa-sidebar-hidden #studioApp,
  html.biglwa-ios.biglwa-preview-mode #studioApp{--ios-rail:0px}
  html.biglwa-ios body #studioApp#studioApp aside.sidebar{
-  padding-left:3px!important;padding-right:calc(3px + var(--ios-right))!important;
+  width:var(--ios-reserved)!important;min-width:var(--ios-reserved)!important;max-width:var(--ios-reserved)!important;
+  padding-left:3px!important;padding-right:calc(3px + var(--ios-rail-inset))!important;
   overflow-x:hidden!important;gap:4px!important;
+  align-items:stretch!important;
  }
+ html.biglwa-ios body #studioApp#studioApp aside.sidebar .sidebar-bottom{
+  width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;flex:0 0 auto!important;
+ }
+ html.biglwa-ios body.sidebar-collapsed #studioApp#studioApp aside.sidebar :is(.sidebar-theme-controls,.sidebar-top,.sidebar-bottom){
+  width:100%!important;max-width:100%!important;min-width:0!important;align-items:center!important;
+ }
+ html.biglwa-ios body.sidebar-collapsed #studioApp#studioApp aside.sidebar .sidebar-section{align-self:stretch!important}
  html.biglwa-ios body #studioApp#studioApp aside.sidebar .sidebar-top{
   width:100%!important;min-width:0!important;box-sizing:border-box!important;
   min-height:0!important;flex:1 1 auto!important;padding-right:0!important;
@@ -94,9 +106,9 @@ html.biglwa-ios body #studioApp #home .widget-is-expanded{
  }
  html.biglwa-ios body:not(.sidebar-collapsed) #studioApp#studioApp aside.sidebar :is(.sidebar-shortcut-drag,.sidebar-shortcut-action){width:14px!important}
  html.biglwa-ios body #studioApp#studioApp aside.sidebar .sidebar-theme-controls{
-  grid-template-columns:repeat(2,32px)!important;gap:4px!important;justify-content:center!important;
+  grid-template-columns:repeat(2,30px)!important;gap:3px!important;justify-content:center!important;
  }
- html.biglwa-ios body #studioApp#studioApp aside.sidebar .sidebar-theme-btn{width:32px!important;min-width:32px!important;height:32px!important}
+ html.biglwa-ios body #studioApp#studioApp aside.sidebar .sidebar-theme-btn{width:30px!important;min-width:30px!important;height:32px!important}
  html.biglwa-ios body #studioApp#studioApp aside.sidebar #sidebarCollapse{
   width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;
   padding-inline:2px!important;
