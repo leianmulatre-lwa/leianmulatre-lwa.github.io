@@ -61,6 +61,8 @@ for (const shell of ['index.html', '404.html', 'studio/index.html', 'live-studio
   assert.ok(source.includes('/module-pages.js?v=') &&
     source.slice(source.indexOf('/module-pages.js?v=')).includes('igack=20261125-1'),
     shell + ' busts the Orbit live-row cache');
+  assert.ok(!source.includes("igack=20261125-1'>'"),
+    shell + ' keeps the cache-busted script tags valid JavaScript');
 }
 for (const shell of ['settings/index.html', 'map-app.html']) {
   const source = read(shell);
