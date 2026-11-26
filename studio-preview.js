@@ -395,7 +395,7 @@ html.biglwa-preview-mode #studioApp .page-wallpaper{
 html.biglwa-preview-mode #studioApp .main{margin-left:0!important;width:100%!important;min-width:0!important}
 @media(max-width:900px){
  html.biglwa-preview-mode #studioApp .page-wallpaper{
-  top:calc(var(--biglwa-preview-banner-h,0px) + 66px)!important
+  top:0!important
  }
 }
 html.biglwa-preview-mode .policy-top{top:var(--biglwa-preview-banner-h,0px)!important}

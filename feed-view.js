@@ -172,7 +172,7 @@ const STYLE = `
    its column instead of lining up with the row of its neighbours. The wall now takes the
    width the page gives it, so a wide window gets a wider wall instead of a narrow strip. */
 #feedPageList{display:block!important;column-count:5!important;column-width:auto!important;column-gap:18px!important;column-fill:balance}
-.biglwa-lightbox-caption{color:#fff8f2;font:500 13px/1.6 system-ui;max-width:720px;white-space:pre-wrap;overflow-wrap:anywhere;text-align:left;margin:6px 0 12px}
+.biglwa-lightbox-caption{color:#fff8f2;font:500 13px/1.6 system-ui;max-width:720px;white-space:normal;overflow-wrap:anywhere;text-align:left;margin:0;min-width:0;max-height:18dvh;overflow-y:auto}
 #feedPageList>*{break-inside:avoid;min-width:0;width:100%;margin:0 0 18px}
 @media (max-width:1560px){#feedPageList{column-count:4!important}}
 @media (max-width:1180px){#feedPageList{column-count:3!important}}
@@ -411,12 +411,12 @@ const STYLE = `
 .biglwa-lightbox-arrow:hover{background:#1d1613}
 .biglwa-lightbox-arrow.prev{left:12px}
 .biglwa-lightbox-arrow.next{right:12px}
-.biglwa-lightbox-meta{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center;
-  max-width:min(820px,92vw);background:#fffdf9;border:1px solid rgba(80,70,64,.14);border-radius:14px;
-  padding:12px 16px;box-shadow:0 18px 44px -22px rgba(0,0,0,.55)}
-.biglwa-lightbox-view{margin-left:auto;padding:8px 14px;border-radius:999px;font:700 12px/1 system-ui;
-  text-decoration:none;background:rgba(31,142,74,.1);border:1px solid rgba(31,142,74,.34);color:#1f7a45;flex:none}
-.biglwa-lightbox-view:hover{background:rgba(31,142,74,.16);color:#166238}
+.biglwa-lightbox-meta{display:flex;align-items:center;gap:6px 14px;flex-wrap:wrap;justify-content:center;
+  max-width:min(740px,90vw);color:#fff8f2}
+.biglwa-lightbox-meta .biglwa-lightbox-caption{color:inherit;margin:0;flex:1 1 auto}
+.biglwa-lightbox-view{padding:6px 8px;border-radius:5px;font:650 12px/1.4 system-ui;
+  text-decoration:underline;text-underline-offset:3px;color:#fff8f2;background:#241e1be0;flex:none}
+.biglwa-lightbox-view:hover,.biglwa-lightbox-view:focus-visible{background:#443c38;color:white}
 @media (max-width:640px){.biglwa-lightbox-stage img{max-height:62vh}}
 /* Hybrid of Pinterest's airy masonry and Instagram's compact post chrome.
    All sources share shape, placement, accessibility and action positions. */
@@ -1564,6 +1564,7 @@ function openLightbox(post, index) {
   }
   const urls = slideUrls(post);
   if (!urls.length) return;
+  const caption = String(post.caption || '').trim();
   const many = urls.length > 1;
   const box = document.createElement("div");
   box.className = "biglwa-lightbox";
@@ -1581,7 +1582,7 @@ function openLightbox(post, index) {
       : "") +
     "</div>" +
     '<div class="biglwa-lightbox-meta">' +
-    (post.caption?'<p class="biglwa-lightbox-caption">'+esc(String(post.caption).slice(0,500))+'</p>':'')+
+    (caption?'<p class="biglwa-lightbox-caption">'+esc(caption.slice(0,500))+'</p>':'')+
     '<a class="biglwa-lightbox-view" target="_blank" rel="noopener noreferrer">View full size</a>' +
     "</div>";
   document.body.appendChild(box);
