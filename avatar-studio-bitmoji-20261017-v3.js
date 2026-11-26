@@ -4,12 +4,8 @@
   window.__biglwaAvatarStudioV1=true;
   const API='https://biglwa-instagram-api.leianmulatre-284.workers.dev';
   const SONA_EXAMPLE='https://360sona.com/w/k_JKIiB9soQQcIj77klMY';
-  // Vanilla Minecraft player skin textures extracted from the 1.21.11 client;
-  // hosted by an asset mirror. These are Minecraft's textures, not our
-  // previous generated mannequin colors. Classic=4px, Slim=3px arms.
   const MINECRAFT_DEFAULT_SKINS=Object.freeze({
-    steve:'https://assets.mcasset.cloud/1.21.11/assets/minecraft/textures/entity/player/wide/steve.png',
-    alex:'https://assets.mcasset.cloud/1.21.11/assets/minecraft/textures/entity/player/slim/alex.png'
+    steve:'/steve%20skin.png', alex:'/Alex%20skin.png'
   });
   // A creator's shared widget is not a default for every member.
   const sonaUrl=value=>{

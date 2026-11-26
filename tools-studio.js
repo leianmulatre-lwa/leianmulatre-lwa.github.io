@@ -471,6 +471,7 @@ export function mountToolsStudio(root,helper){
       {op:'ogg',label:'OGG'}
     ];
     else if(kind==='image')local=[
+      ...(['image/jpeg','image/png'].includes(file.type)?[{op:'optimize',label:'Optimize at original resolution'}]:[]),
       {op:'jpeg',label:'JPEG'},
       {op:'png',label:'PNG'},
       {op:'webp',label:'WebP'},
@@ -544,6 +545,10 @@ export function mountToolsStudio(root,helper){
         const kindAttr=button.parentElement.dataset.kind;
         const label=button.textContent;
         if(kindAttr==='image'){
+          if(key==='optimize')return run(label,async progress=>{
+            const {optimizeUpload}=await import('/media-renditions.js?v=fullsize1');
+            const out=await optimizeUpload(file);progress(1);return out;
+          });
           if(key==='webp-small')return run(label,async progress=>{progress(0.4);const out=await convertImage(file,IMAGE_TARGETS.webp,0.72);progress(1);return out});
           if(key==='jpeg-small')return run(label,async progress=>{progress(0.4);const out=await convertImage(file,IMAGE_TARGETS.jpeg,0.72);progress(1);return out});
           const target=IMAGE_TARGETS[key];

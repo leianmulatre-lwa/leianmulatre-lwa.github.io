@@ -2627,9 +2627,44 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
  '<a class="politc-source" href="https://www.justice.gov/epstein" target="_blank" rel="noopener noreferrer">DOJ Epstein Library ↗<small>Search official disclosures, redacted releases and source materials</small></a>'+
  '<a class="politc-source" href="https://oversight.house.gov/release/oversight-committee-releases-epstein-records-provided-by-the-department-of-justice/" target="_blank" rel="noopener noreferrer">House Oversight releases ↗<small>Committee notices and records with publication context</small></a>'+
  '<a class="politc-source" href="https://vault.fbi.gov/jeffrey-epstein/" target="_blank" rel="noopener noreferrer">FBI Vault ↗<small>Publicly released records and FOIA files</small></a></div>'+
+ '<section aria-labelledby="politcJmailTitle"><h4 id="politcJmailTitle">Jmail archive</h4><form id="politcJmailSearch" class="politc-form"><label>Search released emails<input name="q" type="search" minlength="2" maxlength="160" required></label><button type="submit">Search Jmail</button></form><p role="status" id="politcJmailStatus"></p><div id="politcJmailResults"></div><a href="https://jmail.world/" target="_blank" rel="noopener noreferrer">Open full Jmail archive ↗</a></section>'+
  '<p class="politc-note">Epstein Observer is a third-party research project, not an official agency source. Inclusion or mention in records is not evidence of criminal wrongdoing. Respect survivors and do not republish sensitive personal information. Open source links for current updates; Big LWA does not independently validate its counts or statuses.</p></section>'+
        '<div style="display:flex;justify-content:flex-end;grid-column:1/-1"><button type="button" class="politc-source" id="politcLiveRefresh" style="cursor:pointer">↻ Refresh live data</button></div>'+
       '<section class="politc-panel"><h3>Vote · Data · Resources</h3><p class="politc-sub">Research, register, read critically, and follow humanitarian developments directly from their sources.</p><div class="politc-resources">'+resources.map(r=>'<a class="politc-source" target="_blank" rel="noopener noreferrer" href="'+esc(r[2])+'">'+esc(r[0])+'<small>'+esc(r[1])+'</small></a>').join('')+'</div><p class="politc-note">External sources open in a new tab. These are resource links, not an invented live news or election-data feed. Political news and estimates should be checked against primary sources.</p></section></div>';
+    const jmailForm=body.querySelector('#politcJmailSearch');
+    const jmailStatus=body.querySelector('#politcJmailStatus');
+    const jmailResults=body.querySelector('#politcJmailResults');
+    let searchRequest;
+    jmailForm.addEventListener('submit',async event=>{
+      event.preventDefault();
+      searchRequest?.abort();
+      const controller=new AbortController();
+      searchRequest=controller;
+      const query=jmailForm.elements.q.value.trim();
+      jmailResults.replaceChildren();
+      if(query.length<2){jmailStatus.textContent='Enter at least two characters.';return;}
+      jmailStatus.textContent='Searching Jmail…';
+      try{
+        const endpoint=new URL('https://biglwa-jmail-reader.leianmulatre-284.workers.dev/search');
+        endpoint.searchParams.set('q',query);
+        const response=await fetch(endpoint,{signal:controller.signal,credentials:'omit',referrerPolicy:'no-referrer'});
+        if(!response.ok)throw Error();
+        const records=await response.json();
+        if(controller.signal.aborted)return;
+        for(const record of records){
+          const item=document.createElement('details');
+          const title=document.createElement('summary');
+          title.textContent=[record.subject,record.date].filter(Boolean).join(' · ');
+          const message=document.createElement('p');
+          message.style.cssText='white-space:pre-wrap;overflow-wrap:anywhere;max-height:26rem;overflow:auto';
+          message.textContent=record.text || 'Message text is available in the source thread.';
+          const source=document.createElement('a');
+          source.href=record.link;source.target='_blank';source.rel='noopener noreferrer';source.textContent='Read full thread on Jmail ↗';
+          item.append(title,message,source);jmailResults.append(item);
+        }
+        jmailStatus.textContent=records.length?'Showing '+records.length+' matching emails. Select a subject to read.':'No matching emails.';
+      }catch{if(!controller.signal.aborted)jmailStatus.textContent='Jmail search is unavailable. Try again or open the full archive below.';}
+    });
     // Progressive disclosure and priority order: live verification, quick
     // resources, election desk, then cultural and accountability collections.
     const board=body.querySelector('.politc-board');

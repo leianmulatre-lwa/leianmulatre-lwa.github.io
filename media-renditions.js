@@ -57,3 +57,28 @@ export async function uploadFeedPreview(source,uploaded,{worker,token}={}){
   return {...rendition,url:url.href,key:result.key};
  }catch{return null}
 }
+
+// Optimize full-size stills before transport. Keep animated files intact.
+export async function optimizeUpload(file){
+ if(!file || !['image/png','image/jpeg'].includes(file.type) || file.size<70000 || file.size>32*1024*1024)return file;
+ let bitmap;
+ try{
+  if(file.type==='image/png'){
+   const bytes=new DataView(await file.arrayBuffer());
+   for(let offset=8;offset+12<=bytes.byteLength;){
+    const size=bytes.getUint32(offset),kind=bytes.getUint32(offset+4);
+    if(kind===0x6163544c || offset+12+size>bytes.byteLength)return file;
+    if(kind===0x49444154)break;
+    offset+=12+size;
+   }
+  }
+  bitmap=await createImageBitmap(file,{imageOrientation:'from-image'});
+  if(bitmap.width*bitmap.height>24000000)return file;
+  const canvas=document.createElement('canvas');
+  canvas.width=bitmap.width;canvas.height=bitmap.height;
+  canvas.getContext('2d').drawImage(bitmap,0,0);
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',.94));
+  if(blob?.type!=='image/webp'||!blob.size||blob.size>=file.size*.95)return file;
+  return new File([blob],(file.name||'image').replace(/\.[^.]+$/,'')+'.webp',{type:blob.type});
+ }catch{return file}finally{bitmap?.close()}
+}
