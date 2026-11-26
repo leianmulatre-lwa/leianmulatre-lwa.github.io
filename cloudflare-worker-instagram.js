@@ -2802,10 +2802,13 @@ async function mailAuthEmail(request, env) {
   const header = request.headers.get('Authorization') || '';
   const idToken = /^Bearer [A-Za-z0-9_.-]+$/.test(header) ? header.slice(7) : '';
   if (!idToken) return json({ error: 'Sign in again to send this email.' }, 401, request, env);
+  let stage = 'firebase session';
   try {
     const session = await mailFirebaseAccountFromToken(idToken);
     if (!session || !session.email) return json({ error: 'Sign in again to send this email.' }, 401, request, env);
+    stage = 'service token';
     const token = await accountSyncServiceToken(env);
+    stage = 'admin account';
     const admin = await firebaseAdminUserByUid(env, token, session.uid);
     if (!admin || admin.email !== session.email || admin.disabled === true)
       return json({ error: 'That account cannot receive Mailroom email.' }, 403, request, env);
@@ -2815,13 +2818,16 @@ async function mailAuthEmail(request, env) {
       ? admin.providerUserInfo.map((entry) => String(entry.providerId || '')) : [];
     if (body.type === 'reset' && !providers.includes('password'))
       return json({ error: 'This account does not use an email-and-password sign-in.' }, 400, request, env);
+    stage = 'rate limit';
     if (!await mailRateLimit(env, session.uid, body.type))
       return json({ error: 'Too many email requests. Wait a little, then try again.' }, 429, request, env);
+    stage = 'approved letter, action link, profile';
     const [template, actionUrl, profileDoc] = await Promise.all([
       mailPublishedTemplate(env, token, body.type),
       mailActionLink(env, token, session.email, body.type),
       accountSyncFirestoreGet('users/' + session.uid, token, env)
     ]);
+    stage = 'composition';
     const profile = accountSyncFromFirestoreFields(profileDoc?.fields || {});
     const { composeMessage } = await import('./Services/mailroom/compose.mjs');
     const letter = composeMessage({
@@ -2829,12 +2835,15 @@ async function mailAuthEmail(request, env) {
       account: { email: session.email, displayName: String(admin.displayName || '') },
       profile, template, mode: 'auth', actionUrl
     });
+    stage = 'SMTP configuration';
     const { mailSmtpConfig, createSmtpMessage } = await import('./mailroom-worker-mail.mjs');
     const { sendSmtpMail } = await import('./mailroom-worker-smtp.mjs');
     const config = mailSmtpConfig(env);
+    stage = 'SMTP delivery';
     await sendSmtpMail(config, createSmtpMessage({ ...letter, from: config.from }));
     return json({ status: 'accepted_by_smtp', kind: body.type }, 202, request, env);
-  } catch (_) {
+  } catch (error) {
+    console.warn('Mailroom auth email failed at ' + stage + ':', String(error?.message || error).slice(0, 300));
     return json({ error: 'Mailroom could not send that email. Please try again.' }, 503, request, env);
   }
 }
