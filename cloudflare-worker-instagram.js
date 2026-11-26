@@ -2676,7 +2676,7 @@ async function firebaseAdminUserByUid(env, token, uid) {
     encodeURIComponent(env.FIREBASE_PROJECT_ID || 'biglwa') + '/accounts:lookup', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
-    body: JSON.stringify({ localIds: [uid] })
+    body: JSON.stringify({ localId: [uid] })
   });
   if (!response.ok) return null;
   const body = await response.json().catch(() => ({}));
