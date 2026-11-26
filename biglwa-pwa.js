@@ -81,9 +81,9 @@
    // The original Key is a Studio card, so return from a module before opening it.
    if(key&&rail()?.contains(key)&&document.querySelector('#home.module-view'))document.getElementById('moduleBack')?.click();
   },true);
-  document.addEventListener('click',event=>{
-   if(touchMode()&&!managing&&event.target.closest?.('#biglwaIosDockRail :is([data-sidebar-route],#skeletonKeyLauncher,#skeletonVeveLauncher)'))close();
-  });
+  window.addEventListener('click',event=>{
+   if(touchMode()&&!managing&&event.target.closest?.('#biglwaIosDockRail :is([data-sidebar-route],#skeletonKeyLauncher,#skeletonVeveLauncher)'))setTimeout(close,0);
+  },true);
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&(open||managing)){close();if(touchMode())edge.focus()}});
   window.addEventListener('biglwa:ios-dock-mode',close);
   window.addEventListener('storage',event=>{if(event.key===dockKey)close()});

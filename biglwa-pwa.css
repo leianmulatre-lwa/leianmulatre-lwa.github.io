@@ -352,8 +352,8 @@ html.biglwa-ios-bottom-dock:not(.biglwa-ios-dock-managing) body #studioApp#studi
 }
 html.biglwa-ios-bottom-dock #biglwaIosDockEdge:not([hidden]){
  display:grid!important;place-items:center;position:fixed;z-index:1099;
- left:50%;transform:translateX(-50%);bottom:env(safe-area-inset-bottom,0px);
- width:min(150px,45vw);height:22px;min-height:22px;padding:0;border:0;border-radius:10px 10px 0 0;
+ left:env(safe-area-inset-left,0px);right:env(safe-area-inset-right,0px);bottom:env(safe-area-inset-bottom,0px);
+ width:auto;height:22px;min-height:22px;padding:0;border:0;border-radius:10px 10px 0 0;
  background:transparent;color:inherit;touch-action:manipulation;
 }
 html.biglwa-ios-bottom-dock #biglwaIosDockEdge>span:first-child{width:34px;height:3px;border-radius:3px;background:currentColor;opacity:.55;pointer-events:none}

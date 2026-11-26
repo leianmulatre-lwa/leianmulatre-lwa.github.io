@@ -49,3 +49,6 @@ assert.match(iosCSS,/#studioSidebarShortcuts/);
 assert.match(iosCSS,/#skeletonKeyLauncher,#skeletonVeveLauncher,\.sidebar-theme-btn/);
 assert.match(iosCSS,/biglwa-ios-dock-managing/);
 console.log('PASS iOS bottom dock, per-device preference, touch reveal, orientation and existing shortcut controls');
+
+assert.match(client,/window\.addEventListener\('click',event=>\{\s*if\(touchMode\(\)/);
+assert.match(iosCSS,/left:env\(safe-area-inset-left,0px\);right:env\(safe-area-inset-right,0px\);bottom:env\(safe-area-inset-bottom,0px\)/);
