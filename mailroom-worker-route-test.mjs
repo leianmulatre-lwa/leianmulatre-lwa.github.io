@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import { generateKeyPairSync } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 import worker from "./cloudflare-worker-instagram.js";
+
+const repoRoot = dirname(fileURLToPath(import.meta.url));
 
 const { privateKey } = generateKeyPairSync("rsa", {
   modulusLength: 2048,
@@ -132,4 +138,16 @@ test("Worker rate-limits auth email requests per account and type", async () => 
     const response = await worker.fetch(request({ type: "verify" }, { Authorization: "Bearer member.token" }), shared);
     assert.equal(response.status, 429);
   } finally { stub.restore(); }
+});
+
+test("Worker dynamic imports use repository-exact case on Linux", () => {
+  const source = readFileSync(join(repoRoot, "cloudflare-worker-instagram.js"), "utf8");
+  const paths = [...source.matchAll(/await import\('([^']+\.mjs)'\)/g)].map((match) => match[1]);
+  const tracked = new Set(execFileSync("git", ["ls-files", "-z"], {
+    cwd: repoRoot, encoding: "utf8", maxBuffer: 32 * 1024 * 1024
+  }).split("\0").filter(Boolean));
+  assert.ok(paths.includes("./services/mailroom/compose.mjs"));
+  for (const path of paths) {
+    assert.ok(tracked.has(path.replace(/^\.\//, "")), `Worker import path is not case-exact: ${path}`);
+  }
 });
