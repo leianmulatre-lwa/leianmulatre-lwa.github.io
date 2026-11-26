@@ -40,13 +40,15 @@ crons = ["*/5 * * * *"]
 # INSTAGRAM_APP_SECRET, PINTEREST_APP_SECRET, STATE_SECRET and TIKTOK_CLIENT_SECRET
 # stay as encrypted Worker secrets and are not restated here.
 # All existing provider credentials are managed as encrypted Cloudflare secrets.
-# The Firestore mirror also needs FIREBASE_SERVICE_ACCOUNT (a service-account JSON
-# secret whose private key is never committed). The D1 schema is in
-# account-sync-schema.sql. The existing WALLPAPER_BUCKET binding stores the R2
-# snapshots under account-sync/. Wrangler validates these names at deploy time;
-# the actual values remain on Cloudflare.
+# The optional Firestore mirror reads FIREBASE_SERVICE_ACCOUNT from the Worker
+# dashboard. It is deliberately not in the required list because an absent
+# service account must not block deployment; the health endpoint reports
+# firestoreMirror:false and queued edits stay durable in D1/R2 until it is set.
+# The D1 schema is in account-sync-schema.sql. The existing WALLPAPER_BUCKET
+# binding stores the R2 snapshots under account-sync/. Wrangler validates the
+# required names at deploy time; the actual values remain on Cloudflare.
 [secrets]
-required = ["INSTAGRAM_APP_SECRET", "PINTEREST_APP_SECRET", "STATE_SECRET", "TIKTOK_CLIENT_SECRET", "SNAPCHAT_CLIENT_SECRET", "TUMBLR_CONSUMER_SECRET", "TUMBLR_CONSUMER_KEY", "X_CLIENT_SECRET", "FACEBOOK_PERSONAL_APP_SECRET", "FIREBASE_SERVICE_ACCOUNT"]
+required = ["INSTAGRAM_APP_SECRET", "PINTEREST_APP_SECRET", "STATE_SECRET", "TIKTOK_CLIENT_SECRET", "SNAPCHAT_CLIENT_SECRET", "TUMBLR_CONSUMER_SECRET", "TUMBLR_CONSUMER_KEY", "X_CLIENT_SECRET", "FACEBOOK_PERSONAL_APP_SECRET"]
 
 # Isolated branch previews. OAuth/media writes remain disabled until dedicated
 # test-provider credentials and callback URLs are configured.

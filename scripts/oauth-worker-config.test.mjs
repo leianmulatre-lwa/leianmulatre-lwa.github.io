@@ -17,8 +17,7 @@ const expected=[
  'TUMBLR_CONSUMER_SECRET',
  'TUMBLR_CONSUMER_KEY',
  'X_CLIENT_SECRET',
- 'FACEBOOK_PERSONAL_APP_SECRET',
- 'FIREBASE_SERVICE_ACCOUNT'
+ 'FACEBOOK_PERSONAL_APP_SECRET'
 ];
 const exact=key=>new RegExp('^'+key+'\\s*=\\s*["]([^"]+)["]','m');
 
@@ -40,7 +39,7 @@ test('production KV and R2 stay configured, not replaced by preview resources',(
  assert.match(config,/bucket_name\s*=\s*"biglwa-preview-media"/);
 });
 
-test('all ten required secret names remain enforced; no credential values are in config',()=>{
+test('all nine required secret names remain enforced; no credential values are in config',()=>{
  const section=config.match(/^\[secrets\]\s*\nrequired\s*=\s*\[([^\]]+)\]/m);
  assert.ok(section,'Missing [secrets].required enforcement');
  const actual=[...section[1].matchAll(/"([A-Z0-9_]+)"/g)].map(m=>m[1]);
