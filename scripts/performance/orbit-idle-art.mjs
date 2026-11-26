@@ -13,9 +13,7 @@ export function installOrbitIdleArt(destination, publishedPaths) {
     const file = publishedPaths.find(path => pattern.test(basename(path)));
     if (!file) continue;
     const url = '/' + file.split('/').map(encodeURIComponent).join('/');
-    const idle = theme + ' #studioApp #orbit:not(:hover):not(:focus-within) #orbitGrid';
-    rules.push(idle+'{background:url("'+url+'") center/cover no-repeat!important}',
-      idle+'>button[data-orbit-app]{opacity:0!important}');
+    rules.push(theme+' #studioApp #orbit{--orbit-block:url("'+url+'")}');
   }
   if (rules.length) appendFileSync(join(destination,'orbit-space-20261114.css'),
     '\n@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){\n'+rules.join('\n')+'\n}\n');

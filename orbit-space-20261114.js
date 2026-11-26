@@ -129,6 +129,36 @@
   // performance hint only and must never freeze visible Orbit thumbnails.
   return isInViewport(layer.target);
  }
+ // Each sample cuts a soft opening in the tiled layer. The newest point
+ // stays open under a resting pointer; older parts close over 850 ms.
+ function paintPortalTrail(layer,time){
+  const trail=layer.trail;
+  if(!trail)return;
+  const point=layer.portalPointer;
+  if(point){
+   const head=trail[trail.length-1];
+   if(!head||Math.hypot(point.x-head.x,point.y-head.y)>7){
+    const steps=head?Math.min(8,Math.ceil(Math.hypot(point.x-head.x,point.y-head.y)/24)):1;
+    for(let i=1;i<=steps;i++){
+     const x=head?Math.round(head.x+(point.x-head.x)*i/steps):point.x;
+     const y=head?Math.round(head.y+(point.y-head.y)*i/steps):point.y;
+     trail.push({x,y,time});
+    }
+    if(trail.length>32)trail.splice(0,trail.length-32);
+   }else{head.time=time}
+  }
+  while(trail.length && time-trail[0].time>=850)trail.shift();
+  if(!trail.length){
+   if(layer.portalMask){layer.target.style.removeProperty('--orbit-trail');layer.portalMask=''}
+   return;
+  }
+  const radius=Math.min(99,Math.max(48,layer.width*.155));
+  const mask=trail.map(({x,y,time:born})=>{
+   const size=radius*Math.max(0,1-(time-born)/850);
+   return 'radial-gradient(circle at '+x+'px '+y+'px,transparent '+(size*.64).toFixed(1)+'px,#000 '+size.toFixed(1)+'px)';
+  }).join(',');
+  if(mask!==layer.portalMask){layer.target.style.setProperty('--orbit-trail',mask);layer.portalMask=mask}
+ }
  function tick(time){
   frame=0;
   if(reduced?.matches||document.hidden)return;
@@ -137,7 +167,7 @@
   last=time;let any=false;
   for(const layer of layers.values()){
    if(!active(layer))continue;
-   any=true;size(layer);paint(layer,Math.max(dt,.032));
+   any=true;size(layer);paint(layer,Math.max(dt,.032));paintPortalTrail(layer,time);
   }
   if(any)frame=requestAnimationFrame(tick);
  }
@@ -177,6 +207,7 @@
   for(let i=0;i<count;i++){
    const star={};seed(star);layer.stars.push(star);
   }
+  if(kind==='widget'&&target.style)layer.trail=[];
   layers.set(target,layer);
   target.addEventListener('pointerenter',()=>{
    layer.hover=true;wake();
@@ -185,6 +216,7 @@
    if(event.pointerType==='touch'||reduced?.matches)return;
    const bounds=target.getBoundingClientRect();
    if(bounds.width<1||bounds.height<1)return;
+   if(layer.trail)layer.portalPointer={x:Math.round(event.clientX-bounds.left),y:Math.round(event.clientY-bounds.top)};
    const nextX=Math.max(-.5,Math.min(.5,(event.clientX-bounds.left)/bounds.width-.5));
    const nextY=Math.max(-.5,Math.min(.5,(event.clientY-bounds.top)/bounds.height-.5));
    const move=Math.hypot(nextX-layer.cursorTargetX,nextY-layer.cursorTargetY);
@@ -193,6 +225,7 @@
    layer.hover=true;
   },{passive:true});
   target.addEventListener('pointerleave',()=>{
+   layer.portalPointer=null;
    layer.hover=false;layer.cursorTargetX=0;layer.cursorTargetY=0;layer.cursorMotion=0;
   },{passive:true});
   size(layer);
