@@ -26,22 +26,27 @@ id = "e438b6eecb074f428d8a7f92122b3ad8"
 binding = "WALLPAPER_BUCKET"
 bucket_name = "wallpaper-bucket"
 
+[[d1_databases]]
+binding = "BIGLWA_ACCOUNT_DB"
+database_name = "biglwa-account-sync"
+database_id = "3b4880f3-2f2f-40fc-ba21-1c536a7dcad8"
+
+# Queued Firestore mirror edits keep retrying every five minutes, including
+# after the browser tab is closed. The cron path is internal to the Worker and
+# needs no HTTP secret.
+[triggers]
+crons = ["*/5 * * * *"]
+
 # INSTAGRAM_APP_SECRET, PINTEREST_APP_SECRET, STATE_SECRET and TIKTOK_CLIENT_SECRET
 # stay as encrypted Worker secrets and are not restated here.
 # All existing provider credentials are managed as encrypted Cloudflare secrets.
 # The Firestore mirror also needs FIREBASE_SERVICE_ACCOUNT (a service-account JSON
-# secret whose private key is never committed). Durable account writes need a D1
-# binding named BIGLWA_ACCOUNT_DB. Create it once and add the generated id here:
-#   wrangler d1 create biglwa-account-sync
-#   wrangler d1 execute biglwa-account-sync --remote --file=account-sync-schema.sql
-#   [[d1_databases]]
-#   binding = "BIGLWA_ACCOUNT_DB"
-#   database_name = "biglwa-account-sync"
-#   database_id = "<generated id>"
-# The existing WALLPAPER_BUCKET binding stores the R2 snapshots under account-sync/.
-# Wrangler validates these names at deploy time; the actual values remain on Cloudflare.
+# secret whose private key is never committed). The D1 schema is in
+# account-sync-schema.sql. The existing WALLPAPER_BUCKET binding stores the R2
+# snapshots under account-sync/. Wrangler validates these names at deploy time;
+# the actual values remain on Cloudflare.
 [secrets]
-required = ["INSTAGRAM_APP_SECRET", "PINTEREST_APP_SECRET", "STATE_SECRET", "TIKTOK_CLIENT_SECRET", "SNAPCHAT_CLIENT_SECRET", "TUMBLR_CONSUMER_SECRET", "TUMBLR_CONSUMER_KEY", "X_CLIENT_SECRET", "FACEBOOK_PERSONAL_APP_SECRET"]
+required = ["INSTAGRAM_APP_SECRET", "PINTEREST_APP_SECRET", "STATE_SECRET", "TIKTOK_CLIENT_SECRET", "SNAPCHAT_CLIENT_SECRET", "TUMBLR_CONSUMER_SECRET", "TUMBLR_CONSUMER_KEY", "X_CLIENT_SECRET", "FACEBOOK_PERSONAL_APP_SECRET", "FIREBASE_SERVICE_ACCOUNT"]
 
 # Isolated branch previews. OAuth/media writes remain disabled until dedicated
 # test-provider credentials and callback URLs are configured.

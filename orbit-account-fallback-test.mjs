@@ -114,9 +114,16 @@ assert.ok(worker.includes("Math.max(current.revision, Number(validated.base) || 
 assert.ok(worker.includes("if (!cron) requireOrigin(request, env);"),
   'cron mirror retries do not require a browser Origin');
 assert.ok(worker.includes('RESOURCE_EXHAUSTED'), 'quota failures are retried by the mirror');
+assert.ok(worker.includes("'id','subject','preheader','greeting','body','buttonText','closing','signature'"),
+  'Mailroom draft fallback accepts every editor field');
 assert.ok(wrangler.includes('FIREBASE_PROJECT_ID = "biglwa"'), 'Worker knows the Firestore project');
-assert.ok(wrangler.includes('binding = "BIGLWA_ACCOUNT_DB"'), 'D1 setup is documented for deployment');
-assert.ok(wrangler.includes('--file=account-sync-schema.sql'), 'the D1 setup command points to the schema');
+assert.ok(wrangler.includes('binding = "BIGLWA_ACCOUNT_DB"'), 'the D1 binding is configured for deployment');
+assert.ok(wrangler.includes('database_id = "3b4880f3-2f2f-40fc-ba21-1c536a7dcad8"'), 'the D1 binding points to the created database');
+assert.ok(wrangler.includes('crons = ["*/5 * * * *"]'), 'the mirror queue has a cron trigger');
+assert.ok(worker.includes('async scheduled(_controller, env, ctx)'), 'cron retries queued Firestore mirrors');
+assert.ok(worker.includes('accountSyncRunMirror(env, \'\').catch'), 'scheduled retries are isolated from the request');
+assert.ok(wrangler.includes('FIREBASE_SERVICE_ACCOUNT"'), 'the Firestore mirror secret is declared as required');
+assert.ok(wrangler.includes('account-sync-schema.sql'), 'the D1 setup points to the schema');
 assert.ok(schema.includes('CREATE TABLE IF NOT EXISTS account_sync_state'), 'schema creates revisioned state');
 assert.ok(schema.includes('CREATE TABLE IF NOT EXISTS account_sync_mirror'), 'schema creates the mirror queue');
 assert.ok(!/(access_token|private_key|client_secret)/i.test(schema), 'schema contains no credentials');
