@@ -55,14 +55,18 @@ export async function requireApprovedCopy(id, published) {
 }
 
 export function mailSmtpConfig(env = {}) {
+  // Dashboard secrets are often copied with a trailing newline. Trim that
+  // accidental whitespace before validating, while still rejecting embedded
+  // control characters that could be used to inject SMTP commands.
   const host = String(env.MAILROOM_SMTP_HOST || "smtp.titan.email").trim();
-  const port = Number(env.MAILROOM_SMTP_PORT || 465);
+  const port = Number(String(env.MAILROOM_SMTP_PORT || "465").trim());
   const user = String(env.MAILROOM_SMTP_USER || "").trim();
-  const pass = String(env.MAILROOM_SMTP_PASSWORD || "");
+  const pass = String(env.MAILROOM_SMTP_PASSWORD || "").trim();
   const from = String(env.MAILROOM_FROM || "lwazi@biglwa.com").trim().toLowerCase();
-  if (!/^[a-z0-9.-]+$/i.test(host) || !ALLOWED_PORTS.has(port) || !user || !pass ||
-      from !== "lwazi@biglwa.com" || /[\r\n\0]/.test(user + pass + from))
-    throw new Error("Invalid SMTP transport configuration.");
+  if (!/^[a-z0-9.-]+$/i.test(host)) throw new Error("Invalid SMTP host.");
+  if (!ALLOWED_PORTS.has(port)) throw new Error("Invalid SMTP port.");
+  if (!user || !pass || /[\r\n\0]/.test(user + pass)) throw new Error("Invalid SMTP credentials.");
+  if (from !== "lwazi@biglwa.com" || /[\r\n\0]/.test(from)) throw new Error("Invalid SMTP sender.");
   return { host, port, user, pass, from };
 }
 
