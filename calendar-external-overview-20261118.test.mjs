@@ -9,7 +9,7 @@ const css=read('calendar-editorial-20261116.css');
 function helpers(){
  const code=source.slice(source.indexOf("  const calendarSourceLinkHtml ="),source.indexOf("  const safeOpen ="));
  const scope={console,URL,esc:value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))};
- vm.runInNewContext(code+'\nglobalThis.__helpers={calendarSourceLinkHtml,calendarExternalOverviewHtml};',scope,{timeout:2000});
+ vm.runInNewContext(code+'\nglobalThis.__helpers={calendarSourceLinkHtml,calendarExternalOverviewHtml,calendarAgendaRows};',scope,{timeout:2000});
  return scope.__helpers;
 }
 
@@ -43,9 +43,25 @@ test('Calendar external overview reports only curated sources and does not fetch
 });
 
 test('Calendar read-only renderer uses the external link and overview helpers',()=>{
- assert.match(source,/readOnlyRows\.filter\(e=>!e\.pop\)\.map\(e=>'[^\n]*calendarSourceLinkHtml\(e\)/);
+ assert.match(source,/calendarAgendaRows\(readOnlyRows\)\.map\(e=>'[^\n]*calendarSourceLinkHtml\(e\)/);
  assert.match(source,/\+calendarExternalOverviewHtml\(readOnlyRows\)\+/);
- assert.doesNotMatch(source,/readOnlyRows\.filter\(e=>!e\.pop\)[\s\S]{0,400}e\.pop\?'<small>/);
+ assert.doesNotMatch(source,/calendarAgendaRows\(readOnlyRows\)[\s\S]{0,400}e\.pop\?'<small>/);
  assert.match(css,/\.calendar-external-overview/);
  assert.match(css,/\.calendar-external-list a/);
+});
+
+
+test('linked UN observances appear only in the overview, while other agenda events survive',()=>{
+ const {calendarAgendaRows,calendarExternalOverviewHtml}=helpers();
+ const rows=[
+  {title:'World Toilet Day',un:true,url:'https://www.un.org/en/observances/toilet-day'},
+  {title:'Unlinked observance',un:true,url:''},
+  {title:'Google event',google:true,url:'https://calendar.google.com/event/1'},
+  {title:'Pop history',pop:true,url:'https://example.org/history'}
+ ];
+ assert.equal(JSON.stringify(calendarAgendaRows(rows).map(e=>e.title)),JSON.stringify(['Unlinked observance','Google event']));
+ const html=calendarExternalOverviewHtml(rows);
+ assert.equal((html.match(/World Toilet Day/g)||[]).length,1);
+ assert.doesNotMatch(html,/Unlinked observance/);
+ for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html'])assert.match(read(path),/module-pages\.js\?[^"']+&caldedupe=20261126-1/,path);
 });

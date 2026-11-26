@@ -40,7 +40,7 @@ test('calendar Events show dated cultural history separately from future/current
   /Associated Press/,
   /Reuters/,
   /Al Jazeera/,
-  /readOnlyRows.filter\(e=>!e.pop\)/,
+  /calendarAgendaRows\(readOnlyRows\)/,
   /not a claim of political neutrality or a live news feed/
  ])assert.match(pages,pattern);
  assert.match(pages,/window.BigLWAPopCultureCalendar\?\.onDay\(key\)/);
