@@ -786,7 +786,8 @@
     bar.addEventListener('pointerdown',e=>{
       const el=e.target.closest('a[data-shortcut-route]');
       if(!el||!canArrange()||!e.isPrimary||e.button!==0)return;
-      drag={el,x:e.clientX,y:e.clientY,id:e.pointerId,active:false};el.setPointerCapture(e.pointerId);
+      drag={el,x:e.clientX,y:e.clientY,id:e.pointerId,active:false};
+      try{el.setPointerCapture(e.pointerId)}catch{drag=null;reset()}
     });
     bar.addEventListener('pointermove',e=>{
       if(!drag||e.pointerId!==drag.id)return;
@@ -810,6 +811,7 @@
       }else moveNavigationShortcut(bar.closest('#studioApp'),key,true,dest);
     });
     bar.addEventListener('pointercancel',()=>{drag=null;reset()});
+    bar.addEventListener('lostpointercapture',e=>{if(drag&&e.pointerId===drag.id){drag=null;reset()}});
     bar.addEventListener('click',e=>{if(suppress){e.preventDefault();e.stopImmediatePropagation()}},true);
   }
   function syncSidebarShortcutSystem(){
@@ -844,7 +846,10 @@
     if(!create.querySelector('.studio-veve-mark'))create.innerHTML='<span class="studio-veve-mark" aria-hidden="true">✺</span><span>veve</span>';
     create.title='Open Veve discovery';create.setAttribute('aria-label','Open Veve discovery');
     const apps=shortcuts.map(key=>createHeroShortcut(navigationCatalog.get(key),existingByKey.get(key)));
-    for(const app of apps)app.style.touchAction="none";
+    for(const app of apps){
+      app.style.touchAction='none';app.draggable=false;
+      app.querySelectorAll('img').forEach(image=>image.draggable=false);
+    }
     const links=folderLinks(bar,apps);
     const split=Math.ceil(links.length/2);reconcileChildren(bar,[...links.slice(0,split),create,...links.slice(split)]);bar.style.setProperty('--studio-action-count',String(links.length+1));
     setSidebarCurrent(app,app.dataset.currentStudioRoute||'');
