@@ -122,7 +122,9 @@ assert.ok(wrangler.includes('database_id = "3b4880f3-2f2f-40fc-ba21-1c536a7dcad8
 assert.ok(wrangler.includes('crons = ["*/5 * * * *"]'), 'the mirror queue has a cron trigger');
 assert.ok(worker.includes('async scheduled(_controller, env, ctx)'), 'cron retries queued Firestore mirrors');
 assert.ok(worker.includes('accountSyncRunMirror(env, \'\').catch'), 'scheduled retries are isolated from the request');
-assert.ok(wrangler.includes('FIREBASE_SERVICE_ACCOUNT"'), 'the Firestore mirror secret is declared as required');
+assert.ok(wrangler.includes('FIREBASE_SERVICE_ACCOUNT'), 'the optional Firestore mirror secret is documented');
+assert.doesNotMatch(wrangler.match(/required = \[[^\]]+\]/)?.[0] || '', /FIREBASE_SERVICE_ACCOUNT/,
+  'the optional mirror secret does not block deployment');
 assert.ok(wrangler.includes('account-sync-schema.sql'), 'the D1 setup points to the schema');
 assert.ok(schema.includes('CREATE TABLE IF NOT EXISTS account_sync_state'), 'schema creates revisioned state');
 assert.ok(schema.includes('CREATE TABLE IF NOT EXISTS account_sync_mirror'), 'schema creates the mirror queue');
