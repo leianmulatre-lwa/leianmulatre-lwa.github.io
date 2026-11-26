@@ -726,6 +726,92 @@
       return row;
     });reconcileChildren(dock,nodes);
   }
+  const folderKey='biglwaShortcutFoldersV1';
+  function canArrange(){
+    return !!window.BigLWAAccountStorage?.uid&&!window.__biglwaPublicStorageView&&!document.documentElement.classList.contains('biglwa-preview-mode');
+  }
+  function readFolders(){
+    if(!canArrange())return [];
+    try{return JSON.parse(localStorage.getItem(folderKey)||'[]').filter(group=>Array.isArray(group)&&group.every(key=>typeof key==='string'))}catch{return []}
+  }
+  function saveFolders(groups){
+    if(!canArrange())return;
+    localStorage.setItem(folderKey,JSON.stringify(groups));syncSidebarShortcutSystem();
+  }
+  function folderLinks(bar,links){
+    const groups=readFolders(),byKey=new Map(links.map(link=>[link.dataset.shortcutRoute,link]));
+    const used=new Set(),result=[];
+    for(const link of links){
+      const key=link.dataset.shortcutRoute;
+      if(used.has(key))continue;
+      const group=groups.find(g=>g.includes(key))?.filter(k=>byKey.has(k));
+      if(!group||group.length<2){result.push(link);continue}
+      group.forEach(k=>used.add(k));
+      const name=group.map(k=>navigationCatalog.get(k).label).slice(0,2).join(' + ');
+      const id=group.join(',');
+      let button=[...bar.children].find(el=>el.dataset.folderMembers===id);
+      if(!button){
+        button=document.createElement('button');button.type='button';button.dataset.folderMembers=id;
+        const icons=document.createElement('span');icons.style.cssText='display:grid;grid-template-columns:repeat(2,1em);font-size:.7em;pointer-events:none';
+        for(const k of group.slice(0,4)){const icon=byKey.get(k).querySelector('.hero-shortcut-icon').cloneNode(true);icons.append(icon)}
+        button.append(icons);button.title=name;button.setAttribute('aria-label','Open folder '+name);
+        button.style.touchAction='none';
+        button.onclick=()=>{
+          const dialog=document.createElement('dialog');dialog.setAttribute('aria-label',name);
+          const heading=document.createElement('h3');heading.textContent=name;dialog.append(heading);
+          for(const k of group){
+            const app=document.createElement('button');app.type='button';app.append(byKey.get(k).querySelector('.hero-shortcut-icon').cloneNode(true),navigationCatalog.get(k).label);
+            app.onclick=()=>{dialog.close();document.querySelector('#studioSidebarShortcutDock [data-sidebar-route="'+CSS.escape(k)+'"]')?.click()};dialog.append(app);
+          }
+          for(const label of ['Ungroup','Close']){
+            const action=document.createElement('button');action.type='button';action.textContent=label;
+            action.onclick=()=>{dialog.close();if(label==='Ungroup')saveFolders(readFolders().filter(g=>!g.includes(key)))};dialog.append(action);
+          }
+          document.body.append(dialog);dialog.addEventListener('close',()=>dialog.remove(),{once:true});dialog.showModal();
+        };
+      }
+      result.push(button);
+    }
+    bindFolderDrag(bar);return result;
+  }
+  function bindFolderDrag(bar){
+    if(bar.dataset.folderDrag)return;bar.dataset.folderDrag='1';
+    const selector='[data-shortcut-route], [data-folder-members]';
+    let drag=null,target=null,timer,armed=false,suppress=false;
+    const cue=document.createElement('span');cue.textContent='📁 Drop to group';cue.style.cssText='position:fixed;pointer-events:none;z-index:2147483647;padding:4px 8px;background:#222;color:white;border-radius:4px;font:13px system-ui';
+    function reset(){clearTimeout(timer);cue.remove();target=null;armed=false}
+    function hit(e){return document.elementFromPoint(e.clientX,e.clientY)?.closest(selector)}
+    function center(e,el){const r=el.getBoundingClientRect();return Math.abs(e.clientX-r.left-r.width/2)<r.width*.3&&Math.abs(e.clientY-r.top-r.height/2)<r.height*.38}
+    bar.addEventListener('dragstart',e=>{if(drag)e.preventDefault()});
+    bar.addEventListener('pointerdown',e=>{
+      const el=e.target.closest('a[data-shortcut-route]');
+      if(!el||!canArrange()||!e.isPrimary||e.button!==0)return;
+      drag={el,x:e.clientX,y:e.clientY,id:e.pointerId,active:false};el.setPointerCapture(e.pointerId);
+    });
+    bar.addEventListener('pointermove',e=>{
+      if(!drag||e.pointerId!==drag.id)return;
+      if(!drag.active&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<7)return;
+      drag.active=true;const over=hit(e);
+      const next=over&&bar.contains(over)&&over!==drag.el&&over.id!=='mobileCreate'&&center(e,over)?over:null;
+      if(next===target)return;reset();target=next;
+      if(next)timer=setTimeout(()=>{armed=true;const r=next.getBoundingClientRect();cue.style.left=r.left+'px';cue.style.top=Math.max(0,r.top-24)+'px';document.body.append(cue)},600);
+    });
+    bar.addEventListener('pointerup',e=>{
+      if(!drag||e.pointerId!==drag.id)return;
+      const {el,active}=drag,over=hit(e),key=el.dataset.shortcutRoute;
+      const group=armed&&target===over&&over&&center(e,over);drag=null;reset();
+      if(!active)return;suppress=true;setTimeout(()=>suppress=false,0);
+      if(!over||!bar.contains(over)||over===el||over.id==='mobileCreate')return;
+      const dest=over.dataset.folderMembers?.split(',')[0]||over.dataset.shortcutRoute;
+      if(group){
+        const groups=readFolders().map(g=>g.filter(k=>k!==key)).filter(g=>g.length>1);
+        const existing=groups.find(g=>g.includes(dest));if(existing)existing.push(key);else groups.push([dest,key]);
+        saveFolders(groups);
+      }else moveNavigationShortcut(bar.closest('#studioApp'),key,true,dest);
+    });
+    bar.addEventListener('pointercancel',()=>{drag=null;reset()});
+    bar.addEventListener('click',e=>{if(suppress){e.preventDefault();e.stopImmediatePropagation()}},true);
+  }
   function syncSidebarShortcutSystem(){
     const app=$('#studioApp'),top=$('.sidebar-top',app),bar=$('.hero-action-bar',app),shortcutDock=$('#studioSidebarShortcutDock',app),rest=$('#studioSidebarRest',app),availableDock=$('#studioSidebarAvailableDock',app);if(!app||!top||!bar||!shortcutDock||!rest||!availableDock)return;
     const currentHeroLinks=$$('a',bar).filter(link=>link.id!=='mobileCreate');
@@ -757,7 +843,9 @@
     create.classList.add('studio-veve-launcher');
     if(!create.querySelector('.studio-veve-mark'))create.innerHTML='<span class="studio-veve-mark" aria-hidden="true">✺</span><span>veve</span>';
     create.title='Open Veve discovery';create.setAttribute('aria-label','Open Veve discovery');
-    const links=shortcuts.map(key=>createHeroShortcut(navigationCatalog.get(key),existingByKey.get(key)));
+    const apps=shortcuts.map(key=>createHeroShortcut(navigationCatalog.get(key),existingByKey.get(key)));
+    for(const app of apps)app.style.touchAction="none";
+    const links=folderLinks(bar,apps);
     const split=Math.ceil(links.length/2);reconcileChildren(bar,[...links.slice(0,split),create,...links.slice(split)]);bar.style.setProperty('--studio-action-count',String(links.length+1));
     setSidebarCurrent(app,app.dataset.currentStudioRoute||'');
     const saveShortcutButton=$('#saveSidebarShortcuts',app);
