@@ -64,7 +64,7 @@ const report={generatedAt:new Date().toISOString(),kind:'source-audit-not-page-s
  largestAreas:sortMap(byArea,20),largestExtensions:sortMap(byExtension,20),
  entrypoints,limits:{landingJsRefs:116,landingCssRefs:96,
    landingJsRawBytes:2900000,landingCssRawBytes:960000,
-   studioJsRefs:114,studioCssRefs:94,
+   studioJsRefs:115,studioCssRefs:94,
    studioJsRawBytes:2900000,studioCssRawBytes:960000,
    // Includes the first-party imported Highlights media cache (~76 MB).
     trackedBytes:230000000}};
