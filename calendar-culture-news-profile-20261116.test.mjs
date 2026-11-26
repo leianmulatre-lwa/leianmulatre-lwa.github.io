@@ -102,3 +102,12 @@ test('all Studio shells bust cached culture, editorial CSS, previews and profile
   assert.match(html,/studio-recovery\.js\?v=[^"']+&crush=20261118-1/,path);
  }
 });
+
+
+test('Weekly Crushes live inside the left calendar board after each draw',()=>{
+ assert.match(pages,/body\.replaceChildren\(calendarContent\);\s*renderCalendarCrushes\(crushSection\)/);
+ assert.match(pages,/calendarContent\.querySelector\('\.calendar-board'\)\.append\(crushSection\)/);
+ assert.doesNotMatch(pages,/body\.replaceChildren\(calendarContent,crushSection\)/);
+ assert.match(pages,/\.calendar-board \.calendar-crush-grid\{grid-template-columns:repeat\(auto-fit,minmax\(min\(100%,210px\),1fr\)\)/);
+ for(const path of shells)assert.match(get(path),/module-pages\.js\?[^"']+&crushlayout=20261126-1/,path);
+});

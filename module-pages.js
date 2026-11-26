@@ -66,6 +66,13 @@
   .calendar-crushes .politc-person{color:#28231e}
   .calendar-crushes .politc-person button{margin:4px}
   .calendar-crushes .politc-nomination-drawer[hidden]{display:none}
+  .calendar-board > .calendar-crushes{margin-top:18px;min-width:0}
+  .calendar-board > .calendar-crushes > h2{margin:0 0 12px}
+  .calendar-board .calendar-crush-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:10px;align-items:start}
+  .calendar-board .calendar-crushes .politc-panel{padding:12px;min-width:0;overflow-wrap:anywhere}
+  .calendar-board .calendar-crushes .politc-portraits{grid-template-columns:repeat(auto-fill,minmax(min(100%,130px),1fr));margin:10px 0 0}
+  .calendar-board .calendar-crushes .politc-empty{grid-column:1/-1;margin:0}
+  .calendar-board .calendar-crushes .politc-form{min-width:0}
   @media(max-width:720px){.politc-grid{grid-template-columns:1fr}}
 
 
@@ -1232,7 +1239,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     const calendarContent=document.createElement('div');
     const crushSection=document.createElement('section');
     crushSection.className='calendar-crushes';
-    body.replaceChildren(calendarContent,crushSection);
+    body.replaceChildren(calendarContent);
     renderCalendarCrushes(crushSection);
     const storage='biglwaCalendarEvents';
     let view=readJSON('biglwaCalendarView',null);if(!view||!Number.isInteger(view.year)||!Number.isInteger(view.month))view={year:new Date().getFullYear(),month:new Date().getMonth()};
@@ -1302,6 +1309,8 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
         '<button type="button" role="tab" data-calendar-mode="geez" aria-selected="'+isGeez+'"'+(geezSupported?'':' disabled title="Ge’ez calendar is not supported in this browser"')+'>Pre-colonial</button></nav>';
       const conversionNote=isGeez?'<p class="calendar-geez-note">Ge’ez Calendar · 13 months · '+esc(chosenDate.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}))+' Gregorian equivalent. Your events and Google sync keep their original dates.</p>':'';
       calendarContent.innerHTML=heading('calendar')+modeTabs+'<p class="module-status" role="status">'+esc(syncMessage||(connected?'Google Calendar connected through Orbit.':'Connect Google Calendar in Orbit to see your events here.'))+'</p><div class="calendar-shell"><section class="calendar-board"><div class="calendar-toolbar"><div class="module-actions"><button class="module-action ghost" id="calPrev" aria-label="Previous month">←</button><button class="module-action ghost" id="calToday">Today</button><button class="module-action ghost" id="calOrbit" type="button">Manage in Orbit</button></div><h2>'+esc(monthLabel)+'</h2><div class="module-actions"><button class="module-action ghost" id="calNext" aria-label="Next month">→</button>'+(connected?'<button class="module-action ghost" id="calRefresh" type="button">Refresh</button>':'')+'</div></div><div class="calendar-weekdays">'+calendarWeekdays.map((x,i)=>'<span class="'+(i===0||i===6?'weekend':'')+'">'+x+'</span>').join('')+'</div><div class="calendar-days">'+days+'</div></section><aside class="module-card"><h2>'+esc(selectedLabel)+'</h2>'+conversionNote+'<p>Google events and UN observances are read-only. New events below are saved in this browser.</p><p><a href="https://www.un.org/en/observances/list-days-weeks" target="_blank" rel="noopener">UN days &amp; weeks ↗</a> · <span id="unCalendarStatus">Loading observances…</span></p><form class="module-form" id="calendarEventForm"><input class="module-input" name="title" placeholder="Event title" required><input class="module-input" type="time" name="time"><button class="module-action" type="submit">Add local event</button></form><div class="module-list" id="calendarSelectedEvents">'+crushAgenda+listHtml(local,'event')+readOnlyRows.filter(e=>!e.pop).map(e=>'<div class="module-list-item"><div><b>'+esc(e.title)+'</b><small>'+esc(e.meta)+'</small>'+calendarSourceLinkHtml(e)+'</div></div>').join('')+'</div>'+calendarExternalOverviewHtml(readOnlyRows)+popHistoryHtml+newsHtml+'</aside></div>';
+      // Keep the existing nomination section in the left calendar panel on every redraw.
+      calendarContent.querySelector('.calendar-board').append(crushSection);
       if(historyRows.length)window.BigLWASourceBrief?.mount(calendarContent,historyRows.map(e=>({title:e.title,url:e.url,snippet:e.description})), 'Summarize these cultural anniversaries, preserving each event date and original context.');
       const actualHeading=calendarContent.querySelector('.module-heading h1');
       if(actualHeading)actualHeading.textContent=isGeez?'Ge’ez Calendar':'Calendar';
