@@ -563,6 +563,9 @@ export default {
       try { return await mediaRoute(request, config); }
       catch (error) { return json({ error: error.publicMessage || 'Media service error. Please try again.' }, error.status || 500, request, config); }
     }
+    if (new URL(request.url).pathname === '/auth/handle-login' && request.method === 'POST') {
+      return handleLogin(request, env);
+    }
     if (new URL(request.url).pathname === '/pinterest/saved') {
       const config={...env,SITE_URL:env.SITE_URL||'https://biglwa.com'};
       try{return await pnSavedRoute(request,config);}
@@ -2643,6 +2646,91 @@ async function accountSyncVerifyDeveloper(env, uid) {
   const token = await accountSyncServiceToken(env);
   const doc = await accountSyncFirestoreGet('developerAdmins/' + uid, token, env);
   return accountSyncFromFirestoreFields(doc?.fields || {}).active === true;
+}
+
+/* Handle sign-in. The public username directory maps @handle -> uid; the uid is
+ * resolved to an email only with a Firebase Admin token, and the password is
+ * checked by Firebase Auth itself. The browser never learns an email it did not
+ * already own, and receives a short-lived custom token only after both checks.
+ */
+const HANDLE_LOGIN_AUDIENCE = 'https://identitytoolkit.googleapis.com/google.identity.identitytoolkit.v1.IdentityToolkit';
+function normalizeLoginHandle(value) {
+  return String(value || '').trim().replace(/^@+/, '').toLowerCase();
+}
+function handleLoginKey(request) {
+  return 'handlelogin:' + (request.headers.get('CF-Connecting-IP') || 'unknown');
+}
+async function handleLoginFailures(request, env, record = false) {
+  const key = handleLoginKey(request);
+  try {
+    const current = Number((await env.OAUTH_SESSIONS.get(key)) || 0) || 0;
+    if (record) await env.OAUTH_SESSIONS.put(key, String(current + 1), { expirationTtl: 900 });
+    return current;
+  } catch (_) { return 0; }
+}
+async function firebaseAdminUserByUid(env, token, uid) {
+  const response = await fetch('https://identitytoolkit.googleapis.com/v1/projects/' +
+    encodeURIComponent(env.FIREBASE_PROJECT_ID || 'biglwa') + '/accounts:lookup', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+    body: JSON.stringify({ localIds: [uid] })
+  });
+  if (!response.ok) return null;
+  const body = await response.json().catch(() => ({}));
+  return (body.users || [])[0] || null;
+}
+async function createHandleCustomToken(env, uid, handle) {
+  const serviceAccount = JSON.parse(env.FIREBASE_SERVICE_ACCOUNT);
+  const issued = Math.floor(Date.now() / 1000);
+  const header = accountSyncBase64UrlText(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
+  const claims = accountSyncBase64UrlText(JSON.stringify({
+    iss: serviceAccount.client_email,
+    sub: serviceAccount.client_email,
+    aud: HANDLE_LOGIN_AUDIENCE,
+    iat: issued,
+    exp: issued + 3600,
+    uid,
+    claims: { handle }
+  }));
+  const unsigned = header + '.' + claims;
+  const key = await crypto.subtle.importKey('pkcs8', accountSyncPemBytes(serviceAccount.private_key),
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['sign']);
+  const signature = await crypto.subtle.sign('RSASSA-PKCS1-v1_5', key,
+    new TextEncoder().encode(unsigned));
+  return unsigned + '.' + accountSyncBase64Url(new Uint8Array(signature));
+}
+async function handleLogin(request, env) {
+  if (!allowedOrigin(request, env)) return json({ error: 'Origin not allowed.' }, 403, request, env);
+  const body = await request.json().catch(() => null);
+  const handle = normalizeLoginHandle(body?.handle);
+  const password = typeof body?.password === 'string' ? body.password : '';
+  const mismatch = async () => {
+    await handleLoginFailures(request, env, true);
+    return json({ error: 'That handle and password did not match.' }, 401, request, env);
+  };
+  if (!/^[a-z0-9._-]{5,24}$/.test(handle) || !password) return mismatch();
+  if ((await handleLoginFailures(request, env)) >= 10)
+    return json({ error: 'Too many sign-in attempts. Wait a little, then try again.' }, 429, request, env);
+  try {
+    const token = await accountSyncServiceToken(env);
+    const doc = await accountSyncFirestoreGet('usernames/' + handle, token, env);
+    const uid = accountSyncFromFirestoreFields(doc?.fields || {}).uid;
+    if (typeof uid !== 'string' || !uid) return mismatch();
+    const account = await firebaseAdminUserByUid(env, token, uid);
+    if (typeof account?.email !== 'string' || !account.email) return mismatch();
+    const verified = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' +
+      encodeURIComponent(FIREBASE_WEB_API_KEY), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: account.email, password, returnSecureToken: true })
+    });
+    if (!verified.ok) return mismatch();
+    const result = await verified.json().catch(() => ({}));
+    if (result.localId !== uid) return mismatch();
+    return json({ customToken: await createHandleCustomToken(env, uid, handle) }, 200, request, env);
+  } catch (_) {
+    return json({ error: 'Handle sign-in is unavailable. Try again in a moment.' }, 503, request, env);
+  }
 }
 async function accountSyncUser(request, env) {
   const header = request.headers.get('Authorization') || '';
