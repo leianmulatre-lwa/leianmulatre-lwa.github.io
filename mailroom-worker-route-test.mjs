@@ -86,7 +86,7 @@ test("Worker binds the recipient to Firebase Admin, not the browser", async () =
     const response = await worker.fetch(request({ type: "verify" }, { Authorization: "Bearer member.token" }), env());
     assert.equal(response.status, 403);
     const adminCall = stub.calls.find((call) => call.href.includes("/projects/biglwa/accounts:lookup"));
-    assert.deepEqual(JSON.parse(adminCall.init.body), { localIds: ["uid-1"] });
+    assert.deepEqual(JSON.parse(adminCall.init.body), { localId: ["uid-1"] });
   } finally { stub.restore(); }
 });
 
