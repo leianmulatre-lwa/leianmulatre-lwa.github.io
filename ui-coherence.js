@@ -1705,7 +1705,7 @@
     if(wallpaperSection){wallpaperSection.id=wallpaperSection.id||'profileWallpaperEditor';wallpaperSection.dataset.profileEditorPane='wallpaper';wallpaperSection.setAttribute('role','tabpanel')}
     if(widgetSection){widgetSection.id=widgetSection.id||'profileWidgetEditor';widgetSection.dataset.profileEditorPane='widgets';widgetSection.setAttribute('role','tabpanel');
       const auraText=$('#profileAuraTextInput',panel)?.closest('label');
-      if(auraText&&auraText.parentElement!==widgetSection)widgetSection.append(auraText);
+      if(auraText&&!widgetSection.contains(auraText))widgetSection.append(auraText);
       const heading=$('h3',widgetSection);if(heading)heading.textContent='Widget & Aura';
       const intro=$('p',widgetSection);if(intro)intro.textContent='Choose widget styling, color and your Aura hue and text.';
     }

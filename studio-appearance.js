@@ -27,6 +27,13 @@
       #studioApp .biglwa-color-swatch:focus-visible{outline:3px solid #604a91;outline-offset:3px}
       #studioApp .biglwa-color-hex{display:flex;align-items:center;gap:7px;font:600 10px/1.25 Inter,system-ui,sans-serif}
       #studioApp .biglwa-color-hex input{width:96px!important;min-width:0!important;padding:6px 8px!important;border:1px solid rgba(90,76,73,.35);border-radius:7px;font:600 12px/1.3 ui-monospace,monospace;color:inherit;background:rgba(255,255,255,.7)}
+      #studioApp .appearance-control-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px 14px;padding:10px 0;min-width:0}
+      #studioApp .appearance-control-row+.appearance-control-row{border-top:1px solid rgba(var(--aura-rgb,216,95,109),.28)}
+      #studioApp .appearance-control-row>label,#studioApp .appearance-control-row .biglwa-color-hex{display:inline-flex;align-items:center;gap:5px;margin:0!important;width:auto;max-width:100%;min-width:0}
+      #studioApp .appearance-control-row input[type=range]{width:clamp(65px,6vw,100px);min-width:0}
+      #studioApp .appearance-control-row .biglwa-color-choices{display:flex;align-items:center;flex-wrap:wrap;max-width:100%;gap:8px 12px;margin:0;padding:0;border:0;background:none}
+      #studioApp .appearance-control-row .biglwa-color-swatches{gap:5px}
+      #studioApp .appearance-control-row .profile-aura-text-label textarea{width:15em;max-width:65vw}
       /* Every control in Widget & Aura targets the visible Studio cards. */
       #studioApp .profile-card,
       #studioApp .music-card,
@@ -179,7 +186,7 @@
     const existing=$('#'+id+'Choices');
     if(existing){syncColorChoices(id);return}
     const panel=document.createElement('div');panel.id=id+'Choices';panel.className='biglwa-color-choices';
-    const heading=document.createElement('strong');heading.textContent='Quick colors · or use the color wheel';panel.append(heading);
+    panel.setAttribute('role','group');panel.setAttribute('aria-label',id==='auraColor'?'Quick aura colors':'Quick widget colors');
     const swatches=document.createElement('div');swatches.className='biglwa-color-swatches';
     colors.forEach(color=>{
       const chip=document.createElement('button');chip.type='button';chip.className='biglwa-color-swatch';
@@ -242,7 +249,20 @@
       });
     }
     const labelText=[...opacityLabel.childNodes].find(node=>node.nodeType===Node.TEXT_NODE&&node.textContent.trim());if(labelText)labelText.textContent='Widget opacity ';
-    if(live.nextElementSibling!==opacityLabel)live.insertAdjacentElement('afterend',opacityLabel);
+    function controlsRow(id, name, previous){
+      let row=document.getElementById(id);
+      if(!row){
+        row=document.createElement('div');
+        row.id=id;row.className='appearance-control-row';
+        row.setAttribute('role','group');row.setAttribute('aria-label',name);
+        previous.after(row);
+      }
+      return row;
+    }
+    const widgets=controlsRow('widgetAppearanceRow','Widget customization',live);
+    const aura=controlsRow('auraAppearanceRow','Aura customization',widgets);
+    const widgetControls=[opacityLabel,...['widgetRadius','widgetBlur','widgetColor'].map(id=>document.getElementById(id)?.closest('label'))];
+    widgetControls.forEach(label=>{if(label&&label.parentElement!==widgets)widgets.append(label)});
     if(section.dataset.biglwaAppearanceBound!=='1'){
       section.dataset.biglwaAppearanceBound='1';
       section.addEventListener('input',event=>{if(event.target.matches('#widgetColor,#widgetRadius,#widgetOpacity,#widgetBlur,#auraColor'))applyAppearance(true)});
@@ -251,11 +271,12 @@
     }
     // Aura hue and text now live together in Widget & Aura, not the Song pane.
     const auraInput=$('#auraColor'),auraLabel=auraInput?.closest('label');
-    if(auraLabel&&auraLabel.parentElement!==section)section.appendChild(auraLabel);
+    if(auraLabel&&auraLabel.parentElement!==aura)aura.append(auraLabel);
     const auraText=$('#profileAuraTextInput')?.closest('label');
-    if(auraText&&auraText.parentElement!==section)section.appendChild(auraText);
+
     installColorChoices('widgetColor',['#faf7f1','#fff7e1','#f6cad9','#d9c9f1','#b5dcd6','#23212b','#ffffff']);
     installColorChoices('auraColor',['#d85f6d','#f36b79','#f2cd39','#58aa70','#6787bf','#aa7adb','#ce8d60']);
+    if(auraText&&auraText.parentElement!==aura)aura.append(auraText);
     if(section.dataset.appearanceRestored!==activeUid()&&!$('#studioApp .profile-card.profile-is-editing')){restoreAppearance();section.dataset.appearanceRestored=activeUid()}
   }
 
