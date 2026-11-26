@@ -698,9 +698,11 @@ body.night-mode .biglwa-stream .stream-media-link-form input{background:#1e1b25;
   background:#75354b!important;outline:2px solid #e4b57c!important;outline-offset:1px!important;
 }
 #studioApp #stream .stream-screen.stream-preview-active>.biglwa-persistent-stream-player{
-  inset:43px 0 0!important;width:100%!important;height:calc(100% - 43px)!important;max-width:100%!important;
+  inset:0!important;width:100%!important;height:100%!important;max-width:100%!important;
   border:0!important;border-radius:0!important;
 }
+/* The player supplies its own title while it occupies the Studio thumbnail. */
+#studioApp #stream .stream-screen.stream-preview-active:has(>.biglwa-persistent-stream-player)>strong{display:none!important}
 #studioApp #stream .stream-screen.stream-preview-active{
   padding:0!important;border:0!important;
   background:#151217!important;box-shadow:none!important;
