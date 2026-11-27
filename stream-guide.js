@@ -1135,6 +1135,21 @@
   if(!response.ok)throw Error('Catalog unavailable');
   return response.json();
  }
+ async function wlaMovieSearch(query,signal){
+  // Public-domain structured metadata only, not a streaming source.
+  const base='https://www.wikidata.org/w/api.php?format=json&origin=*';
+  const found=await wlaJSON(base+'&action=wbsearchentities&language=en&type=item&limit=25&search='+encodeURIComponent(query),signal);
+  if(!Array.isArray(found.search))throw Error('Movie catalog unavailable');
+  const ids=found.search.map(x=>x.id).filter(id=>/^Q\d+$/.test(id));
+  if(!ids.length)return [];
+  const data=await wlaJSON(base+'&action=wbgetentities&props=labels%7Cdescriptions%7Cclaims&languages=en&ids='+encodeURIComponent(ids.join('|')),signal);
+  if(!data.entities)throw Error('Movie catalog unavailable');
+  const filmTypes=new Set(['Q11424','Q24869','Q506240','Q202866','Q24862','Q226730']);
+  return ids.map(id=>data.entities[id]).filter(e=>e?.labels?.en?.value&&(e.claims?.P4947?.length||e.claims?.P31?.some(c=>filmTypes.has(c.mainsnak?.datavalue?.value?.id)))).map(e=>({
+   kind:'movie',title:e.labels.en.value,year:String(e.claims?.P577?.[0]?.mainsnak?.datavalue?.value?.time||'').match(/^\+(\d{4})-/)?.[1]||'',
+   description:e.descriptions?.en?.value||'',source:'https://www.wikidata.org/wiki/'+e.id,sourceLabel:'Wikidata film information'
+  }));
+ }
  function mountWla(copy,detail){
   state.followGuide=false;
   if(state.selected||!mediaPortal?.querySelector('.wla-cinema-standby')){
@@ -1146,7 +1161,7 @@
   copy.querySelector('p').textContent='Find a title, choose a season or episode, and watch when an authorized source is available.';
   const picker=copy.querySelector('#streamDiscoveryPicker');
   picker.innerHTML='<form class="wla-title-search"><label for="wlaTitleQuery">Find a movie or series</label><div><input id="wlaTitleQuery" name="q" type="search" maxlength="180" required placeholder="Title, movie or show…"><button type="submit">Find</button></div></form><nav class="wla-browse" aria-label="Filter catalog"><button type="button" data-wla-filter="all" aria-pressed="true">All</button><button type="button" data-wla-filter="movie" aria-pressed="false">Movies</button><button type="button" data-wla-filter="series" aria-pressed="false">Series</button><button type="button" data-wla-filter="film" aria-pressed="false">Watch here</button></nav>';
-  detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">WLA / CINEMA</span><h3>choose your screen</h3></div></div><p class="wla-status" role="status" aria-live="polite"></p><div class="wla-results"></div><div class="wla-selection" hidden></div><small class="wla-attribution">Series data: <a href="https://www.tvmaze.com/api" target="_blank" rel="noopener noreferrer">TVmaze</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. Movie listings: Apple iTunes Search. Title listings do not imply streaming availability.</small>';
+  detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">WLA / CINEMA</span><h3>choose your screen</h3></div></div><p class="wla-status" role="status" aria-live="polite"></p><div class="wla-results"></div><div class="wla-selection" hidden></div><small class="wla-attribution">Series data: <a href="https://www.tvmaze.com/api" target="_blank" rel="noopener noreferrer">TVmaze</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. Movie metadata: <a href="https://www.wikidata.org/" target="_blank" rel="noopener noreferrer">Wikidata (CC0)</a>. Title listings do not imply streaming availability.</small>';
   const form=picker.querySelector('form'),input=form.querySelector('input'),status=detail.querySelector('.wla-status'),results=detail.querySelector('.wla-results'),selection=detail.querySelector('.wla-selection');
   let rows=wlaOpenFilms.slice(),filter='all',searchVersion=0,pickVersion=0,controller=null;
   const alive=()=>detail.contains(results)&&state.category==='lwa-tv'&&state.tvSection==='wla';
@@ -1179,7 +1194,7 @@
      Promise.resolve(video.play()).catch(()=>{});
     });selection.append(play);
    }else selection.append(node('p','Full playback is not available in WLA for this title. Choose an original provider if available.'));
-   const source=link(item.kind==='series'?'TVmaze title information':item.kind==='film'?'Original film and rights information':'Apple title listing',item.source);if(source)selection.append(source);
+   const source=link(item.kind==='series'?'TVmaze title information':item.kind==='film'?'Original film and rights information':(item.sourceLabel||'Movie information'),item.source);if(source)selection.append(source);
    const official=link('Official show website',item.official);if(official)selection.append(official);
    if(item.kind!=='series')return;
    const episodeBox=node('div','','wla-episode-box');episodeBox.append(node('p','Loading seasons…'));selection.append(episodeBox);
@@ -1206,12 +1221,12 @@
    const requestController=controller;const timer=setTimeout(()=>requestController.abort(),10000);
    const [tv,movies]=await Promise.allSettled([
     wlaJSON('https://api.tvmaze.com/search/shows?q='+q,controller.signal),
-    wlaJSON('https://itunes.apple.com/search?media=movie&entity=movie&country=US&limit=24&term='+q,controller.signal)
+    wlaMovieSearch(query,controller.signal)
    ]);clearTimeout(timer);
    if(!alive()||version!==searchVersion)return;
    const local=wlaOpenFilms.filter(item=>item.title.toLowerCase().includes(query.toLowerCase()));
    const shows=tv.status==='fulfilled'&&Array.isArray(tv.value)?tv.value.slice(0,24).map(({show:s})=>({kind:'series',id:s.id,title:s.name,year:String(s.premiered||'').slice(0,4),description:wlaText(s.summary),image:wlaHttps(s.image?.medium),source:s.url,official:s.officialSite})):[];
-   const films=movies.status==='fulfilled'&&Array.isArray(movies.value?.results)?movies.value.results.filter(m=>m.trackName&&m.kind==='feature-movie').map(m=>({kind:'movie',title:m.trackName,year:String(m.releaseDate||'').slice(0,4),description:m.longDescription||m.shortDescription,source:m.trackViewUrl})):[];
+   const films=movies.status==='fulfilled'&&Array.isArray(movies.value)?movies.value:[];
    rows=[...local,...shows,...films];
    const missing=[tv.status==='rejected'?'Series':null,movies.status==='rejected'?'Movies':null].filter(Boolean);
    status.textContent=rows.length+' title matches'+(missing.length?' · '+missing.join(' and ')+' catalog temporarily unavailable.':'');
