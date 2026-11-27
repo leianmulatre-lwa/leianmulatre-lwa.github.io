@@ -47,8 +47,11 @@ class SmtpSession {
   async command(line, expected) {
     await this.writer.write(encoder.encode(line + CRLF));
     const response = await this.readResponse();
-    if (!expected.includes(response.code))
-      throw new Error("SMTP command was refused (" + response.code + ").");
+    if (!expected.includes(response.code)) {
+      const verb = line.split(" ", 1)[0];
+      const detail = response.text.replace(/[\r\n]+/g, " ").slice(0, 180);
+      throw new Error("SMTP command " + verb + " was refused (" + response.code + "): " + detail + ".");
+    }
     return response;
   }
 
