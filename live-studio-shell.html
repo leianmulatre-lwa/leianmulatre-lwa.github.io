@@ -93,7 +93,7 @@
     }
     html=html.replace('</head>',startupSafety+'</head>');
     html=html.replace(/<meta\s+name=["']viewport["'][^>]*>/i,'<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">');
-    html=html.replace('</head>','<link rel="manifest" href="/biglwa.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="stylesheet" href="/biglwa-pwa.css?v=5"></head>');
+    html=html.replace('</head>','<link rel="manifest" href="/biglwa.webmanifest"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"></head>');
     html=html.replace('</body>','<scr'+'ipt defer src="/biglwa-pwa.js?v=5"></scr'+'ipt></body>');
     // Install privacy UI in the rewritten document, never in the temporary loading wrapper.
     html=html.replace('</head>','<link rel="stylesheet" href="/privacy-consent-20261123.css?v=2"><link rel="stylesheet" href="/ads-sponsor-20261123.css?v=1"></head>');
