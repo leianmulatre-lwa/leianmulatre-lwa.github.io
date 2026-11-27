@@ -17,7 +17,8 @@ test('Stream JS is valid and music is a fifth tab but not a fake programmed stat
  assert.match(guide,/if\(grid\)grid\.hidden=false/);
  assert.match(guide,/stream-music-other-channels/);
  assert.match(guide,/data-stream-open-tunes/);
- const setup=guide.slice(guide.indexOf('function musicSetupMarkup(){'),guide.indexOf('function renderCategory(){'));
+ const setup=guide.slice(guide.indexOf('function musicSetupMarkup(){'),guide.indexOf('const wlaOpenFilms='));
+ assert(setup.includes('stream-music-provider-grid'));
  assert.doesNotMatch(setup,/fetch\(|XMLHttpRequest|client_secret|access_token/);
  const win={};
  vm.runInNewContext(guide,{window:win,console,URL,Date,document:{readyState:'loading',addEventListener(){}},setTimeout(){}});
