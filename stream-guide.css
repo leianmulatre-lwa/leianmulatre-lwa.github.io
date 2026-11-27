@@ -1024,3 +1024,19 @@ body.dark-mode #studioApp .biglwa-stream .stream-music-other-channels>p{
 .biglwa-stream .wla-source{display:grid;gap:8px;min-width:0;padding:12px;border:1px solid currentColor;border-radius:6px;color:inherit;text-decoration:none;background:rgba(120,65,80,.08)}
 .biglwa-stream .wla-source span{font:650 11px system-ui;text-decoration:underline}
 .biglwa-stream .wla-source:focus-visible,.biglwa-stream .wla-source:hover{outline:2px solid currentColor;outline-offset:2px}
+
+/* WLA uses the supplied skull-and-crossed-swords artwork as a theme-aware mask. */
+#studioApp .biglwa-stream .stream-tv-modes{
+ display:flex!important;flex-flow:row wrap!important;align-items:center!important;
+ justify-content:flex-end!important;gap:5px!important;max-width:100%!important;
+}
+#studioApp .biglwa-stream .stream-tv-modes>[data-tv-section="wla"]{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:6px!important;
+ flex:0 0 auto!important;white-space:nowrap!important;visibility:visible!important;opacity:1!important;
+}
+.biglwa-stream .wla-skull-mask{
+ display:inline-block;flex:none;width:1.4em;height:1.3em;background:currentColor;
+ -webkit-mask:url('/assets/wla-skull-mask.png') center/contain no-repeat;
+ mask:url('/assets/wla-skull-mask.png') center/contain no-repeat;
+}
+.biglwa-stream .wla-cinema-standby>.wla-skull-mask{width:clamp(70px,24%,170px);height:clamp(62px,22%,150px);background:#f3e7da;}

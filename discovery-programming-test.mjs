@@ -80,6 +80,15 @@ test('Stream joins catalogs, opens News, searches a creator and keeps radio manu
  w.document.querySelector('[data-stream-tab="lwa-tv"]').click();
  w.document.querySelector('[data-tv-section="news"]').click();
  assert.equal(w.document.querySelector('#streamCategoryCopy h2').textContent,'lwa news');
+ const wla=w.document.querySelector('[data-tv-section="wla"]');
+ assert(wla?.querySelector('.wla-skull-mask'),'WLA tab and its skull are rendered next to News');
+ assert.equal(wla.previousElementSibling.dataset.tvSection,'news');
+ wla.click();
+ assert.equal(w.document.querySelector('#streamCategoryCopy h2').textContent,'wla');
+ assert(w.document.querySelector('.wla-cinema-standby .wla-skull-mask'));
+ assert(w.document.querySelector('.stream-guide').hidden);
+ w.document.querySelector('[data-tv-section="news"]').click();
+ assert(!w.document.querySelector('.stream-guide').hidden);
  const bernie=w.BigLWADiscoveryCatalog.data.videos.find(v=>v.creator==='Bernie Sanders');
  assert(w.BigLWAStreamGuide.playlist.find(p=>p.category==='lwa-tv').slots.some(p=>p.id===bernie.id));
  w.document.querySelector('#streamProgramQuery').value='CoryxKenshin';w.document.querySelector('.stream-program-search').dispatchEvent(new w.Event('submit',{bubbles:true,cancelable:true}));

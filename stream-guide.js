@@ -1128,7 +1128,7 @@
   state.followGuide=false;
   if(state.selected||!mediaPortal?.querySelector('.wla-cinema-standby')){
    setPlaying(false);state.selected=null;
-   ensureMediaPortal().innerHTML='<div class="stream-screen wla-cinema-standby"><span class="stream-monitor-kicker">CH 02 / WLA</span><div class="wla-cinema-emblem" aria-hidden="true">☠</div><strong>wla</strong><small>cinema · on demand</small><span class="stream-screen-bottom">BIG LWA · ORIGINAL VIEWING SOURCES</span></div>';
+   ensureMediaPortal().innerHTML='<div class="stream-screen wla-cinema-standby"><span class="stream-monitor-kicker">CH 02 / WLA</span><div class="wla-cinema-emblem wla-skull-mask" aria-hidden="true"></div><strong>wla</strong><small>cinema · on demand</small><span class="stream-screen-bottom">BIG LWA · ORIGINAL VIEWING SOURCES</span></div>';
   }
   copy.querySelector('h2').textContent='wla';
   copy.querySelector('.stream-eyebrow').textContent='CH 02 / THE CINEMA';
@@ -1161,7 +1161,7 @@
   copy.innerHTML=((state.category==='podcast'||state.category==='music')?'<nav class="stream-radio-modes" aria-label="Radio listening"><button type="button" data-radio-section="podcast" aria-pressed="'+(state.category==='podcast'&&state.radioSection==='podcast')+'">Podcasts</button><button type="button" data-radio-section="music" aria-pressed="'+(state.category==='music'||state.radioSection==='music')+'">Music</button></nav>':'')+'<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p>'+
    '<div id="streamDiscoveryPicker" class="stream-discovery-picker" aria-label="Daily Discovery playable choices"></div>';
   if(state.category==='podcast'&&state.radioSection==='podcast'){copy.querySelector('h2').textContent='podcasts';copy.querySelector('p').textContent='Conversations, stories and episodes from their original creators.';copy.querySelector('.stream-eyebrow').textContent='LWA RADIO / PODCASTS';}
-  if(state.category==='lwa-tv'){const modes=document.createElement('nav');modes.className='stream-radio-modes';modes.setAttribute('aria-label','TV programming');modes.innerHTML=['entertainment','news','wla'].map(id=>'<button type="button" data-tv-section="'+id+'" aria-pressed="'+(state.tvSection===id)+'">'+(id==='wla'?'WLA':id==='news'?'News':'Entertainment')+'</button>').join('');copy.prepend(modes);if(state.tvSection==='news')copy.querySelector('h2').textContent='lwa news';}
+  if(state.category==='lwa-tv'){const modes=document.createElement('nav');modes.className='stream-radio-modes stream-tv-modes';modes.setAttribute('aria-label','TV programming');modes.innerHTML=['entertainment','news','wla'].map(id=>'<button type="button" data-tv-section="'+id+'" aria-pressed="'+(state.tvSection===id)+'">'+(id==='wla'?'<span class="wla-skull-mask" aria-hidden="true"></span><span>WLA</span>':id==='news'?'News':'Entertainment')+'</button>').join('');copy.prepend(modes);if(state.tvSection==='news')copy.querySelector('h2').textContent='lwa news';}
   if(state.category==='lwa-tv'&&state.tvSection==='wla'){mountWla(copy,detail);return;}
   mountStreamSearch(copy);
   if(state.category==='sqwibz')sqRight(sqCurrent(),null);

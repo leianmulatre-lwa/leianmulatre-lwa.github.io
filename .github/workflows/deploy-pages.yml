@@ -186,6 +186,7 @@ jobs:
           node --check stream-guide.js
           node --test stream-music-ch05-20261115.test.mjs
           node --test stream-radio-sections-20261115.test.mjs
+          node --test stream-wla-cinema-20261126.test.mjs
           node --check stream-radio-world-20261115.js
           node --test stream-radio-world-20261115.test.mjs
           node --test studio-booth-hair-map-room-stream-test.mjs

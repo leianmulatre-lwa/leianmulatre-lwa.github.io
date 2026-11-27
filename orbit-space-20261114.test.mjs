@@ -27,23 +27,25 @@ test('scope keeps the original planet grid, connect buttons and dark cosmic page
  assert.match(read('orbit-cards-unified-20261016.css'),/height:140px!important/);
 });
 
+function fakeStyle(){const properties=new Map();return {setProperty(k,v){properties.set(k,v)},removeProperty(k){properties.delete(k)},getPropertyValue(k){return properties.get(k)||''}}}
 function fakeTarget(){
- const attached=[],events={},children=[];
+ const attached=[],events={},children=[],portals=[];
  const rect={width:460,height:310,left:50,right:510,top:120,bottom:430};
  const ctx={setTransform(){},clearRect(){},beginPath(){},moveTo(){},lineTo(){},stroke(){},fill(){},arc(){}};
  return {
-  isConnected:true,events,children,dataset:{moduleKey:'orbit'},hidden:false,
+  isConnected:true,events,children,portals,style:fakeStyle(),dataset:{moduleKey:'orbit'},hidden:false,
   getBoundingClientRect:()=>rect,setRect:patch=>Object.assign(rect,patch),
   getClientRects:()=>[{}],
   addEventListener:(key,cb)=>{events[key]=cb},
   insertBefore:(child)=>{attached.push(child);children.unshift(child)},
+  append(child){child.parentElement=this;portals.push(child);children.push(child)},
   get attached(){return attached}
  };
 }
 function harness(reducedMotion){
  const widget=fakeTarget(),page=fakeTarget(),scheduled=[];
  const doc={
-  readyState:'complete',hidden:false,documentElement:{},
+  readyState:'complete',hidden:false,documentElement:{addEventListener(){}},
   querySelector:q=>q.includes('moduleWorkspace')?(q.includes('data-module-key')&&page.dataset.moduleKey!=='orbit'?null:page):q.includes('#orbit')?widget:null,
   addEventListener(){}
  };
@@ -62,7 +64,7 @@ function harness(reducedMotion){
     setAttribute(k,v){this[k]=v},getContext:()=>ctx
   };
  };
- doc.createElement=tag=>{assert.equal(tag,'canvas');return fakeCanvas()};
+ doc.createElement=tag=>{if(tag==='div')return {style:fakeStyle(),setAttribute(k,v){this[k]=v},remove(){this.parentElement=null}};assert.equal(tag,'canvas');return fakeCanvas()};
  const sandbox={
   document:doc,window:win,
   MutationObserver:class{observe(){}},
@@ -261,4 +263,17 @@ test('Orbit uses actual viewport geometry and wakes when scrolled back',()=>{
  const before=env.widget.attached[0].ctx.calls.length;
  env.scheduled.shift()(170);
  assert(env.widget.attached[0].ctx.calls.length>before);
+});
+
+test('Orbit portal is a separate square tile layer with a fading pointer opening',()=>{
+ const env=harness(false);env.scheduled.shift()(10);
+ const portal=env.widget.portals[0];
+ assert.equal(portal.className,'orbit-portal-tiles');
+ assert.equal(portal.style.getPropertyValue('--orbit-tile'),'115px');
+ env.widget.events.pointermove({pointerType:'mouse',clientX:400,clientY:145});
+ env.scheduled.shift()(60);
+ assert.match(portal.style.getPropertyValue('mask-image'),/radial-gradient/);
+ env.widget.events.pointerleave();
+ env.scheduled.shift()(950);
+ assert.equal(portal.style.getPropertyValue('mask-image'),'');
 });

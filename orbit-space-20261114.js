@@ -376,5 +376,5 @@
  window.addEventListener('resize',scheduleAura,{passive:true});
  document.addEventListener('visibilitychange',()=>{if(document.hidden){stopCursor();if(auraFrame)cancelAnimationFrame(auraFrame);auraFrame=0}else wakeAura()});
  reduced?.addEventListener?.('change',()=>{if(reduced.matches){if(auraFrame)cancelAnimationFrame(auraFrame);auraFrame=0}else wakeAura()});
- scheduleAura();
+ if(document.querySelector('#studioApp .aura-card #auraOrb'))scheduleAura();
 })();
