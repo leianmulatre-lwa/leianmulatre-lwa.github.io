@@ -21,7 +21,7 @@ assert.match(feed,/const caption = String\(data\.get\("caption"\) \|\| ""\)\.tri
 assert.match(feed,/createFeedDraft\(\{ url, blob: file \|\| null, caption \}\)/);
 assert.match(publisher,/async function createFeedDraft\(\{url,blob,caption\}=\{\}\)/);
 assert.ok(publisher.includes('caption:clean(caption).slice(0,500)'));
-assert.ok(feed.includes('biglwa-lightbox-caption')&&feed.includes('esc(String(post.caption).slice(0,500))'));
+assert.ok(feed.includes('biglwa-lightbox-caption')&&feed.includes('esc(caption.slice(0,500))'));
 assert.ok(feed.includes("esc(String(post.caption||'Collective feed media').slice(0,160))"));
 assert.ok(/module-pages\.js\?v=[\w.-]+/.test(html));
 assert.ok(html.includes('orbit-feed.js?v=20261015-mixed-source-6'));
