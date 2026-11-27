@@ -3,6 +3,7 @@ import {readFileSync,existsSync} from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import test from 'node:test';
+import { Script } from 'node:vm';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const config=readFileSync(path.join(root,'wrangler.toml'),'utf8');
@@ -88,6 +89,46 @@ test('public account saves pass Worker env into ownership verification',()=>{
  assert.match(worker,/accountSyncValidate\(entry,\s*uid,\s*env,\s*currentUserRow\)/);
  assert.doesNotMatch(worker,/accountSyncValidate\(entry,\s*uid,\s*currentUserRow\)/);
  assert.match(worker,/await accountSyncVerifyPublic\(env,\s*uid,\s*match\[1\],\s*currentUserRow\)/);
+});
+
+test('link preview blocks private hosts and revalidates every redirect target',()=>{
+ const start=worker.indexOf('function mediaBlockedHost(');
+ const end=worker.indexOf('async function mediaLinkPreview(');
+ assert.ok(start>-1&&end>start,'link preview host guard is installed');
+ const helper=new Function('mediaFail',worker.slice(start,end)+'; return mediaBlockedHost;')(()=>{throw Error('blocked')});
+ for(const host of ['127.0.0.1','10.1.2.3','192.168.1.1','169.254.169.254','0.0.0.0',
+   '100.64.0.1','172.16.0.1','172.31.255.255','localhost','api.localhost','x.local',
+   '2130706433','0x7f000001','[::1]','[::ffff:127.0.0.1]','[fc00::1]','[fe80::1]']){
+   assert.equal(helper(host),true,host+' must never be previewed');
+ }
+ for(const host of ['biglwa.com','api.biglwa.com','example.com','[2606:4700::1111]']){
+   assert.equal(helper(host),false,host+' is a public destination');
+ }
+ const preview=worker.slice(end,worker.indexOf('// Profile music lives'));
+ assert.match(preview,/redirect: 'manual'/);
+ assert.doesNotMatch(preview,/redirect: 'follow'/);
+ assert.match(preview,/for \(let hop = 0; hop < 5; hop\+\+\)/,'redirect chains are capped');
+});
+
+test('account sync snapshots are verified, never fabricated on duplicate saves',()=>{
+ assert.match(worker,/function accountSyncSnapshotKey\(uid, scope, path\)/);
+ assert.match(worker,/snapshot = await accountSyncSnapshotExists\(env, uid, validated\.scope, validated\.path\)/);
+ assert.doesNotMatch(worker,/snapshot: true, duplicate: true/);
+ assert.match(worker,/await accountSyncEnsureSnapshot\(env, db, row\)/,
+   'a queued mirror cannot finish without its R2 snapshot');
+});
+
+test('every browser-accepted private storage key is allowed by Worker sync',()=>{
+ const sandbox={window:{},TextEncoder};
+ new Script(read('account-storage-policy.js')).runInNewContext(sandbox);
+ const policy=sandbox.window.BigLWAStoragePolicy;
+ assert.ok(policy,'storage policy publishes its allowlist');
+ const match=worker.match(/const ACCOUNT_SYNC_STUDIO_KEYS = new Set\(\[([\s\S]*?)\]\);/);
+ assert.ok(match,'Worker publishes its studio key allowlist');
+ const workerKeys=new Set([...match[1].matchAll(/'([^']+)'/g)].map(item=>item[1]));
+ for(const key of [...policy.keys,...policy.prefixes.map(prefix=>prefix.slice(0,-1))]){
+   assert(workerKeys.has(key),key+' must survive account sync');
+ }
 });
 
 test('changed runtime files are cache-busted in every shell and self-loader',()=>{
