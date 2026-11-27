@@ -83,6 +83,13 @@ test('legacy Facebook Business state is UID-bound and Archive uses personal OAut
   assert.doesNotMatch(pages,/facebook:window\.__biglwaFacebookOrbit/);
 });
 
+test('public account saves pass Worker env into ownership verification',()=>{
+ assert.match(worker,/async function accountSyncValidate\(entry,\s*uid,\s*env,\s*currentUserRow\)/);
+ assert.match(worker,/accountSyncValidate\(entry,\s*uid,\s*env,\s*currentUserRow\)/);
+ assert.doesNotMatch(worker,/accountSyncValidate\(entry,\s*uid,\s*currentUserRow\)/);
+ assert.match(worker,/await accountSyncVerifyPublic\(env,\s*uid,\s*match\[1\],\s*currentUserRow\)/);
+});
+
 test('changed runtime files are cache-busted in every shell and self-loader',()=>{
   const key='orbitex=20261127-1';
   const hasKey=(source,name,label)=>{
