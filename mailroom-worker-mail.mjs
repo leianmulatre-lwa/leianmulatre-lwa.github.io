@@ -11,6 +11,7 @@ const SINGLE_LINE = Object.freeze([
 const FIELDS = Object.freeze(Object.keys(MAILROOM_FIELD_LIMITS));
 const CRLF = "\r\n";
 const ALLOWED_PORTS = new Set([465, 587]);
+const APPROVED_SMTP_SENDERS = new Set(["leian@biglwa.com", "lwazi@biglwa.com"]);
 const SENDER_NAME = "L’wazi 🤎 | Big LWA";
 const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
 const encoder = new TextEncoder();
@@ -64,13 +65,13 @@ export function mailSmtpConfig(env = {}) {
   // Remove those before validating; they are never part of a Titan credential.
   const user = String(env.MAILROOM_SMTP_USER || "").replace(/[\r\n]/g, "").trim();
   const pass = String(env.MAILROOM_SMTP_PASSWORD || "").replace(/[\r\n]/g, "").trim();
-  const from = String(env.MAILROOM_FROM || "lwazi@biglwa.com").trim().toLowerCase();
+  const from = String(env.MAILROOM_FROM || "leian@biglwa.com").trim().toLowerCase();
   if (!/^[a-z0-9.-]+$/i.test(host)) throw new Error("Invalid SMTP host.");
   if (!ALLOWED_PORTS.has(port)) throw new Error("Invalid SMTP port.");
   if (!user) throw new Error("SMTP username is missing.");
   if (!pass) throw new Error("SMTP password is missing.");
   if (/\0/.test(user + pass)) throw new Error("SMTP credentials contain an unsupported control character.");
-  if (from !== "lwazi@biglwa.com" || /[\r\n\0]/.test(from)) throw new Error("Invalid SMTP sender.");
+  if (!APPROVED_SMTP_SENDERS.has(from) || /[\r\n\0]/.test(from)) throw new Error("Invalid SMTP sender.");
   return { host, port, user, pass, from };
 }
 
