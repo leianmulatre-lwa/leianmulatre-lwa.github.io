@@ -9,6 +9,11 @@ test('WLA on-demand shelf does not schedule or auto-tune TV',()=>{
  assert.match(js,/mountWla\(copy,detail\);return/);
  const wla=js.slice(js.indexOf('function mountWla('),js.indexOf('function renderCategory('));
  assert.doesNotMatch(wla,/<iframe|<script|cinejoy/i);
- assert.match(wla,/https:\/\/www\.justwatch\.com\/us\/search/);
- for(const file of ['index.html','studio/index.html','404.html','live-studio-shell.html'])assert.equal((read(file).match(/&wla=20261126-2/g)||[]).length,2);
+ assert.doesNotMatch(wla,/justwatch\.com|target="_blank".*method="get"/);
+ assert.match(wla,/event\.preventDefault\(\)/);
+ assert.match(wla,/api\.tvmaze\.com\/search\/shows/);
+ assert.match(wla,/itunes\.apple\.com\/search/);
+ assert.match(wla,/api\.tvmaze\.com\/shows\//);
+ assert.match(wla,/video\.controls=true/);
+ for(const file of ['index.html','studio/index.html','404.html','live-studio-shell.html'])assert.equal((read(file).match(/&wla=20261127-3/g)||[]).length,2);
 });
