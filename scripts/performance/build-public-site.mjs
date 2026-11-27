@@ -51,6 +51,7 @@ const essential=['index.html','studio/index.html','404.html','CNAME','robots.txt
  'legal/index.html','about/index.html','privacy/index.html','terms/index.html',
  'rights/index.html','affidavit/index.html','map-app.html',
  'assets/studio-defaults/map-bikini-bottom-fallback.webp',
+ 'assets/orbit/better-aether-portal.gif','assets/orbit/841666uly00b1(2).gif',
  // Never ship the Games rotator without its original image collection.
  'games bg/098fd5e1084e9f1d04223dcaa42387b9.jpg',
  'games bg/3unsgny5oup81.jpg',

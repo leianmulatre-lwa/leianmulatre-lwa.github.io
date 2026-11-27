@@ -388,19 +388,18 @@ body.night-mode #studioApp :is(#orbit,#moduleWorkspace[data-module-key="orbit"])
  position:absolute!important;inset:0!important;z-index:4!important;
  width:100%!important;height:100%!important;pointer-events:none!important;
  border-radius:inherit;overflow:hidden;image-rendering:pixelated;
- background-image:var(--orbit-block,url("/assets/orbit/better-aether-portal.gif"))!important;
+ background-image:var(--orbit-block,url("/assets/orbit/better-aether-portal.gif?v=20261127-9"))!important;
  background-size:var(--orbit-tile,96px) var(--orbit-tile,96px)!important;
  background-repeat:repeat!important;background-position:0 0;
  opacity:1;mask-composite:intersect;-webkit-mask-composite:source-in;
 }
 body.night-mode #studioApp #orbit>.orbit-portal-tiles{
- background-image:var(--orbit-block,url("/assets/orbit/841666uly00b1%282%29.gif"))!important;
- animation:biglwa-nether-tile-drift 3s linear infinite;
+ background-image:var(--orbit-block,url("/assets/orbit/841666uly00b1%282%29.gif?v=20261127-9"))!important;
+ animation:none!important; /* native GIF frames, not movement of a static PNG */
 }
-@keyframes biglwa-nether-tile-drift{to{background-position:var(--orbit-tile,96px) var(--orbit-tile,96px)}}
 #studioApp #orbit[data-orbit-space-mounted]>:not(#orbitGrid):not(.orbit-space-canvas):not(.orbit-portal-tiles){z-index:5!important}
 #studioApp #orbit[data-orbit-space-mounted]>#orbitGrid:focus-within{z-index:6!important}
-@media(hover:none){#studioApp #orbit>.orbit-portal-tiles{opacity:.40}}
+@media(hover:none){#studioApp #orbit>.orbit-portal-tiles{opacity:.75}}
 @media(prefers-reduced-motion:reduce){#studioApp #orbit>.orbit-portal-tiles{display:none!important}}
 /* Aura's existing face bounces with independent bounds on each axis. */
 #studioApp#studioApp#studioApp#studioApp .aura-card.biglwa-aura-dvd:not(:popover-open){
@@ -419,3 +418,18 @@ body.night-mode #studioApp #orbit>.orbit-portal-tiles{
 .biglwa-aura-pointer[hidden]{display:none!important}
 html.biglwa-aura-cursor,html.biglwa-aura-cursor *{cursor:none!important}
 @media(prefers-reduced-motion:reduce){#studioApp#studioApp#studioApp#studioApp .aura-card.biglwa-aura-dvd #auraOrb{transform:none!important}}
+
+/* The same tiled artwork stays visible while Studio is mounting the script.
+   Once the live layer mounts, its pointer trail handles the reveal. */
+@media(prefers-reduced-motion:no-preference){
+ #studioApp #orbit:not([data-orbit-space-mounted])::before{
+  z-index:4!important;animation:none!important;opacity:1!important;transform:none!important;
+  background-image:var(--orbit-block,url("/assets/orbit/better-aether-portal.gif?v=20261127-9"))!important;
+  background-repeat:repeat!important;background-size:25% auto!important;background-position:0 0!important;
+  image-rendering:pixelated;
+ }
+ body.night-mode #studioApp #orbit:not([data-orbit-space-mounted])::before{
+  background-image:var(--orbit-block,url("/assets/orbit/841666uly00b1%282%29.gif?v=20261127-9"))!important;
+ }
+ @media(hover:none){#studioApp #orbit:not([data-orbit-space-mounted])::before{opacity:.75!important}}
+}

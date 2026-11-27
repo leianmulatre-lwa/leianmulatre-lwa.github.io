@@ -304,7 +304,7 @@
  // Wake on scrolling back to the card after a long idle; don't permanently
  // stop the renderer after an inaccurate offscreen/hidden observer callback.
  window.addEventListener('scroll',wake,{passive:true,capture:true});
- window.BigLWAOrbitSpace=Object.freeze({version:'20261126-portal-tiles-7',refresh:schedule,detachPage});
+ window.BigLWAOrbitSpace=Object.freeze({version:'20261127-portal-tiles-9',refresh:schedule,detachPage});
  // Aura: DVD-style motion within the actual card, not the viewport. Use the
  // existing orb and its live theme color; no replacement widget or data writes.
  let aura=null,auraCard=null,auraFrame=0,auraLast=0,ax=0,ay=0,vx=66,vy=48,cursor=null,cursorMode=false;
