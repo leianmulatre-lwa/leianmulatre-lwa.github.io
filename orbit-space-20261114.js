@@ -28,7 +28,7 @@
   const w=Math.max(0,Math.round(rect.width)),h=Math.max(0,Math.round(rect.height));
   if(w<35||h<35||w===layer.width&&h===layer.height)return;
   layer.width=w;layer.height=h;
-  if(layer.portal)layer.portal.style.setProperty('--orbit-tile',Math.max(1,Math.ceil(w/4))+'px');
+  if(layer.portal)layer.portal.style.setProperty('--orbit-tile',Math.max(1,Math.ceil(w/2))+'px');
   // Avoid enormous backing stores on high-DPI phones or tall pages.
   const dpi=Math.min(window.devicePixelRatio||1,1.4,1600/Math.max(w,h));
   layer.canvas.width=Math.max(1,Math.round(w*dpi));
@@ -166,6 +166,37 @@
    layer.portalMask=mask;
   }
  }
+ // A single decorative foreground sphere borrows the real app planet's
+ // artwork and position. The original grid remains intact for mouse,
+ // keyboard and account actions; the copy never intercepts input.
+ function paintForeground(layer,time){
+  if(layer.kind!=='widget'||reduced?.matches)return;
+  const glyphs=Array.from(layer.target.querySelectorAll?.('#orbitGrid>button[data-orbit-app]>.orbit-glyph')||[]);
+  if(!glyphs.length){layer.foreground?.remove();layer.foreground=null;layer.foregroundSource=null;return}
+  if(!layer.foreground||layer.foreground.parentElement!==layer.target){
+   const sphere=document.createElement('span');sphere.className='orbit-foreground-planet';sphere.setAttribute('aria-hidden','true');
+   layer.target.append(sphere);layer.foreground=sphere;layer.foregroundSource=null;
+  }
+  const sphere=layer.foreground;
+  // Alternate between the upper and lower rows before returning to neighbors.
+  const order=[0,5,2,7,1,6,3,4].filter(i=>i<glyphs.length);
+  for(let i=0;i<glyphs.length;i++)if(!order.includes(i))order.push(i);
+  if(layer.foregroundStart===undefined)layer.foregroundStart=time;
+  const elapsed=Math.max(0,time-layer.foregroundStart),slot=Math.floor(elapsed/4800),phase=elapsed%4800;
+  const source=glyphs[order[slot%order.length]];
+  if(layer.foregroundSource!==source||layer.foregroundSlot!==slot){
+   const style=getComputedStyle(source);
+   for(const prop of ['background','border','box-shadow','color','font','letter-spacing','text-shadow','-webkit-text-fill-color'])sphere.style.setProperty(prop,style.getPropertyValue(prop));
+   sphere.textContent=source.textContent;layer.foregroundSource=source;layer.foregroundSlot=slot;
+  }
+  const rect=source.getBoundingClientRect(),card=layer.target.getBoundingClientRect();
+  const opacity=phase<1000?phase/1000:phase<3000?1:phase<4300?1-(phase-3000)/1300:0;
+  const direction=slot%2===0?1:-1;
+  sphere.style.setProperty('--orbit-front-x',(rect.left-card.left+rect.width/2+direction*4*Math.sin(phase/4800*Math.PI))+'px');
+  sphere.style.setProperty('--orbit-front-y',(rect.top-card.top+rect.height/2-5*Math.sin(phase/4800*Math.PI))+'px');
+  sphere.style.setProperty('--orbit-front-size',Math.min(rect.width,rect.height)+'px');
+  sphere.style.setProperty('--orbit-front-opacity',String(Math.max(0,Math.min(1,opacity))));
+ }
  function tick(time){
   frame=0;
   if(reduced?.matches||document.hidden)return;
@@ -174,7 +205,7 @@
   last=time;let any=false;
   for(const layer of layers.values()){
    if(!active(layer))continue;
-   any=true;size(layer);paint(layer,Math.max(dt,.032));paintPortalTrail(layer,time);
+   any=true;size(layer);paint(layer,Math.max(dt,.032));paintPortalTrail(layer,time);paintForeground(layer,time);
   }
   if(any)frame=requestAnimationFrame(tick);
  }
@@ -250,7 +281,7 @@
  }
  function release(target,layer){
   visibility?.unobserve(target);resizing?.unobserve(target);
-  layer.canvas.remove?.();layer.portal?.remove();
+  layer.canvas.remove?.();layer.portal?.remove();layer.foreground?.remove();
   delete target.dataset?.orbitSpaceMounted;
   layers.delete(target);
  }
@@ -272,7 +303,7 @@
    if(!node||(kind==='page'&&node.hidden))continue;
    const layer=layers.get(node);
    if(layer){
-    if(layer.portal&&layer.portal.parentElement!==node){node.append(layer.portal);layer.portal.style.setProperty('--orbit-tile',Math.max(1,Math.ceil(layer.width/4))+'px')}
+    if(layer.portal&&layer.portal.parentElement!==node){node.append(layer.portal);layer.portal.style.setProperty('--orbit-tile',Math.max(1,Math.ceil(layer.width/2))+'px')}
     // Studio may replace an Orbit card's children without replacing the card.
     // Restore the existing bitmap instead of leaving an invisible, orphaned layer.
     if(!layer.canvas.isConnected || (layer.canvas.parentElement&&layer.canvas.parentElement!==node)){
@@ -299,14 +330,14 @@
  reduced?.addEventListener?.('change',()=>{
   if(reduced.matches){
    if(frame)cancelAnimationFrame(frame);frame=0;
-   for(const layer of layers.values())paint(layer,0);
+   for(const layer of layers.values()){paint(layer,0);layer.foreground?.remove();layer.foreground=null;layer.foregroundSource=null;layer.foregroundStart=undefined;}
   }else wake();
  });
  window.addEventListener('resize',()=>{for(const layer of layers.values())size(layer);wake()},{passive:true});
  // Wake on scrolling back to the card after a long idle; don't permanently
  // stop the renderer after an inaccurate offscreen/hidden observer callback.
  window.addEventListener('scroll',wake,{passive:true,capture:true});
- window.BigLWAOrbitSpace=Object.freeze({version:'20261127-portal-tiles-11',refresh:schedule,detachPage});
+ window.BigLWAOrbitSpace=Object.freeze({version:'20261127-portal-tiles-12',refresh:schedule,detachPage});
  // Aura: DVD-style motion within the actual card, not the viewport. Use the
  // existing orb and its live theme color; no replacement widget or data writes.
  let aura=null,auraCard=null,auraFrame=0,auraLast=0,ax=0,ay=0,vx=66,vy=48,cursor=null,cursorMode=false;

@@ -269,7 +269,7 @@ test('Orbit portal is a separate square tile layer with a fading pointer opening
  const env=harness(false);env.scheduled.shift()(10);
  const portal=env.widget.portals[0];
  assert.equal(portal.className,'orbit-portal-tiles');
- assert.equal(portal.style.getPropertyValue('--orbit-tile'),'115px');
+ assert.equal(portal.style.getPropertyValue('--orbit-tile'),'230px');
  env.widget.events.pointermove({pointerType:'mouse',clientX:400,clientY:145});
  env.scheduled.shift()(60);
  assert.match(portal.style.getPropertyValue('mask-image'),/radial-gradient/);

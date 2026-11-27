@@ -388,13 +388,13 @@ body.night-mode #studioApp :is(#orbit,#moduleWorkspace[data-module-key="orbit"])
  position:absolute!important;inset:0!important;z-index:4!important;
  width:100%!important;height:100%!important;pointer-events:none!important;
  border-radius:inherit;overflow:hidden;image-rendering:pixelated;
- background-image:var(--orbit-block,url("/assets/orbit/better-aether-portal.gif?v=20261127-11"))!important;
+ background-image:var(--orbit-block,url("/assets/orbit/better-aether-portal.gif?v=20261127-12"))!important;
  background-size:var(--orbit-tile,96px) var(--orbit-tile,96px)!important;
  background-repeat:repeat!important;background-position:0 0;
  opacity:1;mask-composite:intersect;-webkit-mask-composite:source-in;
 }
 body.night-mode #studioApp #orbit>.orbit-portal-tiles{
- background-image:var(--orbit-block,url("/assets/orbit/841666uly00b1%282%29.gif?v=20261127-11"))!important;
+ background-image:var(--orbit-block,url("/assets/orbit/841666uly00b1%282%29.gif?v=20261127-12"))!important;
  animation:none!important; /* native GIF frames, not movement of a static PNG */
 }
 #studioApp #orbit[data-orbit-space-mounted]>:not(#orbitGrid):not(.orbit-space-canvas):not(.orbit-portal-tiles){z-index:5!important}
@@ -424,12 +424,12 @@ html.biglwa-aura-cursor,html.biglwa-aura-cursor *{cursor:none!important}
 @media(prefers-reduced-motion:no-preference){
  #studioApp #orbit:not([data-orbit-space-mounted])::before{
   z-index:4!important;animation:none!important;opacity:1!important;transform:none!important;
-  background-image:var(--orbit-block,url("/assets/orbit/better-aether-portal.gif?v=20261127-11"))!important;
-  background-repeat:repeat!important;background-size:25% auto!important;background-position:0 0!important;
+  background-image:var(--orbit-block,url("/assets/orbit/better-aether-portal.gif?v=20261127-12"))!important;
+  background-repeat:repeat!important;background-size:50% auto!important;background-position:0 0!important;
   image-rendering:pixelated;
  }
  body.night-mode #studioApp #orbit:not([data-orbit-space-mounted])::before{
-  background-image:var(--orbit-block,url("/assets/orbit/841666uly00b1%282%29.gif?v=20261127-11"))!important;
+  background-image:var(--orbit-block,url("/assets/orbit/841666uly00b1%282%29.gif?v=20261127-12"))!important;
  }
  @media(hover:none){#studioApp #orbit:not([data-orbit-space-mounted])::before{opacity:.75!important}}
 }
@@ -442,11 +442,11 @@ html.biglwa-aura-cursor,html.biglwa-aura-cursor *{cursor:none!important}
  position:absolute!important;inset:0!important;margin:0!important;padding:0!important;
  width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;
  z-index:40!important;pointer-events:none!important;transform:none!important;
- background-image:url("/assets/orbit/better-aether-portal.gif?v=20261127-11")!important;
+ background-image:url("/assets/orbit/better-aether-portal.gif?v=20261127-12")!important;
  background-repeat:repeat!important;background-size:var(--orbit-tile,96px) var(--orbit-tile,96px)!important;
 }
 body.night-mode #studioApp#studioApp #orbit#orbit>.orbit-portal-tiles{
- background-image:url("/assets/orbit/841666uly00b1%282%29.gif?v=20261127-11")!important;
+ background-image:url("/assets/orbit/841666uly00b1%282%29.gif?v=20261127-12")!important;
 }
 #studioApp#studioApp #orbit#orbit #orbitGrid{position:relative!important;z-index:3!important}
 #studioApp#studioApp #orbit#orbit>:is(.card-head,.card-kicker,.orbit-note,.window-controls,.widget-window-controls,.widget-drag-handle,.sub){z-index:42!important}
@@ -455,19 +455,39 @@ body.night-mode #studioApp#studioApp #orbit#orbit>.orbit-portal-tiles{
  content:""!important;display:block!important;position:absolute!important;inset:0!important;
  z-index:40!important;opacity:1!important;visibility:visible!important;pointer-events:none!important;
  transform:none!important;animation:none!important;border-radius:inherit;
- background-image:url("/assets/orbit/better-aether-portal.gif?v=20261127-11")!important;
- background-repeat:repeat!important;background-size:25% auto!important;background-position:0 0!important;image-rendering:pixelated;
+ background-image:url("/assets/orbit/better-aether-portal.gif?v=20261127-12")!important;
+ background-repeat:repeat!important;background-size:50% auto!important;background-position:0 0!important;image-rendering:pixelated;
 }
 body.night-mode #studioApp#studioApp #orbit#orbit:not(:has(>.orbit-portal-tiles))::before{
- background-image:url("/assets/orbit/841666uly00b1%282%29.gif?v=20261127-11")!important;
+ background-image:url("/assets/orbit/841666uly00b1%282%29.gif?v=20261127-12")!important;
 }
 @media(prefers-reduced-motion:reduce){
  #studioApp#studioApp #orbit#orbit>.orbit-portal-tiles,
  #studioApp#studioApp #orbit#orbit:not(:has(>.orbit-portal-tiles))::before{
-  background-image:url("/assets/orbit/aether-portal-still.png?v=20261127-11")!important;
+  background-image:url("/assets/orbit/aether-portal-still.png?v=20261127-12")!important;
  }
  body.night-mode #studioApp#studioApp #orbit#orbit>.orbit-portal-tiles,
  body.night-mode #studioApp#studioApp #orbit#orbit:not(:has(>.orbit-portal-tiles))::before{
-  background-image:url("/assets/orbit/nether-portal-still.png?v=20261127-11")!important;
+  background-image:url("/assets/orbit/nether-portal-still.png?v=20261127-12")!important;
  }
+}
+
+/* One foreground planet at a time; the original clickable grid stays behind
+   the animated portal. Keep the actual planetary navigation above everything. */
+#studioApp#studioApp #orbit#orbit #orbitPlanetaryToggle{
+ position:relative!important;z-index:45!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+}
+#studioApp#studioApp #orbit#orbit>.orbit-foreground-planet{
+ display:grid!important;place-items:center;position:absolute!important;
+ left:var(--orbit-front-x,50%)!important;top:var(--orbit-front-y,50%)!important;
+ width:var(--orbit-front-size,48px)!important;height:var(--orbit-front-size,48px)!important;
+ min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;box-sizing:border-box;
+ border-radius:50%!important;transform:translate(-50%,-50%)!important;
+ z-index:41!important;opacity:var(--orbit-front-opacity,0)!important;
+ animation:none!important;pointer-events:none!important;user-select:none;
+}
+#studioApp#studioApp #orbit#orbit #orbitGrid:has(button:focus-visible){z-index:43!important}
+#studioApp#studioApp #orbit#orbit:has(#orbitGrid button:focus-visible)>.orbit-foreground-planet{visibility:hidden!important}
+@media(prefers-reduced-motion:reduce){
+ #studioApp#studioApp #orbit#orbit>.orbit-foreground-planet{display:none!important}
 }
