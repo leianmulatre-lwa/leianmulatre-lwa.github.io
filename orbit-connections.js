@@ -566,25 +566,28 @@ async function clearStored(uid, id) {
    drops it, and then both copies of the session key are cleared. */
 export async function forget(id) {
   const source = SOURCES.find((s) => s.id === id);
-  if (!source) return current;
-  const session = readSession(source.sessionKey);
-  if (session) {
-    try {
-      const pinterestBody = id === "pinterest"
-        ? JSON.stringify({ firebaseIdToken: await (await firebase()).auth.currentUser?.getIdToken() })
-        : null;
-      await fetch(WORKER + "/" + id + "/disconnect", {
-        method: "POST",
-        headers: { Authorization: "Bearer " + session, ...(pinterestBody ? { "Content-Type": "application/json" } : {}) },
-        ...(pinterestBody ? { body: pinterestBody } : {})
-      });
-    } catch { /* the local copies are cleared regardless */ }
-  }
-  for (const store of [localStorage, sessionStorage]) {
-    try {
-      store.removeItem(source.sessionKey);
-      if (["pinterest","tiktok","instagram"].includes(id) && identity()?.uid) store.removeItem(source.sessionKey + ":" + identity().uid);
-    } catch { /* storage disabled */ }
+  /* Providers outside SOURCES (notably Facebook personal) manage their own
+     session keys, but their account and public records must still be removed. */
+  if (source) {
+    const session = readSession(source.sessionKey);
+    if (session) {
+      try {
+        const pinterestBody = id === "pinterest"
+          ? JSON.stringify({ firebaseIdToken: await (await firebase()).auth.currentUser?.getIdToken() })
+          : null;
+        await fetch(WORKER + "/" + id + "/disconnect", {
+          method: "POST",
+          headers: { Authorization: "Bearer " + session, ...(pinterestBody ? { "Content-Type": "application/json" } : {}) },
+          ...(pinterestBody ? { body: pinterestBody } : {})
+        });
+      } catch { /* the local copies are cleared regardless */ }
+    }
+    for (const store of [localStorage, sessionStorage]) {
+      try {
+        store.removeItem(source.sessionKey);
+        if (["pinterest","tiktok","instagram"].includes(id) && identity()?.uid) store.removeItem(source.sessionKey + ":" + identity().uid);
+      } catch { /* storage disabled */ }
+    }
   }
   const who = identity()?.uid;
   if (who) await clearStored(who, id);

@@ -134,6 +134,14 @@ assert.ok(facebook.includes('await persistAccount(user.uid,state.profile,state.n
   'Facebook restore persists the verified connection');
 assert.ok(facebook.includes("window.__biglwaConnections?.forget?.('facebook')"),
   'Facebook disconnect clears the account record');
+assert.doesNotMatch(hub, /if \(!source\) return current;/,
+  'providers outside SOURCES still clear their account record');
+assert.ok(hub.includes('if (source) {'),
+  'provider session revocation is limited to providers with a known session key');
+assert.ok(hub.includes('if (who) await clearStored(who, id);'),
+  'every provider removes its Firestore/fallback record');
+assert.ok(hub.includes('if (who) await mirrorPublic(who, current);'),
+  'every provider removes its public mirror record');
 assert.ok(facebook.includes('verifiedFromProvider:true,accountSaveFailed:!!state.accountSaveFailed'),
   'Facebook row shows when the account save is still pending');
 
@@ -144,7 +152,7 @@ for (const shell of ['index.html', 'studio/index.html', '404.html', 'live-studio
     'pinterest-orbit.js', 'account-boot.js']) {
     const match = source.match(new RegExp('/' + script.replace(/\./g, '\\.') + '\\?v=[^"\'\\s]+'));
     assert.ok(match, shell + ' serves ' + script);
-    assert.ok(match[0].includes('orbitsync=20261124-1'),
+    assert.ok(match[0].includes('orbitsync=20261127-1'),
       shell + ' serves the repaired ' + script + ' with the account-sync cache key');
     assert.ok(match[0].includes('callback=20261124-2'),
       shell + ' serves the repaired ' + script + ' with the callback-return cache key');
@@ -156,7 +164,7 @@ assert.ok(pages.includes("script.src = '/module-pages.js?v=") &&
 assert.ok(read('politc-route-guard.js').includes('callback=20261124-2'),
   'the politc route guard recognizes the freshly loaded module bundle');
 for (const source of [read('account-boot.js'), read('settings-photo.js')]) {
-  assert.ok(source.includes('./orbit-connections.js?v=') && source.includes('orbitsync=20261124-1'),
+  assert.ok(source.includes('./orbit-connections.js?v=') && source.includes('orbitsync=20261127-1'),
     'shared connection hub has a fresh cache key');
 }
 
