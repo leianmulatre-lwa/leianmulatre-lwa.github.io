@@ -2543,7 +2543,7 @@ async function facebookPersonalRoute(request,env){
  *     done INTEGER NOT NULL DEFAULT 0, last_error TEXT);
  * ----------------------------------------------------------------------- */
 const ACCOUNT_SYNC_STUDIO_KEYS = new Set([
-  'biglwaShortcutFoldersV1','biglwaLibraryCatalogV1','biglwaMapPins','biglwaMapMode','biglwaDepopPath',
+  'biglwaReadingMemoryV1','biglwaShortcutFoldersV1','biglwaLibraryCatalogV1','biglwaMapPins','biglwaMapMode','biglwaDepopPath',
   'biglwaArchiveFilters','biglwaGamesPreview','biglwaCalendarView','biglwaCalendarSelected',
   'biglwaCustomRooms','biglwaActiveRoom','biglwaPolitcNominationsV1',
   'biglwaPolitcVotingState','biglwaPolitcVotingZip','biglwaDYKIndex','biglwaDYKScore',
