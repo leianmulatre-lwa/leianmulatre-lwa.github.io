@@ -16,7 +16,7 @@ test('WLA on-demand shelf does not schedule or auto-tune TV',()=>{
  assert.match(js,/wikidata\.org\/w\/api\.php/);
  assert.match(wla,/api\.tvmaze\.com\/shows\//);
  assert.match(wla,/video\.controls=true/);
- for(const file of ['index.html','studio/index.html','404.html','live-studio-shell.html'])assert.equal((read(file).match(/&wla=20261127-7/g)||[]).length,2);
+ for(const file of ['index.html','studio/index.html','404.html','live-studio-shell.html'])assert.equal((read(file).match(/&wla=20261127-8/g)||[]).length,2);
 });
 
 test('movie metadata falls back to the original search label when the detailed record omits it',async()=>{
@@ -46,3 +46,5 @@ test('global discovery reuses WLA search and hands the selected title to Stream'
  assert.match(extras,/data-bl-wla-title/);assert.match(extras,/openWlaSearchResult\?\.\(id\)/);
  assert.match(extras,/WLA · Free here/);assert.match(extras,/Tubi · Free with ads/);
 });
+
+ test('WLA catalog is a horizontal carousel in the player-side panel',()=>{const js=read('stream-guide.js'),css=read('stream-guide.css');assert.match(js,/picker\.insertAdjacentHTML\('beforeend',[^\n]*wla-carousel/);assert.match(js,/results=picker\.querySelector\('\.wla-results'\)/);assert.match(css,/\.wla-carousel \.wla-results\{display:flex;flex-flow:row nowrap/);assert.match(js,/results\.scrollBy/);});

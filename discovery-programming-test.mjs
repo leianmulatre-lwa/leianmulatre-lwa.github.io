@@ -87,7 +87,9 @@ test('Stream joins catalogs, opens News, searches a creator and keeps radio manu
  assert.equal(w.document.querySelector('#streamCategoryCopy h2').textContent,'wla');
  assert(w.document.querySelector('.wla-cinema-standby .wla-skull-mask'));
  assert(w.document.querySelector('.stream-guide').hidden);
- assert(w.document.querySelector('.wla-source-own .wla-skull-mask'));
+ assert(w.document.querySelector('#streamCategoryCopy .wla-carousel .wla-source-own .wla-skull-mask'));
+ assert(!w.document.querySelector('#streamSectionDetail .wla-results'));
+ assert.equal(w.document.querySelectorAll('#streamCategoryCopy [data-wla-step]').length,2);
  assert(w.document.querySelector('.wla-source-tubi')?.textContent.includes('Tubi'));
  w.document.querySelector('[data-wla-filter="tubi"]').click();
  assert([...w.document.querySelectorAll('.wla-result')].every(x=>x.querySelector('.wla-source-tubi')));

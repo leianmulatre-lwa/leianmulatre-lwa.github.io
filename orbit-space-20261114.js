@@ -217,6 +217,7 @@
   if(kind==='widget'&&target.style){
    layer.trail=[];
    const portal=document.createElement('div');portal.className='orbit-portal-tiles';portal.setAttribute('aria-hidden','true');
+   portal.style.setProperty('z-index','40','important');portal.style.setProperty('pointer-events','none','important');
    target.append(portal);layer.portal=portal;
   }
   layers.set(target,layer);
@@ -224,10 +225,10 @@
    layer.hover=true;wake();
   },{passive:true});
   target.addEventListener('pointermove',event=>{
-   if(reduced?.matches)return;
+   if(reduced?.matches&&kind!=='widget')return;
    const bounds=target.getBoundingClientRect();
    if(bounds.width<1||bounds.height<1)return;
-   if(layer.trail)layer.portalPointer={x:Math.round(event.clientX-bounds.left),y:Math.round(event.clientY-bounds.top)};
+   if(layer.trail){layer.portalPointer={x:Math.round(event.clientX-bounds.left),y:Math.round(event.clientY-bounds.top)};if(reduced?.matches){const p=layer.portalPointer;layer.portal.style.setProperty('mask-image','radial-gradient(circle at '+p.x+'px '+p.y+'px,transparent 45px,#000 65px)');return}}
    const nextX=Math.max(-.5,Math.min(.5,(event.clientX-bounds.left)/bounds.width-.5));
    const nextY=Math.max(-.5,Math.min(.5,(event.clientY-bounds.top)/bounds.height-.5));
    const move=Math.hypot(nextX-layer.cursorTargetX,nextY-layer.cursorTargetY);
@@ -237,6 +238,7 @@
   },{passive:true});
   target.addEventListener('pointerleave',()=>{
    layer.portalPointer=null;
+   if(reduced?.matches&&layer.portal){layer.portal.style.removeProperty('mask-image');layer.portal.style.removeProperty('-webkit-mask-image')}
    layer.hover=false;layer.cursorTargetX=0;layer.cursorTargetY=0;layer.cursorMotion=0;
   },{passive:true});
   size(layer);
@@ -304,7 +306,7 @@
  // Wake on scrolling back to the card after a long idle; don't permanently
  // stop the renderer after an inaccurate offscreen/hidden observer callback.
  window.addEventListener('scroll',wake,{passive:true,capture:true});
- window.BigLWAOrbitSpace=Object.freeze({version:'20261127-portal-tiles-10',refresh:schedule,detachPage});
+ window.BigLWAOrbitSpace=Object.freeze({version:'20261127-portal-tiles-11',refresh:schedule,detachPage});
  // Aura: DVD-style motion within the actual card, not the viewport. Use the
  // existing orb and its live theme color; no replacement widget or data writes.
  let aura=null,auraCard=null,auraFrame=0,auraLast=0,ax=0,ay=0,vx=66,vy=48,cursor=null,cursorMode=false;

@@ -1065,3 +1065,26 @@ body.dark-mode #studioApp .biglwa-stream .stream-music-other-channels>p{
 .biglwa-stream .wla-source-info{opacity:.8}
 .biglwa-stream .wla-poster-placeholder{display:grid;place-items:center;border:1px solid currentColor;border-radius:4px;background:transparent;font:400 32px Georgia;opacity:.4}
 .biglwa-stream .wla-tubi-watch{display:inline-block;width:fit-content;padding:8px 10px;border:1px solid #7964a7;border-radius:5px;background:#f3eefc;color:#412b79!important}
+
+/* WLA's catalog lives in the right-hand panel, directly below its filters. */
+.biglwa-stream .stream-channel-copy:has(.wla-carousel){justify-content:flex-start;min-width:0;overflow:visible}
+.biglwa-stream .stream-channel-copy:has(.wla-carousel) h2{font-size:clamp(30px,3.8vw,50px)}
+.biglwa-stream .stream-channel-copy:has(.wla-carousel)>p{margin-bottom:3px}
+.biglwa-stream .stream-channel-copy .stream-discovery-picker:has(.wla-carousel){gap:7px;min-width:0}
+.biglwa-stream .wla-status{margin:0!important;font:500 11px/1.3 system-ui!important;min-height:14px}
+.biglwa-stream .wla-carousel{display:grid;grid-template-columns:20px minmax(0,1fr) 20px;align-items:center;gap:3px;min-width:0;width:100%}
+.biglwa-stream .wla-carousel .wla-results{display:flex;flex-flow:row nowrap;align-items:stretch;overflow-x:auto;overflow-y:hidden;max-height:none;min-width:0;gap:6px;padding:3px 1px 5px;scroll-snap-type:x proximity;scrollbar-width:none;overscroll-behavior-x:contain}
+.biglwa-stream .wla-carousel .wla-results::-webkit-scrollbar{display:none}
+.biglwa-stream .wla-carousel .wla-result{flex:0 0 clamp(76px,17%,108px);width:clamp(76px,17%,108px);min-width:0;max-width:none;scroll-snap-align:start;padding:4px;gap:4px;overflow:hidden}
+.biglwa-stream .wla-carousel .wla-result img,.biglwa-stream .wla-carousel .wla-poster-placeholder{width:100%;height:auto;aspect-ratio:2/3;max-height:120px;object-fit:cover}
+.biglwa-stream .wla-carousel .wla-result-label{font:600 10px/1.2 system-ui;gap:3px}
+.biglwa-stream .wla-carousel .wla-result-label>strong{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.biglwa-stream .wla-carousel .wla-result-label>small{font-size:9px}
+.biglwa-stream .wla-carousel .wla-source-tag{font-size:8px;padding:2px 3px}
+.biglwa-stream .wla-arrow{width:20px;padding:0;border:0;background:transparent;color:inherit;font:500 26px/1 system-ui;cursor:pointer}
+.biglwa-stream .wla-arrow:disabled{opacity:.25;cursor:default}
+.biglwa-stream .wla-selection{max-height:240px;overflow:auto;margin:3px 0 0;padding:8px;gap:6px}
+.biglwa-stream .wla-selection h3{margin:0;font-size:16px}
+.biglwa-stream .wla-selection p{font-size:12px;line-height:1.35;margin:0}
+.biglwa-stream .wla-close-details{justify-self:end;font-size:10px}
+.biglwa-stream .wla-catalog-credits{font-size:11px;opacity:.8}

@@ -1240,15 +1240,21 @@
   copy.querySelector('p').textContent='Find a title, choose a season or episode, and watch when an authorized source is available.';
   const picker=copy.querySelector('#streamDiscoveryPicker');
   picker.innerHTML='<form class="wla-title-search"><label for="wlaTitleQuery">Find a movie or series</label><div><input id="wlaTitleQuery" name="q" type="search" maxlength="180" required placeholder="Title, movie or show…"><button type="submit">Find</button></div></form><nav class="wla-browse" aria-label="Filter catalog"><button type="button" data-wla-filter="all" aria-pressed="true">All</button><button type="button" data-wla-filter="movie" aria-pressed="false">Movies</button><button type="button" data-wla-filter="series" aria-pressed="false">Series</button><button type="button" data-wla-filter="film" aria-pressed="false">Watch here</button><button type="button" data-wla-filter="tubi" aria-pressed="false">Free on Tubi</button><button type="button" data-wla-home>Browse today</button></nav>';
-  detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">WLA / CINEMA</span><h3>choose your screen</h3></div></div><p class="wla-status" role="status" aria-live="polite"></p><div class="wla-results"></div><div class="wla-selection" hidden></div><small class="wla-attribution">Series data: <a href="https://www.tvmaze.com/api" target="_blank" rel="noopener noreferrer">TVmaze</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. Movie metadata: <a href="https://www.wikidata.org/" target="_blank" rel="noopener noreferrer">Wikidata (CC0)</a>. Daily TV listings are refreshed from TVmaze’s US schedule; they do not imply streaming availability. Tubi links are reviewed listings, subject to provider availability; no sponsorship is implied.</small>';
-  const form=picker.querySelector('form'),input=form.querySelector('input'),status=detail.querySelector('.wla-status'),results=detail.querySelector('.wla-results'),selection=detail.querySelector('.wla-selection');
+  picker.insertAdjacentHTML('beforeend','<p class="wla-status" role="status" aria-live="polite"></p><div class="wla-carousel"><button type="button" class="wla-arrow" data-wla-step="-1" aria-label="Previous titles">‹</button><div class="wla-results" tabindex="0" aria-label="Movie and series titles"></div><button type="button" class="wla-arrow" data-wla-step="1" aria-label="Next titles">›</button></div><div class="wla-selection" hidden></div>');
+  detail.innerHTML='<details class="wla-catalog-credits"><summary>Catalog sources</summary><small class="wla-attribution">Series data: <a href="https://www.tvmaze.com/api" target="_blank" rel="noopener noreferrer">TVmaze</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. Movie metadata: <a href="https://www.wikidata.org/" target="_blank" rel="noopener noreferrer">Wikidata (CC0)</a>. Daily TV listings are refreshed from TVmaze’s US schedule; they do not imply streaming availability. Tubi links are reviewed listings, subject to provider availability; no sponsorship is implied.</small></details>';
+  const form=picker.querySelector('form'),input=form.querySelector('input'),status=picker.querySelector('.wla-status'),results=picker.querySelector('.wla-results'),selection=picker.querySelector('.wla-selection');
+  const arrows=[...picker.querySelectorAll('[data-wla-step]')];
+  const updateArrows=()=>{const max=Math.max(0,results.scrollWidth-results.clientWidth);arrows[0].disabled=results.scrollLeft<2;arrows[1].disabled=results.scrollLeft>=max-2};
+  arrows.forEach(btn=>btn.addEventListener('click',()=>{results.scrollBy({left:Number(btn.dataset.wlaStep)*Math.max(90,results.clientWidth-90),behavior:'smooth'});}));
+  results.addEventListener('scroll',updateArrows,{passive:true});
+  if(typeof ResizeObserver==='function'){const observer=new ResizeObserver(()=>{if(!picker.isConnected)observer.disconnect();else updateArrows()});observer.observe(results)}
   const shelf=wlaMerge(wlaOpenFilms,wlaTubiTitles);let rows=shelf.slice(),filter='all',searchVersion=0,pickVersion=0,controller=null;
-  const alive=()=>detail.contains(results)&&state.category==='lwa-tv'&&state.tvSection==='wla';
+  const alive=()=>copy.contains(results)&&state.category==='lwa-tv'&&state.tvSection==='wla';
   function node(tag,text,cls){const el=document.createElement(tag);if(text)el.textContent=text;if(cls)el.className=cls;return el}
   function link(label,url){const safe=wlaHttps(url);if(!safe)return null;const a=node('a',label);a.href=safe;a.target='_blank';a.rel='noopener noreferrer';return a}
   function renderRows(){
    if(!alive())return;
-   results.replaceChildren();selection.hidden=true;pickVersion++;
+   results.replaceChildren();results.scrollLeft=0;selection.hidden=true;pickVersion++;
    const visible=rows.filter(item=>filter==='all'||(filter==='tubi'?!!item.tubi:filter===item.kind||(filter==='movie'&&item.kind==='film')));
    for(const item of visible){
     const card=node('button','','wla-result');card.type='button';
@@ -1262,10 +1268,12 @@
     labels.append(tags);card.append(labels);card.addEventListener('click',()=>select(item));results.append(card);
    }
    if(!visible.length)results.append(node('p','No matching titles in this filter.'));
+   updateArrows();
   }
   async function select(item){
    const version=++pickVersion;
    selection.hidden=false;selection.replaceChildren(node('h3',item.title),node('p',item.description||'No synopsis available.'));
+   const back=node('button','Close details','wla-close-details');back.type='button';back.addEventListener('click',()=>{pickVersion++;selection.hidden=true});selection.prepend(back);
    if(item.credit){const credit=node('p',item.credit);const license=link(item.usPublicDomain?'Public-domain information':'License',item.license);if(license)credit.append(' · ',license);selection.append(credit)}
    if(item.video){
     const play=node('button','Play full film here');play.type='button';
@@ -1320,7 +1328,7 @@
   if(wlaPending){
    const item=wlaPending;wlaPending=null;input.value=item.title;rows=wlaMerge([item],shelf.filter(x=>wlaKey(x)===wlaKey(item)));
    status.textContent='Opened from L’wazi search';renderRows();select(rows[0]);
-   selection.scrollIntoView?.({behavior:'smooth',block:'nearest'});
+   // Keep the title carousel and details beside the player.
   }else browseToday();
  }
  function renderCategory(){
