@@ -1126,8 +1126,45 @@
  // Providers own their playback sessions; no external scripts or iframes are loaded.
  // Metadata is independent of playback authorization. No third-party player scripts.
  const wlaOpenFilms=[
-  {kind:'film',title:'Sintel',year:'2010',description:'A young woman searches for a lost dragon.',source:'https://durian.blender.org/about/',credit:'© Blender Foundation | www.sintel.org · CC BY 3.0',video:'https://archive.org/download/Sintel/sintel-2048-surround.mp4'}
+  {kind:'film',title:'Sintel',year:'2010',description:'A young woman searches for a lost dragon.',source:'https://durian.blender.org/about/',credit:'© Blender Foundation | www.sintel.org · CC BY 3.0',license:'https://creativecommons.org/licenses/by/3.0/',video:'https://archive.org/download/Sintel/sintel-2048-surround.mp4'},
+  {kind:'film',title:'Elephants Dream',year:'2006',description:'Two characters explore a surreal mechanical world.',source:'https://orange.blender.org/press/',credit:'© 2006 Blender Foundation / Netherlands Media Art Institute / www.elephantsdream.org · CC BY 2.5',license:'https://creativecommons.org/licenses/by/2.5/',video:'https://archive.org/download/ElephantsDream/ed_1024.mp4'},
+  {kind:'film',title:'Tears of Steel',year:'2012',description:'Science-fiction adventure combining live action and visual effects.',source:'https://mango.blender.org/about/',credit:'© Blender Foundation / www.tearsofsteel.org · CC BY 3.0 · original credits retained',license:'https://creativecommons.org/licenses/by/3.0/',video:'https://archive.org/download/Tears-of-Steel/tears_of_steel_720p.mp4'},
+  {kind:'film',title:'The General',year:'1926',description:'A silent comedy adventure starring Buster Keaton.',source:'https://archive.org/details/TheGeneral',credit:'The General (1926) · Internet Archive public-domain edition; rights may vary by country.',license:'https://creativecommons.org/publicdomain/mark/1.0/',video:'https://archive.org/download/TheGeneral/The_General_512kb.mp4',usPublicDomain:true}
  ];
+ // Reviewed title links, not a sponsorship agreement or a playback license.
+ // Provider availability can change; the provider owns its ad-supported session.
+ const wlaTubiTitles=[
+  {kind:'movie',title:'The General',year:'1926',tubi:'https://tubitv.com/movies/100011480/the-general'},
+  {kind:'movie',title:'His Girl Friday',year:'1940',description:'A newspaper editor tries to persuade his former reporter to stay.',tubi:'https://tubitv.com/movies/100008716/his-girl-friday'},
+  {kind:'movie',title:'Night of the Living Dead',year:'1968',description:'Survivors take shelter as the dead return.',tubi:'https://tubitv.com/movies/675222/night-of-the-living-dead'}
+ ];
+ const wlaKey=item=>String(item.title||'').trim().toLowerCase()+'|'+String(item.year||'')+'|'+(item.kind==='series'?'series':'movie');
+ function wlaMerge(...groups){
+  const map=new Map();
+  for(const item of groups.flat()){
+   if(!item?.title)continue;
+   const key=wlaKey(item),old=map.get(key);
+   if(!old){map.set(key,{...item});continue}
+   // Only the explicit, reviewed shelf may confer playback or provider labels.
+   const merged={...old};for(const [k,v] of Object.entries(item))if(v&&!merged[k])merged[k]=v;
+   if(item.video){Object.assign(merged,item);merged.tubi=merged.tubi||old.tubi}
+   map.set(key,merged);
+  }
+  return [...map.values()];
+ }
+ let wlaDaily={day:'',rows:[],promise:null};
+ function wlaSeries(s){return {kind:'series',id:s.id,title:s.name,year:String(s.premiered||'').slice(0,4),description:wlaText(s.summary),image:wlaHttps(s.image?.medium),source:s.url,official:s.officialSite}}
+ function wlaDailyTitles(){
+  const day=new Date().toISOString().slice(0,10);
+  if(wlaDaily.day===day&&(wlaDaily.promise||wlaDaily.rows.length))return wlaDaily.promise||Promise.resolve(wlaDaily.rows);
+  const entry={day,rows:[],promise:null};wlaDaily=entry;
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),8000);
+  entry.promise=wlaJSON('https://api.tvmaze.com/schedule?country=US&date='+encodeURIComponent(day),ctrl.signal).then(data=>{
+   if(!Array.isArray(data))throw Error('Daily listings unavailable');
+   entry.rows=wlaMerge(data.filter(e=>e.show?.name&&e.show?.id).map(e=>({...wlaSeries(e.show),daily:true}))).slice(0,24);return entry.rows;
+  }).finally(()=>{clearTimeout(timer);entry.promise=null});
+  return entry.promise;
+ }
  const wlaHttps=value=>{try{const u=new URL(value);return u.protocol==='https:'?u.href:''}catch{return ''}};
  const wlaText=value=>String(value||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
  async function wlaJSON(url,signal){
@@ -1157,7 +1194,7 @@
  }
  function mountWla(copy,detail){
   state.followGuide=false;
-  if(state.selected||!mediaPortal?.querySelector('.wla-cinema-standby')){
+  if(state.selected||!mediaPortal?.querySelector('.wla-cinema-standby,.wla-film-player')){
    setPlaying(false);state.selected=null;
    ensureMediaPortal().innerHTML='<div class="stream-screen wla-cinema-standby"><span class="stream-monitor-kicker">CH 02 / WLA</span><div class="wla-cinema-emblem wla-skull-mask" aria-hidden="true"></div><strong>wla</strong><small>cinema · on demand</small><span class="stream-screen-bottom">BIG LWA · ORIGINAL VIEWING SOURCES</span></div>';
   }
@@ -1165,30 +1202,34 @@
   copy.querySelector('.stream-eyebrow').textContent='CH 02 / THE CINEMA';
   copy.querySelector('p').textContent='Find a title, choose a season or episode, and watch when an authorized source is available.';
   const picker=copy.querySelector('#streamDiscoveryPicker');
-  picker.innerHTML='<form class="wla-title-search"><label for="wlaTitleQuery">Find a movie or series</label><div><input id="wlaTitleQuery" name="q" type="search" maxlength="180" required placeholder="Title, movie or show…"><button type="submit">Find</button></div></form><nav class="wla-browse" aria-label="Filter catalog"><button type="button" data-wla-filter="all" aria-pressed="true">All</button><button type="button" data-wla-filter="movie" aria-pressed="false">Movies</button><button type="button" data-wla-filter="series" aria-pressed="false">Series</button><button type="button" data-wla-filter="film" aria-pressed="false">Watch here</button></nav>';
-  detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">WLA / CINEMA</span><h3>choose your screen</h3></div></div><p class="wla-status" role="status" aria-live="polite"></p><div class="wla-results"></div><div class="wla-selection" hidden></div><small class="wla-attribution">Series data: <a href="https://www.tvmaze.com/api" target="_blank" rel="noopener noreferrer">TVmaze</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. Movie metadata: <a href="https://www.wikidata.org/" target="_blank" rel="noopener noreferrer">Wikidata (CC0)</a>. Title listings do not imply streaming availability.</small>';
+  picker.innerHTML='<form class="wla-title-search"><label for="wlaTitleQuery">Find a movie or series</label><div><input id="wlaTitleQuery" name="q" type="search" maxlength="180" required placeholder="Title, movie or show…"><button type="submit">Find</button></div></form><nav class="wla-browse" aria-label="Filter catalog"><button type="button" data-wla-filter="all" aria-pressed="true">All</button><button type="button" data-wla-filter="movie" aria-pressed="false">Movies</button><button type="button" data-wla-filter="series" aria-pressed="false">Series</button><button type="button" data-wla-filter="film" aria-pressed="false">Watch here</button><button type="button" data-wla-filter="tubi" aria-pressed="false">Free on Tubi</button><button type="button" data-wla-home>Browse today</button></nav>';
+  detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">WLA / CINEMA</span><h3>choose your screen</h3></div></div><p class="wla-status" role="status" aria-live="polite"></p><div class="wla-results"></div><div class="wla-selection" hidden></div><small class="wla-attribution">Series data: <a href="https://www.tvmaze.com/api" target="_blank" rel="noopener noreferrer">TVmaze</a> · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer">CC BY-SA 4.0</a>. Movie metadata: <a href="https://www.wikidata.org/" target="_blank" rel="noopener noreferrer">Wikidata (CC0)</a>. Daily TV listings are refreshed from TVmaze’s US schedule; they do not imply streaming availability. Tubi links are reviewed listings, subject to provider availability; no sponsorship is implied.</small>';
   const form=picker.querySelector('form'),input=form.querySelector('input'),status=detail.querySelector('.wla-status'),results=detail.querySelector('.wla-results'),selection=detail.querySelector('.wla-selection');
-  let rows=wlaOpenFilms.slice(),filter='all',searchVersion=0,pickVersion=0,controller=null;
+  const shelf=wlaMerge(wlaOpenFilms,wlaTubiTitles);let rows=shelf.slice(),filter='all',searchVersion=0,pickVersion=0,controller=null;
   const alive=()=>detail.contains(results)&&state.category==='lwa-tv'&&state.tvSection==='wla';
   function node(tag,text,cls){const el=document.createElement(tag);if(text)el.textContent=text;if(cls)el.className=cls;return el}
   function link(label,url){const safe=wlaHttps(url);if(!safe)return null;const a=node('a',label);a.href=safe;a.target='_blank';a.rel='noopener noreferrer';return a}
   function renderRows(){
    if(!alive())return;
    results.replaceChildren();selection.hidden=true;pickVersion++;
-   const visible=rows.filter(item=>filter==='all'||filter===item.kind||(filter==='movie'&&item.kind==='film'));
+   const visible=rows.filter(item=>filter==='all'||(filter==='tubi'?!!item.tubi:filter===item.kind||(filter==='movie'&&item.kind==='film')));
    for(const item of visible){
     const card=node('button','','wla-result');card.type='button';
     if(item.image){const image=node('img');image.src=item.image;image.alt='';image.loading='lazy';image.referrerPolicy='no-referrer';card.append(image)}
-    else card.append(node('span','', 'wla-poster-placeholder wla-skull-mask'));
+    else card.append(node('span','▤', 'wla-poster-placeholder'));
     const labels=node('span','','wla-result-label');labels.append(node('strong',item.title),node('small',[item.year,item.kind==='series'?'Series':item.kind==='film'?'Full film · watch here':'Movie'].filter(Boolean).join(' · ')));
-    card.append(labels);card.addEventListener('click',()=>select(item));results.append(card);
+    const tags=node('span','','wla-source-tags');
+    if(item.video){const tag=node('span','','wla-source-tag wla-source-own');const skull=node('span','','wla-skull-mask');skull.setAttribute('aria-hidden','true');tag.append(skull,node('span','WLA · free here'));tags.append(tag)}
+    if(item.tubi)tags.append(node('span','Tubi · free with ads ↗','wla-source-tag wla-source-tubi'));
+    if(!item.video&&!item.tubi)tags.append(node('span',item.daily?'Today’s TV · info only':'Title info only','wla-source-tag wla-source-info'));
+    labels.append(tags);card.append(labels);card.addEventListener('click',()=>select(item));results.append(card);
    }
    if(!visible.length)results.append(node('p','No matching titles in this filter.'));
   }
   async function select(item){
    const version=++pickVersion;
    selection.hidden=false;selection.replaceChildren(node('h3',item.title),node('p',item.description||'No synopsis available.'));
-   if(item.credit){const credit=node('p',item.credit);const license=link('License','https://creativecommons.org/licenses/by/3.0/');credit.append(' · ',license);selection.append(credit)}
+   if(item.credit){const credit=node('p',item.credit);const license=link(item.usPublicDomain?'Public-domain information':'License',item.license);if(license)credit.append(' · ',license);selection.append(credit)}
    if(item.video){
     const play=node('button','Play full film here');play.type='button';
     play.addEventListener('click',()=>{
@@ -1198,7 +1239,9 @@
      video.addEventListener('error',()=>{status.textContent='This licensed source could not be played. Use its original source link below.'});
      Promise.resolve(video.play()).catch(()=>{});
     });selection.append(play);
+    if(item.usPublicDomain)selection.append(node('small','Public-domain edition in the US; local rights may differ.'));
    }else selection.append(node('p','Full playback is not available in WLA for this title. Choose an original provider if available.'));
+   if(item.tubi){const provider=link('Watch free on Tubi ↗',item.tubi);if(provider){provider.className='wla-tubi-watch';selection.append(provider,node('small','Opens Tubi’s own ad-supported player. Availability may vary by region or change over time.'));}}
    const source=link(item.kind==='series'?'TVmaze title information':item.kind==='film'?'Original film and rights information':(item.sourceLabel||'Movie information'),item.source);if(source)selection.append(source);
    const official=link('Official show website',item.official);if(official)selection.append(official);
    if(item.kind!=='series')return;
@@ -1229,15 +1272,25 @@
     wlaMovieSearch(query,controller.signal)
    ]);clearTimeout(timer);
    if(!alive()||version!==searchVersion)return;
-   const local=wlaOpenFilms.filter(item=>item.title.toLowerCase().includes(query.toLowerCase()));
-   const shows=tv.status==='fulfilled'&&Array.isArray(tv.value)?tv.value.slice(0,24).map(({show:s})=>({kind:'series',id:s.id,title:s.name,year:String(s.premiered||'').slice(0,4),description:wlaText(s.summary),image:wlaHttps(s.image?.medium),source:s.url,official:s.officialSite})):[];
+   const local=shelf.filter(item=>item.title.toLowerCase().includes(query.toLowerCase()));
+   const shows=tv.status==='fulfilled'&&Array.isArray(tv.value)?tv.value.slice(0,24).filter(x=>x.show?.name).map(({show:s})=>wlaSeries(s)):[];
    const films=movies.status==='fulfilled'&&Array.isArray(movies.value)?movies.value:[];
-   rows=[...local,...shows,...films];
+   rows=wlaMerge(local,shows,films);
    const missing=[tv.status==='rejected'?'Series':null,movies.status==='rejected'?'Movies':null].filter(Boolean);
    status.textContent=rows.length+' title matches'+(missing.length?' · '+missing.join(' and ')+' catalog temporarily unavailable.':'');
    renderRows();
   });
-  status.textContent='Explore the open-film shelf or search for any title.';renderRows();
+  function browseToday(){
+   controller?.abort();const version=++searchVersion;input.value='';rows=shelf.slice();filter='all';
+   picker.querySelectorAll('[data-wla-filter]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.wlaFilter==='all')));
+   status.textContent='Free films and provider listings · loading today’s TV titles…';renderRows();
+   wlaDailyTitles().then(daily=>{
+    if(!alive()||version!==searchVersion)return;
+    rows=wlaMerge(shelf,daily);status.textContent='Browse '+rows.length+' titles · daily TV listings from TVmaze';renderRows();
+   }).catch(()=>{if(alive()&&version===searchVersion)status.textContent='Free films and provider listings · daily TV listings unavailable.'});
+  }
+  picker.querySelector('[data-wla-home]').addEventListener('click',browseToday);
+  browseToday();
  }
  function renderCategory(){
   if(!root)return;

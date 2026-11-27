@@ -1056,3 +1056,12 @@ body.dark-mode #studioApp .biglwa-stream .stream-music-other-channels>p{
 .biglwa-stream .wla-selection button{border:1px solid currentColor;padding:8px;border-radius:6px;background:transparent;color:inherit;text-align:left}
 .biglwa-stream .wla-film-player{width:100%;height:calc(100% - 22px);object-fit:contain;background:#090909}
 .biglwa-stream .wla-player-credit{display:block;color:#fff;background:#151515;font-size:10px;text-align:center}
+
+.biglwa-stream .wla-source-tags{display:flex;gap:4px;flex-wrap:wrap}
+.biglwa-stream .wla-source-tag{display:inline-flex;align-items:center;gap:4px;font:600 10px/1.3 system-ui;padding:4px 5px;border:1px solid currentColor;border-radius:4px;white-space:normal;overflow-wrap:anywhere}
+.biglwa-stream .wla-source-own{background:#713144;color:#fff4e8;border-color:#713144}
+.biglwa-stream .wla-source-own .wla-skull-mask{width:1.2em;height:1.2em}
+.biglwa-stream .wla-source-tubi{background:#f3eefc;color:#412b79;border-color:#7964a7}
+.biglwa-stream .wla-source-info{opacity:.8}
+.biglwa-stream .wla-poster-placeholder{display:grid;place-items:center;border:1px solid currentColor;border-radius:4px;background:transparent;font:400 32px Georgia;opacity:.4}
+.biglwa-stream .wla-tubi-watch{display:inline-block;width:fit-content;padding:8px 10px;border:1px solid #7964a7;border-radius:5px;background:#f3eefc;color:#412b79!important}

@@ -16,7 +16,7 @@ test('WLA on-demand shelf does not schedule or auto-tune TV',()=>{
  assert.match(js,/wikidata\.org\/w\/api\.php/);
  assert.match(wla,/api\.tvmaze\.com\/shows\//);
  assert.match(wla,/video\.controls=true/);
- for(const file of ['index.html','studio/index.html','404.html','live-studio-shell.html'])assert.equal((read(file).match(/&wla=20261127-5/g)||[]).length,2);
+ for(const file of ['index.html','studio/index.html','404.html','live-studio-shell.html'])assert.equal((read(file).match(/&wla=20261127-6/g)||[]).length,2);
 });
 
 test('movie metadata falls back to the original search label when the detailed record omits it',async()=>{
@@ -24,4 +24,15 @@ test('movie metadata falls back to the original search label when the detailed r
  const scope={encodeURIComponent,wlaJSON:async url=>url.includes('wbsearchentities')?{search:[{id:'Q83495',label:'The Matrix',description:'1999 science fiction film'}]}:{entities:{Q83495:{id:'Q83495',claims:{P31:[{mainsnak:{datavalue:{value:{id:'Q11424'}}}}]}}}}};
  vm.runInNewContext(js.slice(start,end)+';globalThis.search=wlaMovieSearch;',scope);
  const rows=await scope.search('The Matrix');assert.equal(rows[0].title,'The Matrix');assert.equal(rows[0].year,'1999');
+});
+
+
+test('WLA shows source labels only for reviewed playback and provider entries',()=>{
+ const js=read('stream-guide.js');const start=js.indexOf('const wlaOpenFilms='),end=js.indexOf('let wlaDaily=',start);const scope={};
+ vm.runInNewContext(js.slice(start,end)+';globalThis.rows=wlaMerge(wlaOpenFilms,wlaTubiTitles);',scope);
+ const general=scope.rows.find(x=>x.title==='The General');assert(general.video&&general.tubi);
+ assert(scope.rows.filter(x=>x.video).length>=4);assert(scope.rows.filter(x=>x.tubi).length>=3);
+ assert.match(js,/api\.tvmaze\.com\/schedule\?country=US/);assert.match(js,/browseToday\(\)/);
+ assert.match(js,/WLA · free here/);assert.match(js,/Tubi · free with ads/);assert.match(js,/Title info only/);
+ assert.match(js,/no sponsorship is implied/);
 });

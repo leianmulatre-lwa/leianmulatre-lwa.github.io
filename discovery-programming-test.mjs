@@ -87,6 +87,11 @@ test('Stream joins catalogs, opens News, searches a creator and keeps radio manu
  assert.equal(w.document.querySelector('#streamCategoryCopy h2').textContent,'wla');
  assert(w.document.querySelector('.wla-cinema-standby .wla-skull-mask'));
  assert(w.document.querySelector('.stream-guide').hidden);
+ assert(w.document.querySelector('.wla-source-own .wla-skull-mask'));
+ assert(w.document.querySelector('.wla-source-tubi')?.textContent.includes('Tubi'));
+ w.document.querySelector('[data-wla-filter="tubi"]').click();
+ assert([...w.document.querySelectorAll('.wla-result')].every(x=>x.querySelector('.wla-source-tubi')));
+ w.document.querySelector('[data-wla-filter="all"]').click();
  const oldFetch=w.fetch;
  w.fetch=async url=>({ok:true,json:async()=>String(url).includes('/search/shows')?[{show:{id:1,name:'Test Series',premiered:'2020-01-01',url:'https://www.tvmaze.com/shows/1/test'}}]:String(url).includes('/episodes')?[{id:2,season:1,number:1,name:'Pilot'}]:{results:[]}});
  w.document.querySelector('#wlaTitleQuery').value='Test Series';
