@@ -1430,17 +1430,43 @@ function mediaKeyParts(pathname) {
   return { uid: parts[0], name: parts[1], key: MEDIA_FOLDERS[segment] + '/' + parts[0] + '/' + parts[1] };
 }
 
+function mediaBlockedHost(host) {
+  const value = String(host || '').toLowerCase();
+  const privateIpv4 = /^(?:127\.|10\.|192\.168\.|169\.254\.|0\.|100\.64\.|172\.(?:1[6-9]|2\d|3[01])\.)/;
+  if (value.startsWith('[') && value.endsWith(']')) return mediaBlockedHost(value.slice(1, -1));
+  if (value === 'localhost' || value.endsWith('.localhost') || value.endsWith('.local')) return true;
+  if (value.includes(':')) {
+    const normalized = value.replace(/^::ffff:/i, '');
+    return value === '::' || value === '::1' || /^fe[89ab]/i.test(value) ||
+      /^f[cd]/i.test(normalized) || privateIpv4.test(normalized);
+  }
+  // Numeric and hex hosts can resolve to loopback even without a dotted private IP.
+  return privateIpv4.test(value) || /^(?:0x[0-9a-f]+|[0-9]+)$/i.test(value);
+}
+function mediaSafePreviewUrl(raw, base) {
+  let target;
+  try { target = base ? new URL(raw, base) : new URL(raw); } catch { mediaFail('Use a full http:// or https:// link.'); }
+  if (!['http:', 'https:'].includes(target.protocol) || target.username || target.password) mediaFail('That link cannot be previewed.');
+  if (mediaBlockedHost(target.hostname)) mediaFail('That link cannot be previewed.');
+  return target;
+}
 async function mediaLinkPreview(request, env) {
   requireOrigin(request, env);
   await mediaUser(request, env);
   const body = await request.json().catch(() => ({}));
   const raw = String(body.url || '').trim();
-  let target;
-  try { target = new URL(raw); } catch { mediaFail('Use a full http:// or https:// link.'); }
-  if (!['http:', 'https:'].includes(target.protocol) || target.username || target.password) mediaFail('That link cannot be previewed.');
-  const host = target.hostname.toLowerCase();
-  if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local') || /^(127\\.|10\\.|192\\.168\\.|169\\.254\\.)/.test(host) || host === '::1' || host === '0.0.0.0') mediaFail('That link cannot be previewed.');
-  const response = await fetch(target.toString(), { headers: { 'User-Agent': 'BIGLWA-Link-Preview/1.0' }, redirect: 'follow' });
+  let target = mediaSafePreviewUrl(raw);
+  let response = null;
+  // Redirect targets are untrusted input too: revalidate every hop before following it.
+  for (let hop = 0; hop < 5; hop++) {
+    response = await fetch(target.toString(), { headers: { 'User-Agent': 'BIGLWA-Link-Preview/1.0' }, redirect: 'manual' });
+    if (![301, 302, 303, 307, 308].includes(response.status)) break;
+    const location = response.headers.get('location');
+    if (!location) mediaFail('The linked page redirected without a destination.', 502);
+    target = mediaSafePreviewUrl(location, target);
+    response = null;
+  }
+  if (!response) mediaFail('The linked page redirected too many times.', 502);
   if (!response.ok) mediaFail('The linked page could not be previewed.', 502);
   const contentType = String(response.headers.get('content-type') || '').toLowerCase();
   if (!contentType.includes('text/html')) return json({ url: target.toString(), title: '', imageUrl: '', siteName: target.hostname }, 200, request, env);
@@ -2517,7 +2543,7 @@ async function facebookPersonalRoute(request,env){
  *     done INTEGER NOT NULL DEFAULT 0, last_error TEXT);
  * ----------------------------------------------------------------------- */
 const ACCOUNT_SYNC_STUDIO_KEYS = new Set([
-  'biglwaLibraryCatalogV1','biglwaMapPins','biglwaMapMode','biglwaDepopPath',
+  'biglwaShortcutFoldersV1','biglwaLibraryCatalogV1','biglwaMapPins','biglwaMapMode','biglwaDepopPath',
   'biglwaArchiveFilters','biglwaGamesPreview','biglwaCalendarView','biglwaCalendarSelected',
   'biglwaCustomRooms','biglwaActiveRoom','biglwaPolitcNominationsV1',
   'biglwaPolitcVotingState','biglwaPolitcVotingZip','biglwaDYKIndex','biglwaDYKScore',
@@ -2525,7 +2551,8 @@ const ACCOUNT_SYNC_STUDIO_KEYS = new Set([
   'biglwaModule_trophies','biglwaModule_calendar','biglwaModule_stream',
   'biglwaModule_connect','biglwaModule_library',
   'biglwaProjectCanvas','biglwaProjectZoom','biglwaStreamLastPlayedV1',
-  'biglwaAvatarWidgetVisibility'
+  'biglwaAvatarWidgetVisibility','biglwaProjectCanvas:v1','biglwaProjectZoom:v1',
+  'biglwaAvatarWidgetVisibility:v2'
 ]);
 const ACCOUNT_SYNC_USER_FIELDS = new Set([
   'connections','orbitConnectedProfiles','orbitProfilesUpdatedAt','orbitLinks','orbit',
@@ -2944,11 +2971,18 @@ async function accountSyncValidate(entry, uid, env, currentUserRow) {
   }
   throw new Error('That account backup scope is not supported.');
 }
+function accountSyncSnapshotKey(uid, scope, path) {
+  return 'account-sync/' + uid + '/' + scope + '/' + encodeURIComponent(path) + '.json';
+}
+async function accountSyncSnapshotExists(env, uid, scope, path) {
+  const bucket = accountSyncBucket(env);
+  if (!bucket) return false;
+  return !!(await bucket.head(accountSyncSnapshotKey(uid, scope, path)));
+}
 async function accountSyncSnapshot(env, uid, scope, path, document) {
   const bucket = accountSyncBucket(env);
   if (!bucket) return false;
-  const key = 'account-sync/' + uid + '/' + scope + '/' + encodeURIComponent(path) + '.json';
-  await bucket.put(key, JSON.stringify(document), {
+  await bucket.put(accountSyncSnapshotKey(uid, scope, path), JSON.stringify(document), {
     httpMetadata: { contentType: 'application/json; charset=utf-8', cacheControl: 'private, no-store' },
     customMetadata: { uid, scope, revision: String(document.revision) }
   });
@@ -3031,8 +3065,11 @@ async function accountSyncSave(request, env) {
     const pending = await db.prepare(
       'SELECT 1 FROM account_sync_mirror WHERE uid=? AND scope=? AND doc_path=? AND done=0 LIMIT 1')
       .bind(uid, validated.scope, validated.path).first();
+    let snapshot = false;
+    try { snapshot = await accountSyncSnapshotExists(env, uid, validated.scope, validated.path); }
+    catch (error) { console.warn('Account sync R2 snapshot check:', error); }
     return json({ ok: true, revision: current.revision, mirrored: !pending,
-      snapshot: true, duplicate: true, queued: !!pending }, 200, request, env);
+      snapshot, duplicate: true, queued: !!pending }, 200, request, env);
   }
   if (validated.base !== null && current.revision > validated.base) {
     return json({ ok: false, code: 'conflict', revision: current.revision,
@@ -3083,6 +3120,21 @@ async function accountSyncSave(request, env) {
   return json({ ok: true, revision, mirrored, queued: !mirrored, snapshot,
     mirrorError, mirrorQueued: !mirrored }, 200, request, env);
 }
+async function accountSyncEnsureSnapshot(env, db, row) {
+  try {
+    if (await accountSyncSnapshotExists(env, row.uid, row.scope, row.doc_path)) return;
+    const state = await db.prepare(
+      'SELECT revision,value_json,updated_at FROM account_sync_state WHERE uid=? AND scope=? AND doc_path=?')
+      .bind(row.uid, row.scope, row.doc_path).first();
+    if (!state) return;
+    let value = {};
+    try { value = JSON.parse(state.value_json || '{}'); } catch (_) {}
+    await accountSyncSnapshot(env, row.uid, row.scope, row.doc_path, {
+      uid: row.uid, scope: row.scope, path: row.doc_path,
+      revision: Number(state.revision) || 0, value, updatedAt: String(state.updated_at || '')
+    });
+  } catch (error) { console.warn('Account sync queued R2 snapshot:', error); }
+}
 async function accountSyncRunMirror(env, uid) {
   const db = accountSyncDb(env);
   if (!db || !env.FIREBASE_SERVICE_ACCOUNT) return { retried: 0, pending: 0 };
@@ -3103,6 +3155,7 @@ async function accountSyncRunMirror(env, uid) {
         { uid: row.uid, scope: row.scope, path: row.doc_path, patch }, db);
     } catch (error) { outcome = { done: false, error: error.message }; }
     if (outcome.done) {
+      await accountSyncEnsureSnapshot(env, db, row);
       await db.prepare('UPDATE account_sync_mirror SET done=1,last_error=NULL WHERE id=?').bind(row.id).run();
       retried += 1;
     } else {
