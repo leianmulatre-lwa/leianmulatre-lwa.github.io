@@ -8,7 +8,7 @@ test('WLA on-demand shelf does not schedule or auto-tune TV',()=>{
  assert.match(js,/if\(onDemand\)return/);
  assert.match(js,/mountWla\(copy,detail\);return/);
  const wla=js.slice(js.indexOf('function mountWla('),js.indexOf('function renderCategory('));
- assert.doesNotMatch(wla,/<iframe|<script|cinejoy/i);
+ assert.doesNotMatch(wla,/<iframe|<script|streaming[ -]?server|magnet:\?|torrent/i);
  assert.doesNotMatch(wla,/justwatch\.com|target="_blank".*method="get"/);
  assert.match(wla,/event\.preventDefault\(\)/);
  assert.match(js,/api\.tvmaze\.com\/search\/shows/);
@@ -16,7 +16,7 @@ test('WLA on-demand shelf does not schedule or auto-tune TV',()=>{
  assert.match(js,/wikidata\.org\/w\/api\.php/);
  assert.match(wla,/api\.tvmaze\.com\/shows\//);
  assert.match(wla,/video\.controls=true/);
- for(const file of ['index.html','studio/index.html','404.html','live-studio-shell.html'])assert.equal((read(file).match(/&wla=20261127-8/g)||[]).length,2);
+ for(const file of ['index.html','studio/index.html','404.html','live-studio-shell.html'])assert.equal((read(file).match(/&wla=20261127-9/g)||[]).length,2);
 });
 
 test('movie metadata falls back to the original search label when the detailed record omits it',async()=>{
