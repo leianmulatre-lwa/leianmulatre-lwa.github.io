@@ -103,6 +103,10 @@ test('Stream joins catalogs, opens News, searches a creator and keeps radio manu
  w.document.querySelector('.wla-result').click();
  await new Promise(r=>setTimeout(r,10));
  assert(w.document.querySelector('.wla-episodes button')?.textContent.includes('Pilot'));
+ const globalRows=await w.BigLWAStreamGuide.searchWla('Test Series');
+ assert.equal(globalRows[0].title,'Test Series');
+ assert(w.BigLWAStreamGuide.openWlaSearchResult(globalRows[0].id));
+ assert.equal(w.document.querySelector('.wla-selection h3').textContent,'Test Series');
  w.fetch=oldFetch;
  w.document.querySelector('[data-tv-section="news"]').click();
  assert(!w.document.querySelector('.stream-guide').hidden);

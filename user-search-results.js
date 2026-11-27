@@ -586,10 +586,11 @@
 
       // Render each source as it becomes ready, not after the slowest
       // image/people/library request. One provider cannot hold up the others.
-      var discoveryParts=[[],[],[],[],[],[],[],[]],discoveryCompleted=0;
+      var discoveryParts=Array.from({length:9},()=>[]),discoveryCompleted=0;
       var catalogPromise=window.BigLWADiscoveryCatalog?.load().then(function(data){return data.stories})||Promise.resolve([]);
       var vibePromise=isSocialGreeting?Promise.resolve([]):window.BigLWAVeve?.searchMedia(clean).catch(function(){return []})||Promise.resolve([]);
 
+      var wlaPromise=isSocialGreeting?Promise.resolve([]):Promise.resolve(window.BigLWAStreamGuide?.searchWla?.(clean)||[]).catch(function(){return []});
       function sourceJobCard(job){
         if(!job||!/^https:\/\//i.test(String(job.url||'')))return '';
         var original=String(job.url||'');
@@ -622,6 +623,7 @@
           html+=section('Veve video vibes',extras.mediaCards(parts[7].filter(function(p){return p.video})),'stream videos');
           html+=section('Herstory · women in STEM',extras.herstoryCards(parts[6],clean,activeCategory==='herstory'),'herstory');
           html+=section('Stream videos',extras.videoCards(clean,activeCategory==='stream'),'stream videos images');
+          html=section('WLA · Movies & series',extras.wlaCards?.(parts[8])||[],'stream videos movies')+html;
           if(activeCategory==='widgets')html+=section('Studio widgets',extras.widgetCards(),'widgets studio');
           if(activeCategory==='places')html+=section('Places & Maps',extras.placeCards(),'places maps');
         }
@@ -632,7 +634,7 @@
           if(loading){resultArea=document.createElement('div');resultArea.className='bl-search-discovery';loading.replaceWith(resultArea)}
         }
         if(resultArea){
-          resultArea.innerHTML=html||(isSocialGreeting?'':discoveryCompleted>=8?'<p class="bl-search-empty">No public results found.</p>':'');
+          resultArea.innerHTML=html||(isSocialGreeting?'':discoveryCompleted>=9?'<p class="bl-search-empty">No public results found.</p>':'');
         }if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.refresh(current);
         // Search always starts in All; preserve a user's later manual tab selection.
         activateCategory(activeCategory,false);
@@ -644,7 +646,7 @@
           goRoute(button.dataset.lwaziRoute);
         })});
       }
-      [userPromise,bookPromise,wikiPromise,libraryPromise,postPromise,songPromise,catalogPromise,vibePromise].forEach(function(job,i){
+      [userPromise,bookPromise,wikiPromise,libraryPromise,postPromise,songPromise,catalogPromise,vibePromise,wlaPromise].forEach(function(job,i){
         Promise.resolve(job).then(function(found){
           discoveryParts[i]=Array.isArray(found)?found:[];
         }).catch(function(){discoveryParts[i]=[]}).finally(function(){

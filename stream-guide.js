@@ -52,7 +52,7 @@
    if(station.stream&&/^https:\/\//.test(station.stream)&&!audioStreams[index])audioStreams[index]=station.stream;
   }
   catalogReady=true;
-  if(root?.isConnected){renderGrid();if(!root.querySelector('#streamProgramQuery')?.value)renderCategory();else{renderStations(root.querySelector('#streamStationSearch')?.value||'');renderFeaturedSlots();}}
+  if(root?.isConnected){renderGrid();if(state.category==='lwa-tv'&&state.tvSection==='wla'&&root.querySelector('.wla-title-search'))return;if(!root.querySelector('#streamProgramQuery')?.value)renderCategory();else{renderStations(root.querySelector('#streamStationSearch')?.value||'');renderFeaturedSlots();}}
  }
  const categories=[['podcast','lwa radio','CH 01'],['lwa-tv','lwa tv','CH 02'],['live','live','CH 03'],['sqwibz','sqwidz','CH 04'],['music','music','CH 05']];
  const programmedCategories=()=>categories.filter(([id])=>id!=='music');
@@ -1192,6 +1192,43 @@
     description,source:'https://www.wikidata.org/wiki/'+id,sourceLabel:'Wikidata film information'};
   }).filter(Boolean);
  }
+ async function wlaSearchTitles(query,signal){
+  const clean=String(query||'').trim().slice(0,180);
+  if(!clean)return {rows:[],missing:[]};
+  const ctrl=new AbortController(),abort=()=>ctrl.abort();
+  if(signal?.aborted)abort();else signal?.addEventListener('abort',abort,{once:true});
+  const timer=setTimeout(abort,10000);
+  try{
+   const [tv,movies]=await Promise.allSettled([
+    wlaJSON('https://api.tvmaze.com/search/shows?q='+encodeURIComponent(clean),ctrl.signal),
+    wlaMovieSearch(clean,ctrl.signal)
+   ]);
+   const local=wlaMerge(wlaOpenFilms,wlaTubiTitles).filter(item=>item.title.toLowerCase().includes(clean.toLowerCase()));
+   const shows=tv.status==='fulfilled'&&Array.isArray(tv.value)?tv.value.slice(0,24).filter(x=>x.show?.name).map(({show:s})=>wlaSeries(s)):[];
+   const films=movies.status==='fulfilled'&&Array.isArray(movies.value)?movies.value:[];
+   return {rows:wlaMerge(local,shows,films),missing:[tv.status==='rejected'?'Series':null,movies.status==='rejected'?'Movies':null].filter(Boolean)};
+  }finally{clearTimeout(timer);signal?.removeEventListener('abort',abort)}
+ }
+ const wlaSearchHandles=new Map();
+ let wlaNextHandle=0,wlaPending=null;
+ async function wlaGlobalSearch(query){
+  const clean=String(query||'').trim().replace(/^(?:where (?:can|to) (?:i )?watch|watch|stream|find (?:the )?(?:movie|show|series))\s+/i,'').replace(/\s+(?:movie|tv show|tv series|full movie|streaming)\s*\??$/i,'').replace(/\?$/,'').trim();
+  if(clean.length<2||clean.length>120)return [];
+  const found=await wlaSearchTitles(clean);
+  const norm=v=>String(v||'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
+  const needle=norm(clean);if(!needle)return [];
+  return found.rows.filter(item=>{const title=norm(item.title);return title===needle||(' '+title+' ').includes(' '+needle+' ')||(' '+needle+' ').includes(' '+title+' ')&&title.length>=4}).slice(0,12).map(item=>{
+   const id='wla-'+(++wlaNextHandle);wlaSearchHandles.set(id,item);
+   if(wlaSearchHandles.size>180)wlaSearchHandles.delete(wlaSearchHandles.keys().next().value);
+   return {id,title:item.title,year:item.year,kind:item.kind,image:item.image,description:item.description,playable:!!item.video,tubi:!!item.tubi};
+  });
+ }
+ function openWlaSearchResult(id){
+  const item=wlaSearchHandles.get(id);
+  if(!item||!root?.isConnected||!root.querySelector('#streamCategoryCopy'))return false;
+  wlaPending=item;state.category='lwa-tv';state.tvSection='wla';state.selected=null;state.followGuide=false;
+  paintCategories();renderGrid();renderCategory();return true;
+ }
  function mountWla(copy,detail){
   state.followGuide=false;
   if(state.selected||!mediaPortal?.querySelector('.wla-cinema-standby,.wla-film-player')){
@@ -1265,19 +1302,9 @@
    event.preventDefault();const query=input.value.trim();if(!query)return;
    controller?.abort();controller=new AbortController();const version=++searchVersion;pickVersion++;selection.hidden=true;
    status.textContent='Searching titles…';results.replaceChildren();
-   const q=encodeURIComponent(query);
-   const requestController=controller;const timer=setTimeout(()=>requestController.abort(),10000);
-   const [tv,movies]=await Promise.allSettled([
-    wlaJSON('https://api.tvmaze.com/search/shows?q='+q,controller.signal),
-    wlaMovieSearch(query,controller.signal)
-   ]);clearTimeout(timer);
+   const found=await wlaSearchTitles(query,controller.signal);
    if(!alive()||version!==searchVersion)return;
-   const local=shelf.filter(item=>item.title.toLowerCase().includes(query.toLowerCase()));
-   const shows=tv.status==='fulfilled'&&Array.isArray(tv.value)?tv.value.slice(0,24).filter(x=>x.show?.name).map(({show:s})=>wlaSeries(s)):[];
-   const films=movies.status==='fulfilled'&&Array.isArray(movies.value)?movies.value:[];
-   rows=wlaMerge(local,shows,films);
-   const missing=[tv.status==='rejected'?'Series':null,movies.status==='rejected'?'Movies':null].filter(Boolean);
-   status.textContent=rows.length+' title matches'+(missing.length?' · '+missing.join(' and ')+' catalog temporarily unavailable.':'');
+   rows=found.rows;status.textContent=rows.length+' title matches'+(found.missing.length?' · '+found.missing.join(' and ')+' catalog temporarily unavailable.':'');
    renderRows();
   });
   function browseToday(){
@@ -1290,7 +1317,11 @@
    }).catch(()=>{if(alive()&&version===searchVersion)status.textContent='Free films and provider listings · daily TV listings unavailable.'});
   }
   picker.querySelector('[data-wla-home]').addEventListener('click',browseToday);
-  browseToday();
+  if(wlaPending){
+   const item=wlaPending;wlaPending=null;input.value=item.title;rows=wlaMerge([item],shelf.filter(x=>wlaKey(x)===wlaKey(item)));
+   status.textContent='Opened from L’wazi search';renderRows();select(rows[0]);
+   selection.scrollIntoView?.({behavior:'smooth',block:'nearest'});
+  }else browseToday();
  }
  function renderCategory(){
   if(!root)return;
@@ -1530,7 +1561,7 @@
   if(button.matches('[data-stream-twitch]')){state.followGuide=false;selectTwitch(button.dataset.streamTwitch);return}
   if(button.matches('[data-stream-program]')){state.followGuide=false;selectProgram(button.dataset.streamProgram);return}
  }
- window.BigLWAStreamGuide={mount,async openFeature(id){await loadCatalog();const source=[...tvSources(),...featured,...youtubeLive].find(item=>item.id===id);if(!source||!root)return false;state.category=source.category;state.tvSection=source.section||'entertainment';if(state.category==='podcast')state.radioSection='podcast';paintCategories();renderGrid();renderCategory();state.followGuide=false;selectFeature(id);return true;},parkInStudio,dock:dockStream,undock:undockStream,showNoSignal,prefillRequest,get lastWatchedTitle(){return state.selected?.title||''},get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return [...recentVideos(),...featured].map(f=>({...f}))},get ballroom(){return ballroomChannels.map(item=>({...item}))},get guideSlots(){return programmedCategories().map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour))}))},get twitch(){return twitchChannels.map(x=>({...x}))},get playlist(){return programmedCategories().map(([category])=>({category,slots:dailyPlaylist(category).map(x=>({...x}))}))},getDailyGuide(day,offset=0){return programmedCategories().map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour,day,offset))}))}};
+ window.BigLWAStreamGuide={mount,searchWla:wlaGlobalSearch,openWlaSearchResult,async openFeature(id){await loadCatalog();const source=[...tvSources(),...featured,...youtubeLive].find(item=>item.id===id);if(!source||!root)return false;state.category=source.category;state.tvSection=source.section||'entertainment';if(state.category==='podcast')state.radioSection='podcast';paintCategories();renderGrid();renderCategory();state.followGuide=false;selectFeature(id);return true;},parkInStudio,dock:dockStream,undock:undockStream,showNoSignal,prefillRequest,get lastWatchedTitle(){return state.selected?.title||''},get stations(){return stations.map(s=>({name:s[0],school:s[1],state:s[2],url:s[3]}))},get featured(){return [...recentVideos(),...featured].map(f=>({...f}))},get ballroom(){return ballroomChannels.map(item=>({...item}))},get guideSlots(){return programmedCategories().map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour))}))},get twitch(){return twitchChannels.map(x=>({...x}))},get playlist(){return programmedCategories().map(([category])=>({category,slots:dailyPlaylist(category).map(x=>({...x}))}))},getDailyGuide(day,offset=0){return programmedCategories().map(([category])=>({category,slots:Array.from({length:24},(_,hour)=>guidePick(category,hour,day,offset))}))}};
 })();
 
 /* The approved illustration is reserved for the movable Dock.

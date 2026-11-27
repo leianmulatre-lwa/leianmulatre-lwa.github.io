@@ -153,6 +153,23 @@ function videoCards(q,all=false){
    '</div></article>';
  });
 }
+function wlaCards(items){
+ return (items||[]).map(item=>{
+  const tags=(item.playable?'<span class="bl-wla-source bl-wla-own"><span class="bl-wla-skull" aria-hidden="true"></span> WLA · Free here</span>':'')+(item.tubi?'<span class="bl-wla-source bl-wla-tubi">Tubi · Free with ads ↗</span>':'')+(!item.playable&&!item.tubi?'<span class="bl-wla-source">Title info only</span>':'');
+  return '<article class="bl-search-card bl-media-card bl-wla-title" data-bl-destination="wla:'+esc(item.id)+'">'+
+   (item.image?'<img class="bl-search-card-media" src="'+esc(item.image)+'" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">':'')+
+   '<div class="bl-search-card-body"><span class="bl-search-kicker">WLA · '+(item.kind==='series'?'Series':'Movie')+' · '+esc(item.year||'Year unknown')+'</span><h3>'+esc(item.title)+'</h3>'+
+   '<div class="bl-wla-sources">'+tags+'</div><p>'+esc(String(item.description||'').slice(0,180))+'</p>'+
+   '<button class="bl-search-go bl-search-primary-action" type="button" data-bl-wla-title="'+esc(item.id)+'">'+(item.playable?'Watch in WLA':item.kind==='series'?'Browse episodes in WLA':'Open in WLA')+' ↗</button></div></article>';
+ });
+}
+function openWlaFromSearch(id){
+ if(!/^wla-\d+$/.test(id))return;
+ window.__biglwaOpenSearchRoute?.('stream');
+ let tries=0;
+ const reveal=()=>{if(window.BigLWAStreamGuide?.openWlaSearchResult?.(id))return;if(++tries<20)setTimeout(reveal,150)};
+ setTimeout(reveal,80);
+}
 function mediaCards(items){return items.map(item=>'<article class="bl-search-card bl-media-card" data-bl-media-kind="'+(item.video?'video':'image')+'">'+(item.image?'<img class="bl-search-card-media" src="'+esc(item.image)+'" alt="" loading="lazy">':'')+'<div class="bl-search-card-body"><span class="bl-search-kicker">Public Veve · '+esc(item.source)+'</span><h3>'+esc(item.title)+'</h3><button type="button" data-bl-veve-view="'+esc(item.id)+'">'+(item.video?'Watch':'View')+' in Veve</button></div></article>')}
 function herstoryCards(items,query,all){
  const score=window.BigLWADiscoveryCatalog?.score||(()=>0);
@@ -223,6 +240,7 @@ function attach(panel){
     else window.__biglwaOpenSearchRoute?.('tools');
     return;
   }
+  const wla=event.target.closest('[data-bl-wla-title]');if(wla&&panel.contains(wla)){event.preventDefault();openWlaFromSearch(wla.dataset.blWlaTitle);return;}
   const watch=event.target.closest('[data-bl-watch-stream]');
   if(watch&&panel.contains(watch)){event.preventDefault();watchOnStream(watch.dataset.blWatchStream)}
  });
@@ -304,5 +322,5 @@ function attach(panel){
   }catch{frame.addEventListener('load',send,{once:true});}
  });
 }
-window.BigLWADiscoveryExtras={symbol,mediaCards,herstoryCards,widgetCards,videoCards,placeCards,placePromo,toolIntentCards,discoveryIntentCards,attach};
+window.BigLWADiscoveryExtras={symbol,mediaCards,herstoryCards,widgetCards,videoCards,wlaCards,placeCards,placePromo,toolIntentCards,discoveryIntentCards,attach};
 })();
