@@ -13,7 +13,8 @@ keep_vars = true
 INSTAGRAM_APP_ID = "1071153952301247"
 PINTEREST_APP_ID = "1610773"
 SITE_URL = "https://biglwa.com"
-TIKTOK_CLIENT_KEY = "sbawpulijhor3jl94n"
+# Production Login Kit key. The sandbox key is different and yields invalid_client.
+TIKTOK_CLIENT_KEY = "awtd7mu4k7rn1pay"
 X_CLIENT_ID = "TzRHMHR4VG1XekZ0UGw1cF1Eb0M6MTpjaQ"
 NEW_ORBIT_CALLBACK_ORIGIN = "https://api.biglwa.com"
 FIREBASE_PROJECT_ID = "biglwa"

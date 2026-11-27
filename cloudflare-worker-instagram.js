@@ -514,9 +514,9 @@ function corsHeaders(origin) {
 }
 
 /* TikTok Login Kit Web. Uses the existing OAUTH_SESSIONS KV binding.
- * Set TIKTOK_CLIENT_KEY and secret TIKTOK_CLIENT_SECRET in Cloudflare.
- * Register https://biglwa-instagram-api.leianmulatre-284.workers.dev/tiktok/callback
- * under Login Kit > Web. Tokens stay in KV, never in browser responses.
+ * Set the production TIKTOK_CLIENT_KEY and TIKTOK_CLIENT_SECRET in Cloudflare.
+ * Register https://api.biglwa.com/tiktok/callback under Login Kit > Web. Tokens
+ * stay in KV, never in browser responses.
  */
 export default {
   async fetch(request, env) {
@@ -594,7 +594,20 @@ export default {
   }
 };
 function ttFail(message, status = 400) { const error = new Error(message); error.publicMessage = message; error.status = status; throw error; }
-function ttCallback(request) { return new URL('/tiktok/callback', request.url).href; }
+function ttCallback(request, env) {
+  // The registered redirect URI is fixed. Deriving it from the incoming host let a
+  // workers.dev or preview request start an OAuth flow that TikTok would reject
+  // at the token exchange, so always prefer the configured production origin.
+  try {
+    const configured = String(env?.NEW_ORBIT_CALLBACK_ORIGIN || '').trim();
+    if (configured) {
+      const origin = new URL(configured);
+      if (origin.protocol === 'https:' && origin.hostname && !origin.username && !origin.password)
+        return new URL('/tiktok/callback', origin.origin).href;
+    }
+  } catch {}
+  return new URL('/tiktok/callback', request.url).href;
+}
 function ttReturnUrl(raw, env) {
   // Keep browser PKCE verifier on the same trusted host that launched OAuth.
   const fallback=studioUrl(env,'orbit');
@@ -655,7 +668,7 @@ async function ttRoute(request, env) {
   const url = new URL(request.url), path = url.pathname;
   if (request.method === 'OPTIONS') return corsPreflight(request, env);
   const missing = ['TIKTOK_CLIENT_KEY', 'TIKTOK_CLIENT_SECRET', 'OAUTH_SESSIONS'].filter(k => !env[k]);
-  if (path === '/tiktok/health') return json({ ok: !missing.length, missing, callback: ttCallback(request), version: 'tiktok-3', basicProfileOnly:env.TIKTOK_VIDEO_LIST_APPROVED!=='true', publicEmbedAvailable:true }, missing.length ? 503 : 200, request, env);
+  if (path === '/tiktok/health') return json({ ok: !missing.length, missing, callback: ttCallback(request, env), version: 'tiktok-4', basicProfileOnly:env.TIKTOK_VIDEO_LIST_APPROVED!=='true', publicEmbedAvailable:true }, missing.length ? 503 : 200, request, env);
   // Public posts have an official TikTok oEmbed route that does not require
   // video.list or another TikTok OAuth flow. Require BIG LWA membership, accept
   // only exact TikTok public post URLs, and never return embed HTML/scripts.
@@ -691,7 +704,7 @@ async function ttRoute(request, env) {
     if (!/^[A-Za-z0-9_-]{43}$/.test(challenge)) ttFail('Start TikTok connection from Orbit.', 400);
     const state = randomToken(32), browser = randomToken(32);
     const returnTo=ttReturnUrl(url.searchParams.get('return_to'),env);
-    await env.OAUTH_SESSIONS.put('tt:state:' + state, JSON.stringify({ browser, challenge, callback: ttCallback(request), returnTo }), { expirationTtl: 600 });
+    await env.OAUTH_SESSIONS.put('tt:state:' + state, JSON.stringify({ browser, challenge, callback: ttCallback(request, env), returnTo }), { expirationTtl: 600 });
     const dest = new URL('https://www.tiktok.com/v2/auth/authorize/');
     // Request optional statistics only when the TikTok developer app is
     // approved for user.info.stats. A connected basic profile alone must not
@@ -701,7 +714,7 @@ async function ttRoute(request, env) {
     if(env.TIKTOK_USER_STATS_APPROVED==='true')approved.push('user.info.stats');
     if(env.TIKTOK_USER_PROFILE_APPROVED==='true')approved.push('user.info.profile');
     dest.search = new URLSearchParams({ client_key: env.TIKTOK_CLIENT_KEY, response_type: 'code',
-      scope:approved.join(','), redirect_uri: ttCallback(request), state }).toString();
+      scope:approved.join(','), redirect_uri: ttCallback(request, env), state }).toString();
     return ttRedirect(dest.href, browser);
   }
   if (path === '/tiktok/callback' && request.method === 'GET') {

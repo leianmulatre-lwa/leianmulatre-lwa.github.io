@@ -30,6 +30,9 @@
   var markCallbackReturn = function () {
     try { sessionStorage.setItem('biglwa:orbit-callback-return', String(Date.now())) } catch (error) {}
   };
+  // The router reads this marker at top level, before DOMContentLoaded. Write it
+  // as soon as the return code is captured so a callback always survives routing.
+  if (RETURNED_HANDOFF || RETURNED_ERROR) markCallbackReturn();
   function one(selector, root) { return (root || document).querySelector(selector); }
   function all(selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); }
   function escapeText(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }

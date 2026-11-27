@@ -13,7 +13,17 @@ on:
       - 'settings-account.js'
       - 'wrangler.toml'
       - 'orbit-account-fallback-test.mjs'
+      - 'orbit-account-sync-20261124-test.mjs'
       - 'scripts/oauth-worker-config.test.mjs'
+      - 'facebook-orbit.js'
+      - 'instagram-orbit.js'
+      - 'tiktok-orbit.js'
+      - 'module-pages.js'
+      - 'politc-route-guard.js'
+      - 'index.html'
+      - '404.html'
+      - 'studio/index.html'
+      - 'live-studio-shell.html'
       - 'docs/runbooks/worker-auth-mail-relay.md'
       - '.github/workflows/worker-mail-checks.yml'
   workflow_dispatch:
@@ -40,4 +50,4 @@ jobs:
       - name: Worker mail regression tests
         run: node --test mailroom-worker-mail.test.mjs mailroom-worker-route-test.mjs mailroom-auth-client.test.mjs
       - name: Worker configuration guardrails
-        run: node --test scripts/oauth-worker-config.test.mjs orbit-account-fallback-test.mjs
+        run: node --test scripts/oauth-worker-config.test.mjs orbit-account-fallback-test.mjs orbit-account-sync-20261124-test.mjs
