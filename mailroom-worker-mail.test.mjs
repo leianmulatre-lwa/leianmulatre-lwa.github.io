@@ -38,8 +38,11 @@ test("Worker publication validation rejects injected copy", async () => {
 
 test("SMTP transport only accepts approved Titan-style settings", () => {
   assert.deepEqual(mailSmtpConfig({ MAILROOM_SMTP_USER: "u", MAILROOM_SMTP_PASSWORD: "p" }), {
-    host: "smtp.titan.email", port: 465, user: "u", pass: "p", from: "lwazi@biglwa.com"
+    host: "smtp.titan.email", port: 465, user: "u", pass: "p", from: "leian@biglwa.com"
   });
+  assert.equal(mailSmtpConfig({
+    MAILROOM_SMTP_USER: "u", MAILROOM_SMTP_PASSWORD: "p", MAILROOM_FROM: "lwazi@biglwa.com"
+  }).from, "lwazi@biglwa.com");
   assert.equal(mailSmtpConfig({
     MAILROOM_SMTP_USER: "u", MAILROOM_SMTP_PASSWORD: "p", MAILROOM_SMTP_PORT: "587"
   }).port, 587);
@@ -52,7 +55,7 @@ test("SMTP transport only accepts approved Titan-style settings", () => {
     /SMTP username is missing/);
   assert.deepEqual(mailSmtpConfig({
     MAILROOM_SMTP_USER: " u\n", MAILROOM_SMTP_PASSWORD: "p\na\nss", MAILROOM_SMTP_PORT: " 465 "
-  }), { host: "smtp.titan.email", port: 465, user: "u", pass: "pass", from: "lwazi@biglwa.com" });
+  }), { host: "smtp.titan.email", port: 465, user: "u", pass: "pass", from: "leian@biglwa.com" });
   assert.throws(() => mailSmtpConfig({ MAILROOM_SMTP_USER: "u", MAILROOM_SMTP_PASSWORD: "p\0q" }),
     /unsupported control character/);
 });
