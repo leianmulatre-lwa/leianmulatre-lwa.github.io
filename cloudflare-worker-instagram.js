@@ -2889,7 +2889,7 @@ function accountSyncCleanPatch(value, allowed) {
   if (!Object.keys(clean).length) throw new Error('That account write was empty.');
   return clean;
 }
-async function accountSyncValidate(entry, uid, currentUserRow) {
+async function accountSyncValidate(entry, uid, env, currentUserRow) {
   if (!entry || typeof entry !== 'object') throw new Error('That account write was not valid.');
   const scope = String(entry.scope || '');
   const path = String(entry.path || '');
@@ -3024,7 +3024,7 @@ async function accountSyncSave(request, env) {
   let validated;
   try {
     const currentUserRow = await accountSyncStateRow(db, uid, 'user', 'users/' + uid);
-    validated = await accountSyncValidate(entry, uid, currentUserRow);
+    validated = await accountSyncValidate(entry, uid, env, currentUserRow);
   } catch (error) { return json({ error: error.message }, 400, request, env); }
   const current = await accountSyncStateRow(db, uid, validated.scope, validated.path);
   if (current.editId === validated.editId) {
