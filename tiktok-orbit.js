@@ -15,6 +15,10 @@
   const markCallbackReturn=()=>{
     try{sessionStorage.setItem('biglwa:orbit-callback-return',String(Date.now()))}catch{}
   };
+  // module-pages.js evaluates before this file's DOMContentLoaded handler. Mark
+  // the return now so the router keeps Orbit open even if a future script order
+  // moves the callback parameters before its own snapshot.
+  if(CALLBACK_HANDOFF||CALLBACK_ERROR)markCallbackReturn();
   let connected = false, profile = {}, videos = [], authUid = '', restoreBusy = false;
   let lastError='',videoPermissionPending=false,videoLoadError='',lastCollectiveSync='',videoAppScopePending=false;
   const scopedKey = () => authUid ? KEY + ':' + authUid : '';

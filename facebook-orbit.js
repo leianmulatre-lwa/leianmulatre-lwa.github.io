@@ -22,6 +22,28 @@
   }
   var sdkPromise = null;
   var state = { connected: false, profile: null, photos: [], videos: [], permissions: [], error: '', noMediaNotified:false };
+  /* The Facebook JS SDK keeps its cookie for the browser, not for a BIG LWA
+     account. Bind the legacy Business session to the UID that authorized it so a
+     different signed-in user cannot inherit it by opening the same browser. */
+  var UID_BINDING_KEY = 'biglwa:facebook-business-uid';
+  function currentUid() {
+    return String(window.BigLWAAccountStorage?.uid || window.__biglwaIdentity?.uid || '').trim();
+  }
+  function boundUid() {
+    try { return String(localStorage.getItem(UID_BINDING_KEY) || '').trim(); } catch (error) { return ''; }
+  }
+  function bindUid(uid) {
+    try {
+      if (uid) localStorage.setItem(UID_BINDING_KEY, uid);
+      else localStorage.removeItem(UID_BINDING_KEY);
+    } catch (error) {}
+  }
+  function endFacebookSession(done) {
+    try {
+      if (window.FB && window.FB.logout) { window.FB.logout(done || function () {}); return; }
+    } catch (error) {}
+    if (done) done();
+  }
 
   function one(selector, root) { return (root || document).querySelector(selector); }
   function all(selector, root) { return Array.prototype.slice.call((root || document).querySelectorAll(selector)); }
@@ -299,6 +321,23 @@
 
   function connect() {
     if (!requireBusinessConfiguration()) return;
+    var uid = currentUid();
+    if (!uid) {
+      state.error = 'Sign in to BIG LWA before connecting Facebook.';
+      showStatus(state.error);
+      render();
+      return;
+    }
+    var existing = boundUid();
+    if (existing && existing !== uid) {
+      bindUid('');
+      state.connected = false;
+      endFacebookSession(function () {
+        showStatus('That Facebook session belongs to another BIG LWA account. Connect again as this account.');
+        render();
+      });
+      return;
+    }
     loadSDK().then(function () {
       // Do not request App-Review-only permissions on the initial sign-in.
       window.FB.login(function (response) {
@@ -311,6 +350,16 @@
           render();
           return;
         }
+        if (currentUid() !== uid) {
+          bindUid('');
+          state.connected = false;
+          endFacebookSession(function () {
+            showStatus('Your BIG LWA account changed during Facebook sign-in. Connect again as this account.');
+            render();
+          });
+          return;
+        }
+        bindUid(uid);
         state.connected = true;
         state.error = '';
         loadFacebookContent().then(function () {
@@ -335,6 +384,10 @@
 
   function requestMediaAccess() {
     if (!requireBusinessConfiguration()) return;
+    if (!currentUid() || boundUid() !== currentUid()) {
+      showStatus('Connect Facebook as the signed-in BIG LWA account first.');
+      return;
+    }
     if (!state.connected || !window.FB || !window.FB.login) {
       showStatus('Connect Facebook before requesting photos and videos.');
       return;
@@ -354,6 +407,7 @@
 
   function disconnect() {
     function done() {
+      bindUid('');
       state.connected = false;
       state.profile = null;
       state.photos = [];
@@ -428,12 +482,25 @@
      page and then being wiped by the next rebuild. */
   if (window.BIGLWAFeedMount) { window.BIGLWAFeedMount('Facebook', 'facebook-feed-item', renderFeedImports); }
   function restoreFacebookLogin() {
-    // A login-status check is not a new authorization request.
-    // Restore an existing valid Meta session when Orbit is reloaded.
+    // A login-status check is not a new authorization request, but the SDK cookie
+    // is browser-wide. Only restore a session that was explicitly bound to this
+    // BIG LWA UID; otherwise make the user authorize it again.
+    var uid = currentUid();
+    if (!uid) { state.connected = false; render(); return; }
     loadSDK().then(function () {
       window.FB.getLoginStatus(function (response) {
         if (!response || response.status !== 'connected' || !response.authResponse) {
           render();
+          return;
+        }
+        var bound = boundUid();
+        if (!bound || bound !== uid) {
+          bindUid('');
+          state.connected = false;
+          endFacebookSession(function () {
+            showStatus('Reconnect Facebook to link it to your BIG LWA account.');
+            render();
+          });
           return;
         }
         state.connected = true;
