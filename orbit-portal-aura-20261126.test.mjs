@@ -8,7 +8,7 @@ test('native portal tile animation and resizing Aura are shipped',()=>{
  assert.match(js,/auraCard\.clientWidth-aura\.offsetWidth/);
  assert.match(js,/auraResize\?\.observe\(auraCard\)/);
  assert.match(js,/event\.key==='Escape'&&cursorMode/);
- for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html'])assert.equal((read(path).match(/&portaltiles=20261127-9/g)||[]).length,2);
+ for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html'])assert.equal((read(path).match(/&portaltiles=20261127-10/g)||[]).length,2);
  assert.match(read('index.html'),/biglwa-pwa\.js\?v=5/);
 });
 function gifFrames(path){
@@ -26,5 +26,5 @@ function gifFrames(path){
 test('both public Orbit assets contain multiple native animation frames',()=>{
  for(const path of ['assets/orbit/better-aether-portal.gif','assets/orbit/841666uly00b1(2).gif'])assert(gifFrames(path)>1,path);
  assert.match(read('scripts/performance/build-public-site.mjs'),/assets\/orbit\/better-aether-portal\.gif/);
- assert.match(read('scripts/performance/orbit-idle-art.mjs'),/v=20261127-9/);
+ assert.match(read('scripts/performance/orbit-idle-art.mjs'),/v=20261127-10/);
 });

@@ -388,13 +388,13 @@ body.night-mode #studioApp :is(#orbit,#moduleWorkspace[data-module-key="orbit"])
  position:absolute!important;inset:0!important;z-index:4!important;
  width:100%!important;height:100%!important;pointer-events:none!important;
  border-radius:inherit;overflow:hidden;image-rendering:pixelated;
- background-image:var(--orbit-block,url("/assets/orbit/better-aether-portal.gif?v=20261127-9"))!important;
+ background-image:var(--orbit-block,url("/assets/orbit/better-aether-portal.gif?v=20261127-10"))!important;
  background-size:var(--orbit-tile,96px) var(--orbit-tile,96px)!important;
  background-repeat:repeat!important;background-position:0 0;
  opacity:1;mask-composite:intersect;-webkit-mask-composite:source-in;
 }
 body.night-mode #studioApp #orbit>.orbit-portal-tiles{
- background-image:var(--orbit-block,url("/assets/orbit/841666uly00b1%282%29.gif?v=20261127-9"))!important;
+ background-image:var(--orbit-block,url("/assets/orbit/841666uly00b1%282%29.gif?v=20261127-10"))!important;
  animation:none!important; /* native GIF frames, not movement of a static PNG */
 }
 #studioApp #orbit[data-orbit-space-mounted]>:not(#orbitGrid):not(.orbit-space-canvas):not(.orbit-portal-tiles){z-index:5!important}
@@ -424,12 +424,12 @@ html.biglwa-aura-cursor,html.biglwa-aura-cursor *{cursor:none!important}
 @media(prefers-reduced-motion:no-preference){
  #studioApp #orbit:not([data-orbit-space-mounted])::before{
   z-index:4!important;animation:none!important;opacity:1!important;transform:none!important;
-  background-image:var(--orbit-block,url("/assets/orbit/better-aether-portal.gif?v=20261127-9"))!important;
+  background-image:var(--orbit-block,url("/assets/orbit/better-aether-portal.gif?v=20261127-10"))!important;
   background-repeat:repeat!important;background-size:25% auto!important;background-position:0 0!important;
   image-rendering:pixelated;
  }
  body.night-mode #studioApp #orbit:not([data-orbit-space-mounted])::before{
-  background-image:var(--orbit-block,url("/assets/orbit/841666uly00b1%282%29.gif?v=20261127-9"))!important;
+  background-image:var(--orbit-block,url("/assets/orbit/841666uly00b1%282%29.gif?v=20261127-10"))!important;
  }
  @media(hover:none){#studioApp #orbit:not([data-orbit-space-mounted])::before{opacity:.75!important}}
 }

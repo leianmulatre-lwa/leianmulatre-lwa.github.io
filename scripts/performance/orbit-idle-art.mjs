@@ -11,7 +11,7 @@ export function installOrbitIdleArt(destination, publishedPaths) {
   const rules = [];
   for (const [theme, file] of themes) {
     if (!publishedPaths.includes(file)) continue;
-    const url = '/' + file.split('/').map(encodeURIComponent).join('/') + '?v=20261127-9';
+    const url = '/' + file.split('/').map(encodeURIComponent).join('/') + '?v=20261127-10';
     rules.push(theme+' #studioApp #orbit{--orbit-block:url("'+url+'")}');
   }
   if (rules.length) appendFileSync(join(destination,'orbit-space-20261114.css'),
