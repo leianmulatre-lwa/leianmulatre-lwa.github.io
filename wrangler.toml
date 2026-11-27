@@ -17,7 +17,7 @@ TIKTOK_CLIENT_KEY = "sbawpulijhor3jl94n"
 X_CLIENT_ID = "TzRHMHR4VG1XekZ0UGw1cF1Eb0M6MTpjaQ"
 NEW_ORBIT_CALLBACK_ORIGIN = "https://api.biglwa.com"
 FIREBASE_PROJECT_ID = "biglwa"
-# Dormant until the dashboard-managed SMTP secrets exist. The sender is fixed
+# Dormant until the dashboard-managed SMTP secrets exist. The sender is allowlisted
 # in code; no browser caller can choose a recipient, body, or action URL.
 MAILROOM_WORKER_DELIVERY = "true"
 
@@ -52,14 +52,15 @@ crons = ["*/5 * * * *"]
 # required names at deploy time; the actual values remain on Cloudflare.
 #
 # Member auth email relay secrets (Cloudflare dashboard only, never committed):
-#   MAILROOM_SMTP_USER       Titan mailbox user
+#   MAILROOM_SMTP_USER       Titan mailbox user whose password is stored below
 #   MAILROOM_SMTP_PASSWORD   Titan mailbox app password
 # Optional, with safe defaults already in code:
 #   MAILROOM_SMTP_HOST       default smtp.titan.email
 #   MAILROOM_SMTP_PORT       default 465 (587 also supported; 25 is blocked)
-#   MAILROOM_FROM            fixed to lwazi@biglwa.com by the Worker
-# FIREBASE_SERVICE_ACCOUNT is also required to create Firebase action links and
-# read the reviewed developerMailPublished templates.
+#   MAILROOM_FROM            defaults to leian@biglwa.com; lwazi@biglwa.com is also approved
+# FIREBASE_SERVICE_ACCOUNT is required in production to create Firebase action
+# links and read the reviewed developerMailPublished templates, but is not in
+# the Wrangler-required list so an absent service account does not block deploys.
 [secrets]
 required = ["INSTAGRAM_APP_SECRET", "PINTEREST_APP_SECRET", "STATE_SECRET", "TIKTOK_CLIENT_SECRET", "SNAPCHAT_CLIENT_SECRET", "TUMBLR_CONSUMER_SECRET", "TUMBLR_CONSUMER_KEY", "X_CLIENT_SECRET", "FACEBOOK_PERSONAL_APP_SECRET"]
 
