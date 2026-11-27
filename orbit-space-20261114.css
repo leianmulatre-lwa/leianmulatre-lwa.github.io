@@ -381,19 +381,41 @@ body.night-mode #studioApp :is(#orbit,#moduleWorkspace[data-module-key="orbit"])
  #studioApp :is(#orbit,#moduleWorkspace[data-module-key="orbit"])::after{animation:none!important}
 }
 
-/* One continuous field of square portal blocks, including behind the title. */
-@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference){
-body #studioApp article#orbit[data-orbit-space-mounted]::after{
-  content:"";inset:0;z-index:4;pointer-events:none;border-radius:inherit;
-  background-image:var(--orbit-block,none)!important;background-size:25% auto;
-  background-position:0 0;background-repeat:repeat;image-rendering:pixelated;
-  opacity:1;animation:none;transform:none;will-change:auto;
-  mask-image:var(--orbit-trail,none);mask-composite:intersect;
- }
- #studioApp article#orbit[data-orbit-space-mounted]>:not(#orbitGrid):not(.orbit-space-canvas){z-index:5!important}
- #studioApp article#orbit[data-orbit-space-mounted]>#orbitGrid:has(:focus-visible){z-index:6!important}
+
+/* Actual independent square-tiled portal layer. Native image animation is
+   retained: no canvas conversion or stretching a single image to the card. */
+#studioApp #orbit>.orbit-portal-tiles{
+ position:absolute!important;inset:0!important;z-index:4!important;
+ width:100%!important;height:100%!important;pointer-events:none!important;
+ border-radius:inherit;overflow:hidden;image-rendering:pixelated;
+ background-image:var(--orbit-block,url("/assets/orbit/better-aether-portal.gif"))!important;
+ background-size:var(--orbit-tile,96px) var(--orbit-tile,96px)!important;
+ background-repeat:repeat!important;background-position:0 0;
+ opacity:1;mask-composite:intersect;-webkit-mask-composite:source-in;
 }
-/* Touch users can see the same tiled artwork and tap a planet directly. */
-@media (hover:none) and (prefers-reduced-motion:no-preference){
- body #studioApp article#orbit.card{background-image:var(--orbit-block)!important;background-size:25% auto!important;background-repeat:repeat!important}
+body.night-mode #studioApp #orbit>.orbit-portal-tiles{
+ background-image:var(--orbit-block,url("/assets/orbit/841666uly00b1%282%29.gif"))!important;
+ animation:biglwa-nether-tile-drift 3s linear infinite;
 }
+@keyframes biglwa-nether-tile-drift{to{background-position:var(--orbit-tile,96px) var(--orbit-tile,96px)}}
+#studioApp #orbit[data-orbit-space-mounted]>:not(#orbitGrid):not(.orbit-space-canvas):not(.orbit-portal-tiles){z-index:5!important}
+#studioApp #orbit[data-orbit-space-mounted]>#orbitGrid:focus-within{z-index:6!important}
+@media(hover:none){#studioApp #orbit>.orbit-portal-tiles{opacity:.40}}
+@media(prefers-reduced-motion:reduce){#studioApp #orbit>.orbit-portal-tiles{display:none!important}}
+/* Aura's existing face bounces with independent bounds on each axis. */
+#studioApp#studioApp#studioApp#studioApp .aura-card.biglwa-aura-dvd:not(:popover-open){
+ position:relative!important;overflow:hidden!important;isolation:isolate;
+}
+#studioApp#studioApp#studioApp#studioApp .aura-card.biglwa-aura-dvd #auraOrb{
+ position:absolute!important;inset:2px auto auto 2px!important;
+ margin:0!important;z-index:4!important;animation:none!important;
+ transform:translate3d(var(--aura-dvd-x,0px),var(--aura-dvd-y,0px),0)!important;
+ cursor:pointer!important;touch-action:manipulation;
+}
+#studioApp#studioApp#studioApp#studioApp .aura-card.biglwa-aura-dvd>:is(.card-kicker,.window-controls,.widget-window-controls,.widget-drag-handle){z-index:5!important}
+#studioApp#studioApp#studioApp#studioApp .aura-card.biglwa-aura-dvd #auraOrb:focus-visible{outline:2px solid currentColor;outline-offset:2px}
+#studioApp#studioApp#studioApp#studioApp .aura-card.biglwa-aura-dvd #auraOrb[aria-pressed="true"]{outline:1px dashed currentColor}
+.biglwa-aura-pointer{position:fixed;z-index:2147483646;width:32px;height:32px;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none!important}
+.biglwa-aura-pointer[hidden]{display:none!important}
+html.biglwa-aura-cursor,html.biglwa-aura-cursor *{cursor:none!important}
+@media(prefers-reduced-motion:reduce){#studioApp#studioApp#studioApp#studioApp .aura-card.biglwa-aura-dvd #auraOrb{transform:none!important}}

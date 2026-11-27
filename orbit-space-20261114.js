@@ -28,6 +28,7 @@
   const w=Math.max(0,Math.round(rect.width)),h=Math.max(0,Math.round(rect.height));
   if(w<35||h<35||w===layer.width&&h===layer.height)return;
   layer.width=w;layer.height=h;
+  if(layer.portal)layer.portal.style.setProperty('--orbit-tile',Math.max(1,Math.ceil(w/4))+'px');
   // Avoid enormous backing stores on high-DPI phones or tall pages.
   const dpi=Math.min(window.devicePixelRatio||1,1.4,1600/Math.max(w,h));
   layer.canvas.width=Math.max(1,Math.round(w*dpi));
@@ -149,7 +150,7 @@
   }
   while(trail.length && time-trail[0].time>=850)trail.shift();
   if(!trail.length){
-   if(layer.portalMask){layer.target.style.removeProperty('--orbit-trail');layer.portalMask=''}
+   if(layer.portalMask){layer.portal?.style.removeProperty('mask-image');layer.portal?.style.removeProperty('-webkit-mask-image');layer.portalMask=''}
    return;
   }
   const radius=Math.min(99,Math.max(48,layer.width*.155));
@@ -157,7 +158,13 @@
    const size=radius*Math.max(0,1-(time-born)/850);
    return 'radial-gradient(circle at '+x+'px '+y+'px,transparent '+(size*.64).toFixed(1)+'px,#000 '+size.toFixed(1)+'px)';
   }).join(',');
-  if(mask!==layer.portalMask){layer.target.style.setProperty('--orbit-trail',mask);layer.portalMask=mask}
+  if(mask!==layer.portalMask&&layer.portal){
+   layer.portal.style.setProperty('mask-image',mask);
+   layer.portal.style.setProperty('-webkit-mask-image',mask);
+   layer.portal.style.setProperty('mask-composite','intersect');
+   layer.portal.style.setProperty('-webkit-mask-composite','source-in');
+   layer.portalMask=mask;
+  }
  }
  function tick(time){
   frame=0;
@@ -207,13 +214,17 @@
   for(let i=0;i<count;i++){
    const star={};seed(star);layer.stars.push(star);
   }
-  if(kind==='widget'&&target.style)layer.trail=[];
+  if(kind==='widget'&&target.style){
+   layer.trail=[];
+   const portal=document.createElement('div');portal.className='orbit-portal-tiles';portal.setAttribute('aria-hidden','true');
+   target.append(portal);layer.portal=portal;
+  }
   layers.set(target,layer);
   target.addEventListener('pointerenter',()=>{
    layer.hover=true;wake();
   },{passive:true});
   target.addEventListener('pointermove',event=>{
-   if(event.pointerType==='touch'||reduced?.matches)return;
+   if(reduced?.matches)return;
    const bounds=target.getBoundingClientRect();
    if(bounds.width<1||bounds.height<1)return;
    if(layer.trail)layer.portalPointer={x:Math.round(event.clientX-bounds.left),y:Math.round(event.clientY-bounds.top)};
@@ -237,7 +248,7 @@
  }
  function release(target,layer){
   visibility?.unobserve(target);resizing?.unobserve(target);
-  layer.canvas.remove?.();
+  layer.canvas.remove?.();layer.portal?.remove();
   delete target.dataset?.orbitSpaceMounted;
   layers.delete(target);
  }
@@ -259,6 +270,7 @@
    if(!node||(kind==='page'&&node.hidden))continue;
    const layer=layers.get(node);
    if(layer){
+    if(layer.portal&&layer.portal.parentElement!==node){node.append(layer.portal);layer.portal.style.setProperty('--orbit-tile',Math.max(1,Math.ceil(layer.width/4))+'px')}
     // Studio may replace an Orbit card's children without replacing the card.
     // Restore the existing bitmap instead of leaving an invisible, orphaned layer.
     if(!layer.canvas.isConnected || (layer.canvas.parentElement&&layer.canvas.parentElement!==node)){
@@ -292,5 +304,77 @@
  // Wake on scrolling back to the card after a long idle; don't permanently
  // stop the renderer after an inaccurate offscreen/hidden observer callback.
  window.addEventListener('scroll',wake,{passive:true,capture:true});
- window.BigLWAOrbitSpace=Object.freeze({version:'20261114-visible-thumbnail-6',refresh:schedule,detachPage});
+ window.BigLWAOrbitSpace=Object.freeze({version:'20261126-portal-tiles-7',refresh:schedule,detachPage});
+ // Aura: DVD-style motion within the actual card, not the viewport. Use the
+ // existing orb and its live theme color; no replacement widget or data writes.
+ let aura=null,auraCard=null,auraFrame=0,auraLast=0,ax=0,ay=0,vx=66,vy=48,cursor=null,cursorMode=false;
+ const pointerFine=window.matchMedia?.('(pointer:fine)');
+ function auraBounds(){
+  if(!aura||!auraCard)return {x:0,y:0};
+  return {x:Math.max(0,auraCard.clientWidth-aura.offsetWidth-4),y:Math.max(0,auraCard.clientHeight-aura.offsetHeight-4)};
+ }
+ function reflect(pos,vel,max,dt){
+  if(max<=0)return [0,vel];
+  let n=Math.max(0,Math.min(max,pos))+vel*dt;
+  if(n<0){n=-n;vel=Math.abs(vel)}else if(n>max){n=2*max-n;vel=-Math.abs(vel)}
+  return [Math.max(0,Math.min(max,n)),vel];
+ }
+ function renderAura(time){
+  auraFrame=0;
+  if(!aura?.isConnected||!auraCard?.getClientRects().length||document.hidden||reduced?.matches)return;
+  const dt=Math.min(.05,(time-(auraLast||time))/1000);auraLast=time;
+  const bound=auraBounds();
+  [ax,vx]=reflect(ax,vx,bound.x,dt);[ay,vy]=reflect(ay,vy,bound.y,dt);
+  aura.style.setProperty('--aura-dvd-x',ax+'px');aura.style.setProperty('--aura-dvd-y',ay+'px');
+  auraFrame=requestAnimationFrame(renderAura);
+ }
+ function wakeAura(){
+  if(!auraFrame&&aura?.isConnected&&!document.hidden&&!reduced?.matches){auraLast=0;auraFrame=requestAnimationFrame(renderAura)}
+ }
+ function stopCursor(){
+  cursorMode=false;cursor?.remove();cursor=null;document.documentElement.classList.remove('biglwa-aura-cursor');
+  aura?.setAttribute('aria-pressed','false');
+ }
+ function moveCursor(event){
+  if(!cursorMode||!cursor||event.pointerType==='touch')return;
+  cursor.style.left=event.clientX+'px';cursor.style.top=event.clientY+'px';
+  if(aura?.isConnected){const style=getComputedStyle(aura);cursor.style.background=style.background;cursor.style.boxShadow=style.boxShadow}
+  cursor.hidden=false;document.documentElement.classList.add('biglwa-aura-cursor');
+ }
+ function toggleCursor(event){
+  event?.preventDefault();event?.stopPropagation();
+  if(cursorMode){stopCursor();return}
+  if(!pointerFine?.matches||!aura?.isConnected)return;
+  cursor=document.createElement('div');cursor.className='biglwa-aura-pointer';cursor.hidden=true;cursor.setAttribute('aria-hidden','true');
+  document.body.append(cursor);cursorMode=true;aura.setAttribute('aria-pressed','true');
+  if(event&&Number.isFinite(event.clientX)&&event.detail!==0)moveCursor(event);
+ }
+ const auraResize=typeof ResizeObserver==='function'?new ResizeObserver(()=>{
+  const bound=auraBounds();ax=Math.min(ax,bound.x);ay=Math.min(ay,bound.y);
+  aura?.style.setProperty('--aura-dvd-x',ax+'px');aura?.style.setProperty('--aura-dvd-y',ay+'px');wakeAura();
+ }):null;
+ function syncAura(){
+  const next=document.querySelector('#studioApp .aura-card #auraOrb');
+  if(next===aura){wakeAura();return}
+  auraResize?.disconnect();if(auraFrame)cancelAnimationFrame(auraFrame);auraFrame=0;stopCursor();
+  aura=next;auraCard=next?.closest('.aura-card');if(!aura||!auraCard)return;
+  auraCard.classList.add('biglwa-aura-dvd');aura.setAttribute('role','button');aura.tabIndex=0;
+  aura.setAttribute('aria-label','Use Aura as cursor; click again or press Escape to return');aura.setAttribute('aria-pressed','false');
+  aura.addEventListener('click',toggleCursor);
+  aura.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' ')toggleCursor(event)});
+  const bound=auraBounds();ax=bound.x*.35;ay=bound.y*.35;vx=66;vy=48;
+  aura.style.setProperty('--aura-dvd-x',ax+'px');aura.style.setProperty('--aura-dvd-y',ay+'px');
+  auraResize?.observe(auraCard);auraResize?.observe(aura);wakeAura();
+ }
+ let auraQueued=false;
+ function scheduleAura(){if(auraQueued)return;auraQueued=true;requestAnimationFrame(()=>{auraQueued=false;syncAura()})}
+ new MutationObserver(scheduleAura).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class']});
+ document.addEventListener('pointermove',moveCursor,{passive:true});
+ document.documentElement.addEventListener('pointerleave',()=>{if(cursorMode){cursor.hidden=true;document.documentElement.classList.remove('biglwa-aura-cursor')}});
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&cursorMode)stopCursor()});
+ window.addEventListener('blur',stopCursor);
+ window.addEventListener('resize',scheduleAura,{passive:true});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){stopCursor();if(auraFrame)cancelAnimationFrame(auraFrame);auraFrame=0}else wakeAura()});
+ reduced?.addEventListener?.('change',()=>{if(reduced.matches){if(auraFrame)cancelAnimationFrame(auraFrame);auraFrame=0}else wakeAura()});
+ scheduleAura();
 })();
