@@ -17,12 +17,13 @@ them into GitHub, Wrangler config, chat, or a commit.
 | `MAILROOM_SMTP_PASSWORD` | yes | Titan mailbox app password |
 | `MAILROOM_SMTP_HOST` | no | Defaults to `smtp.titan.email` |
 | `MAILROOM_SMTP_PORT` | no | Defaults to `465`; `587` also works, `25` is blocked |
-| `FIREBASE_SERVICE_ACCOUNT` | yes | Also required by handle sign-in and the Firestore mirror |
+| `FIREBASE_SERVICE_ACCOUNT` | production | Creates Firebase action links and reads reviewed templates; not listed as a Wrangler-required secret so previews still deploy |
 
-`MAILROOM_FROM` is fixed to `lwazi@biglwa.com` in code. `MAILROOM_WORKER_DELIVERY`
-is a plain var set to `"true"` in `wrangler.toml`; branch previews set it to
-`"false"`. Until the two SMTP secrets exist, the endpoint returns a generic
-`503` and no mail is sent.
+`MAILROOM_FROM` defaults to `leian@biglwa.com`, the mailbox whose Titan credential
+currently authenticates. `lwazi@biglwa.com` remains an approved override when
+its own SMTP password is installed. `MAILROOM_WORKER_DELIVERY` is a plain var set
+to `"true"` in `wrangler.toml`; branch previews set it to `"false"`. Until the
+SMTP secrets exist, the endpoint returns a generic `503` and no mail is sent.
 
 The reviewed letters must exist in Firestore at
 `developerMailPublished/verify` and `developerMailPublished/reset` with
