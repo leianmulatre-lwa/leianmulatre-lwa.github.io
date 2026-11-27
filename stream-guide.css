@@ -1065,6 +1065,10 @@ body.dark-mode #studioApp .biglwa-stream .stream-music-other-channels>p{
 .biglwa-stream .wla-source-info{opacity:.8}
 .biglwa-stream .wla-poster-placeholder{display:grid;place-items:center;border:1px solid currentColor;border-radius:4px;background:transparent;font:400 32px Georgia;opacity:.4}
 .biglwa-stream .wla-tubi-watch{display:inline-block;width:fit-content;padding:8px 10px;border:1px solid #7964a7;border-radius:5px;background:#f3eefc;color:#412b79!important}
+.biglwa-stream .wla-fmhy-browser{margin:2px 0;padding:8px;border:1px dashed #8e7c6a;border-radius:6px}
+.biglwa-stream .wla-fmhy-browser[hidden]{display:none!important}
+.biglwa-stream .wla-source-fmhy{background:#1c1719;color:#f3e7da}
+.biglwa-stream .wla-source-imdb{background:#f5c518;color:#191512}
 
 /* WLA's catalog lives in the right-hand panel, directly below its filters. */
 .biglwa-stream .stream-channel-copy:has(.wla-carousel){justify-content:flex-start;min-width:0;overflow:visible}
