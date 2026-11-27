@@ -3,7 +3,7 @@
  * come only from the Worker environment and are never returned to the browser. */
 import { connect } from "cloudflare:sockets";
 import {
-  base64Utf8, createSmtpMessage, dotStuff, mailSmtpConfig, smtpAuthPlain
+  base64Utf8, createSmtpMessage, dotStuff, smtpAuthPlain
 } from "./mailroom-worker-mail.mjs";
 
 const CRLF = "\r\n";
@@ -73,7 +73,11 @@ function withTimeout(promise, ms, message) {
 }
 
 export async function sendSmtpMail(config, message) {
-  const mail = mailSmtpConfig(config);
+  // The caller already normalized the Worker env into this config object.
+  // Normalizing it again would look for MAILROOM_SMTP_* keys and fail.
+  const mail = config;
+  if (!mail || typeof mail.user !== "string" || typeof mail.pass !== "string")
+    throw new Error("SMTP configuration is incomplete.");
   const socket = connect({ hostname: mail.host, port: mail.port }, {
     secureTransport: mail.port === 465 ? "on" : "starttls"
   });
