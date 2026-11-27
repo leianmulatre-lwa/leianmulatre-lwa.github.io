@@ -671,6 +671,10 @@
  }
  function renderGrid(){
   if(!root)return;
+  const guide=root.querySelector('.stream-guide');
+  const onDemand=state.category==='lwa-tv'&&state.tvSection==='wla';
+  if(guide)guide.hidden=onDemand;
+  if(onDemand)return;
   if(state.category==='music'){
    // Keep the other live sections discoverable even from the Music setup tab.
    const grid=root.querySelector('#streamGrid');
@@ -736,6 +740,7 @@
  }
  function renderFeaturedSlots(){
   if(!root)return;
+  if(state.category==='lwa-tv'&&state.tvSection==='wla')return;
   // The program is on the LEFT. Discovery lives only in the RIGHT channel box.
   const panel=root.querySelector('#streamDiscoveryPicker');
   if(!panel)return;
@@ -1048,7 +1053,7 @@
   showSource(source,options);
  }
  function tuneCurrent(){
-  if(!root||state.category==='sqwibz'||state.category==='music')return;
+  if(!root||state.category==='sqwibz'||state.category==='music'||(state.category==='lwa-tv'&&state.tvSection==='wla'))return;
   const hour=new Date().getHours();
   const selected=state.programs.find(item=>item.category===state.category&&item.scheduledAt&&localDay(new Date(item.scheduledAt))===state.day&&new Date(item.scheduledAt).getHours()===hour);
   if(selected)selectProgram(selected.id,{silent:true});
@@ -1117,6 +1122,26 @@
    if(category){const button=document.createElement('button');button.type='button';button.textContent='Open '+category;button.onclick=()=>{state.category=['radio','podcast'].includes(category)?'podcast':['news','entertainment'].includes(category)?'lwa-tv':'live';state.radioSection=category==='podcast'?'podcast':'music';state.tvSection=category==='news'?'news':'entertainment';paintCategories();renderGrid();renderCategory();tuneCurrent()};results.append(button)}
   });
  }
+ // WLA is an on-demand discovery shelf, not a rebroadcast or third-party mirror.
+ // Providers own their playback sessions; no external scripts or iframes are loaded.
+ function mountWla(copy,detail){
+  state.followGuide=false;
+  if(state.selected||!mediaPortal?.querySelector('.wla-cinema-standby')){
+   setPlaying(false);state.selected=null;
+   ensureMediaPortal().innerHTML='<div class="stream-screen wla-cinema-standby"><span class="stream-monitor-kicker">CH 02 / WLA</span><div class="wla-cinema-emblem" aria-hidden="true">☠</div><strong>wla</strong><small>cinema · on demand</small><span class="stream-screen-bottom">BIG LWA · ORIGINAL VIEWING SOURCES</span></div>';
+  }
+  copy.querySelector('h2').textContent='wla';
+  copy.querySelector('.stream-eyebrow').textContent='CH 02 / THE CINEMA';
+  copy.querySelector('p').textContent='Find movies and series, explore free films, and choose where to watch.';
+  const picker=copy.querySelector('#streamDiscoveryPicker');
+  picker.innerHTML='<form class="wla-title-search" action="https://www.justwatch.com/us/search" method="get" target="_blank" rel="noopener noreferrer"><label for="wlaTitleQuery">Find a movie or series</label><div><input id="wlaTitleQuery" name="q" type="search" maxlength="180" required placeholder="Title, movie or show…"><button type="submit">Find ↗</button></div><small>Search opens JustWatch’s US availability guide. No account data is sent; only your search text.</small></form><nav class="wla-browse" aria-label="Browse films and shows"><a href="https://www.justwatch.com/us/movies" target="_blank" rel="noopener noreferrer">Movies ↗</a><a href="https://www.justwatch.com/us/tv-shows" target="_blank" rel="noopener noreferrer">Series ↗</a><a href="https://tubitv.com/" target="_blank" rel="noopener noreferrer">Free to watch ↗</a></nav>';
+  detail.innerHTML='<div class="stream-section-head"><div><span class="stream-eyebrow">WLA / CINEMA DIRECTORY</span><h3>choose your screen</h3><p>Explore original viewing sources. Playback, regional availability and any subscription remain with the provider.</p></div></div><div class="wla-source-grid">'+[
+   ['Tubi','Free · ad-supported movies and TV','https://tubitv.com/'],
+   ['Pluto TV','Free · live and on-demand','https://pluto.tv/welcome/on-demand'],
+   ['National Screening Room','Historical film · Library of Congress','https://www.loc.gov/collections/national-screening-room/'],
+   ['JustWatch','Compare streaming, rental and purchase options','https://www.justwatch.com/us']
+  ].map(([name,description,url])=>'<a class="wla-source" href="'+escapeHTML(url)+'" target="_blank" rel="noopener noreferrer"><strong>'+escapeHTML(name)+'</strong><small>'+escapeHTML(description)+'</small><span>Open original source ↗</span></a>').join('')+'</div>';
+ }
  function renderCategory(){
   if(!root)return;
   const copy=root.querySelector('#streamCategoryCopy');
@@ -1125,7 +1150,7 @@
    podcast:['CH 01 / THE CAMPUS DIAL','lwa radio',
     'Play campus radio directly inside Big LWA. Only stations with a configured audio stream are radio ready.'],
    'lwa-tv':['CH 02 / THE PICTURE','lwa tv',
-    'Recent creator uploads, community favorites and original programming. Choose Entertainment or News.'],
+    'Recent creator uploads, community favorites and original programming. Choose Entertainment, News or WLA cinema.'],
    live:['CH 03 / YOUTUBE + TWITCH','live',
     'Watch YouTube music, ASMR and frequency recordings alongside Twitch channels. Current live availability is not guaranteed.'],
    sqwibz:['CH 04 / THE TIMELINE','sqwidz',
@@ -1136,7 +1161,8 @@
   copy.innerHTML=((state.category==='podcast'||state.category==='music')?'<nav class="stream-radio-modes" aria-label="Radio listening"><button type="button" data-radio-section="podcast" aria-pressed="'+(state.category==='podcast'&&state.radioSection==='podcast')+'">Podcasts</button><button type="button" data-radio-section="music" aria-pressed="'+(state.category==='music'||state.radioSection==='music')+'">Music</button></nav>':'')+'<span class="stream-eyebrow">'+cfg[0]+'</span><h2>'+cfg[1]+'</h2><p>'+cfg[2]+'</p>'+
    '<div id="streamDiscoveryPicker" class="stream-discovery-picker" aria-label="Daily Discovery playable choices"></div>';
   if(state.category==='podcast'&&state.radioSection==='podcast'){copy.querySelector('h2').textContent='podcasts';copy.querySelector('p').textContent='Conversations, stories and episodes from their original creators.';copy.querySelector('.stream-eyebrow').textContent='LWA RADIO / PODCASTS';}
-  if(state.category==='lwa-tv'){const modes=document.createElement('nav');modes.className='stream-radio-modes';modes.setAttribute('aria-label','TV programming');modes.innerHTML=['entertainment','news'].map(id=>'<button type="button" data-tv-section="'+id+'" aria-pressed="'+(state.tvSection===id)+'">'+(id==='news'?'News':'Entertainment')+'</button>').join('');copy.prepend(modes);if(state.tvSection==='news')copy.querySelector('h2').textContent='lwa news';}
+  if(state.category==='lwa-tv'){const modes=document.createElement('nav');modes.className='stream-radio-modes';modes.setAttribute('aria-label','TV programming');modes.innerHTML=['entertainment','news','wla'].map(id=>'<button type="button" data-tv-section="'+id+'" aria-pressed="'+(state.tvSection===id)+'">'+(id==='wla'?'WLA':id==='news'?'News':'Entertainment')+'</button>').join('');copy.prepend(modes);if(state.tvSection==='news')copy.querySelector('h2').textContent='lwa news';}
+  if(state.category==='lwa-tv'&&state.tvSection==='wla'){mountWla(copy,detail);return;}
   mountStreamSearch(copy);
   if(state.category==='sqwibz')sqRight(sqCurrent(),null);
   if(state.category==='music'){
