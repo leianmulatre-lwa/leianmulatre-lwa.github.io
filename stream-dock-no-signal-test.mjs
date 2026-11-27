@@ -55,3 +55,8 @@ assert.equal(portal.querySelector('[data-stream-retry]').textContent,'↻ Retry 
 assert.match(portal.textContent,/View on original site/);
 w.close();
 console.log('PASS: one persistent player moves into draggable mini-TV and back; media failure displays supplied bars.');
+
+assert.match(stream,/function syncFullPlayerControls\(\)/,'Full-size TV controls are synchronized with its source strip');
+assert.match(stream,/label\.insertBefore\(fullPlayerControls,label\.querySelector\('a'\)\)/,'Controls sit before the original source links');
+assert.match(css,/#streamMonitor \.stream-player-label:has\(>\.stream-dock-options\)/,'Compact header layout');
+for(const path of ['index.html','studio/index.html','404.html','live-studio-shell.html'])assert.equal((read(path).match(/&tvcontrols=20261127-1/g)||[]).length,2);

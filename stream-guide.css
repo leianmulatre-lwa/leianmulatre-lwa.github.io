@@ -1092,3 +1092,37 @@ body.dark-mode #studioApp .biglwa-stream .stream-music-other-channels>p{
 .biglwa-stream .wla-selection p{font-size:12px;line-height:1.35;margin:0}
 .biglwa-stream .wla-close-details{justify-self:end;font-size:10px}
 .biglwa-stream .wla-catalog-credits{font-size:11px;opacity:.8}
+
+/* 2026-11-27: full TV controls live in the existing source/title strip.
+   The fallback stays inside the monitor if no source label is present. */
+.biglwa-stream #streamMonitor .stream-dock-options{
+ display:flex;align-items:center;justify-content:flex-end;gap:5px;flex-wrap:nowrap;padding:0;margin:0;flex:0 0 auto;
+}
+.biglwa-stream #streamMonitor .stream-player-label:has(>.stream-dock-options){
+ gap:8px;flex-wrap:wrap;justify-content:flex-start;padding:4px 10px;
+}
+.biglwa-stream #streamMonitor .stream-player-label:has(>.stream-dock-options)>span{
+ flex:1 1 150px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.biglwa-stream #streamMonitor .stream-player-label:has(>.stream-dock-options)>a{
+ flex:0 0 auto;
+}
+.biglwa-stream #streamMonitor .stream-dock-options .stream-dock-open{
+ background:#302623;color:#ffedcb;border:1px solid #80654f;border-radius:4px;
+ padding:5px 8px;min-height:25px;white-space:nowrap;font:700 10px/1.15 system-ui;
+}
+.biglwa-stream #streamMonitor .stream-dock-options .stream-dock-open:is(:hover,:focus-visible){
+ background:#574034;color:#fff3d8;outline:1px solid #edbd78;outline-offset:1px;
+}
+.biglwa-stream #streamMonitor>.stream-dock-options{
+ position:absolute;top:6px;right:8px;z-index:9;
+}
+.biglwa-stream #streamMonitor:has(>.stream-dock-options) .stream-monitor-kicker{
+ padding-top:38px;
+}
+.biglwa-stream.is-sqwidz-channel #streamMonitor .stream-dock-options,
+.biglwa-stream #streamMonitor .stream-dock-options[hidden]{display:none!important}
+@media(max-width:560px){
+ .biglwa-stream #streamMonitor .stream-player-label:has(>.stream-dock-options)>span{flex-basis:100%}
+ .biglwa-stream #streamMonitor .stream-dock-options .stream-dock-open{min-height:30px}
+}

@@ -211,6 +211,18 @@
   (mediaTarget?.isConnected?mediaTarget:document.body).appendChild(mediaPortal);
   return mediaPortal;
  }
+ let fullPlayerControls=null;
+ function syncFullPlayerControls(){
+  // Keep the same controls on the full-sized TV, never in the dock or thumbnail.
+  if(typeof root==='undefined'||!root?.isConnected||!fullPlayerControls)return;
+  const monitor=root.querySelector('#streamMonitor');if(!monitor)return;
+  const label=mediaPortal?.parentElement===monitor?mediaPortal.querySelector('.stream-screen > .stream-player-label'):null;
+  const target=label||monitor;
+  if(fullPlayerControls.parentElement!==target){
+   if(label)label.insertBefore(fullPlayerControls,label.querySelector('a'));
+   else monitor.append(fullPlayerControls);
+  }
+ }
  function targetMedia(target){
   // Keep the *same live iframe/video element* when switching widgets.
   // The explicit docking choice takes priority until the user returns.
@@ -236,11 +248,13 @@
   portal.style.visibility='visible';
   portal.style.pointerEvents='auto';
   portal.style.zIndex='2';
+  syncFullPlayerControls();
  }
  function scheduleMediaPosition(){
   // Called by existing playback code; it must not re-measure or chase scrolling.
   if(mediaPortal&&mediaTarget?.isConnected&&mediaPortal.parentElement!==mediaTarget)
    mediaTarget.appendChild(mediaPortal);
+  syncFullPlayerControls();
  }
  // The floating mini-TV holds the actual player DOM node. We never clone
  // an iframe, restart its src or collect a user's viewing history.
@@ -403,9 +417,8 @@
    '<div class="stream-channels" role="tablist" aria-label="Stream category">',
    programmedCategories().map(c=>'<button class="stream-tab" role="tab" id="stream-tab-'+c[0]+'" data-stream-tab="'+c[0]+'" aria-controls="stream-category-content" aria-selected="false"><small>'+c[2]+'</small><b>'+c[1]+'</b></button>').join(''),
    '</div></nav>',
-   '<section class="stream-spotlight" id="streamPlayerStage" aria-label="Channel player"><div class="stream-monitor" id="streamMonitor"><div class="stream-screen"><span class="stream-monitor-kicker">BIG LWA / TUNING IN</span><div class="stream-screen-center"><span>✳</span><strong>loading the current program</strong><small>today’s picks · original hosts</small></div><span class="stream-screen-bottom">BIG LWA · independent programming</span></div></div>',
+   '<section class="stream-spotlight" id="streamPlayerStage" aria-label="Channel player"><div class="stream-monitor" id="streamMonitor"><div class="stream-screen"><span class="stream-monitor-kicker">BIG LWA / TUNING IN</span><div class="stream-screen-center"><span>✳</span><strong>loading the current program</strong><small>today’s picks · original hosts</small></div><span class="stream-screen-bottom">BIG LWA · independent programming</span></div><div class="stream-dock-options" role="group" aria-label="TV player controls"><button type="button" class="stream-dock-open" data-stream-dock title="Keep watching while you browse" aria-label="Dock player, keep watching while you browse">▣ Dock player</button><button type="button" class="stream-dock-open" data-stream-no-signal title="Show no-signal screen" aria-label="No signal?">◉ No signal?</button></div></div>',
    '<div class="stream-channel-copy" id="streamCategoryCopy"></div></section>',
-   '<div class="stream-dock-options"><button type="button" class="stream-dock-open" data-stream-dock>▣ Dock player · keep watching while you browse</button><button type="button" class="stream-dock-open" data-stream-no-signal>◉ No signal?</button><small>One player; move the mini-window anywhere, or return to the full Stream.</small></div>',
    
    '<section class="stream-guide" aria-label="Daily Stream program guide"><div class="stream-guide-head">',
    '<div><span class="stream-eyebrow">EPG / electronic program guide</span><h2>today’s rotation</h2><p>Daily shuffled picks from real channels, campus radio and DJ mixtapes. These are discovery slots, not an assertion of live broadcasts at specific hours.</p></div>',
@@ -417,7 +430,8 @@
    '<section class="stream-future" aria-label="Future programming features"><span>COMING LATER · COMMUNITY PROGRAMMING</span><strong>creator time-slot requests</strong><p>Time-slot requests, premieres and scheduled submissions will arrive in a future Stream release. Explore the curated rotation for now.</p></section>',
    '<p class="stream-disclaimer">Station links lead to their respective operators; listing does not imply affiliation, permission to rebroadcast, or an official programming partnership. No affiliation or live-broadcast status is implied by the creator directory.</p>'
   ].join('');
-  state.defaultMonitorMarkup=root.querySelector('#streamMonitor')?.innerHTML||'';
+  fullPlayerControls=root.querySelector('.stream-dock-options');
+  state.defaultMonitorMarkup=root.querySelector('#streamMonitor > .stream-screen')?.outerHTML||'';
   const persistentPlayback=Boolean(mediaPortal?.firstElementChild&&state.selected);
   targetMedia(root.querySelector('#streamMonitor'));
   mediaPortal?.classList.remove('is-studio-preview');
@@ -473,7 +487,7 @@
   root.dataset.streamCategory=state.category;
   const grid=root.querySelector('.stream-guide');
   if(grid)grid.hidden=false;
-  const dock=root.querySelector('.stream-dock-options');
+  const dock=fullPlayerControls;
   if(dock)dock.hidden=state.category==='music';
   root.querySelectorAll('[data-stream-tab]').forEach(button=>{
    const current=button.dataset.streamTab===state.category||(button.dataset.streamTab==='podcast'&&state.category==='music');
@@ -797,6 +811,7 @@
     '<img src="/assets/tv-no-signal.svg" alt="Television no-signal test pattern" width="336" height="208">'+
     '<strong>NO SIGNAL · '+title+'</strong><small>Stream unavailable here. You can retry or open the source.</small>'+
     '<button type="button" class="stream-monitor-open" data-stream-retry>↻ Retry player</button>'+link+'</div>';
+  syncFullPlayerControls();
   return true;
  }
   // A unified optional player surface. Its provider embed remains hosted on the
