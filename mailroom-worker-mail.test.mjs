@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import { getDefaultTemplate } from "./developer/mailroom/templates.js";
 import {
   base64Utf8, createSmtpMessage, dotStuff, mailSmtpConfig,
@@ -74,4 +77,12 @@ test("SMTP message encodes UTF-8 safely and never trusts header input", () => {
 test("SMTP helper shapes authentication and dot-stuffed body data", () => {
   assert.equal(atob(smtpAuthPlain("user", "pass")), "\0user\0pass");
   assert.equal(dotStuff("one\n.two\n"), "one\r\n..two\r\n");
+});
+
+test("SMTP transport uses the normalized config without re-reading Worker secrets", () => {
+  const repoRoot = dirname(fileURLToPath(import.meta.url));
+  const source = readFileSync(join(repoRoot, "mailroom-worker-smtp.mjs"), "utf8");
+  const transport = source.slice(source.indexOf("export async function sendSmtpMail"));
+  assert.match(transport, /const mail = config;/);
+  assert.doesNotMatch(transport, /mailSmtpConfig\(config\)/);
 });
