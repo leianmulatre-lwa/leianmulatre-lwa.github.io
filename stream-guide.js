@@ -1145,10 +1145,15 @@
   const data=await wlaJSON(base+'&action=wbgetentities&props=labels%7Cdescriptions%7Cclaims&languages=en&ids='+encodeURIComponent(ids.join('|')),signal);
   if(!data.entities)throw Error('Movie catalog unavailable');
   const filmTypes=new Set(['Q11424','Q24869','Q506240','Q202866','Q24862','Q226730']);
-  return ids.map(id=>data.entities[id]).filter(e=>e?.labels?.en?.value&&(e.claims?.P4947?.length||e.claims?.P31?.some(c=>filmTypes.has(c.mainsnak?.datavalue?.value?.id)))).map(e=>({
-   kind:'movie',title:e.labels.en.value,year:String(e.claims?.P577?.[0]?.mainsnak?.datavalue?.value?.time||'').match(/^\+(\d{4})-/)?.[1]||'',
-   description:e.descriptions?.en?.value||'',source:'https://www.wikidata.org/wiki/'+e.id,sourceLabel:'Wikidata film information'
-  }));
+  return ids.map(id=>{
+   const e=data.entities[id],match=found.search.find(x=>x.id===id);
+   if(!e||!(e.claims?.P4947?.length||e.claims?.P31?.some(c=>filmTypes.has(c.mainsnak?.datavalue?.value?.id))))return null;
+   const title=e.labels?.en?.value||match?.label;
+   const description=e.descriptions?.en?.value||match?.description||'';
+   if(!title)return null;
+   return {kind:'movie',title,year:String(e.claims?.P577?.[0]?.mainsnak?.datavalue?.value?.time||'').match(/^\+(\d{4})-/)?.[1]||description.match(/\b(18\d{2}|19\d{2}|20\d{2})\b/)?.[1]||'',
+    description,source:'https://www.wikidata.org/wiki/'+id,sourceLabel:'Wikidata film information'};
+  }).filter(Boolean);
  }
  function mountWla(copy,detail){
   state.followGuide=false;
