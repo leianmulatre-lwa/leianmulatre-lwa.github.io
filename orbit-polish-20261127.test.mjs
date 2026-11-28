@@ -64,8 +64,8 @@ test('shell cache keys bust every edited Orbit asset in every shell and self-loa
 });
 
 test('performance budgets include the current WLA shell references',()=>{
-  assert.match(audit,/landingJsRefs:118,landingCssRefs:96/);
+  assert.match(audit,/landingJsRefs:119,landingCssRefs:96/);
   assert.match(audit,/landingJsRawBytes:2900000,landingCssRawBytes:1020000/);
-  assert.match(audit,/studioJsRefs:117,studioCssRefs:94/);
+  assert.match(audit,/studioJsRefs:118,studioCssRefs:95/);
   assert.match(audit,/studioJsRawBytes:2900000,studioCssRawBytes:1020000/);
 });
