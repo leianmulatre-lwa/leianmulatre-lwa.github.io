@@ -241,3 +241,50 @@ body.night-mode #studioApp #moduleWorkspace[data-module-key="rooms"] .room-role-
 #studioApp #moduleWorkspace .lounge-im textarea{height:100px!important;min-height:80px!important;font:14px/1.4 'Times New Roman',serif!important}
 #studioApp .lounge-im-avatar{background:radial-gradient(circle at 8px 8px,#fff9 1px,transparent 2px) 0 0/16px 16px,linear-gradient(#62c7ee,#2687bd)!important;border:2px inset #eee9d6}
 #studioApp .lounge-im-menubar{border-bottom:1px solid #aaa78f}
+
+/* Lounge messenger: wide main window, compact source-linked right column. */
+#studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .room-lounge-mode{
+ display:grid!important;grid-template-columns:minmax(0,1fr) minmax(220px,27%)!important;
+ grid-template-areas:"messenger topics" "lounges topics" "create topics";
+ gap:14px!important;align-items:start!important;width:100%;max-width:none!important;
+}
+#studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .room-lounge-mode>.lounge-im{
+ grid-area:messenger!important;order:0!important;justify-self:stretch!important;width:100%!important;max-width:none!important;min-width:0!important;box-sizing:border-box;
+}
+#studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .room-lounge-mode>.room-lounge-searches{
+ grid-area:topics!important;align-self:start;min-width:0;padding:12px!important;max-height:clamp(440px,75vh,780px);overflow:auto;
+}
+#studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .room-lounge-mode>.module-card:has(#trendingRooms){grid-area:lounges!important}
+#studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .room-lounge-mode>.module-card:has(#createRoomForm){grid-area:create!important}
+#studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .room-lounge-searches .room-trend-grid{grid-template-columns:minmax(0,1fr)!important;gap:7px;margin:8px 0}
+#studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .room-lounge-searches .room-trend-item{min-height:0;padding:8px;gap:4px;overflow-wrap:anywhere}
+#studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .room-lounge-searches h2{font-size:16px!important;line-height:1.2}
+#studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .room-lounge-searches>p{font-size:10px!important;line-height:1.45}
+#studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .lounge-im .lounge-im-pane{grid-template-columns:clamp(64px,6vw,92px) minmax(0,1fr)!important;gap:6px;margin:4px}
+#studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .lounge-im .module-chat{height:clamp(300px,43vh,480px)!important;max-height:none!important;min-height:0!important;padding:12px;font-size:16px!important}
+#studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .lounge-im textarea{height:clamp(126px,18vh,200px)!important;min-height:126px!important;padding:12px;font-size:16px!important}
+#studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .lounge-im-title h2{color:#fff!important;-webkit-text-fill-color:#fff!important;font-size:15px!important}
+#studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .lounge-im-menubar,#studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .lounge-im-actions{font-size:13px;padding:7px 9px}
+#studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .lounge-im-avatar{
+ --lounge-aura:rgb(var(--aura-rgb,216,95,109));
+ background:radial-gradient(circle at 8px 8px,#fff9 1px,transparent 2px) 0 0/16px 16px,linear-gradient(color-mix(in srgb,var(--lounge-aura) 72%,white),color-mix(in srgb,var(--lounge-aura) 83%,black))!important;
+ color:color-mix(in srgb,var(--lounge-aura) 32%,#141414)!important;align-content:start;justify-items:center;min-width:0;padding:7px 3px!important;gap:6px;overflow:hidden;
+}
+#studioApp .lounge-rail-club{font:42px/1 Georgia,serif}
+#studioApp .lounge-avatar-symbol{display:block;width:30px;height:30px;object-fit:contain;flex:none}
+#studioApp .lounge-avatar-preview{display:grid;place-items:center;width:100%;min-width:0;min-height:48px;max-height:100px;overflow:hidden}
+#studioApp .lounge-avatar-preview[hidden]{display:none!important}
+#studioApp .lounge-avatar-preview>img,#studioApp .lounge-avatar-preview>canvas{display:block;width:100%;max-height:90px;object-fit:contain}
+#studioApp .lounge-avatar-preview>canvas{image-rendering:pixelated}
+#studioApp .lounge-avatar-preview .biglwa-sona-frame{position:relative!important;width:100%!important;min-height:0!important;height:66px!important;overflow:hidden!important;aspect-ratio:auto!important}
+#studioApp .lounge-avatar-preview .biglwa-sona-frame iframe{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;transform:none!important;opacity:1!important;visibility:visible!important}
+@media(max-width:850px){
+ #studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .room-lounge-mode{grid-template-columns:minmax(0,1fr)!important;grid-template-areas:"messenger" "topics" "lounges" "create"}
+ #studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .room-lounge-mode>.room-lounge-searches{max-height:330px}
+}
+@media(max-width:560px){
+ #studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .lounge-im .lounge-im-pane{grid-template-columns:50px minmax(0,1fr)!important}
+ #studioApp .lounge-rail-club{font-size:32px}
+ #studioApp .lounge-avatar-symbol{width:24px;height:24px}
+ #studioApp#studioApp #moduleWorkspace[data-module-key="rooms"] .lounge-im .module-chat{height:300px!important}
+}

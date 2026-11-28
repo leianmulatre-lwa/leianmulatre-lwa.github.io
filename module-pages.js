@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261127-1&callback=20261124-2&threads=20261125-1&avatarload=20261125-1&linkmedia=20261125-1&myfeed=20261125-1&crushlayout=20261126-1&caldedupe=20261126-1&orbitex=20261127-2&orbitpolish=20261127-2';
+        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261127-1&callback=20261124-2&threads=20261125-1&avatarload=20261125-1&linkmedia=20261125-1&myfeed=20261125-1&crushlayout=20261126-1&caldedupe=20261126-1&orbitex=20261127-2&orbitpolish=20261127-2&lounge=20261127-1';
         document.head.appendChild(script);
       }, 250);
     }
@@ -2922,9 +2922,9 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
        '<section class="module-card wide lounge-im" aria-label="Lounge draft window">'+
        '<header class="lounge-im-title"><h2>'+esc(room.name)+' · Instant Message</h2></header>'+
        '<div class="lounge-im-menubar"><span>File　 Edit　 People</span><span>Private draft</span></div>'+
-       '<div class="lounge-im-pane"><span class="lounge-im-avatar" aria-hidden="true">★</span><div class="module-chat" id="roomChat" aria-label="Draft messages">'+
+       '<div class="lounge-im-pane"><span class="lounge-im-avatar lounge-im-room" aria-label="Room"><span class="lounge-rail-club" aria-hidden="true">♣</span></span><div class="module-chat" id="roomChat" aria-label="Draft messages">'+
        (messages.length?messages.map(m=>'<div class="module-bubble"><b>'+ (m.mine?'Me':'Draft') +':</b> '+esc(m.text)+'</div>').join(''):'<p>No messages yet.</p>')+'</div></div>'+
-       '<form class="lounge-im-form" id="roomForm"><div class="lounge-im-pane"><span class="lounge-im-avatar lounge-im-self" aria-hidden="true">✦</span>'+
+       '<form class="lounge-im-form" id="roomForm"><div class="lounge-im-pane"><span class="lounge-im-avatar lounge-im-self" aria-label="Your Avatar"><img class="lounge-avatar-symbol" src="/sesa-wo-suban-medium.png" alt=""><span class="lounge-avatar-preview" id="loungeAvatarPreview" hidden></span></span>'+
        '<textarea class="module-input" name="text" aria-label="Message draft" placeholder="Write in '+esc(room.name)+'…" maxlength="1200" required></textarea></div>'+
        '<footer class="lounge-im-actions"><small>Saved in this browser</small><button class="module-action" type="submit">➤ Save draft</button></footer></form></section>'+
        '<section class="module-card wide"><h2>Create a lounge</h2><p>Use a # name for a private local conversation draft.</p>'+
@@ -2961,6 +2961,43 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     // before resolving signals or binding controls on a blocked workspace.
     if(!profileReady||(mode==='lounge'&&!loungeReady))return;
     if(mode==='room')return;
+    // Render the signed-in member's saved Studio character, not their profile photo.
+    // The Avatar glyph remains visible even if a character is not configured.
+    const avatarHost=$('#loungeAvatarPreview',body);
+    if(avatarHost)void (async()=>{
+      try{
+        const sdk='https://www.gstatic.com/firebasejs/12.18.0/';
+        const [appSdk,authSdk,fs]=await Promise.all([import(sdk+'firebase-app.js'),import(sdk+'firebase-auth.js'),import(sdk+'firebase-firestore.js')]);
+        const app=appSdk.getApps()[0];if(!app)return;
+        const auth=authSdk.getAuth(app);await auth.authStateReady();
+        if(auth.currentUser?.uid!==uid||!avatarHost.isConnected)return;
+        const record=(await fs.getDoc(fs.doc(fs.getFirestore(app),'users',uid))).data()?.studioAvatar;
+        if(auth.currentUser?.uid!==uid||window.__biglwaIdentity?.uid!==uid||!avatarHost.isConnected||window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode'))return;
+        if(!record?.url)return;
+        const display=window.BigLWAAvatarDisplay;
+        if(record.type==='sona360'){
+          const url=display?.url(record.url);
+          if(url&&display.render(avatarHost,url,true,{publicView:true,onState:state=>{
+            if(state==='unsupported'||state==='error'||state==='timeout')avatarHost.hidden=true;
+          }}))avatarHost.hidden=false;
+          return;
+        }
+        let url;try{url=new URL(record.url)}catch{return}
+        const trusted=['biglwa-instagram-api.leianmulatre-284.workers.dev','api.biglwa.com'].includes(url.hostname)&&/^\/media\/(?:profile-photo|feed-image)\//.test(url.pathname);
+        const bitmoji=record.type==='bitmoji'&&['sdk.bitmoji.com','render.bitstrips.com','images.bitmoji.com','avatar.bitmoji.com'].includes(url.hostname);
+        if(url.protocol!=='https:'||url.username||url.password||url.port||(!trusted&&!bitmoji)||!['minecraft','bitmoji','mii','imvu'].includes(record.type))return;
+        const img=new Image();img.alt='Your saved Avatar';img.referrerPolicy='no-referrer';
+        img.onload=()=>{
+          if(auth.currentUser?.uid!==uid||window.__biglwaIdentity?.uid!==uid||!avatarHost.isConnected)return;
+          if(record.type==='minecraft'&&img.naturalWidth>=64&&img.naturalWidth%64===0){
+            const scale=img.naturalWidth/64,canvas=document.createElement('canvas');canvas.width=32;canvas.height=32;canvas.setAttribute('role','img');canvas.setAttribute('aria-label','Your Minecraft character');
+            const ctx=canvas.getContext('2d');if(ctx){ctx.imageSmoothingEnabled=false;ctx.drawImage(img,8*scale,8*scale,8*scale,8*scale,0,0,32,32);ctx.drawImage(img,40*scale,8*scale,8*scale,8*scale,0,0,32,32);avatarHost.replaceChildren(canvas);avatarHost.hidden=false;return;}
+          }
+          avatarHost.replaceChildren(img);avatarHost.hidden=false;
+        };
+        img.onerror=()=>{avatarHost.hidden=true};img.src=url.href;
+      }catch(error){console.info('[BIG LWA Lounge] Avatar preview unavailable:',error?.message||error)}
+    })();
     const gen=body;
     Promise.resolve().then(()=>window.BigLWARoomSignals?.load?.()||[]).then(items=>{
         const slot=$('#roomTrendSources',gen),note=$('#roomTrendStatus',gen);
