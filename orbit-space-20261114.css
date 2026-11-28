@@ -561,3 +561,13 @@ body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] .modu
  background:var(--orbit-source,#d9c6ee)!important;color:var(--orbit-ink,#fff)!important;
  -webkit-text-fill-color:var(--orbit-ink,#fff)!important;
 }
+
+/* Provider color key on the full Orbit page, not the thumbnail. */
+body#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row],
+body #studioApp#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]{
+ border-color:color-mix(in srgb,var(--orbit-source,#aa84ce) 75%,transparent)!important;
+ box-shadow:3px 3px 0 var(--orbit-source,#aa84ce),0 5px 14px #0002!important;
+}
+body #studioApp#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]:is(:hover,:focus-within){
+ box-shadow:4px 4px 0 var(--orbit-source,#aa84ce),0 7px 18px #0003!important;
+}

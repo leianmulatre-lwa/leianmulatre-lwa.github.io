@@ -13,3 +13,15 @@ html.biglwa-preview-mode #studioApp .lwa-role-sticker-layer,#studioApp .profile-
 /* Raise only the two outer ranking columns, leaving time/connections alone. */
 #studioApp#studioApp#studioApp .profile-card .biglwa-profile-scoreboard>.stats.stats>:is([data-profile-stat="followers"],[data-profile-stat="following"],[data-profile-stat="reach"],[data-profile-stat="likes"]){translate:0 -3px}
 @media (pointer:coarse){#studioApp .lwa-role-sticker-handle{width:28px;height:28px}}
+
+#studioApp .biglwa-community-badge,#studioApp .biglwa-community-badge.lwa-role-has-sticker{display:inline!important;background:none!important;border:0!important;border-radius:0!important;padding:0!important;color:inherit!important}
+#studioApp .biglwa-community-badge+.biglwa-community-badge::before{content:" · ";opacity:.65}
+.lwa-sticker-case{margin:0 0 18px;padding:10px;border:1px dashed currentColor;border-radius:8px}
+.lwa-sticker-case-grid{display:flex;gap:12px;flex-wrap:wrap}
+.lwa-sticker-case-grid>div{display:grid;justify-items:center;gap:5px;width:95px}
+.lwa-sticker-case-grid img{width:85px;height:85px;object-fit:contain}
+.lwa-sticker-case-grid button,.lwa-sticker-tray button{font:600 11px system-ui;padding:5px 8px;cursor:pointer}
+.lwa-sticker-tray{position:fixed;bottom:12px;right:12px;width:180px;z-index:99999;display:grid;gap:5px;justify-items:center;padding:10px;background:#34251e;color:#fff3dc;border:1px solid #fff;border-radius:9px;box-shadow:0 5px 20px #0006}
+.lwa-sticker-tray img{width:80px;height:80px;object-fit:contain;touch-action:none;cursor:grab;z-index:2}
+.lwa-sticker-tray img.is-dragging{cursor:grabbing;pointer-events:auto}
+#studioApp .lwa-sticker-safe-zone{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;border:2px dashed #fff;background:#ffffff24;color:#fff;display:grid;place-items:center;font-size:20px;cursor:pointer;border-radius:9px;z-index:6}
