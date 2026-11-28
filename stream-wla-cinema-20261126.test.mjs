@@ -48,3 +48,15 @@ test('global discovery reuses WLA search and hands the selected title to Stream'
 });
 
  test('WLA catalog is a horizontal carousel in the player-side panel',()=>{const js=read('stream-guide.js'),css=read('stream-guide.css');assert.match(js,/picker\.insertAdjacentHTML\('beforeend',[^\n]*wla-carousel/);assert.match(js,/results=picker\.querySelector\('\.wla-results'\)/);assert.match(css,/\.wla-carousel \.wla-results\{display:flex;flex-flow:row nowrap/);assert.match(js,/results\.scrollBy/);});
+
+test('search and WLA share an encoded title-specific catalog lookup and fallback poster art',()=>{
+ const js=read('stream-guide.js'),extras=read('lwazi-discovery-extras.js'),search=read('user-search-results.js');
+ const start=js.indexOf(' const wlaPosterFallback='),end=js.indexOf(' const wlaText=',start);
+ const scope={encodeURIComponent};vm.runInNewContext(js.slice(start,end)+';globalThis.lookup=wlaCatalogLookup;globalThis.poster=wlaPosterFallback;',scope);
+ assert.equal(scope.lookup({title:'Law & Order: SVU'}),'https://cinejoy.pk/?s=Law%20%26%20Order%3A%20SVU');
+ assert.match(scope.poster({imdb:'tt1234567'}),/tt1234567/);
+ assert.equal(scope.poster({imdb:'bad'}),'');
+ assert.match(js,/catalogLookup:wlaCatalogLookup\(item\)/);
+ assert.match(extras,/bl-wla-catalog-icon/);assert.match(extras,/data-bl-image-fallback/);
+ assert.match(extras,/recoverSearchImage/);assert.match(search,/wikipediaImages\(items\)\.catch/);
+});

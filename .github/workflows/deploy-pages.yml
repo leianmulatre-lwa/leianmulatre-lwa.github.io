@@ -168,6 +168,12 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Prepare lightweight Super 8 curtain film and first-frame poster
+        run: |
+          set -euo pipefail
+          command -v ffmpeg >/dev/null || { sudo apt-get update && sudo apt-get install -y ffmpeg; }
+          ffmpeg -hide_banner -loglevel error -y -i super-8mm-film-effect-free-overlays-2160-ytshorts.savetube.me.mp4 -an -vf "scale=960:-2,fps=18" -c:v libvpx-vp9 -crf 36 -b:v 0 -pix_fmt yuv420p -deadline good -cpu-used 4 assets/loading-super8-20261128.webm
+          ffmpeg -hide_banner -loglevel error -y -i assets/loading-super8-20261128.webm -frames:v 1 -c:v libwebp -quality 85 assets/loading-super8-poster-20261128.webp
       - name: Protect Studio loading, thumbnails and search
         run: |
           npm install --prefix /tmp/biglwa-deploy-test jsdom@31.0.1 --no-audit --no-fund

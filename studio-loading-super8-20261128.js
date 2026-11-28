@@ -1,75 +1,46 @@
-/* Decorative video never participates in authentication or module readiness. */
+/* The film layer is born with the curtain; only playback is optional. */
 (()=>{
  const SELECTOR='#biglwaStartupScreen,#studioApp .lwa-curtain[data-lwa-curtain="module"]';
- const SOURCE='/super-8mm-film-effect-free-overlays-2160-ytshorts.savetube.me.mp4';
- const motion=window.matchMedia('(prefers-reduced-motion: reduce)');
- const data=window.matchMedia('(prefers-reduced-data: reduce)');
- const records=new Map(),failed=new WeakSet();
+ const POSTER='/assets/loading-super8-poster-20261128.webp',SOURCE='/assets/loading-super8-20261128.webm';
+ const motion=window.matchMedia('(prefers-reduced-motion: reduce)'),data=window.matchMedia('(prefers-reduced-data: reduce)');
+ const records=new Map();let pending=0,observer,disposed=false;
  if(!document.getElementById('biglwaSuper8Styles')){
-  const link=document.createElement('link');link.id='biglwaSuper8Styles';link.rel='stylesheet';link.href='/studio-loading-super8-20261128.css?v=1';document.head.append(link);
+  const link=document.createElement('link');link.id='biglwaSuper8Styles';link.rel='stylesheet';link.href='/studio-loading-super8-20261128.css?v=3';document.head.append(link);
  }
- let pending=0,observer=null,disposed=false;
- function allowed(){return !document.hidden&&!motion.matches&&!data.matches&&!navigator.connection?.saveData}
+ const allowed=()=>!document.hidden&&!motion.matches&&!data.matches&&!navigator.connection?.saveData;
  function visible(node){
   if(!node.isConnected||node.hidden||node.getAttribute('aria-hidden')==='true')return false;
-  const style=getComputedStyle(node);
-  return style.display!=='none'&&style.visibility!=='hidden'&&style.opacity!=='0'&&node.getClientRects().length>0;
- }
- function remove(node){
-  const state=records.get(node);if(!state)return;
-  records.delete(node);clearTimeout(state.timer);
-  if(state.video){state.video.pause();state.video.removeAttribute('src');state.video.remove();state.video.load()}
+  const s=getComputedStyle(node);return s.display!=='none'&&s.visibility!=='hidden'&&s.opacity!=='0'&&node.getClientRects().length>0;
  }
  function attach(node){
-  if(records.has(node)||failed.has(node))return;
-  const state={timer:0,video:null};records.set(node,state);
-  // Brief curtains remain instant and never need to fetch a 4K decoration.
-  state.timer=setTimeout(()=>{
-   if(records.get(node)!==state||!allowed()||!visible(node)){remove(node);return}
-   const video=document.createElement('video');state.video=video;
-   video.className='biglwa-super8-overlay';video.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;pointer-events:none';video.setAttribute('aria-hidden','true');
-   video.tabIndex=-1;video.muted=true;video.defaultMuted=true;video.loop=true;
-   video.autoplay=true;video.playsInline=true;video.preload='none';video.disablePictureInPicture=true;
-   video.addEventListener('playing',()=>video.classList.add('is-playing'),{once:true});
-   const fallback=()=>{if(records.get(node)!==state)return;failed.add(node);video.classList.remove('is-playing');video.dataset.playbackUnavailable='true';video.pause()};
-   video.addEventListener('error',fallback,{once:true});
-   node.prepend(video);video.src=SOURCE;
-   video.play().catch(fallback);
-  },240);
+  if(records.has(node))return records.get(node);
+  let video=node.querySelector(':scope > .biglwa-super8-overlay');
+  if(!video){video=document.createElement('video');video.className='biglwa-super8-overlay';video.poster=POSTER;video.setAttribute('aria-hidden','true');video.tabIndex=-1;node.prepend(video)}
+  video.muted=true;video.defaultMuted=true;video.loop=true;video.playsInline=true;video.preload='none';video.disablePictureInPicture=true;
+  const state={video,failed:false,active:false};records.set(node,state);
+  const fallback=()=>{if(records.get(node)!==state||!state.active)return;state.failed=true;pause(state)};
+  video.addEventListener('error',fallback);
+  state.cleanup=()=>video.removeEventListener('error',fallback);
+  return state;
+ }
+ function pause(state){
+  if(!state.active)return;state.active=false;
+  state.video.pause();state.video.removeAttribute('src');state.video.load();
  }
  function sync(){
   pending=0;if(disposed)return;
-  for(const node of records.keys())if(!allowed()||!visible(node))remove(node);
-  for(const node of document.querySelectorAll(SELECTOR))if(!visible(node))failed.delete(node);else if(allowed())attach(node);
+  for(const [node,state] of records){if(!node.isConnected){pause(state);state.cleanup();records.delete(node)}}
+  for(const node of document.querySelectorAll(SELECTOR)){
+   const state=attach(node);
+   if(!visible(node)||!allowed()){pause(state);continue}
+   if(!state.active&&!state.failed){state.active=true;state.video.src=SOURCE;state.video.play().catch(()=>{if(state.active){state.failed=true;pause(state)}})}
+  }
  }
  function schedule(){if(!disposed&&!pending)pending=requestAnimationFrame(sync)}
- function relevant(m){
-  if(m.type==='attributes')return m.target.matches?.(SELECTOR)||m.target.id==='studioApp'||m.target.classList?.contains('module-shell');
-  return [...m.addedNodes,...m.removedNodes].some(n=>n.nodeType===1&&(n.matches?.(SELECTOR)||n.querySelector?.(SELECTOR)));
- }
- function start(){
-  if(disposed)return;
-  observer=new MutationObserver(ms=>{if(ms.some(relevant))schedule()});
-  observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','aria-hidden','class','style']});
-  sync();
- }
- function stop(){
-  disposed=true;observer?.disconnect();if(pending)cancelAnimationFrame(pending);
-  for(const node of records.keys())remove(node);
-  document.removeEventListener('visibilitychange',schedule);
-  window.removeEventListener('biglwa:startup-revealed',schedule);
-  motion.removeEventListener?.('change',schedule);data.removeEventListener?.('change',schedule);
-  navigator.connection?.removeEventListener?.('change',schedule);
-  window.removeEventListener('pagehide',stop);
- }
- // The legacy bootstrap writes a fresh document; replace any previous observer.
+ function relevant(m){return m.type==='attributes'?m.target.matches?.(SELECTOR)||m.target.id==='studioApp'||m.target.classList?.contains('module-shell'):[...m.addedNodes,...m.removedNodes].some(n=>n.nodeType===1&&(n.matches?.(SELECTOR)||n.querySelector?.(SELECTOR)))}
+ function start(){if(disposed)return;observer=new MutationObserver(ms=>{if(ms.some(relevant))schedule()});observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','aria-hidden','class','style']});sync()}
+ function stop(){disposed=true;observer?.disconnect();if(pending)cancelAnimationFrame(pending);for(const state of records.values()){pause(state);state.cleanup()}records.clear();document.removeEventListener('visibilitychange',schedule);window.removeEventListener('biglwa:startup-revealed',schedule);motion.removeEventListener?.('change',schedule);data.removeEventListener?.('change',schedule);navigator.connection?.removeEventListener?.('change',schedule);window.removeEventListener('pagehide',stop)}
  window.__biglwaSuper8Cleanup?.();window.__biglwaSuper8Cleanup=stop;
- document.addEventListener('visibilitychange',schedule);window.addEventListener('biglwa:startup-revealed',schedule);
- motion.addEventListener?.('change',schedule);data.addEventListener?.('change',schedule);
- navigator.connection?.addEventListener?.('change',schedule);
- window.addEventListener('pagehide',stop,{once:true});
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
- else start();
- // First-paint markup may already exist when the async script arrives.
- if(document.readyState==='loading')sync();
+ document.addEventListener('visibilitychange',schedule);window.addEventListener('biglwa:startup-revealed',schedule);motion.addEventListener?.('change',schedule);data.addEventListener?.('change',schedule);navigator.connection?.addEventListener?.('change',schedule);window.addEventListener('pagehide',stop,{once:true});
+ if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',start,{once:true});sync()}else start();
 })();

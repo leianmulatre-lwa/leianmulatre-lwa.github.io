@@ -52,6 +52,7 @@ const essential=['index.html','studio/index.html','404.html','CNAME','robots.txt
  'rights/index.html','affidavit/index.html','map-app.html',
  'assets/studio-defaults/map-bikini-bottom-fallback.webp',
  'super-8mm-film-effect-free-overlays-2160-ytshorts.savetube.me.mp4','studio-loading-super8-20261128.js','studio-loading-super8-20261128.css',
+ ...(build?['assets/loading-super8-20261128.webm','assets/loading-super8-poster-20261128.webp']:[]),
  'assets/orbit/better-aether-portal.gif','assets/orbit/841666uly00b1(2).gif',
  'assets/orbit/aether-portal-still.png','assets/orbit/nether-portal-still.png',
  // Never ship the Games rotator without its original image collection.
