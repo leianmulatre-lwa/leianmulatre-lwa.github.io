@@ -31,16 +31,16 @@
    video.tabIndex=-1;video.muted=true;video.defaultMuted=true;video.loop=true;
    video.autoplay=true;video.playsInline=true;video.preload='none';video.disablePictureInPicture=true;
    video.addEventListener('playing',()=>video.classList.add('is-playing'),{once:true});
-   video.addEventListener('error',()=>{if(records.get(node)===state){failed.add(node);remove(node)}},{once:true});
+   const fallback=()=>{if(records.get(node)!==state)return;failed.add(node);video.classList.remove('is-playing');video.dataset.playbackUnavailable='true';video.pause()};
+   video.addEventListener('error',fallback,{once:true});
    node.prepend(video);video.src=SOURCE;
-   video.play().catch(()=>{if(records.get(node)===state){failed.add(node);remove(node)}});
+   video.play().catch(fallback);
   },240);
  }
  function sync(){
   pending=0;if(disposed)return;
   for(const node of records.keys())if(!allowed()||!visible(node))remove(node);
-  if(!allowed())return;
-  for(const node of document.querySelectorAll(SELECTOR))if(visible(node))attach(node);else failed.delete(node);
+  for(const node of document.querySelectorAll(SELECTOR))if(!visible(node))failed.delete(node);else if(allowed())attach(node);
  }
  function schedule(){if(!disposed&&!pending)pending=requestAnimationFrame(sync)}
  function relevant(m){

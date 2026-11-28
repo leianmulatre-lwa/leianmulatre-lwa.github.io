@@ -28,7 +28,7 @@ const ordinary=Buffer.from('A real ordinary file.\n','utf8');
   // Deliberately do not preload the inspector; Workshop must load it on demand.
   await page.evaluate(async()=>{window.BigLWAAds={createDownloadCard(){throw Error('ad service unavailable')}};const mod=await import('/tools-studio.js');mod.mountToolsStudio(document.querySelector('#workshop'))});
   const field=page.locator('#toolLinkForm input');
-  async function paste(url){await field.fill(url);await field.dispatchEvent('paste');await page.locator('#toolLinkDownloads .bl-link-inspector').waitFor()}
+  async function paste(url){await field.fill(url);await field.dispatchEvent('paste');await page.locator('#toolLinkDownloads .bl-link-source').filter({hasText:url}).waitFor()}
   async function download(expected,bytes,button='Download file'){
    const event=page.waitForEvent('download');
    await page.getByRole('button',{name:button,exact:true}).click();

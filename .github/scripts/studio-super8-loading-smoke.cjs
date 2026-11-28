@@ -9,7 +9,12 @@ const media='/super-8mm-film-effect-free-overlays-2160-ytshorts.savetube.me.mp4'
   let requests=0;
   await page.route('https://biglwa.com/**',route=>{
    const path=new URL(route.request().url()).pathname;
-   if(path===media){requests++;return route.fulfill({contentType:'video/mp4',body:fs.readFileSync('.'+media)})}
+   if(path===media){
+     requests++;const bytes=fs.readFileSync('.'+media),range=route.request().headers()['range'];
+     const match=range?.match(/^bytes=(\d+)-(\d*)$/);
+     if(match){const start=Number(match[1]),end=Math.min(bytes.length-1,match[2]?Number(match[2]):bytes.length-1);return route.fulfill({status:206,contentType:'video/mp4',headers:{'Accept-Ranges':'bytes','Content-Range':'bytes '+start+'-'+end+'/'+bytes.length},body:bytes.subarray(start,end+1)})}
+     return route.fulfill({contentType:'video/mp4',headers:{'Accept-Ranges':'bytes'},body:bytes})
+   }
    if(path==='/studio-loading-super8-20261128.css')return route.fulfill({contentType:'text/css',body:css});
    return route.fulfill({contentType:'text/html',body:'<div id="biglwaStartupScreen" style="position:fixed;inset:0;background:#45080e"><div class="biglwa-startup-inner">loading</div></div><main id="studioApp"><div class="module-shell"><div class="lwa-curtain" data-lwa-curtain="module" hidden style="position:absolute;inset:0;background:#45080e"><span class="lwa-pixel-scene">pixel scene</span><button class="lwa-curtain-bypass">continue</button></div></div><div class="biglwa-avatar-loading">avatar</div></main>'})
   });
@@ -20,6 +25,9 @@ const media='/super-8mm-film-effect-free-overlays-2160-ytshorts.savetube.me.mp4'
   const props=await startup.locator('video').evaluate(v=>({source:new URL(v.src).pathname,muted:v.muted,loop:v.loop,inline:v.playsInline,blend:getComputedStyle(v).mixBlendMode,fit:getComputedStyle(v).objectFit,pointer:getComputedStyle(v).pointerEvents,z:getComputedStyle(v).zIndex}));
   assert.deepEqual(props,{source:media,muted:true,loop:true,inline:true,blend:'screen',fit:'cover',pointer:'none',z:'1'});
   assert.equal(await startup.locator('.biglwa-startup-inner').evaluate(e=>getComputedStyle(e).zIndex),'2');
+  // Unsupported codecs keep the original curtain visible instead of removing UI.
+  await startup.locator('video').evaluate(v=>v.dispatchEvent(new Event('error')));
+  await page.waitForFunction(()=>getComputedStyle(document.querySelector('#biglwaStartupScreen video')).opacity==='0');
   await startup.evaluate(e=>e.setAttribute('aria-hidden','true'));
   await startup.locator('video').waitFor({state:'detached'});
   await module.evaluate(e=>e.hidden=false);
@@ -28,7 +36,9 @@ const media='/super-8mm-film-effect-free-overlays-2160-ytshorts.savetube.me.mp4'
   assert.equal(await page.locator('.biglwa-avatar-loading video').count(),0);
   await page.emulateMedia({reducedMotion:'reduce'});
   await module.locator('video').waitFor({state:'detached'});
-  await module.evaluate(e=>{e.hidden=true;e.hidden=false});
+  await module.evaluate(e=>e.hidden=true);
+  await page.waitForTimeout(100);
+  await module.evaluate(e=>e.hidden=false);
   await page.waitForTimeout(350);
   assert.equal(await module.locator('video').count(),0);
   await page.emulateMedia({reducedMotion:'no-preference'});
