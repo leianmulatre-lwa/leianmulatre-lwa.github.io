@@ -35,7 +35,8 @@ test('Free tools is crawlable with unique descriptive metadata and an accessible
 
 test('Search intent maps free Adobe, free games and slide alternatives to actual Studio routes',()=>{
  const win={};
- vm.runInNewContext(extras,{window:win,console,URL,Math,Date,Array,String,Object,Set,Map},{timeout:1800});
+ const documentStub={addEventListener(){}};
+ vm.runInNewContext(extras,{window:win,document:documentStub,console,URL,Math,Date,Array,String,Object,Set,Map},{timeout:1800});
  const tool=win.BigLWADiscoveryExtras;
  const photo=tool.toolIntentCards('free adobe photoshop alternative').join('');
  const game=tool.toolIntentCards('free games online').join('');

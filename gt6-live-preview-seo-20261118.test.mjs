@@ -96,7 +96,7 @@ test('Discovery refresh contract keeps topic scans honest and provenance-bearing
 });
 
 test('L\'wazi sends only matching gaming and practical-intent queries to honest guides',()=>{
- const scope={window:{},console,URL,Array,Map,Set,Date,Math,String};
+ const scope={window:{},document:{addEventListener(){}},console,URL,Array,Map,Set,Date,Math,String};
  vm.runInNewContext(read('lwazi-discovery-extras.js'),scope,{timeout:2000});
  const extras=scope.window.BigLWADiscoveryExtras;
  for(const query of ['watch gt6 lives with people online','gta vi live stream','grand theft auto vi gameplay']){
