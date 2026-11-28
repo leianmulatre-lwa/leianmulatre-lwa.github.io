@@ -40,9 +40,15 @@
         border-color:#ffffff60!important;--widget-finish-shadow:inset 2px 2px 0 #fff6,inset -2px -2px 0 #0003,3px 4px 0 #0003,0 6px 12px #0002;box-shadow:var(--widget-finish-shadow)!important;
       }
       #studioApp#studioApp[data-widget-depth]:not([data-widget-depth="0"]) :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
-        box-shadow:var(--widget-finish-shadow,inset 0 1px 1px #fff5),var(--widget-depth-edge) var(--widget-depth-edge) 0 rgba(0,0,0,var(--widget-depth-alpha)),0 var(--widget-depth-y) var(--widget-depth-blur) rgba(0,0,0,var(--widget-depth-alpha))!important;
+        box-shadow:var(--widget-finish-shadow,inset 0 1px 1px #fff5),var(--widget-depth-edge-x) var(--widget-depth-edge-y) 0 rgba(0,0,0,var(--widget-depth-alpha)),var(--widget-depth-x) var(--widget-depth-y) var(--widget-depth-blur) rgba(0,0,0,var(--widget-depth-alpha))!important;
       }
 
+      #studioApp .widget-shadow-direction{display:inline-flex;align-items:center;flex:none}
+      #studioApp #widgetShadowDial{position:relative;width:42px;height:42px;border:1px solid color-mix(in srgb,var(--widget-ink,#292321) 55%,transparent);border-radius:50%;background:radial-gradient(circle,#ffffff55 0 2px,transparent 3px),linear-gradient(90deg,transparent 49%,#8885 50%,transparent 51%),linear-gradient(0deg,transparent 49%,#8885 50%,transparent 51%),var(--widget-bg,#faf7f1);cursor:grab;touch-action:none;box-sizing:border-box}
+      #studioApp #widgetShadowDial:active{cursor:grabbing}
+      #studioApp #widgetShadowDial:focus-visible{outline:2px solid rgb(var(--aura-rgb,216,95,109));outline-offset:2px}
+      #studioApp #widgetShadowDial>span{position:absolute;left:var(--dial-x,50%);top:var(--dial-y,81%);transform:translate(-50%,-50%);display:grid;place-items:center;width:17px;height:17px;border:1px solid #fff9;border-radius:50%;background:rgb(var(--aura-rgb,216,95,109));color:var(--aura-button-ink,#fff);font:700 15px/1 system-ui;pointer-events:none}
+      #pageWallpaper#pageWallpaper{opacity:var(--widget-wallpaper-scroll-opacity,1)!important}
       /* Color chips + editable HEX value sit beside the native color wheel. */
       #studioApp .biglwa-color-choices{display:grid;gap:7px;padding:9px;margin:5px 0 12px;border:1px solid rgba(var(--aura-rgb,216,95,109),.24);border-radius:10px;background:rgba(255,255,255,.15)}
       #studioApp .biglwa-color-choices strong{font:650 11px/1.3 Inter,system-ui,sans-serif}
@@ -87,6 +93,17 @@
         -webkit-backdrop-filter:none!important;
         backdrop-filter:none!important;
         background-clip:padding-box!important;
+      }
+      /* Blur is independent of finish, and 0px really disables it. Preserve bespoke media/player shells. */
+      #studioApp#studioApp :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera):not(.music-card)),
+      #studioApp#studioApp .module-workspace :is(.module-card:not(.module-game-stage):not(.lounge-im):not(.room-lounge-searches):not(:has(.diary-lined)),.calendar-board,.module-launcher):not(.orbit-main *){
+        -webkit-backdrop-filter:blur(var(--widget-blur,18px))!important;backdrop-filter:blur(var(--widget-blur,18px))!important;
+      }
+      #studioApp#studioApp[data-widget-finish="liquid"] :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
+        -webkit-backdrop-filter:blur(var(--widget-blur,18px)) saturate(1.35)!important;backdrop-filter:blur(var(--widget-blur,18px)) saturate(1.35)!important;
+      }
+      #studioApp#studioApp[data-widget-finish="frosted"] :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
+        -webkit-backdrop-filter:blur(var(--widget-blur,18px)) saturate(1.08)!important;backdrop-filter:blur(var(--widget-blur,18px)) saturate(1.08)!important;
       }
       #studioApp .module-workspace{--module-page-blur:0px;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
       #studioApp .masonry .card:not(.manifesto-card) .sub,
@@ -153,6 +170,25 @@
   const FINISHES=['classic','liquid','frosted','frutiger','block'];
   const finishValue=v=>FINISHES.includes(v)?v:'classic';
   const depthValue=v=>String(Math.max(0,Math.min(100,Number(v)||0)));
+  function directionValue(value){const n=Number(value);return value==null||value===''||!Number.isFinite(n)?90:((Math.round(n)%360)+360)%360}
+  function shadowVector(depth,angle){const r=directionValue(angle)*Math.PI/180;return {x:Math.round(Math.cos(r)*depth*.16),y:Math.round(Math.sin(r)*depth*.16),edgeX:Math.round(Math.cos(r)*depth*.07),edgeY:Math.round(Math.sin(r)*depth*.07)}}
+  function wallpaperFadeOpacity(scroll,available,viewport){const span=Math.max(1,available,viewport*3);const p=Math.max(0,Math.min(1,(scroll/span-.12)/.88));return 1-.52*p*p*(3-2*p)}
+  let fadeFrame=0;
+  function scheduleWallpaperFade(){if(fadeFrame)return;fadeFrame=requestAnimationFrame(()=>{fadeFrame=0;const root=document.documentElement,scroller=document.scrollingElement||root;const viewport=window.innerHeight||root.clientHeight;const opacity=wallpaperFadeOpacity(Math.max(0,scroller.scrollTop||window.scrollY||0),Math.max(0,scroller.scrollHeight-viewport),viewport);root.style.setProperty('--widget-wallpaper-scroll-opacity',opacity.toFixed(4))})}
+  function paintDirection(angle){const dial=$('#widgetShadowDial');if(!dial)return;const r=directionValue(angle)*Math.PI/180;dial.style.setProperty('--dial-x',(50+31*Math.cos(r))+'%');dial.style.setProperty('--dial-y',(50+31*Math.sin(r))+'%');dial.setAttribute('aria-valuenow',String(directionValue(angle)));dial.setAttribute('aria-valuetext',directionValue(angle)+' degrees');}
+  function ensureShadowDial(widgets){
+    if($('#widgetShadowDial',widgets))return;
+    const wrap=document.createElement('div');wrap.className='widget-shadow-direction';wrap.innerHTML='<input type="hidden" id="widgetShadowAngle" value="90"><div id="widgetShadowDial" role="slider" tabindex="0" aria-label="Shadow direction" aria-valuemin="0" aria-valuemax="359" aria-valuenow="90" title="Drag to direct the shadow. Arrow keys rotate; Home resets."><span aria-hidden="true">+</span></div>';
+    const slider=$('#widgetDepth',widgets)?.closest('label');if(slider)slider.after(wrap);else widgets.append(wrap);
+    const dial=$('#widgetShadowDial',wrap),input=$('#widgetShadowAngle',wrap);let pointer=null;
+    const set=angle=>{input.value=String(directionValue(angle));applyAppearance(true)};
+    const point=e=>{const r=dial.getBoundingClientRect(),x=e.clientX-r.left-r.width/2,y=e.clientY-r.top-r.height/2;if(Math.hypot(x,y)<2)return;set(Math.atan2(y,x)*180/Math.PI)};
+    dial.addEventListener('pointerdown',e=>{if(e.button!==0)return;e.preventDefault();dial.focus({preventScroll:true});pointer=e.pointerId;dial.setPointerCapture?.(pointer);point(e)});
+    dial.addEventListener('pointermove',e=>{if(pointer===e.pointerId)point(e)});
+    const end=e=>{if(pointer===e.pointerId)pointer=null};dial.addEventListener('pointerup',end);dial.addEventListener('pointercancel',end);dial.addEventListener('lostpointercapture',end);
+    dial.addEventListener('keydown',e=>{const n={ArrowRight:5,ArrowDown:5,ArrowLeft:-5,ArrowUp:-5,PageUp:45,PageDown:-45}[e.key];if(n===undefined&&e.key!=='Home')return;e.preventDefault();set(e.key==='Home'?90:directionValue(input.value)+n)});
+    paintDirection(input.value);
+  }
   function readAppearance(){
     return {
       color:$('#widgetColor')?.value||'#faf7f1',
@@ -161,7 +197,8 @@
       blur:$('#widgetBlur')?.value||'18',
       aura:$('#auraColor')?.value||'#d85f6d',
       finish:finishValue($('#widgetFinish')?.value),
-      depth:depthValue($('#widgetDepth')?.value)
+      depth:depthValue($('#widgetDepth')?.value),
+      shadowAngle:directionValue($('#widgetShadowAngle')?.value)
     };
   }
 
@@ -169,7 +206,7 @@
     const app=$('#studioApp');if(!app)return;
     const values=readAppearance();
     app.dataset.widgetFinish=values.finish;app.dataset.widgetDepth=values.depth;
-    const depth=Number(values.depth);app.style.setProperty('--widget-depth-y',Math.round(depth*.16)+'px');app.style.setProperty('--widget-depth-blur',Math.round(depth*.32)+'px');app.style.setProperty('--widget-depth-edge',Math.round(depth*.07)+'px');app.style.setProperty('--widget-depth-alpha',String(depth*.004));
+    const depth=Number(values.depth),vector=shadowVector(depth,values.shadowAngle);for(const [k,v] of Object.entries({'--widget-depth-x':vector.x,'--widget-depth-y':vector.y,'--widget-depth-edge-x':vector.edgeX,'--widget-depth-edge-y':vector.edgeY,'--widget-depth-blur':Math.round(depth*.32)}))app.style.setProperty(k,v+'px');app.style.setProperty('--widget-depth-alpha',String(depth*.004));paintDirection(values.shadowAngle);
     const dv=$('#widgetDepthValue');if(dv)dv.textContent=values.depth+'%';
     const [r,g,b]=parseHex(values.color,'#faf7f1'),alpha=Math.min(1,Math.max(.20,(Number(values.opacity)||84)/100));
     // Account for the actual *translucent* card surface. The old logic read
@@ -200,9 +237,9 @@
 
   function restoreAppearance(){
     let values=readOwned(APPEARANCE_KEY)
-    if($('#widgetFinish'))$('#widgetFinish').value=finishValue(values?.finish);if($('#widgetDepth'))$('#widgetDepth').value=depthValue(values?.depth);
+    if($('#widgetFinish'))$('#widgetFinish').value=finishValue(values?.finish);if($('#widgetDepth'))$('#widgetDepth').value=depthValue(values?.depth);if($('#widgetShadowAngle'))$('#widgetShadowAngle').value=String(directionValue(values?.shadowAngle));
     if(values){
-      const mapping={widgetColor:'color',widgetRadius:'radius',widgetOpacity:'opacity',widgetBlur:'blur',auraColor:'aura',widgetFinish:'finish',widgetDepth:'depth'};
+      const mapping={widgetColor:'color',widgetRadius:'radius',widgetOpacity:'opacity',widgetBlur:'blur',auraColor:'aura',widgetFinish:'finish',widgetDepth:'depth',widgetShadowAngle:'shadowAngle'};
       Object.entries(mapping).forEach(([id,key])=>{const input=$('#'+id);if(input&&values[key]!=null)input.value=values[key]});
     }
     applyAppearance(false);
@@ -303,11 +340,12 @@
       const depth=document.createElement('label');depth.innerHTML='Shadow depth <span id="widgetDepthValue">0%</span><input id="widgetDepth" type="range" min="0" max="100" step="5" value="0" aria-label="Widget shadow depth">';
       widgets.append(label,depth);
     }
+    ensureShadowDial(widgets);
     if(section.dataset.biglwaAppearanceBound!=='1'){
       section.dataset.biglwaAppearanceBound='1';
       section.addEventListener('input',event=>{if(event.target.matches('#widgetColor,#widgetRadius,#widgetOpacity,#widgetBlur,#auraColor,#widgetFinish,#widgetDepth'))applyAppearance(true)});
       section.addEventListener('change',event=>{if(event.target.matches('#widgetColor,#widgetRadius,#widgetOpacity,#widgetBlur,#auraColor,#widgetFinish,#widgetDepth'))applyAppearance(true)});
-      $('#resetWidgets',section)?.addEventListener('click',()=>queueMicrotask(()=>{if($('#widgetFinish'))$('#widgetFinish').value='classic';if($('#widgetDepth'))$('#widgetDepth').value='0';applyAppearance(true)}));
+      $('#resetWidgets',section)?.addEventListener('click',()=>queueMicrotask(()=>{if($('#widgetFinish'))$('#widgetFinish').value='classic';if($('#widgetDepth'))$('#widgetDepth').value='0';if($('#widgetShadowAngle'))$('#widgetShadowAngle').value='90';applyAppearance(true)}));
     }
     // Aura hue and text now live together in Widget & Aura, not the Song pane.
     const auraInput=$('#auraColor'),auraLabel=auraInput?.closest('label');
@@ -630,7 +668,7 @@
     beginEdit(){appearanceDraft={appearance:readAppearance(),wallpaper:currentWallpaperSettings()};},
     cancelEdit(){
       const draft=appearanceDraft;if(!draft)return;appearanceDraft=null;
-      const mapping={widgetColor:'color',widgetRadius:'radius',widgetOpacity:'opacity',widgetBlur:'blur',auraColor:'aura',widgetFinish:'finish',widgetDepth:'depth'};
+      const mapping={widgetColor:'color',widgetRadius:'radius',widgetOpacity:'opacity',widgetBlur:'blur',auraColor:'aura',widgetFinish:'finish',widgetDepth:'depth',widgetShadowAngle:'shadowAngle'};
       Object.entries(mapping).forEach(([id,key])=>{const input=$('#'+id);if(input)input.value=draft.appearance[key]});
       const mappingWallpaper={fitSelect:'fit',blurRange:'blur',overlayRange:'overlay'};
       Object.entries(mappingWallpaper).forEach(([id,key])=>{const input=$('#'+id);if(input)input.value=draft.wallpaper[key]});
@@ -645,6 +683,7 @@
           const ap=values.appearance;
           if($('#widgetFinish'))$('#widgetFinish').value=finishValue(ap.finish);
           if($('#widgetDepth'))$('#widgetDepth').value=depthValue(ap.depth);
+          if($('#widgetShadowAngle'))$('#widgetShadowAngle').value=String(directionValue(ap.shadowAngle));
           const colorInput=$('#widgetColor');if(colorInput&&ap.color!=null)colorInput.value=ap.color;
           const radiusInput=$('#widgetRadius');if(radiusInput&&ap.radius!=null)radiusInput.value=String(ap.radius);
           const opacityInput=$('#widgetOpacity');if(opacityInput&&ap.opacity!=null)opacityInput.value=String(ap.opacity);
@@ -671,7 +710,9 @@
     clearMedia(){clearWallpaperDisplay()}
   };
 
-  function run(){ensureStyles();ensureWidgetConnection();ensureWallpaperEditor();removeWallpaperAuraControl();bindEditorState()}
+  function run(){ensureStyles();ensureWidgetConnection();ensureWallpaperEditor();removeWallpaperAuraControl();bindEditorState();scheduleWallpaperFade()}
+  window.addEventListener('scroll',scheduleWallpaperFade,{passive:true});window.addEventListener('resize',scheduleWallpaperFade);document.addEventListener('biglwa:module-open',scheduleWallpaperFade);document.addEventListener('biglwa:module-close',scheduleWallpaperFade);
+  if(typeof ResizeObserver==='function'){const observer=new ResizeObserver(scheduleWallpaperFade);observer.observe(document.documentElement);if(document.body)observer.observe(document.body)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   purgeLegacyWallpaper();
   /* The cloud module is a separate script, so give it a moment before deciding the

@@ -1460,10 +1460,10 @@ const preview = $('#wallpaperPreview');
 // Keep the wallpaper feeling like one continuous page instead of a header banner.
 // It stays strongest near the top and slowly recedes as the user scrolls.
 function updateWallpaperFade(){
-  const maxFadeDistance = Math.max(900, window.innerHeight * 1.45);
-  const progress = Math.min(window.scrollY / maxFadeDistance, 1);
+  const maxFadeDistance = Math.max(1, document.documentElement.scrollHeight - window.innerHeight, window.innerHeight * 3);
+  const progress = Math.max(0, Math.min(1,(window.scrollY / maxFadeDistance - .12) / .88));
   const eased = progress * progress * (3 - 2 * progress);
-  const opacity = 1 - (eased * 0.68);
+  const opacity = 1 - (eased * 0.52);
   document.documentElement.style.setProperty('--wallpaper-scroll-opacity', opacity.toFixed(3));
 }
 updateWallpaperFade();

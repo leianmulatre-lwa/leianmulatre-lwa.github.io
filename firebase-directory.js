@@ -246,6 +246,7 @@ async function savePublicLook(custom={}){
       widgetBlur:safeNumber(appearance.blur,0),
       widgetFinish:['classic','liquid','frosted','frutiger','block'].includes(appearance.finish)?appearance.finish:'classic',
       widgetDepth:Math.max(0,Math.min(100,safeNumber(appearance.depth,0))),
+      widgetShadowAngle:((Math.round(safeNumber(appearance.shadowAngle,90))%360)+360)%360,
       auraColor:safeText(appearance.aura,32),
       scoreboardTextColor:/^#[0-9a-f]{6}$/i.test(String(appearance.scoreboardTextColor||''))?appearance.scoreboardTextColor:'',
       scoreboardPlate:appearance.scoreboardPlate==='clear'?'clear':'maroon',
@@ -380,6 +381,7 @@ async function loadPublicProfile(rawUsername){
           widgetBlur:safeNumber(look.widgetBlur,0),
           widgetFinish:['classic','liquid','frosted','frutiger','block'].includes(look.widgetFinish)?look.widgetFinish:'classic',
           widgetDepth:Math.max(0,Math.min(100,safeNumber(look.widgetDepth,0))),
+          widgetShadowAngle:((Math.round(safeNumber(look.widgetShadowAngle,90))%360)+360)%360,
           auraColor:clean(look.auraColor),
           scoreboardTextColor:/^#[0-9a-f]{6}$/i.test(String(look.scoreboardTextColor||''))?clean(look.scoreboardTextColor):'',
           scoreboardPlate:look.scoreboardPlate==='clear'?'clear':'maroon'

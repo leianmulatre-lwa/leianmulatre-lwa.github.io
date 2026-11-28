@@ -316,7 +316,7 @@ function applyLook(look){
     radius:mirror.widgetRadius||16,
     opacity:mirror.widgetOpacity==null?84:mirror.widgetOpacity,
     blur:mirror.widgetBlur==null?18:mirror.widgetBlur,
-    finish:mirror.widgetFinish||'classic',depth:mirror.widgetDepth||0,
+    finish:mirror.widgetFinish||'classic',depth:mirror.widgetDepth||0,shadowAngle:mirror.widgetShadowAngle??90,
     aura:mirror.auraColor||'#d85f6d'
   };
   const wallpaper={
