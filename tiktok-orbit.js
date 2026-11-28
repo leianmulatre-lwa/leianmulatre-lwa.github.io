@@ -230,6 +230,7 @@
       lastError='';statusUpdate();
       const health = await api('health');
       if(!health.ok)throw Error('TikTok Worker setup is incomplete: '+(health.missing||[]).join(', '));
+      if(slot===2&&health.secondaryAccounts!==true)throw Error('Second account support is not active on the server yet. Your primary account is unchanged.');
       const expected='https://api.biglwa.com/tiktok/callback';
       if(health.callback!==expected)throw Error('TikTok callback mismatch: '+(health.callback||'unknown')+'. Check the Login Kit Web redirect URI.');
       // A configured client key is not proof TikTok has approved the app.
@@ -708,6 +709,8 @@
   let secondaryBusy=false,secondaryUid='',secondaryProfile=null,secondaryError='',secondaryChecked=false;
   function secondaryPanel(){
     const row=document.querySelector('#moduleWorkspace[data-module-key="orbit"] [data-orbit-row="tiktok"] .orbit-main');if(!row)return;
+    if(!authUid||window.__biglwaPublicStorageView||document.documentElement.classList.contains('biglwa-preview-mode')){row.querySelector('.tiktok-secondary-slot')?.remove();return}
+    if(secondaryUid!==authUid)secondaryProfile=null;
     let box=row.querySelector('.tiktok-secondary-slot');if(!box){box=document.createElement('section');box.className='tiktok-secondary-slot';row.append(box)}
     const name=document.createElement('strong');name.textContent='TikTok · second account';
     const detail=document.createElement('span');detail.textContent=secondaryError||(secondaryProfile?String(secondaryProfile.username?'@'+secondaryProfile.username:secondaryProfile.display_name||'Authorized TikTok account')+' · connected':secondaryBusy?'Checking connection…':'Not connected');

@@ -668,7 +668,7 @@ async function ttRoute(request, env) {
   const url = new URL(request.url), path = url.pathname;
   if (request.method === 'OPTIONS') return corsPreflight(request, env);
   const missing = ['TIKTOK_CLIENT_KEY', 'TIKTOK_CLIENT_SECRET', 'OAUTH_SESSIONS'].filter(k => !env[k]);
-  if (path === '/tiktok/health') return json({ ok: !missing.length, missing, callback: ttCallback(request, env), version: 'tiktok-4', basicProfileOnly:env.TIKTOK_VIDEO_LIST_APPROVED!=='true', publicEmbedAvailable:true }, missing.length ? 503 : 200, request, env);
+  if (path === '/tiktok/health') return json({ ok: !missing.length, missing, callback: ttCallback(request, env), version: 'tiktok-4', secondaryAccounts:true, basicProfileOnly:env.TIKTOK_VIDEO_LIST_APPROVED!=='true', publicEmbedAvailable:true }, missing.length ? 503 : 200, request, env);
   // Public posts have an official TikTok oEmbed route that does not require
   // video.list or another TikTok OAuth flow. Require BIG LWA membership, accept
   // only exact TikTok public post URLs, and never return embed HTML/scripts.
