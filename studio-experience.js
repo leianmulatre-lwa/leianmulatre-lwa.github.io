@@ -716,7 +716,33 @@
     let spectrum, bands, lastWaveTime;
     const eqBars=[...eq.querySelectorAll('i')];
     const waveLevels=new Float32Array(eqBars.length);
-    const flatWave=()=>eqBars.forEach((bar,i)=>{waveLevels[i]=.04;bar.style.transform='scaleY(.04)'});
+    // Estimate tempo from observed low-frequency onsets, not a synthetic loop.
+    let bassAverage=0,previousBass=0,lastBeat=-Infinity,beatPeriod=500,punch=0,cone=0,beatIntervals=[];
+    const paintCone=value=>{
+      card.style.setProperty('--stereo-cone-scale',(1+value*.12).toFixed(3));
+      card.style.setProperty('--stereo-cap-scale',(1+value*.19).toFixed(3));
+    };
+    const resetBeat=()=>{bassAverage=previousBass=punch=cone=0;lastBeat=-Infinity;beatPeriod=500;beatIntervals=[];delete card.dataset.detectedBpm;paintCone(0)};
+    const flatWave=()=>{eqBars.forEach((bar,i)=>{waveLevels[i]=.04;bar.style.transform='scaleY(.04)'});resetBeat()};
+    const reactToBass=(timestamp,dt,bass)=>{
+      const baseline=bassAverage;
+      bassAverage+=(bass-bassAverage)*(1-Math.exp(-dt/650));
+      if(bass>.11 && bass>baseline*1.28+.035 && bass-previousBass>.012 && timestamp-lastBeat>235){
+        const interval=timestamp-lastBeat;
+        if(interval>=250&&interval<=1000){
+          beatIntervals.push(interval);if(beatIntervals.length>8)beatIntervals.shift();
+          const sorted=[...beatIntervals].sort((a,b)=>a-b),median=sorted[Math.floor(sorted.length/2)];
+          const consistent=sorted.filter(x=>Math.abs(x-median)<median*.22);
+          if(consistent.length>=3){beatPeriod=consistent.reduce((a,b)=>a+b,0)/consistent.length;card.dataset.detectedBpm=String(Math.round(60000/beatPeriod))}
+        }else if(interval>1500){beatIntervals=[];delete card.dataset.detectedBpm}
+        lastBeat=timestamp;punch=Math.min(1,.4+bass*.85);
+      }
+      previousBass=bass;
+      punch*=Math.exp(-dt/Math.max(95,beatPeriod*.26));
+      const target=Math.min(1,Math.max(bass*.55,punch));
+      cone+=(target-cone)*(1-Math.exp(-dt/(target>cone?38:100)));
+      paintCone(cone);
+    };
     const canAnalyze=()=>{
       const url=audio.currentSrc||audio.src;
       try{
@@ -756,6 +782,13 @@
       const elapsedMs=lastWaveTime===undefined ? 16 : Math.min(50,timestamp-lastWaveTime);
       lastWaveTime=timestamp;
       musicAnalyser.getFloatFrequencyData(spectrum);
+      const hzPerBin=musicAudioCtx.sampleRate/musicAnalyser.fftSize;
+      let bassPower=0,bassBins=0;
+      for(let bin=Math.max(1,Math.ceil(35/hzPerBin));bin<Math.min(spectrum.length,Math.ceil(150/hzPerBin));bin++){
+        const db=spectrum[bin];if(Number.isFinite(db))bassPower+=10**(db/10);bassBins++;
+      }
+      const bass=Math.min(1,Math.max(0,Math.sqrt(bassPower/Math.max(1,bassBins))*18));
+      reactToBass(timestamp,elapsedMs,bass);
       for(let i=0;i<eqBars.length;i++){
         const [first,last]=bands[i];
         let peak=-Infinity;
@@ -771,7 +804,7 @@
     const startWave=()=>{
       if(musicFrame)cancelAnimationFrame(musicFrame);
       if(!initAnalysis()){flatWave();return}
-      lastWaveTime=undefined;
+      lastWaveTime=undefined;resetBeat();
       musicAudioCtx?.resume?.().catch(()=>{});
       musicFrame=requestAnimationFrame(frameWave);
     };
@@ -783,6 +816,7 @@
     audio.addEventListener('pause',stopWave);
     audio.addEventListener('ended',stopWave);
     audio.addEventListener('emptied',stopWave);
+    audio.addEventListener('seeking',resetBeat);
     flatWave();
     const seek=clientX=>{if(!audio.duration)return;const rect=progress.getBoundingClientRect();audio.currentTime=Math.max(0,Math.min(1,(clientX-rect.left)/rect.width))*audio.duration};
     progress.addEventListener('click',event=>seek(event.clientX));progress.addEventListener('keydown',event=>{if(!['ArrowLeft','ArrowRight'].includes(event.key)||!audio.duration)return;event.preventDefault();audio.currentTime=Math.max(0,Math.min(audio.duration,audio.currentTime+(event.key==='ArrowRight'?5:-5)))});

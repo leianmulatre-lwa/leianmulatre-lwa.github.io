@@ -620,3 +620,15 @@ html body #studioApp .music-card.stereo-music-widget .stereo-time-scale>.stereo-
   box-sizing:border-box!important;align-self:center!important;
 }
 #studioApp #heroWidgetRail :popover-open::backdrop{background:rgb(0 0 0 / .55)}
+
+/* Hardware depth without changing the grid footprint; only speaker cones move. */
+html body #studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget:not([hidden]):not(.widget-is-minimized):not(.widget-is-docked){
+ box-shadow:inset 0 0 0 2px #111314,inset 0 0 0 4px #777c7d77,inset -5px -5px 8px #080a0c99,2px 2px 0 #303437,4px 4px 0 #202325,6px 6px 0 #101214,7px 9px 8px #0005!important;
+}
+html body #studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget .stereo-speaker{overflow:hidden!important}
+html body #studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget .stereo-speaker::before{transform:translate(-50%,-50%) scale(var(--stereo-cone-scale,1))!important}
+html body #studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget .stereo-speaker::after{transform:translate(-50%,-50%) scale(var(--stereo-cap-scale,1))!important}
+@media(prefers-reduced-motion:reduce){
+ html body #studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget .stereo-speaker::before,
+ html body #studioApp#studioApp .hero:has(#biglwaAuraAvatarPair)>#heroWidgetRail.hero-widget-rail>.music-card.stereo-music-widget .stereo-speaker::after{transform:translate(-50%,-50%)!important}
+}

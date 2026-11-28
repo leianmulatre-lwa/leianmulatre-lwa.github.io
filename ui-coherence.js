@@ -167,7 +167,7 @@
         const widget=app.querySelector(selector);
         const value=widget?.dataset.upperWidgetBeforeRemoval||
           widget?.dataset.upperWidgetView|| (id==='music'?'long':'square');
-        return [id,value==='long'?'long':'square'];
+        return [id,id==='music'&&value==='wide'?'wide':value==='long'?'long':'square'];
       })),
       navigation:readJson(NAV_SHORTCUT_KEY,scopedLayout()?.navigation||[]),
       disconnectedNavigation:[], // retired shortcut disconnect marker
@@ -1357,7 +1357,7 @@
       if(['music','aura','avatar','guest-check'].includes(widget.dataset.widgetId)){
         const views=scoped?.upperVariants||{};
         const id=widget.dataset.widgetId;
-        const view=views[id]==='long'?'long':views[id]==='square'?
+        const view=id==='music'&&views[id]==='wide'?'wide':views[id]==='long'?'long':views[id]==='square'?
           'square':collapsed.has(id)?'square':id==='music'?'long':'square';
         widget.dataset.upperWidgetView=view;
         widget.classList.toggle('studio-upper-square',view==='square');
@@ -1559,7 +1559,7 @@
     [...app.querySelectorAll('[data-widget-id]')].forEach(widget=>{
       const id=widget.dataset.widgetId;
       if(['music','aura','avatar','guest-check'].includes(id)){
-        const view=upperVariants[id]==='long'?'long':upperVariants[id]==='square'?
+        const view=id==='music'&&upperVariants[id]==='wide'?'wide':upperVariants[id]==='long'?'long':upperVariants[id]==='square'?
           'square':collapsed.has(id)?'square':id==='music'?'long':'square';
         widget.dataset.upperWidgetView=view;
         widget.classList.toggle('studio-upper-square',view==='square');

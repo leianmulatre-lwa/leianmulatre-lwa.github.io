@@ -72,7 +72,7 @@
   if(!document.getElementById('studioUpperRailSizeContract')){
    const link=document.createElement('link');
    link.id='studioUpperRailSizeContract';link.rel='stylesheet';
-   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261115-tunes-time-eq-v1&timeline=20261115-bottom-v1&wave=20261116-studio-tour&discovery=20261117-2&boombox=20261124-3&boardrail=20261125-1';
+   link.href='/studio-upper-rail-size-contract-20261103.css?v=20261115-tunes-time-eq-v1&timeline=20261115-bottom-v1&wave=20261116-studio-tour&discovery=20261117-2&boombox=20261124-3&boardrail=20261125-1&hardware=20261128-1';
    document.head.append(link);
   }
  }
@@ -105,11 +105,11 @@
  };
  const upperView=(id,widget)=>{
   const value=widget?.dataset.upperWidgetView;
-  if(value==='long'||value==='square')return value;
+  if(value==='long'||value==='square'||(id==='music'&&value==='wide'))return value;
   if(widget?.classList.contains('studio-upper-square'))return 'square';
   return upperDefaults[id]||'square';
  };
- const upperUnits=(id,widget)=>upperRemoved(id,widget)?0:upperView(id,widget)==='long'?2:1;
+ const upperUnits=(id,widget)=>upperRemoved(id,widget)?0:upperView(id,widget)==='wide'?3:upperView(id,widget)==='long'?2:1;
  const upperTotal=()=>Object.keys(upperWidgets).reduce((sum,id)=>sum+upperUnits(id,upperElement(id)),0);
  let announceTimer=0;
  function announce(message){
@@ -127,14 +127,14 @@
  function applyUpperView(id,widget,view){
   if(!widget)return;
   const square=view==='square';
-  widget.dataset.upperWidgetView=square?'square':'long';
+  widget.dataset.upperWidgetView=square?'square':id==='music'&&view==='wide'?'wide':'long';
   widget.classList.toggle('studio-upper-square',square);
   // A square card still shows its contents. Header-only is an obsolete
   // lower-widget collapse mode and must not be set for upper widgets.
   widget.classList.remove('studio-header-only');
   if(id==='music'){
    widget.classList.toggle('studio-music-square',square);
-   widget.dataset.musicVariant=square?'square':'long';
+   widget.dataset.musicVariant=widget.dataset.upperWidgetView;
   }
  }
  function syncUpperPanel(){
@@ -200,7 +200,7 @@
  }
  function restoreUpper(id){
   if(!upperElement(id))return false;
-  if(upperView(id,upperElement(id))==='long'){
+  if(upperView(id,upperElement(id))!=='square'){
    announce(upperLabel[id]+' is already full size.');return true;
   }
   if(upperTotal()+1>UPPER_CAPACITY){
@@ -209,10 +209,18 @@
   setUpperView(id,'long');announce(upperLabel[id]+' restored to full size.');
   return true;
  }
+ function enlargeMusic(){
+  const widget=upperElement('music');if(!widget||upperRemoved('music',widget))return false;
+  const view=upperView('music',widget);
+  if(view==='wide'){announce('Music is already at its largest size.');return true;}
+  if(upperTotal()+1>UPPER_CAPACITY){announce('This row is full. Minimize another widget to enlarge Music.');return true;}
+  setUpperView('music',view==='square'?'long':'wide');return true;
+ }
  function minimizeUpper(id){
   const widget=upperElement(id);
   if(!widget||upperRemoved(id,widget))return false;
   if(upperView(id,widget)==='square')return restoreUpper(id);
+  if(id==='music'&&upperView(id,widget)==='wide')return setUpperView(id,'long');
   setUpperView(id,'square');
   announce(upperLabel[id]+' minimized to square.');
   return true;
@@ -267,7 +275,8 @@
   const collapsed=upper?compact:widget.classList.contains('studio-header-only');
   if(widget.classList.contains('music-card')){
    widget.classList.toggle('studio-music-square',compact);
-   widget.dataset.musicVariant=compact?'square':'long';
+   widget.dataset.musicVariant=upperView('music',widget);
+   widget.querySelectorAll('.widget-window-controls .window-light.green').forEach(button=>{button.title='Enlarge Music Box';button.setAttribute('aria-label','Enlarge Music Box');button.removeAttribute('aria-haspopup');button.removeAttribute('aria-expanded')});
   }
   widget.querySelectorAll('.widget-window-controls .window-light.yellow').forEach(button=>{
    const name=upper?upperLabel[upper]:label(widget);
@@ -293,7 +302,7 @@
     if(upperRemoved(upper,widget)){sync(widget);return}
     if(widget.dataset.yellowCollapseTouched!=='1'){
      const accountValue=variants[upper];
-     const selected=accountValue==='square'||accountValue==='long'?
+     const selected=accountValue==='square'||accountValue==='long'||(upper==='music'&&accountValue==='wide')?
       accountValue:legacy?.has(id)?'square':upperDefaults[upper];
      applyUpperView(upper,widget,selected);
     }
@@ -315,7 +324,9 @@
  window.addEventListener('click',event=>{
   if(isVisitor()||!(event.target instanceof Element))return;
   const green=event.target.closest('.widget-window-controls .window-light.green');
-  const card=green?.closest('#studioApp .music-card,#studioApp .aura-card');
+  const music=green?.closest('#studioApp .music-card');
+  if(music){event.preventDefault();event.stopImmediatePropagation();enlargeMusic();return;}
+  const card=green?.closest('#studioApp .aura-card');
   if(card&&typeof card.showPopover==='function'){
    event.preventDefault();event.stopImmediatePropagation();
    if(card.matches(':popover-open'))card.hidePopover();
@@ -343,6 +354,7 @@
      announce('This row is full. Minimize or close a widget to restore '+upperLabel[id]+'.');return;
     }
     if(free===1)applyUpperView(id,widget,'square');
+    else if(id==='music'&&free===2&&upperView(id,widget)==='wide')applyUpperView(id,widget,'long');
     widget.dataset.yellowCollapseTouched='1';
     widget.dataset.yellowCollapseOwner=uid()||'';
     // Let the established red restore handler own visibility and persistence.

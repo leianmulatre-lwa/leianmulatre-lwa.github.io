@@ -133,7 +133,7 @@ const actionBar=doc.createElement('nav');actionBar.className='hero-action-bar';
 hero.append(rail,actionBar);doc.querySelector('#studioApp').append(hero);
 const music=doc.createElement('section');music.className='customizable-widget music-card stereo-music-widget';
 music.dataset.widgetId='music';music.dataset.widgetLabel='Now Playing';
-music.innerHTML='<div class="widget-window-controls"><button class="window-light yellow" data-minimize-widget="music">Yellow</button><button class="window-light red" data-dock-widget="music">Red</button></div>'+
+music.innerHTML='<div class="widget-window-controls"><button class="window-light green">Green</button><button class="window-light yellow" data-minimize-widget="music">Yellow</button><button class="window-light red" data-dock-widget="music">Red</button></div>'+
  '<h2 class="card-kicker">NOW PLAYING</h2><div class="stereo-shell"><div class="stereo-tuner"></div>'+
  '<div class="stereo-face"><div class="stereo-speaker"></div><div class="stereo-display"><strong id="studioMusicTitle">Almeda</strong><span id="studioMusicArtist">Solange</span></div></div>'+
  '<div class="stereo-control-deck"><button id="playBtn">Play</button></div></div>';
@@ -185,6 +185,9 @@ musicYellow.click();
 assert.equal(status().entries.music.view,'long','Yellow again restores Music to full double-width');
 assert.equal(music.dataset.upperSpan,'2');
 assert.strictEqual(music.querySelector('.stereo-shell'),shell,'Restoration never remounts the player');
+const musicGreen=music.querySelector('.window-light.green');
+musicGreen.click();assert.equal(status().entries.music.view,'wide','Green enlarges the default stereo in place');assert.equal(status().used,6);assert(!music.hasAttribute('popover'));assert.strictEqual(music.querySelector('.stereo-shell'),shell);
+musicYellow.click();assert.equal(status().entries.music.view,'long','Yellow steps down from wide to long');
 const auraYellow=aura.querySelector('.window-light.yellow');
 const avatarYellow=avatar.querySelector('.window-light.yellow');
 const guestYellow=guest.querySelector('.window-light.yellow');
