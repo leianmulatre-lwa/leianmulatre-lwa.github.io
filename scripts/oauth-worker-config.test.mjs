@@ -132,7 +132,7 @@ test('every browser-accepted private storage key is allowed by Worker sync',()=>
 });
 
 test('changed runtime files are cache-busted in every shell and self-loader',()=>{
-  const key='orbitex=20261127-1';
+  const key='orbitex=20261127-2';
   const hasKey=(source,name,label)=>{
     const at=source.indexOf('/'+name+'?v=');
     assert.ok(at>-1,label+' loads '+name);
