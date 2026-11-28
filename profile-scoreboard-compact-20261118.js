@@ -6,9 +6,8 @@
  const $=(s,r=document)=>r.querySelector(s);
  const uid=()=>String(window.BigLWAAccountStorage?.uid||window.__biglwaIdentity?.uid||'').trim();
  const preview=()=>!!window.__biglwaPublicStorageView||!!document.documentElement?.classList?.contains('biglwa-preview-mode');
- const hex=x=>typeof x==='string'&&/^#[0-9a-f]{6}$/i.test(x)?x.toLowerCase():'';
+ const hex=x=>String(x||'').toLowerCase()==='#ffffff'?'#ffffff':'';
  let appliedUid='',ink='',plate='maroon',acceptedInk='',acceptedPlate='maroon',writes=Promise.resolve(),scheduled=false;
- const DEFAULT_AURA='#d85f6d';
  let clockPrefs={format:'12h',zone:''}, clockSaving=false;
  function validZone(value){
   if(typeof value!=='string'||value.length>100)return '';
@@ -75,12 +74,6 @@
   if(!dialog.open)dialog.showModal();
  }
 
- function auraHex(){
-  const app=$('#studioApp');
-  if(!app||typeof getComputedStyle!=='function')return DEFAULT_AURA;
-  const rgb=getComputedStyle(app).getPropertyValue('--aura-rgb').trim().split(',').map(Number);
-  return rgb.length===3&&rgb.every(x=>Number.isInteger(x)&&x>=0&&x<=255)?'#'+rgb.map(x=>x.toString(16).padStart(2,'0')).join(''):DEFAULT_AURA;
- }
  function repaint(){
   if(preview())return;
   const app=$('#studioApp');if(!app)return;
@@ -89,11 +82,11 @@
   const board=$('.biglwa-profile-scoreboard',app);
   if(board)board.dataset.scoreboardPlate=plate;
   const input=$('#skeletonScoreboardColor');
-  if(input&&document.activeElement!==input)input.value=ink||auraHex();
+  if(input)input.value=ink||'';
   const select=$('#skeletonScoreboardPlate');
   if(select)select.value=plate;
   const status=$('#skeletonScoreboardStatus');
-  if(status&&status.dataset.saving!=='1')status.textContent=ink?'Custom LEDs · '+ink:'LED text follows your Aura';
+  if(status&&status.dataset.saving!=='1')status.textContent=ink?'White LED text':'LED text follows your Aura';
  }
  function hydrate(remote){
   const current=uid();
@@ -113,8 +106,8 @@
   const block=document.createElement('div');block.className='skeleton-scoreboard-prefs';
   block.setAttribute('aria-label','Scoreboard appearance');
   block.innerHTML='<strong>Real rankings · colors</strong>'+
-    '<label>LED text <input id="skeletonScoreboardColor" type="color" aria-label="Scoreboard LED text color" value="#d85f6d"></label>'+
-    '<button type="button" id="skeletonScoreboardUseAura">Use current Aura</button>'+
+    '<label>LED text <select id="skeletonScoreboardColor" aria-label="Scoreboard LED text color"><option value="">Current Aura</option><option value="#ffffff">White</option></select></label>'+
+
     '<label>Outer frame <select id="skeletonScoreboardPlate" aria-label="Scoreboard outer frame"><option value="maroon">Maroon red</option><option value="clear">Clear</option></select></label>'+
     '<p class="skeleton-scoreboard-status" id="skeletonScoreboardStatus" role="status">LED text follows your Aura</p>';
   area.append(block);repaint();
@@ -182,17 +175,9 @@
   setInterval(renderClock,1000);
   document.addEventListener('visibilitychange',renderClock);
   document.addEventListener('click',event=>{if(event.target?.closest?.('.biglwa-score-clock')&&!preview()){event.preventDefault();openClock()}});
-  document.addEventListener('input',event=>{
-   if(event.target?.id==='skeletonScoreboardColor'&&uid()&&!preview()){
-    ink=hex(event.target.value);repaint();
-   }
-  });
   document.addEventListener('change',event=>{
    if(event.target?.id==='skeletonScoreboardColor')update('scoreboardTextColor',event.target.value);
    if(event.target?.id==='skeletonScoreboardPlate')update('scoreboardPlate',event.target.value);
-  });
-  document.addEventListener('click',event=>{
-   if(event.target?.closest?.('#skeletonScoreboardUseAura'))update('scoreboardTextColor','');
   });
   window.addEventListener('biglwa:customization-remote',event=>{hydrate(event.detail);schedule()});
   document.addEventListener('biglwa:community-profile-updated',schedule);

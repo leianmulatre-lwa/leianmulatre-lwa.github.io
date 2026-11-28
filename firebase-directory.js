@@ -248,7 +248,7 @@ async function savePublicLook(custom={}){
       widgetDepth:Math.max(0,Math.min(100,safeNumber(appearance.depth,0))),
       widgetShadowAngle:((Math.round(safeNumber(appearance.shadowAngle,90))%360)+360)%360,
       auraColor:safeText(appearance.aura,32),
-      scoreboardTextColor:/^#[0-9a-f]{6}$/i.test(String(appearance.scoreboardTextColor||''))?appearance.scoreboardTextColor:'',
+      scoreboardTextColor:String(appearance.scoreboardTextColor||'').toLowerCase()==='#ffffff'?'#ffffff':'',
       scoreboardPlate:appearance.scoreboardPlate==='clear'?'clear':'maroon',
       layout:account.accountVisibility==='private'?{}:sanitizeLayout(custom.layout),
       highlights:account.accountVisibility==='private'?{version:1,imported:{},custom:[]}:sanitizeHighlightEdits(custom.session?.highlightEdits),
@@ -383,7 +383,7 @@ async function loadPublicProfile(rawUsername){
           widgetDepth:Math.max(0,Math.min(100,safeNumber(look.widgetDepth,0))),
           widgetShadowAngle:((Math.round(safeNumber(look.widgetShadowAngle,90))%360)+360)%360,
           auraColor:clean(look.auraColor),
-          scoreboardTextColor:/^#[0-9a-f]{6}$/i.test(String(look.scoreboardTextColor||''))?clean(look.scoreboardTextColor):'',
+          scoreboardTextColor:String(look.scoreboardTextColor||'').toLowerCase()==='#ffffff'?'#ffffff':'',
           scoreboardPlate:look.scoreboardPlate==='clear'?'clear':'maroon'
         },
         wallpaper:{

@@ -121,11 +121,14 @@ test('Skeleton Key changes scoreboard color on the account and restores public p
  const directory=read('firebase-directory.js');
  const preview=read('studio-preview.js');
  assert.match(script,/skeletonScoreboardColor/);
- assert.match(script,/skeletonScoreboardUseAura/);
+ assert.match(script,/option value="">Current Aura/);
+ assert.match(script,/option value="#ffffff">White/);
+ assert.doesNotMatch(script,/type="color"|skeletonScoreboardUseAura/);
  assert.match(script,/skeletonScoreboardPlate/);
  assert.match(script,/BigLWAUserDirectory\.saveCustomizations\(\{appearance:/);
  assert.match(script,/biglwa:customization-remote/);
- assert.match(script,/auraHex\(\)/);
+ assert.match(script,/toLowerCase\(\)==='#ffffff'\?'#ffffff':''/);
+ assert.doesNotMatch(compact,/color:color-mix\(in srgb,var\(--score-ink\) \d+%,white\)/);
  assert.match(directory,/scoreboardTextColor:/);
  assert.match(directory,/scoreboardPlate:/);
  assert.match(preview,/mirror\.scoreboardTextColor/);

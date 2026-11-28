@@ -327,7 +327,7 @@ function applyLook(look){
   };
   const scoreApp=document.querySelector('#studioApp');
   if(scoreApp){
-    const ink=/^#[0-9a-f]{6}$/i.test(String(mirror.scoreboardTextColor||''))?mirror.scoreboardTextColor:'';
+    const ink=String(mirror.scoreboardTextColor||'').toLowerCase()==='#ffffff'?'#ffffff':'';
     if(ink)scoreApp.style.setProperty('--biglwa-score-ink',ink);
     else scoreApp.style.removeProperty('--biglwa-score-ink');
     const board=scoreApp.querySelector('.biglwa-profile-scoreboard');
