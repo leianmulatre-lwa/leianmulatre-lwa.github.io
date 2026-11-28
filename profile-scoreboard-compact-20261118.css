@@ -386,9 +386,9 @@ html body #studioApp#studioApp#studioApp .hero .profile-card .biglwa-profile-sco
  --score-ink:var(--biglwa-score-ink,rgb(var(--aura-rgb,255,255,255)));
 }
 html body #studioApp#studioApp#studioApp .hero .profile-card .biglwa-profile-scoreboard:not([data-scoreboard-plate="clear"]){
- background:linear-gradient(145deg,#ad2636 0%,#850d20 23%,#620917 68%,#3c060c 100%)!important;
- border-color:#da6363 #570a12 #350308 #b63842!important;
- box-shadow:inset 0 2px 2px #ffb3a26b,inset 4px 0 5px #e95e4733,inset -5px -6px 7px #290006a8,2px 2px 0 #620b15,4px 4px 0 #47060d,6px 6px 0 #2e0408,7px 9px 8px #18000666!important;
+ background:linear-gradient(145deg,#70262b 0%,#59151c 26%,#471017 68%,#31090e 100%)!important;
+ border-color:#a85c60 #450c13 #2e070c #80383e!important;
+ box-shadow:inset 0 2px 2px #b9786860,inset 4px 0 5px #a8554533,inset -5px -6px 7px #290006a8,2px 2px 0 #481017,4px 4px 0 #35090f,6px 6px 0 #220509,7px 9px 8px #18000666!important;
 }
 html body #studioApp#studioApp#studioApp .hero .profile-card .biglwa-profile-scoreboard>.stats.stats [data-profile-stat] b{
  color:var(--score-ink)!important;border-color:#30040a #b83b42 #d25959 #490811!important;
@@ -396,4 +396,24 @@ html body #studioApp#studioApp#studioApp .hero .profile-card .biglwa-profile-sco
 }
 html body #studioApp#studioApp#studioApp .hero .profile-card .biglwa-profile-scoreboard :is(.biglwa-scoreboard-header,.biglwa-score-clock,.stats.stats>[data-profile-stat]){
  color:var(--score-ink)!important;
+}
+
+/* Resolve Aura at Studio root, not a nested profile's legacy LED variables.
+   Only an explicit White mode can override the live Aura; ignore legacy hex ink. */
+#studioApp{--scoreboard-live-aura:rgb(var(--aura-rgb,255,255,255))}
+html body #studioApp#studioApp#studioApp .hero .profile-card .biglwa-profile-scoreboard{
+ --score-ink:var(--scoreboard-live-aura,#fff)!important;
+}
+html body #studioApp#studioApp#studioApp[data-scoreboard-ink-mode="white"] .hero .profile-card .biglwa-profile-scoreboard{
+ --score-ink:#fff!important;
+}
+html body #studioApp#studioApp#studioApp#studioApp .hero .profile-card .biglwa-profile-scoreboard,
+html body #studioApp#studioApp#studioApp#studioApp .hero .profile-card .biglwa-profile-scoreboard :is(.biglwa-scoreboard-header,.stats.stats,[data-profile-stat],[data-profile-stat] b,.biglwa-score-clock,.biglwa-score-clock *),
+html body #studioApp#studioApp#studioApp#studioApp .hero .profile-card .biglwa-profile-scoreboard>.biglwa-scoreboard-header::before{
+ color:var(--score-ink)!important;
+ -webkit-text-fill-color:var(--score-ink)!important;
+ text-shadow:none!important;
+}
+html body #studioApp#studioApp#studioApp#studioApp .hero .profile-card .biglwa-profile-scoreboard :is([data-profile-stat] b,.biglwa-score-clock-face){
+ text-shadow:0 0 5px color-mix(in srgb,var(--score-ink) 36%,transparent)!important;
 }

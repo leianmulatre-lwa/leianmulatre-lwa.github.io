@@ -43,5 +43,17 @@ const {chromium}=require('playwright');
    }
   }
   console.log('PASS long and square hidden, docked, minimized and restored states');
+  // Exercise the actual stylesheet cascade, including a stale green LED value.
+  const scoreboardCSS=['profile-stats-row-20261116.css','profile-scoreboard-compact-20261118.css','studio-profile-banner-balance-20261120.css'].map(p=>fs.readFileSync(p,'utf8')).join('\n');
+  await page.setContent('<style>'+scoreboardCSS+'</style><main id="studioApp" style="--aura-rgb:239,148,45;--biglwa-score-ink:#58aa70"><div class="hero biglwa-scoreboard-ready"><div class="profile-card" style="--aura-rgb:88,170,112"><div class="biglwa-profile-role-statline"><div class="biglwa-profile-scoreboard" data-scoreboard-plate="maroon"><div class="biglwa-scoreboard-header">Real rankings</div><div class="stats"><span data-profile-stat="followers">Followers<b>123</b></span></div><button class="biglwa-score-clock"><span class="biglwa-score-clock-face"><b>12:28</b><small>AM</small></span></button></div></div></div></div></main>');
+  for(const [mode,expected] of [['aura','rgb(239, 148, 45)'],['white','rgb(255, 255, 255)']]){
+   await page.locator('#studioApp').evaluate((el,mode)=>{el.dataset.scoreboardInkMode=mode},mode);
+   const actual=await page.locator('.biglwa-scoreboard-header,[data-profile-stat],[data-profile-stat] b,.biglwa-score-clock-face b,.biglwa-score-clock-face small').evaluateAll(nodes=>nodes.map(el=>[getComputedStyle(el).color,getComputedStyle(el).webkitTextFillColor]));
+   assert(actual.every(pair=>pair.every(value=>value===expected)),JSON.stringify({mode,actual}));
+  }
+  await page.locator('#studioApp').evaluate(el=>{el.dataset.scoreboardInkMode='aura';el.style.setProperty('--aura-rgb','120,80,210')});
+  assert.equal(await page.locator('[data-profile-stat] b').evaluate(el=>getComputedStyle(el).color),'rgb(120, 80, 210)');
+  assert.match(await page.locator('.biglwa-profile-scoreboard').evaluate(el=>getComputedStyle(el).backgroundImage),/rgb\(112, 38, 43\)/);
+  console.log('PASS scoreboard live Aura, white, stale green rejection and muted maroon finish');
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

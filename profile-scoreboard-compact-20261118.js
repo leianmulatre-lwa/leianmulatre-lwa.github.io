@@ -77,8 +77,8 @@
  function repaint(){
   if(preview())return;
   const app=$('#studioApp');if(!app)return;
-  if(ink)app.style.setProperty('--biglwa-score-ink',ink);
-  else app.style.removeProperty('--biglwa-score-ink');
+  app.dataset.scoreboardInkMode=ink==='#ffffff'?'white':'aura';
+  app.style.removeProperty('--biglwa-score-ink');
   const board=$('.biglwa-profile-scoreboard',app);
   if(board)board.dataset.scoreboardPlate=plate;
   const input=$('#skeletonScoreboardColor');
