@@ -17,6 +17,11 @@ const liveStudio=read('live-studio-shell.html');
 const routeGuard=read('politc-route-guard.js');
 const workerConfigTest=read('scripts/oauth-worker-config.test.mjs');
 const audit=read('scripts/performance/audit.mjs');
+const veve=read('veve.js');
+const veveCss=read('veve.css');
+const craft=read('tools-craft.js');
+const craftCss=read('tools-craft.css');
+const toolsStudio=read('tools-studio.js');
 
 test('repeated Manage clicks cannot stack duplicate Orbit provider buttons',()=>{
   assert.match(pages,/function openConnectionsPopup\(\)\{[\s\S]{0,400}data-biglwa-popup="connections"/);
@@ -88,4 +93,35 @@ test('performance budgets include the current WLA shell references',()=>{
   assert.match(audit,/landingJsRawBytes:2900000,landingCssRawBytes:1040000/);
   assert.match(audit,/studioJsRefs:118,studioCssRefs:95/);
   assert.match(audit,/studioJsRawBytes:2900000,studioCssRawBytes:1040000/);
+});
+
+test('DeviantArt daily pictures are public, credited and separated from the private vault',()=>{
+  assert.match(veve,/backend\.deviantart\.com\/rss\.xml\?q=dailydeviation&order=5&limit=8/);
+  assert.match(veve,/media:rating'\)\.toLowerCase\(\)!=='nonadult'/);
+  assert.match(veve,/media:credit/);
+  assert.match(veve,/data-veve-origin="deviantart"/);
+  assert.match(veve,/window\.BigLWAVeve=Object\.freeze\(\{mount,refresh,searchMedia,previewBelow,\s*deviantArtDaily/);
+  assert.match(veveCss,/data-veve-origin="deviantart"\]\{--veve-rim:#45ad47\}/);
+  assert.match(veveCss,/veve-deviantart-daily/);
+  assert.match(craft,/craftDeviantArtDaily/);
+  assert.match(craft,/deviantArtDailyMarkup\(rows\)/);
+  assert.match(craft,/window\.BigLWAVeve\?\.deviantArtDaily\?\.\(4\)/);
+  assert.match(craft,/const vaultKey='biglwaWorkshopSnapshotsV1'/);
+  assert.doesNotMatch(craft,/vaultKey[\s\S]{0,120}deviantArtDaily/i);
+  assert.match(craftCss,/craft-deviantart-daily/);
+  assert.match(craftCss,/#45ad47/);
+  for(const source of [veve,craft]){
+    assert.doesNotMatch(source,/oauth|client_id|client_secret|access_token/i);
+    assert.doesNotMatch(source,/deviantart[\s\S]{0,140}workers\.dev/i);
+    assert.doesNotMatch(source,/api\/deviantart/i);
+  }
+});
+
+test('shell cache keys bust both DeviantArt daily surfaces',()=>{
+  for(const shell of [root,studio,notFound,liveStudio]){
+    assert.match(shell,/veve\.js\?v=[^"']*deviantart=20261128-1/, 'Veve loader is cache-busted in '+shell.length+' bytes');
+    assert.match(shell,/veve\.css\?v=[^"']*deviantart=20261128-1/, 'Veve style is cache-busted in '+shell.length+' bytes');
+  }
+  assert.match(craft,/tools-craft\.css\?v=[^"']*deviantart=20261128-1/);
+  assert.match(toolsStudio,/tools-craft\.js\?v=[^"']*deviantart=20261128-1/);
 });

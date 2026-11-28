@@ -11,39 +11,19 @@
   png:'image',jpg:'image',jpeg:'image',gif:'image',webp:'image',avif:'image',svg:'image',
   pdf:'document',doc:'document',docx:'document',ppt:'document',pptx:'document',
   xls:'document',xlsx:'document',txt:'document',csv:'document',epub:'document',
-  zip:'archive',rar:'archive','7z':'archive',gz:'archive',tar:'archive',json:'document',webmjson:'document',
-  heic:'image',heif:'image',bmp:'image',tiff:'image',mkv:'video',avi:'video',mpeg:'video',
-  opus:'audio',aiff:'audio',odt:'document',ods:'document',rtf:'document',ics:'document',
-  ttf:'file',otf:'file',woff:'file',woff2:'file',bin:'file',apk:'file'
+  zip:'archive',json:'document',webmjson:'document'
  };
  const STREAMING=/^(?:www\.|m\.|music\.)?(?:youtube\.com|youtu\.be|tiktok\.com|vimeo\.com|instagram\.com|facebook\.com|soundcloud\.com|spotify\.com|twitter\.com|x\.com|dailymotion\.com|twitch\.tv|streamable\.com)$/i;
  const MAX_MANIFEST=8;
- // Source pages may resolve to a separately available, explicitly registered file.
- // This is not a streaming-platform extractor; only named first-party resources.
- const publishedVideoSources=Object.freeze({
-  'y5-VFRw_uMQ':{path:'/super-8mm-film-effect-free-overlays-2160-ytshorts.savetube.me.mp4',title:'Super 8mm Film Effect free overlays'}
- });
- function resolveMedia(input){
-  const u=typeof input==='string'?parse(input):input;if(!u)return null;
-  const host=u.hostname.toLowerCase().replace(/^www\./,'').replace(/^m\./,'');
-  const id=host==='youtu.be'?u.pathname.split('/')[1]:host==='youtube.com'?(u.pathname.startsWith('/shorts/')?u.pathname.split('/')[2]:u.searchParams.get('v')):'';
-  const published=id&&Object.prototype.hasOwnProperty.call(publishedVideoSources,id)?publishedVideoSources[id]:null;
-  if(published)return {url:new URL(published.path,location.origin).href,kind:'video',title:published.title};
-  const linked=window.__biglwaFeed?.linkedMedia?.(u.href);
-  return linked&&parse(linked.url)?linked:null;
- }
-
  const classify=(url,mime)=>{
   let path=url.pathname;
   try{path=decodeURIComponent(path)}catch{}
   const extension=(path.match(/\.([a-z0-9]{2,8})$/i)||[])[1]?.toLowerCase()||'';
   if(STREAMING.test(url.hostname)||['m3u8','mpd'].includes(extension))return {kind:'stream',extension};
   if(/\.media\.json$/i.test(path))return {kind:'manifest',extension:'json'};
-  const type=String(mime||'').split(';')[0].trim().toLowerCase();
-  if(/^(?:text\/html|application\/xhtml\+xml)$/.test(type))return {kind:'link',extension};
+  const type=String(mime||'').split(';')[0].toLowerCase();
   const kind=type.startsWith('video/')?'video':type.startsWith('audio/')?'audio':
    type.startsWith('image/')?'image':type==='application/pdf'?'document':
-   type&&/^(?:application\/|text\/|font\/)/.test(type)?(FILE_TYPES[extension]||'file'):
    FILE_TYPES[extension]||'link';
   return {kind,extension};
  };
@@ -51,16 +31,14 @@
   const raw=String(text||'').trim();
   // Links embedded in a search sentence are accepted, but a URL must be
   // explicitly present: never turn ordinary search keywords into downloads.
-  const match=raw.match(/https?:\/\/[^\s<>"']{3,8192}/i)||raw.match(/^(?:www\.)[a-z0-9.-]+(?:\/[^\s<>"']*)?$/i);
+  const match=raw.match(/https?:\/\/[^\s<>"']{3,2048}/i);
   if(!match)return null;
-  let candidate=match[0];
-  // Preserve signed URLs and query values exactly when pasted by themselves.
-  if(raw!==candidate)candidate=candidate.replace(/[.,;!?)}\]]+$/,'');
+  let candidate=match[0].replace(/[.,;!?)}\]]+$/,'');
   let url;
-  try{url=new URL(/^www\./i.test(candidate)?'https://'+candidate:candidate);}catch{return null}
+  try{url=new URL(candidate);}catch{return null}
   if(!['http:','https:'].includes(url.protocol)||url.username||url.password)return null;
   if(url.protocol!=='https:'&&url.hostname!=='localhost')return null;
-  if(url.href.length>8192)return null;
+  if(url.href.length>2048)return null;
   return url;
  }
  function tag(name,cls,label){
@@ -70,32 +48,19 @@
   return element;
  }
  function downloadable(name,content,type){
-  const blob=content instanceof Blob?content:new Blob([content],{type:type||'text/plain;charset=utf-8'});
+  const blob=new Blob([content],{type:type||'text/plain;charset=utf-8'});
   const url=URL.createObjectURL(blob),a=tag('a');
   a.href=url;a.download=name;document.body.append(a);a.click();a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),60000);
+  setTimeout(()=>URL.revokeObjectURL(url),1200);
  }
  const basename=url=>{
   let name=url.pathname.split('/').pop()||'resource';
   try{name=decodeURIComponent(name)}catch{}
   return name.replace(/[^a-z0-9._ -]/gi,'_').slice(0,100)||'resource';
  };
- const safeName=value=>String(value||'').replace(/[\\/\x00-\x1f\x7f<>:"|?*]/g,'_').replace(/^\.+/,'').trim().slice(0,180)||'download';
- function responseName(response,url,fallback){
-  const disposition=response.headers.get('Content-Disposition')||'';
-  const extended=disposition.match(/filename\*\s*=\s*UTF-8''([^;]+)/i)?.[1];
-  if(extended){try{return safeName(decodeURIComponent(extended.trim()))}catch{}}
-  const plain=disposition.match(/filename\s*=\s*(?:"([^"]+)"|([^;]+))/i);
-  if(plain)return safeName(plain[1]||plain[2]);
-  let name=safeName(fallback||basename(url));
-  const mime=(response.headers.get('Content-Type')||'').split(';')[0].toLowerCase();
-  const ext={'video/mp4':'mp4','video/webm':'webm','video/quicktime':'mov','audio/mpeg':'mp3','audio/mp4':'m4a','audio/wav':'wav','audio/ogg':'ogg','image/jpeg':'jpg','image/png':'png','image/webp':'webp','application/pdf':'pdf','application/zip':'zip','application/json':'json','text/plain':'txt','text/csv':'csv'}[mime];
-  if(ext&&!/\.[a-z0-9]{1,8}$/i.test(name))name+='.'+ext;
-  return name;
- }
  function originalLink(url,kind,filename){
   const a=tag('a','bl-link-action',kind==='stream'?'Open original platform ↗':kind==='link'?'Open page ↗':
-   url.origin===location.origin?'Download original':'Open file / use browser Save As ↗');
+   url.origin===location.origin?'Download original':'Open file at source ↗');
   a.href=url.href;
   if(url.origin===location.origin&&!['stream','link'].includes(kind))a.download=filename;
   else {a.target='_blank';a.rel='noopener noreferrer'}
@@ -104,21 +69,18 @@
  function renderForQuery(panel,raw,options={}){
   let url=parse(raw);
   if(!url)return false;
-  const supplied=url,linked=resolveMedia(url);
+  const supplied=url,linked=window.__biglwaFeed?.linkedMedia?.(url.href);
   if(linked&&parse(linked.url))url=parse(linked.url);
   const {kind:detected,extension}=classify(url),initial=linked?.kind||detected;
-  let kind=initial,videoHeight=0,videoWidth=0;
-  const compact=Boolean(options.inline);
+  let kind=initial;
   const card=tag('section','bl-link-inspector');
   card.setAttribute('aria-label','L’wazi link and download options');
-  if(compact)card.className+=' bl-link-compact';
   const head=tag('div','bl-link-inspector-head');
   const title=tag('div');
-  title.append(tag('span','bl-link-eyebrow','L’wazi · Link detected'),tag('h2','', linked?.title||'Convert and download'));
+  title.append(tag('span','bl-link-eyebrow','L’wazi · Link detected'),tag('h2','', 'Convert and download'));
   const close=tag('button','bl-link-close','×');
   close.type='button';close.setAttribute('aria-label','Close link inspector');
   close.addEventListener('click',()=>{
-   activeTransfer?.abort();releaseReady();for(const media of preview.querySelectorAll?.('video,audio')||[]){media.pause();media.removeAttribute('src');media.load?.()}
    if(!options.inline)window.__biglwaUserCardsClose?.();
    if(card.isConnected)card.remove();
   });
@@ -130,23 +92,11 @@
   const variants=tag('div','bl-link-variants');card.append(variants);
   const preview=tag('div','bl-link-preview');preview.hidden=true;card.append(preview);
   const note=tag('p','bl-link-note');
-  note.textContent='Download files you own or have permission to save. Some external sites require their own download controls.';
+  note.textContent='';
   card.append(note);
   panel.replaceChildren(card);
   let filename=basename(url);
   const sameOrigin=url.origin===location.origin;
-  let activeTransfer=null,readyURL='';
-  const ready=tag('a','bl-link-action bl-link-ready','Save downloaded file');ready.hidden=true;
-  card.append(ready);
-  const releaseReady=()=>{if(readyURL)URL.revokeObjectURL(readyURL);readyURL='';ready.hidden=true;ready.removeAttribute('href')};
-  const offerReady=file=>{releaseReady();readyURL=URL.createObjectURL(file);ready.href=readyURL;ready.download=file.name;ready.hidden=false;ready.textContent='Save '+file.name;ready.click()};
-  const sponsor=tag('div','bl-link-sponsor');sponsor.hidden=true;card.append(sponsor);
-  const showSponsor=()=>{try{const ad=window.BigLWAAds?.createDownloadCard?.();if(ad){sponsor.replaceChildren(ad);sponsor.hidden=false}}catch{}};
-  const transferStatus=tag('div','bl-link-transfer');transferStatus.hidden=true;card.insertBefore?.(transferStatus,preview);
-  if(!card.insertBefore)card.append(transferStatus);
-  const progress=tag('progress','bl-link-progress');progress.max=100;progress.setAttribute('aria-label','Download progress');
-  const cancel=tag('button','bl-link-action','Cancel transfer');cancel.type='button';cancel.addEventListener('click',()=>activeTransfer?.abort());transferStatus.append(progress,cancel);
-
   const add=(name,fn)=>{
    const button=tag('button','bl-link-action',name);button.type='button';
    button.addEventListener('click',fn);controls.append(button);return button;
@@ -163,7 +113,7 @@
     element.alt='Image preview from supplied link';element.loading='lazy';
    }else{
     element.controls=true;element.preload='metadata';
-    if(kind==='video'){element.playsInline=true;element.addEventListener('loadedmetadata',()=>{if(!card.isConnected)return;const changed=videoHeight!==element.videoHeight;videoHeight=element.videoHeight;videoWidth=element.videoWidth;if(changed&&!activeTransfer)setControls()})}
+    if(kind==='video')element.playsInline=true;
    }
    preview.replaceChildren(element);preview.hidden=false;
   };
@@ -174,69 +124,42 @@
    });
   };
   const setControls=()=>{
-   if(activeTransfer)return;
-   const previous=controls.querySelector?.('select')?.value;
    controls.replaceChildren();
-   if(['image','audio','video','archive','document','file','link'].includes(kind)){
+   if(['image','audio','video','archive','document'].includes(kind)){
     const formats={image:['png','jpeg','webp'],video:['mp4','webm','mp3'],audio:['mp3','wav','m4a']};
-    const qualities=kind==='video'&&videoHeight?[2160,1440,1080,720,480,360,240,144].filter(h=>h<videoHeight&&Math.floor(videoWidth*h/videoHeight)>=2):[];
     const select=tag('select','bl-link-action');select.setAttribute('aria-label','Download format');
-    for(const format of ['original',...(formats[kind]||[]),...qualities.map(h=>'mp4-'+h)]){
-     const label=format==='original'?(kind==='video'&&videoHeight?'Original · '+videoHeight+'p':'Original file'):format.startsWith('mp4-')?'MP4 · '+format.slice(4)+'p (convert)':format.toUpperCase();
-     const option=tag('option','',label);option.value=format;select.append(option);
+    for(const format of ['original',...(formats[kind]||[])]){
+     const option=tag('option','',format==='original'?'Original file':format.toUpperCase());option.value=format;select.append(option);
     }
-    if(previous&&[...select.children].some(option=>option.value===previous))select.value=previous;
     controls.append(select);
-    const save=add(compact&&kind==='video'?'Download video':'Download file',async()=>{
-     if(activeTransfer)return;
-     const format=select.value||'original',target=url,controller=new AbortController();
-     activeTransfer=controller;releaseReady();save.disabled=true;transferStatus.hidden=false;progress.removeAttribute('value');
-     // Start the transfer independently. The optional white sponsor card never
-     // receives the URL and is never awaited, even when ads are unavailable.
+    const save=add('Download file',async()=>{
+     const format=select.value||'original';save.disabled=true;
      try{
-      verdict.textContent='Connecting to the source file…';
-      const pending=fetch(target.href,{credentials:target.origin===location.origin?'same-origin':'omit',referrerPolicy:'no-referrer',signal:controller.signal});
-      showSponsor();
-      const response=await pending;
+      verdict.textContent='Reading the source file…';
+      const response=await fetch(url.href,{credentials:'omit',referrerPolicy:'no-referrer'});
       if(!response.ok)throw Error('The source returned HTTP '+response.status+'.');
-      const mime=(response.headers.get('Content-Type')||'').split(';')[0].toLowerCase();
-      if(/^(text\/html|application\/xhtml\+xml)$/.test(mime)){await response.body?.cancel();throw Error('This link returns a webpage, not a file. Use the source’s download link.')}
+      const mime=response.headers.get('Content-Type')||'';
+      if(/text\/html/i.test(mime))throw Error('This URL returned a web page. Paste the media file URL.');
       const limit=(format==='original'?500:125)*1024*1024;
-      const total=Number(response.headers.get('content-length'))||0;
-      if(total>limit){await response.body?.cancel();throw Error('File exceeds the in-browser limit. Open the original and use your browser’s download controls.')}
-      filename=responseName(response,target,basename(target));
-      const pieces=[];let size=0;
-      if(response.body?.getReader){
-       const reader=response.body.getReader();
-       try{for(;;){const {value,done}=await reader.read();if(done)break;if(!card.isConnected){controller.abort();await reader.cancel();return}size+=value.byteLength;if(size>limit){await reader.cancel();throw Error('File exceeds the in-browser limit.')}pieces.push(value);
-        if(total>0)progress.value=Math.min(100,size/total*100);
-        verdict.textContent='Downloading · '+(size/1048576).toFixed(1)+' MB'+(total>0?' / '+(total/1048576).toFixed(1)+' MB':'');
-       }}finally{reader.releaseLock?.()}
-      }else{const blob=await response.blob();size=blob.size;if(size>limit)throw Error('File exceeds the in-browser limit.');pieces.push(blob)}
+      if(Number(response.headers.get('content-length'))>limit){await response.body?.cancel();throw Error('This file exceeds the browser download limit.')}
+      const reader=response.body.getReader(),pieces=[];let size=0;
+      for(;;){const {value,done}=await reader.read();if(done)break;size+=value.byteLength;if(size>limit){await reader.cancel();throw Error('This file exceeds the browser download limit.')}pieces.push(value)}
       if(!size)throw Error('The source file is empty.');
-      let file=new File(pieces,filename,{type:mime||'application/octet-stream'});
-      // A mislabelled login/error document must not be saved as a movie.
-      if(!mime||mime==='application/octet-stream'){
-       const prefix=await file.slice(0,256).text();
-       if(/^\s*(?:<!doctype\s+html|<html\b|<head\b)/i.test(prefix))throw Error('This link returns a webpage, not a file. Use the source’s download link.');
-      }
+      let file=new File(pieces,filename,{type:mime.split(';')[0]});
       if(format!=='original'){
-       verdict.textContent='Converting to '+format.toUpperCase()+'…';progress.removeAttribute('value');
-       const converter=await import('/tools-studio.js?v=20261128-download-transfer-2');
+       verdict.textContent='Converting to '+format.toUpperCase()+'…';
+       const converter=await import('/tools-studio.js?v=20261125-linked-media&deviantart=20261128-1');
        file=await converter.convertLinkedMedia(file,kind,format);
       }
-      if(controller.signal.aborted){verdict.textContent='Download canceled. You can try again.';return}
       if(!card.isConnected)return;
-      offerReady(file);progress.value=100;verdict.textContent='File ready · '+file.name+'. If your browser did not save it, select the Save button below.';
-     }catch(error){
-      verdict.textContent=controller.signal.aborted?'Download canceled. You can try again.':error instanceof TypeError?'This host does not allow cross-origin file requests. Open the source and use Save As, or use its official download link.':String(error?.message||'Download failed.');
-     }finally{if(activeTransfer===controller)activeTransfer=null;save.disabled=false;transferStatus.hidden=true}
+      downloadable(file.name,file,file.type);verdict.textContent='Download started · '+file.name;
+     }catch(error){verdict.textContent=error instanceof TypeError?'The source blocked the browser request. Open the source or paste a direct download URL.':error.message}
+     finally{save.disabled=false}
     });
-    if(compact)save.className+=' bl-link-primary';
    }
    controls.append(originalLink(url,kind,filename));
-   if(!compact||kind==='stream'){add('Save link (.txt)',saveReference);add('File details (.json)',saveDetails)}
-   if(compact&&kind==='stream')add('Use direct file link',()=>{const field=panel.closest?.('.tool-links')?.querySelector('#toolLinkForm input');if(field){field.focus();field.select()}});
+   add('Save link (.txt)',saveReference);
+   add('File details (.json)',saveDetails);
    if(['video','audio','image'].includes(kind))add('Preview '+kind,previewMedia);
    if(kind==='video'){
     add('Check video resolution',()=>checkVideo());
@@ -264,8 +187,7 @@
    const timer=setTimeout(()=>finish('Resolution could not be read. Original source remains available.'),8500);
    video.onloadedmetadata=()=>{
     const label=videoLabel(video.videoWidth,video.videoHeight);
-    videoHeight=video.videoHeight;videoWidth=video.videoWidth;
-    finish(label+'. Smaller MP4 resolutions are generated locally, not separate source files.');setControls();
+    finish(label+'. The original is the only verified downloadable quality.');
    };
    video.onerror=()=>finish('The source does not expose playable metadata to this browser. No unverified qualities will be offered.');
    video.src=url.href;
@@ -288,7 +210,6 @@
     if(candidate.protocol!=='https:'||candidate.username||candidate.password)continue;
     const type=classify(candidate,entry.getAttribute('type')).kind;
     if(!['video','audio','image','document','archive'].includes(type))continue;
-    if(activeTransfer||!card.isConnected)return false;
     url=candidate;kind=type;filename=basename(url);setControls();
     verdict.textContent='Found a '+kind+' file published by this page.';return true;
    }
@@ -296,25 +217,25 @@
   }
   async function inspect(){
    if(kind==='stream'){
-    verdict.textContent='Streaming platform page · no downloadable file is connected. Open the source for its download options, or paste an authorized direct file URL.';
+    verdict.textContent='Streaming platform page · open it to use the provider’s own download or save controls, when allowed.';
     setControls();
+    if(typeof AbortSignal!=='undefined'&&typeof document.createElement('template').content!=='undefined'){
+     try{await findPageMedia()}catch{}
+    }
     return;
    }
    if(!sameOrigin&&kind!=='link'){
     verdict.textContent=kind==='video'?'Direct video link · quality and download permissions are source-controlled.':
      kind==='link'?'Web page · not a verified downloadable file.':
-     'Detected '+kind+' link · download the original file or choose a supported format.';
+     'Detected '+kind+' link · open the source to download if permitted.';
     setControls();return;
    }
    try{
-    const response=await fetch(url.href,{method:'HEAD',credentials:sameOrigin?'same-origin':'omit',cache:'no-store',referrerPolicy:'no-referrer'});
+    const response=await fetch(url.href,{method:'HEAD',credentials:sameOrigin?'same-origin':'omit',cache:'no-store'});
     if(!response.ok)throw Error('Source returned '+response.status);
     const mime=response.headers.get('Content-Type')||'';
-    if(activeTransfer||!card.isConnected)return;
     const data=classify(url,mime);
     kind=data.kind;
-    if(kind==='link'&&/attachment/i.test(response.headers.get('Content-Disposition')||''))kind='file';
-    filename=responseName(response,url,basename(url));
     const length=Number(response.headers.get('Content-Length'));
     const size=Number.isFinite(length)&&length>0?' · '+(length/1024/1024).toFixed(1)+' MB':'';
     verdict.textContent=(kind==='link'?'Page or unknown file':kind[0].toUpperCase()+kind.slice(1))+
@@ -323,8 +244,7 @@
     if(kind==='manifest')await loadManifest();
     if(kind==='link'&&/text\/html/i.test(mime))await findPageMedia();
    }catch(error){
-    if(activeTransfer||!card.isConnected)return;
-    verdict.textContent='Source could not be checked in advance. Try Download file for a direct file link, or open the original.';
+    verdict.textContent='Cannot verify this file ('+String(error?.message||'unavailable').slice(0,100)+'). Open the original to inspect it.';
     setControls();
    }
   }
@@ -365,8 +285,7 @@
    }
   }
   setControls();inspect();
-  if(compact&&kind==='video'&&typeof preview.querySelector==='function')previewMedia();
   return true;
  }
- window.BigLWALinkTools={parse,classify,renderForQuery,responseName,resolveMedia};
+ window.BigLWALinkTools={parse,classify,renderForQuery};
 })();

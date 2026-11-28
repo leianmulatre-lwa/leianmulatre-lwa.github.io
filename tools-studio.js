@@ -223,7 +223,7 @@ async function audioToWav(file){
   const ctx=new (window.AudioContext||window.webkitAudioContext)();
   const buffer=await ctx.decodeAudioData(await file.arrayBuffer());
   const channels=buffer.numberOfChannels,frames=buffer.length,rate=buffer.sampleRate;
-  const block=2,data=new ArrayBuffer(44+frames*channels*block),view=new DataView(data);
+  const block=16,data=new ArrayBuffer(44+frames*channels*block),view=new DataView(data);
   const ascii=(offset,text)=>{for(let i=0;i<text.length;i++)view.setUint8(offset+i,text.charCodeAt(i))};
   ascii(0,'RIFF');view.setUint32(4,36+frames*channels*block,true);ascii(8,'WAVE');
   ascii(12,'fmt ');view.setUint32(16,16,true);view.setUint16(20,1,true);view.setUint16(22,channels,true);
@@ -241,11 +241,9 @@ export async function convertLinkedMedia(file,kind,format){
   if(file.size>MEMORY_HEAVY_TRANSCODE)throw Error('Choose a file under 125 MB for browser conversion.');
   if(kind==='image'&&IMAGE_TARGETS[format])return convertImage(file,IMAGE_TARGETS[format],.92);
   if(kind==='audio'&&format==='wav')return audioToWav(file);
-  const height=kind==='video'&&/^mp4-(2160|1440|1080|720|480|360|240|144)$/.test(format)?Number(format.slice(4)):0;
-  const op=height?{...VIDEO_OPS.mp4,args:()=>['-vf',"scale=-2:'min(ih,"+height+")'",...VIDEO_OPS.mp4.args()]}:(kind==='audio'?AUDIO_OPS:kind==='video'?VIDEO_OPS:{})[format];
+  const op=(kind==='audio'?AUDIO_OPS:kind==='video'?VIDEO_OPS:{})[format];
   if(!op)throw Error('Choose a format for this media type.');
-  const output=await runEngine(file,op);
-  return height?new File([output],baseName(file.name)+'-'+height+'p.mp4',{type:'video/mp4'}):output;
+  return runEngine(file,op);
 }
 function toolLinks(names){
   return names.map(name=>ONLINE_TOOLS.find(tool=>tool.name===name)).filter(Boolean);
@@ -298,19 +296,19 @@ export function mountToolsStudio(root,helper){
     </section>
     <section class="module-card wide tool-links">
       <h2>Media from a link</h2>
-      <p>Paste a direct video, audio, image or ordinary file link. Download the original or convert supported media in your browser.</p>
+      <p>Paste a media URL to choose a download format. Conversion runs in your browser.</p>
       <form class="module-form two" id="toolLinkForm">
-        <input class="module-input" name="url" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="Paste a media or file link…">
+        <input class="module-input" name="url" type="url" placeholder="Paste a media or post link…">
         <button class="module-action" type="submit">Find downloads</button>
       </form>
       <div class="module-status" id="toolLinkStatus">No media selected.</div>
       <div id="toolLinkDownloads"></div><div class="tool-link-preview" id="toolLinkPreview" aria-live="polite"></div>
-      <p class="tool-note">For a playback-only post, use its official download or direct file link, or drop your authorized copy into the converter above. No ad is required to download.</p>
+      <p class="tool-note">For a playback-only post, use a direct file link or drop your copy into the converter above.</p>
     </section>`;
 
   // Independently load creative editors; file conversions and video trim still
   // work even when the external ArtCraft release build is unavailable.
-  import('./tools-craft.js?v=20261116-symbol-workshop-1&tour=20261117-1&sections=20261117-1&faceicon=20261117-1')
+  import('./tools-craft.js?v=20261116-symbol-workshop-1&tour=20261117-1&sections=20261117-1&faceicon=20261117-1&deviantart=20261128-1')
     .then(mod=>mod.mountCraftSuite(root.querySelector('#craftSuite')))
     .then(api=>{craftApi=api})
     .catch(error=>{
@@ -338,30 +336,19 @@ export function mountToolsStudio(root,helper){
     const file=event.dataTransfer&&event.dataTransfer.files&&event.dataTransfer.files[0];
     if(file)handle(file);
   });
-  let linkRequest=0;
-  root.querySelector('#toolLinkForm').addEventListener('submit',async event=>{
+  root.querySelector('#toolLinkForm').addEventListener('submit',event=>{
     event.preventDefault();
-    const request=++linkRequest;
     const link=String(new FormData(event.target).get('url')||'').trim();
     const note=root.querySelector('#toolLinkStatus'),preview=root.querySelector('#toolLinkPreview');
     preview.replaceChildren();
-    const downloads=root.querySelector('#toolLinkDownloads');downloads.querySelector('.bl-link-close')?.click();downloads.replaceChildren();
+    const downloads=root.querySelector('#toolLinkDownloads');downloads.replaceChildren();
     if(!link){note.textContent='Paste a link first.';return}
-    note.textContent='Checking your link…';
-    if(!window.BigLWALinkTools){
-      try{await import('/lwazi-link-tools-20261114.js?v=20261114-link-inspector-v1&transfer=20261128-2')}catch{}
-    }
-    if(request!==linkRequest||!root.isConnected)return;
-    if(!window.BigLWALinkTools){note.textContent='Download tools could not load. Please refresh and try again.';return}
-    const url=window.BigLWALinkTools.parse(link);
-    if(!url){note.textContent='That needs to be a full link starting with https://';return}
+    let url;
+    try{url=new URL(link)}catch{note.textContent='That needs to be a full link starting with https://';return}
     if(url.protocol!=='https:'||url.username||url.password||url.port){
       note.textContent='Use a secure https:// media link.';return
     }
-    if(!window.BigLWALinkTools.renderForQuery(downloads,url.href,{inline:true})){note.textContent='The download tool could not read this link.';return;}
-    if(window.BigLWALinkTools.resolveMedia(url)){
-      note.textContent='Choose a format or resolution and download the available file.';return;
-    }
+    window.BigLWALinkTools?.renderForQuery(downloads,url.href,{inline:true});
     const host=url.hostname.toLowerCase();
     let embed='',label='';
     if(['youtube.com','www.youtube.com','m.youtube.com','youtu.be'].includes(host)){
@@ -374,14 +361,14 @@ export function mountToolsStudio(root,helper){
       if(/^\/[^/]+\/[^/]+/.test(url.pathname)){embed='https://w.soundcloud.com/player/?url='+encodeURIComponent(url.href);label='SoundCloud'}
     }
     if(!embed){
-      note.textContent='Choose an original download or an available conversion below.';
+      note.textContent='';
       return;
     }
     const frame=document.createElement('iframe');
     frame.title=label+' media preview';frame.loading='lazy';
     frame.referrerPolicy='strict-origin-when-cross-origin';
     frame.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';
-    frame.style.cssText='display:block;width:100%;height:'+ (label==='SoundCloud'?'145px':'240px')+';max-height:76vh;border:0;border-radius:12px';
+    frame.style.cssText='display:block;width:100%;height:'+ (label==='SoundCloud'?'180px':'420px')+';max-height:76vh;border:0;border-radius:12px';
     frame.src=embed;
     const original=document.createElement('a');
     original.href=url.href;original.target='_blank';original.rel='noopener noreferrer';
@@ -391,7 +378,7 @@ export function mountToolsStudio(root,helper){
     note.textContent='Previewing '+label+' · playback is provided by the original source.';
   });
 
-  root.querySelector('#toolLinkForm input').addEventListener('paste',()=>setTimeout(()=>{const form=root.querySelector('#toolLinkForm');if(form?.querySelector('input')?.value.trim())form.requestSubmit()},0));
+  root.querySelector('#toolLinkForm input').addEventListener('paste',()=>setTimeout(()=>{const form=root.querySelector('#toolLinkForm');if(form?.checkValidity())form.requestSubmit()},0));
 
   function setProgress(fraction,text){
     if(fraction==null){progressEl.hidden=true;return}
