@@ -63,7 +63,7 @@ test('Widget directory, curated Stream video cards and route planning expose rea
  const window={BigLWAStreamGuide:{featured:[{
    id:'markiplier-scary',title:'Markiplier',subtitle:'3 SCARY GAMES #9',creator:'Markiplier',videoId:'abHGyg4LKn4',source:'Gaming',url:'https://www.youtube.com/watch?v=abHGyg4LKn4'
  }]}};
- const document={querySelector:()=>null,querySelectorAll:()=>[]};
+ const document={addEventListener(){},querySelector:()=>null,querySelectorAll:()=>[]};
  vm.runInNewContext(extras,{window,document,URL,console,setTimeout});
  const api=window.BigLWADiscoveryExtras;
  assert(api);
