@@ -1,0 +1,24 @@
+/* Super 8 texture is decorative, above the curtain and below all loader UI. */
+#biglwaStartupScreen,
+#studioApp .lwa-curtain[data-lwa-curtain="module"]{isolation:isolate!important;overflow:hidden!important}
+#biglwaStartupScreen>.biglwa-startup-inner,
+#studioApp .lwa-curtain[data-lwa-curtain="module"]>.lwa-curtain-brand,
+#studioApp .lwa-curtain[data-lwa-curtain="module"]>.lwa-pixel-scene,
+#studioApp .lwa-curtain[data-lwa-curtain="module"]>.lwa-curtain-label,
+#studioApp .lwa-curtain[data-lwa-curtain="module"]>.lwa-curtain-bypass,
+#studioApp .lwa-curtain[data-lwa-curtain="module"]>.lwa-dot{position:relative;z-index:2!important}
+#studioApp .lwa-curtain[data-lwa-curtain="module"]>.lwa-curtain-progress{z-index:2!important}
+#biglwaStartupScreen>.biglwa-super8-overlay,
+#studioApp .lwa-curtain[data-lwa-curtain="module"]>.biglwa-super8-overlay{
+ position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+ max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;
+ object-fit:cover!important;object-position:center!important;z-index:1!important;
+ pointer-events:none!important;user-select:none!important;border:0!important;border-radius:inherit!important;
+ mix-blend-mode:screen!important;opacity:0!important;transition:opacity .18s linear;
+ filter:grayscale(1)!important;background:transparent!important;
+}
+#biglwaStartupScreen>.biglwa-super8-overlay.is-playing,
+#studioApp .lwa-curtain[data-lwa-curtain="module"]>.biglwa-super8-overlay.is-playing{opacity:.28!important}
+@media(prefers-reduced-motion:reduce),(prefers-reduced-data:reduce){
+ .biglwa-super8-overlay{display:none!important}
+}

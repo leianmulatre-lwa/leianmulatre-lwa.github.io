@@ -258,6 +258,7 @@ jobs:
           "$RUNNER_TEMP/biglwa-playwright/node_modules/.bin/playwright" install --with-deps chromium
           node .github/scripts/studio-rank-layout-smoke.cjs
           node .github/scripts/studio-stereo-layout-smoke.cjs
+          node .github/scripts/studio-super8-loading-smoke.cjs
           node .github/scripts/lwazi-link-download-smoke.cjs
           node .github/scripts/studio-map-single-preview-smoke.cjs
       - name: Refresh original-source discovery feeds
