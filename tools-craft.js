@@ -28,6 +28,17 @@ const WEB_FRIENDLY=[
   description:'Build visualeyez boards and visualslidez presentations inside your BIG LWA Studio.'}
 ];
 const escapeHtml=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DA_DAILY_PAGE='https://www.deviantart.com/dailydeviations';
+function deviantArtDailyMarkup(rows){
+  if(!rows?.length)return '<p class="craft-daily-empty">Daily deviations are unavailable right now. The public DeviantArt daily edit is still linked above.</p>';
+  return rows.map(item=>{
+    const ratio=Number(item.ratio)||0;
+    return '<a class="craft-daily-card" data-veve-origin="deviantart" href="'+escapeHtml(item.url)+'" target="_blank" rel="noopener noreferrer" aria-label="Open '+escapeHtml(item.title)+' by '+escapeHtml(item.author)+' on DeviantArt">'+
+      '<img src="'+escapeHtml(item.image)+'" loading="lazy" decoding="async" alt="'+escapeHtml(item.title)+' by '+escapeHtml(item.author)+'"'+(ratio?' style="--craft-daily-aspect:'+ratio+'"':'')+'>'+
+      '<span class="craft-daily-provider">DeviantArt</span>'+
+      '<strong>'+escapeHtml(item.title)+'</strong><small>by '+escapeHtml(item.author)+' · view original ↗</small></a>';
+  }).join('');
+}
 const safeId=id=>id===LOCAL.id||ENGINES.some(item=>item.id===id);
 /* Use the ORIGINAL embroidered block art produced for the Workshop.
    The alternate generated SVG interpretations are not these app icons. */
@@ -72,7 +83,7 @@ function installStyle(){
  if(stylesReady||document.getElementById('biglwaCraftCss'))return;
  stylesReady=true;
  const css=document.createElement('link');css.rel='stylesheet';css.id='biglwaCraftCss';
- css.href='/tools-craft.css?v=20261116-symbol-blocks-1&tour=20261117-1';document.head.append(css);
+ css.href='/tools-craft.css?v=20261116-symbol-blocks-1&tour=20261117-1&deviantart=20261128-1';document.head.append(css);
 }
 function card(item,local=false){
  const title=local?'Made by BIG LWA':'Advanced · '+item.type;
@@ -121,6 +132,10 @@ export async function mountCraftSuite(root){
     '<section class="craft-account-vault craft-vault-inline" id="craftAccountVault" aria-label="Private workshop image snapshots">'+
      '<div class="craft-vault-actions"><label class="craft-vault-file">Save a snapshot<input id="craftVaultFile" type="file" accept="image/png,image/jpeg,image/webp"></label><span class="craft-vault-status" id="craftVaultStatus" role="status" aria-live="polite">Sign in to save across devices.</span></div>'+
      '<div class="craft-vault-gallery" id="craftVaultGallery" aria-label="Saved private previews"></div></section>'+
+    '<section class="craft-deviantart-daily" id="craftDeviantArtDaily" aria-label="Public DeviantArt daily deviations">'+
+     '<div class="craft-daily-head"><span>from DeviantArt</span><strong>daily deviations</strong>'+
+      '<a href="'+DA_DAILY_PAGE+'" target="_blank" rel="noopener noreferrer">See the daily edit ↗</a></div>'+
+     '<div class="craft-daily-grid" id="craftDeviantArtGrid"><p class="craft-daily-status">Loading public daily deviations…</p></div></section>'+
    '</div>'+
   '</header>'+
   '<p class="craft-status" id="craftInstallStatus" role="status">sqwibblR ready · checking advanced browser engines…</p>'+
@@ -140,6 +155,14 @@ export async function mountCraftSuite(root){
     '<p><strong>Your work stays yours.</strong> Editing and exports normally run in your browser. Save an image snapshot privately to your account only when you choose to; layered projects require their own export/download. Some advanced tools need WebGL or WebGPU.</p>'+
     '<details><summary>Technology, source & copyright notices</summary><p>Some advanced editions contain or derive from separately licensed technology. Required original copyright, license and source notices remain available with each advanced editor. BIG LWA branding and product features do not transfer ownership of underlying third-party code.</p><a href="https://github.com/leianmulatre-lwa/leianmulatre-lwa.github.io/blob/main/TOOLS-WORKSHOP-SOURCES.md" target="_blank" rel="noopener noreferrer">Read workshop source information ↗</a></details>'+
   '</footer>';
+ const dailyGrid=root.querySelector('#craftDeviantArtGrid');
+ if(dailyGrid){
+  Promise.resolve(window.BigLWAVeve?.deviantArtDaily?.(4)).then(rows=>{
+   if(dailyGrid.isConnected)dailyGrid.innerHTML=deviantArtDailyMarkup(rows);
+  }).catch(()=>{
+   if(dailyGrid.isConnected)dailyGrid.innerHTML=deviantArtDailyMarkup([]);
+  });
+ }
  const ready=new Set([LOCAL.id]),viewer=root.querySelector('#craftViewer'),panel=root.querySelector('#craftPanel');
  const vaultKey='biglwaWorkshopSnapshotsV1',vaultStatus=root.querySelector('#craftVaultStatus'),vaultFile=root.querySelector('#craftVaultFile');
  const vaultGallery=root.querySelector('#craftVaultGallery'),panelSaveFile=root.querySelector('#craftPanelSaveFile');

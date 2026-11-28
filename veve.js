@@ -13,6 +13,71 @@
   const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
   const order=arr=>[...new Set(arr.filter(x=>groups.includes(x)))].concat(groups.filter(x=>!arr.includes(x)));
   const defaults={sections:groups,enabled:groups.filter(x=>x!=='ads'),sort:'latest'};
+  // DeviantArt's public Deviations RSS is CORS-enabled. Read it directly in
+  // the browser: no product credentials, token exchange or new server route.
+  const DA_FEED='https://backend.deviantart.com/rss.xml?q=dailydeviation&order=5&limit=8';
+  const DA_DAILY_PAGE='https://www.deviantart.com/dailydeviations';
+  const daDecode=value=>String(value??'')
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g,'$1')
+    .replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"')
+    .replace(/&#(?:39|0x27);/gi,"'").replace(/&#38;/g,'&').replace(/&amp;/g,'&');
+  const daText=(xml,tag)=>{
+    const match=String(xml).match(new RegExp('<'+tag+'\\b[^>]*>([\\s\\S]*?)<\\/'+tag+'>','i'));
+    return match?daDecode(match[1]).trim():'';
+  };
+  const daAttr=(xml,tag,name)=>{
+    const match=String(xml).match(new RegExp('<'+tag+'\\b[^>]*\\b'+name+'="([^"]*)"','i'));
+    return match?daDecode(match[1]).trim():'';
+  };
+  const daHttps=value=>{
+    try{const url=new URL(String(value||''));return url.protocol==='https:'?url.href:''}
+    catch{return ''}
+  };
+  function parseDeviantArtDaily(xml){
+    const rows=[];
+    for(const item of String(xml||'').matchAll(/<item>([\s\S]*?)<\/item>/gi)){
+      const block=item[1];
+      if(daText(block,'media:rating').toLowerCase()!=='nonadult')continue;
+      const url=daHttps(daText(block,'link'));
+      if(!/^https:\/\/(?:www\.)?deviantart\.com\//i.test(url))continue;
+      const thumbs=[...block.matchAll(/<media:thumbnail\b[^>]*\burl="([^"]*)"/gi)].map(m=>daDecode(m[1]));
+      const image=daHttps(daAttr(block,'media:content','url')||
+        thumbs.find(x=>/w_300|h_900/i.test(x))||thumbs[thumbs.length-1]||'');
+      if(!image)continue;
+      const credits=[...block.matchAll(/<media:credit\b[^>]*>([\s\S]*?)<\/media:credit>/gi)]
+        .map(m=>daDecode(m[1]).trim()).filter(Boolean);
+      const author=credits.find(value=>!/^https?:/i.test(value))||'DeviantArt artist';
+      const title=daText(block,'media:title')||daText(block,'title')||'Daily Deviation';
+      const width=Number(daAttr(block,'media:content','width')||daAttr(block,'media:thumbnail','width'))||0;
+      const height=Number(daAttr(block,'media:content','height')||daAttr(block,'media:thumbnail','height'))||0;
+      const ratio=width>0&&height>0?width/height:0;
+      rows.push({
+        id:'deviantart:'+(url.match(/\/art\/[^/"\s]+-(\d+)/i)?.[1]||rows.length+1),
+        source:'deviantart',title:title.slice(0,180),author:author.slice(0,120),
+        url,image,ratio:ratio>=.35&&ratio<=3?ratio:0,
+        published:Date.parse(daText(block,'pubDate'))||0
+      });
+    }
+    return rows;
+  }
+  let daCache=[],daCachedAt=0,daPending=null;
+  async function deviantArtDaily(limit=8){
+    const count=clamp(Number(limit)||8,0,12);
+    if(daCache.length&&Date.now()-daCachedAt<300000)return daCache.slice(0,count);
+    if(daPending)return (await daPending).slice(0,count);
+    daPending=(async()=>{
+      const controller=new AbortController();
+      const timer=setTimeout(()=>controller.abort(),9000);
+      try{
+        const response=await fetch(DA_FEED,{signal:controller.signal,mode:'cors',credentials:'omit',cache:'no-store'});
+        if(!response.ok)throw Error('DeviantArt feed '+response.status);
+        daCache=parseDeviantArtDaily(await response.text());
+        daCachedAt=Date.now();
+        return daCache;
+      }finally{clearTimeout(timer)}
+    })().catch(error=>{daCachedAt=0;throw error}).finally(()=>{daPending=null});
+    return (await daPending).slice(0,count);
+  }
   const INTEREST_TERMS={
     'Style & fashion':['fashion','style','outfit','designer','runway','model','wardrobe','streetwear','couture'],
     'Music':['music','song','album','artist','record','sound','concert','rap','r&b','dj'],
@@ -43,7 +108,7 @@
     id:'gutenberg:'+number,kind:'book',title,author,
     url:'https://www.gutenberg.org/ebooks/'+number,source:'Project Gutenberg'
   }));
-  const state={items:[],sqwibs:[],resqwibs:[],interests:[],sensitivity:'general',loadError:'',prefs:null,uid:'',loading:false,mounted:null,renderGen:0,showSettings:false,active:'all',sourceCounts:new Map(),initialReady:false,loadStage:'Connecting to public collections…'};
+  const state={items:[],sqwibs:[],resqwibs:[],daily:[],interests:[],sensitivity:'general',loadError:'',prefs:null,uid:'',loading:false,mounted:null,renderGen:0,showSettings:false,active:'all',sourceCounts:new Map(),initialReady:false,loadStage:'Connecting to public collections…'};
   let firebasePromise=null;
   async function fb(){
     if(!firebasePromise)firebasePromise=Promise.all([
@@ -199,6 +264,8 @@
         state.resqwibs=resh.filter(r=>pub.some(p=>p.id===r.sourceId&&p.allowResqwib===true));
       }else{state.sqwibs=[];state.resqwibs=[]}
     }catch(err){state.sqwibs=[];state.resqwibs=[];state.loadError+=(state.loadError?' ':'')+'Sqwib discovery is not available until its security rules are published.';}
+    loadProgress('Loading DeviantArt daily deviations…');
+    try{state.daily=await deviantArtDaily(8)}catch{state.daily=[]}
     state.loading=false;
     loadProgress('Arranging your Veve…');
     })();
@@ -393,6 +460,22 @@
     if(key==='ads')return quickCard('sponsored','No sponsored placements','Veve will identify paid placements clearly. Nothing is labeled as sponsored until a genuine approved campaign exists.',null);
     return '';
   }
+  function deviantArtMarkup(){
+    if(!state.daily.length)return '';
+    const cards=state.daily.slice(0,4).map(item=>{
+      const ratio=Number(item.ratio)||0;
+      return '<a class="veve-tile veve-photo veve-deviantart-tile" data-veve-origin="deviantart" href="'+e(item.url)+'" target="_blank" rel="noopener noreferrer" aria-label="Open '+e(item.title)+' by '+e(item.author)+' on DeviantArt">'+
+        '<div class="veve-photo-frame"'+(ratio?' style="--lwa-image-aspect:'+ratio+'"':'')+'>'+
+        '<img src="'+e(item.image)+'" loading="lazy" decoding="async" alt="'+e(item.title)+' by '+e(item.author)+'">'+
+        '<span class="veve-provider">DeviantArt</span></div>'+
+        '<div class="veve-deviantart-caption"><strong>'+e(item.title)+'</strong>'+
+        '<span>by '+e(item.author)+'</span><small>Daily Deviation · view original ↗</small></div></a>';
+    }).join('');
+    return '<section class="veve-deviantart-daily" aria-label="DeviantArt daily deviations">'+
+      '<div class="veve-deviantart-heading"><span>from DeviantArt</span><h2>daily deviations</h2>'+
+      '<a href="'+e(DA_DAILY_PAGE)+'" target="_blank" rel="noopener noreferrer">See the daily edit ↗</a></div>'+
+      '<div class="veve-deviantart-grid">'+cards+'</div></section>';
+  }
   function settingsMarkup(){
     if(!state.showSettings)return '';
     const p=state.prefs||validPrefs(null);
@@ -469,6 +552,7 @@
           ?'No verified engagement counts yet — showing the most recent published posts instead.'
           :'Public content only · no inferred follower activity or fabricated trends'))+'</div>'+
       settingsMarkup()+
+      ((state.active==='all'||state.active==='photos')?deviantArtMarkup():'')+
       (sectionHtml||'<div class="veve-empty">Nothing is selected. Open Customize to bring back sections.</div>');
   }
   function say(message){const el=state.mounted?.querySelector('#veveMessage');if(el)el.textContent=String(message);}
@@ -725,11 +809,12 @@
     const open=document.createElement('button');open.type='button';open.textContent='Open Veve';open.onclick=()=>window.BigLWAOpenModule?.('veve');panel.append(open);
   }
   window.BigLWAVeve=Object.freeze({mount,refresh,searchMedia,previewBelow,
+    deviantArtDaily,
     interests:()=>state.interests.slice(),
     loadInterests:async()=>{await restorePrefs();return state.interests.slice()},
     openPost(id){const post=state.items.find(p=>String(p.id)===String(id));if(post&&allowedPost(post))openMedia(post)},
     status(){return {ready:state.initialReady,loading:state.loading,stage:state.loadStage,
       error:state.loadError,postCount:state.items.length,notesCount:state.sqwibs.length,
-      mounted:!!state.mounted?.isConnected}}
+      deviantArtCount:state.daily.length,mounted:!!state.mounted?.isConnected}}
   });
 })();

@@ -65,12 +65,13 @@ const report={generatedAt:new Date().toISOString(),kind:'source-audit-not-page-s
  // Budgets track the shipped shell after the Orbit portal art, WLA shelf,
   // role sticker, and Google-lite changes. Keep these as ceilings, not as a
   // license for unbounded growth.
-  entrypoints,limits:{landingJsRefs:119,landingCssRefs:96,
+  entrypoints,limits:{landingJsRefs:120,landingCssRefs:96,
    landingJsRawBytes:2900000,landingCssRawBytes:1040000,
-   studioJsRefs:118,studioCssRefs:95,
+   studioJsRefs:119,studioCssRefs:95,
    studioJsRawBytes:2900000,studioCssRawBytes:1040000,
-   // Includes the first-party imported Highlights media cache (~76 MB).
-    trackedBytes:245000000}};
+   // Includes the first-party Highlights media cache (~76 MB) and the
+    // registered Super 8 startup film (~12 MB).
+    trackedBytes:260000000}};
 const warnings=[];
 if(missingRoutes.length)warnings.push('Required source routes missing: '+missingRoutes.join(', '));
 for(const [key,limits] of [['landing',['landingJsRefs','landingCssRefs','landingJsRawBytes','landingCssRawBytes']],['studio',['studioJsRefs','studioCssRefs','studioJsRawBytes','studioCssRawBytes']]]){

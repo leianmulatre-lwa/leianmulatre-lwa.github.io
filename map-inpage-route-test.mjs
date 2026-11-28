@@ -30,7 +30,7 @@ test('Lwazi form submit renders inside map iframe, never opens Google Maps',()=>
  const panel={dataset:{},addEventListener:(type,fn)=>handlers.set(type,fn),
   contains:()=>true,querySelector:()=>null};
  const window={addEventListener:(type,fn)=>handlers.set('window:'+type,fn)};
- const document={querySelectorAll:()=>[]};
+ const document={addEventListener(){},querySelectorAll:()=>[]};
  class MockFormData {get(key){return {origin:'Santa Monica, CA',destination:'UCLA',mode:'bicycling'}[key]||'';}}
  vm.runInNewContext(extras,{window,document,URL,FormData:MockFormData,
   location:{origin:'https://biglwa.com'},navigator:{},console,setTimeout});

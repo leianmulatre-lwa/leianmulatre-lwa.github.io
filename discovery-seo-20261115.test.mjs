@@ -105,7 +105,7 @@ test('The login laptop uses approved on-your-terms copy, with no one-rule taglin
 });
 
 test('Lwazi directs only relevant search intents to genuine public guides and Studio',()=>{
- const scope={window:{},console,URL,Array,Map,Set,Date,Math,String};
+ const scope={window:{},document:{addEventListener(){}},console,URL,Array,Map,Set,Date,Math,String};
  vm.runInNewContext(read('lwazi-discovery-extras.js'),scope,{timeout:1800});
  const cards=scope.window.BigLWADiscoveryExtras.discoveryIntentCards;
  for(const [q,slug] of [

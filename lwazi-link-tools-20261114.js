@@ -222,7 +222,7 @@
       }
       if(format!=='original'){
        verdict.textContent='Converting to '+format.toUpperCase()+'…';progress.removeAttribute('value');
-       const converter=await import('/tools-studio.js?v=20261128-download-transfer-2');
+       const converter=await import('/tools-studio.js?v=20261128-download-transfer-2&deviantart=20261128-1');
        file=await converter.convertLinkedMedia(file,kind,format);
       }
       if(controller.signal.aborted){verdict.textContent='Download canceled. You can try again.';return}

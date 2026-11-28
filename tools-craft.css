@@ -134,6 +134,21 @@
 #craftSuite .craft-vault-card button{background:#fff3e1;border:1px solid #886d56;border-radius:7px;padding:6px 7px;cursor:pointer;color:#382a23;font:650 10px/1.2 system-ui}
 #craftSuite .craft-vault-card button:hover{background:#f4d3ad}
 
+/* Public DeviantArt daily shelf stays separate from the private snapshot vault. */
+#craftSuite .craft-deviantart-daily{border:2px solid #45ad47;border-radius:16px;margin:15px 0;padding:14px;background:#f4f8f2;color:#332a26;box-shadow:4px 5px 0 rgba(69,173,71,.18)}
+#craftSuite .craft-daily-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:9px;margin:0 0 11px}
+#craftSuite .craft-daily-head span{font:800 10px/1.3 Inter,system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#2f6c32}
+#craftSuite .craft-daily-head strong{font:400 22px/1.1 "BIG LWA Stitched",Georgia,serif}
+#craftSuite .craft-daily-head a{margin-left:auto;font:750 11px/1.3 Inter,system-ui,sans-serif;color:#2f6c32;text-underline-offset:3px}
+#craftSuite .craft-daily-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px}
+#craftSuite .craft-daily-card{position:relative;display:grid;gap:5px;min-width:0;padding:7px;border:1px solid #45ad47;border-radius:11px;background:#fffaf2;color:inherit;text-decoration:none;box-shadow:2px 3px 0 rgba(69,173,71,.18)}
+#craftSuite .craft-daily-card img{display:block;width:100%;aspect-ratio:var(--craft-daily-aspect,4/3);object-fit:cover;border-radius:7px;background:#e6ede2}
+#craftSuite .craft-daily-provider{position:absolute;left:13px;top:13px;border-radius:99px;background:#45ad47;color:#fff;padding:4px 7px;font:800 9px/1 Inter,system-ui,sans-serif;letter-spacing:.06em;text-transform:uppercase}
+#craftSuite .craft-daily-card strong{font:700 11px/1.3 Inter,system-ui,sans-serif;overflow-wrap:anywhere}
+#craftSuite .craft-daily-card small{font:600 9px/1.35 Inter,system-ui,sans-serif;opacity:.78;overflow-wrap:anywhere}
+#craftSuite .craft-daily-status,#craftSuite .craft-daily-empty{margin:0;grid-column:1/-1;font:600 11px/1.5 Inter,system-ui,sans-serif}
+@media(max-width:720px){#craftSuite .craft-daily-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#craftSuite .craft-daily-head a{margin-left:0}}
+
 /* Workshop-native control row: the WASM canvas no longer carries a floating save overlay. */
 #craftSuite .craft-panel-head{gap:10px;min-width:0}
 #craftSuite .craft-panel-identity{min-width:0;display:flex;align-items:center;gap:10px;flex:1 1 200px}
