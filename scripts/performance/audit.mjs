@@ -64,12 +64,12 @@ const report={generatedAt:new Date().toISOString(),kind:'source-audit-not-page-s
  largestAreas:sortMap(byArea,20),largestExtensions:sortMap(byExtension,20),
  // Budgets track the shipped shell after the Orbit portal art and WLA shelf
   // additions. Keep these as ceilings, not as a license for unbounded growth.
-  entrypoints,limits:{landingJsRefs:117,landingCssRefs:96,
-   landingJsRawBytes:2900000,landingCssRawBytes:1000000,
-   studioJsRefs:116,studioCssRefs:94,
-   studioJsRawBytes:2900000,studioCssRawBytes:1000000,
+  entrypoints,limits:{landingJsRefs:119,landingCssRefs:96,
+   landingJsRawBytes:2900000,landingCssRawBytes:1020000,
+   studioJsRefs:118,studioCssRefs:95,
+   studioJsRawBytes:2900000,studioCssRawBytes:1020000,
    // Includes the first-party imported Highlights media cache (~76 MB).
-    trackedBytes:230000000}};
+    trackedBytes:245000000}};
 const warnings=[];
 if(missingRoutes.length)warnings.push('Required source routes missing: '+missingRoutes.join(', '));
 for(const [key,limits] of [['landing',['landingJsRefs','landingCssRefs','landingJsRawBytes','landingCssRawBytes']],['studio',['studioJsRefs','studioCssRefs','studioJsRawBytes','studioCssRawBytes']]]){

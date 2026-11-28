@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261127-1&callback=20261124-2&threads=20261125-1&avatarload=20261125-1&linkmedia=20261125-1&myfeed=20261125-1&crushlayout=20261126-1&caldedupe=20261126-1&orbitex=20261127-1';
+        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261127-1&callback=20261124-2&threads=20261125-1&avatarload=20261125-1&linkmedia=20261125-1&myfeed=20261125-1&crushlayout=20261126-1&caldedupe=20261126-1&orbitex=20261127-2&orbitpolish=20261127-1';
         document.head.appendChild(script);
       }, 250);
     }
@@ -1014,6 +1014,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   // Source-specific one-shadow face preview: shared with Skeleton Key.
   const shadowPalette=[
     ["instagram","Instagram","#f36b21","#ffad52"],
+    ["deviantart","DeviantArt","#45ad47","#8bd48d"],
     ["tiktok","TikTok","#772dcc","#b77cff"],
     ["pinterest","Pinterest","#e60023","#ae0026"],
     ["facebook","Facebook","#1658be","#528ee7"],
@@ -1382,7 +1383,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     ['soundcloud','SC','SoundCloud','#e2622a'],['spotify','SP','Spotify','#1db954'],
     ['drive','GD','Google Drive','#e7be31'],['calendar','GC','Google Calendar','#4285f4'],
     ['goodreads','GR','Goodreads','#7a5c3e'],['letterboxd','LB','Letterboxd','#2c3440'],
-    ['imdb','IMDb','IMDb','#e6a800'],
+    ['imdb','IMDb','IMDb','#e6a800'],['deviantart','DA','DeviantArt','#45ad47'],
      ['vsco','VS','VSCO','#b51668'],['bereal','BR','BeReal','#777b83'],
      ['substack','S','Substack','#da521b'],['xbox','XB','Xbox','#a3d65e'],
     ['website','WWW','My website','rgb(var(--aura-rgb,216,95,109))']
@@ -2208,7 +2209,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
     profilesPanel.innerHTML='<h2>Additional social profiles</h2>'+
       '<p>Manage additional public links for your Orbit apps. These are account-saved links, not verified OAuth connections.</p>'+
       '<div class="module-actions" style="display:flex;gap:8px;flex-wrap:wrap">'+
-      '<select id="extraProfileProvider" class="module-input" style="width:auto"><option value="tiktok">TikTok</option><option value="instagram">Instagram</option><option value="threads">Threads</option><option value="x">X</option><option value="snapchat">Snapchat</option><option value="facebook">Facebook</option><option value="pinterest">Pinterest</option><option value="tumblr">Tumblr</option><option value="youtube">YouTube</option></select>'+
+      '<select id="extraProfileProvider" class="module-input" style="width:auto"><option value="tiktok">TikTok</option><option value="instagram">Instagram</option><option value="threads">Threads</option><option value="x">X</option><option value="snapchat">Snapchat</option><option value="facebook">Facebook</option><option value="pinterest">Pinterest</option><option value="tumblr">Tumblr</option><option value="deviantart">DeviantArt</option><option value="youtube">YouTube</option></select>'+
       '<input id="extraProfileUrl" class="module-input" style="flex:1 1 240px" type="url" placeholder="https://www.tiktok.com/@username">'+
       '<button class="module-action" type="button" id="saveExtraProfile">Add profile</button></div>'+
       '<div id="extraProfileList" class="module-list"></div><p id="extraProfileStatus" class="module-status" role="status"></p>';
@@ -4202,6 +4203,9 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
      connect, reconnect, and unlink in place; the plain-link ones hand over to the Orbit page,
      which already owns their paste-a-link fields. */
   function openConnectionsPopup(){
+    // A second Manage click must replace the first dialog, not stack another
+    // copy of every provider button on top of it.
+    for(const stale of document.querySelectorAll('[data-biglwa-popup="connections"]'))stale.remove();
     // The Archive popup uses the same personal Facebook OAuth client as the Orbit
     // row. The legacy Meta Business client is archive-only and UID-bound; it must
     // not be started from the general connection manager.

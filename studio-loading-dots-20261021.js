@@ -226,8 +226,11 @@
    const feed=veve?window.BigLWAVeve?.status?.():null;
    // The Veve API owns the data fetch lifecycle: public posts, Sqwidz, and
    // the final render. Do NOT wait for lazy photos below the landing viewport.
-   const readyCandidate=veve?Boolean(feed?.ready&&feed?.mounted):
-     (Date.now()-moduleStarted>=900 && !unresolvedImages(shell) && !busy);
+   // A stuck third-party image or lingering aria-busy flag must never hide a
+   // finished widget forever: every module has a hard reveal deadline.
+   const stalled=Date.now()-moduleStarted>=6500;
+   const readyCandidate=veve?(Boolean(feed?.ready&&feed?.mounted)||stalled):
+     ((Date.now()-moduleStarted>=900 && !unresolvedImages(shell) && !busy)||stalled);
    // Demand a brief stable ready interval so rapid auth/render mutations do not
    // reveal unfinished UI. Once revealed, never re-show the curtain on this
    // module mount, even if a later widget/network request becomes busy.

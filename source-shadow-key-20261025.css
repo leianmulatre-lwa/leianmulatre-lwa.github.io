@@ -26,7 +26,7 @@
  pointer-events:none
 }
 #studioApp .module-workspace[data-module-key="orbit"] .module-shadow-key{gap:5px 9px;padding:8px 10px}
-#studioApp .module-heading .module-shadow-key{justify-content:center}
+#studioApp .module-heading .module-shadow-key{justify-content:flex-end}
 #studioApp .biglwa-skeleton-hub .module-shadow-key{justify-content:flex-start;width:100%}
 #studioApp .biglwa-skeleton-hub .skeleton-platform-key>summary{cursor:pointer;font:750 12px/1.35 system-ui}
 #studioApp .biglwa-skeleton-hub .skeleton-platform-key>.module-shadow-key{margin:9px 0;box-sizing:border-box}
@@ -58,7 +58,7 @@
  width:17px;height:17px;flex:0 0 17px;margin:0;accent-color:#a34e68;cursor:pointer
 }
 #studioApp .module-workspace .module-heading--with-shadow .module-heading-right .module-shadow-key{
- flex:0 1 auto;width:auto;max-width:100%;justify-content:center
+ flex:0 1 auto;width:auto;max-width:100%;justify-content:flex-end
 }
 /* Shorter gap between Orbit description and first Quick Links panel. */
 #studioApp .module-workspace[data-module-key="orbit"] .module-grid{margin-top:10px!important}
@@ -72,7 +72,7 @@
   grid-template-areas:"title" "shadow" "meta"!important;gap:9px!important
  }
  #studioApp .module-workspace .module-heading--with-shadow .module-heading-right{justify-content:flex-start}
- #studioApp .module-workspace .module-heading--with-shadow .module-shadow-key{justify-content:flex-start}
+ #studioApp .module-workspace .module-heading--with-shadow .module-shadow-key{justify-content:flex-end}
 }
 @media(prefers-reduced-motion:reduce){
  #studioApp .module-shadow-key .shadow-preview{transition:none!important}
