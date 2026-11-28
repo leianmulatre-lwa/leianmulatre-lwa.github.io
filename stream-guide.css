@@ -1126,3 +1126,6 @@ body.dark-mode #studioApp .biglwa-stream .stream-music-other-channels>p{
  .biglwa-stream #streamMonitor .stream-player-label:has(>.stream-dock-options)>span{flex-basis:100%}
  .biglwa-stream #streamMonitor .stream-dock-options .stream-dock-open{min-height:30px}
 }
+
+.biglwa-stream .wla-catalog-icon{display:inline-grid;place-items:center;min-width:34px;min-height:32px;font:700 22px/1 system-ui}
+.biglwa-stream .wla-poster-placeholder{padding:6px;font:600 11px/1.3 system-ui;text-align:center;overflow-wrap:anywhere;box-sizing:border-box}

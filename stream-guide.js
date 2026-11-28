@@ -1200,6 +1200,8 @@
   return entry.promise;
  }
  const wlaHttps=value=>{try{const u=new URL(value);return u.protocol==='https:'?u.href:''}catch{return ''}};
+ const wlaPosterFallback=item=>/^tt\d+$/.test(item.imdb||'')?'https://images.metahub.space/poster/medium/'+item.imdb+'/img':'';
+ const wlaCatalogLookup=item=>'https://cinejoy.pk/?s='+encodeURIComponent(String(item.title||'').trim());
  const wlaText=value=>String(value||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
  async function wlaJSON(url,signal){
   const response=await fetch(url,{signal,credentials:'omit',referrerPolicy:'no-referrer'});
@@ -1209,16 +1211,17 @@
  // Cinemeta is a public, key-free metadata addon keyed by IMDb id. WLA uses it
  // only for display metadata; it never adds streams, trackers or player scripts.
  async function wlaRatings(rows,signal){
-  const ids=rows.filter(item=>/^tt\d+$/.test(item.imdb||'')).slice(0,14);
+  const ids=rows.filter(item=>/^tt\d+$/.test(item.imdb||'')).sort((a,b)=>Number(!!a.image)-Number(!!b.image)).slice(0,24);
   await Promise.allSettled(ids.map(async item=>{
    const type=item.kind==='series'?'series':'movie';
    const data=await wlaJSON('https://v3-cinemeta.strem.io/meta/'+type+'/'+item.imdb+'.json',signal);
    const meta=data?.meta||{};
    const rating=Number(meta.imdbRating);
    if(Number.isFinite(rating)&&rating>0&&rating<=10)item.imdbRating=rating;
-   if(!item.image&&meta.poster)item.image=wlaHttps(meta.poster);
+   const poster=wlaHttps(meta.poster);if(poster){if(item.image&&item.image!==poster)item.imageFallback=poster;else if(!item.image)item.image=poster}
    if(!item.description&&meta.description)item.description=wlaText(meta.description);
   }));
+  for(const item of rows){const fallback=wlaPosterFallback(item);if(!item.image)item.image=fallback;else if(!item.imageFallback&&item.image!==fallback)item.imageFallback=fallback;}
   return rows;
  }
  async function wlaMovieSearch(query,signal){
@@ -1238,7 +1241,7 @@
    const description=e.descriptions?.en?.value||match?.description||'';
    if(!title)return null;
    return {kind:'movie',title,year:String(e.claims?.P577?.[0]?.mainsnak?.datavalue?.value?.time||'').match(/^\+(\d{4})-/)?.[1]||description.match(/\b(18\d{2}|19\d{2}|20\d{2})\b/)?.[1]||'',
-    description,source:'https://www.wikidata.org/wiki/'+id,sourceLabel:'Wikidata film information',
+    description,image:e.claims?.P18?.[0]?.mainsnak?.datavalue?.value?'https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(e.claims.P18[0].mainsnak.datavalue.value)+'?width=450':'',source:'https://www.wikidata.org/wiki/'+id,sourceLabel:'Wikidata film information',
     imdb:e.claims?.P345?.[0]?.mainsnak?.datavalue?.value||''};
   }).filter(Boolean);
  }
@@ -1271,7 +1274,7 @@
   return found.rows.filter(item=>{const title=norm(item.title);return title===needle||(' '+title+' ').includes(' '+needle+' ')||(' '+needle+' ').includes(' '+title+' ')&&title.length>=4}).slice(0,12).map(item=>{
    const id='wla-'+(++wlaNextHandle);wlaSearchHandles.set(id,item);
    if(wlaSearchHandles.size>180)wlaSearchHandles.delete(wlaSearchHandles.keys().next().value);
-   return {id,title:item.title,year:item.year,kind:item.kind,image:item.image,description:item.description,playable:!!item.video,tubi:!!item.tubi,fmhy:!!item.fmhy,imdb:item.imdb||'',imdbRating:item.imdbRating||0};
+   return {id,title:item.title,year:item.year,kind:item.kind,image:item.image,imageFallback:item.imageFallback||wlaPosterFallback(item),catalogLookup:wlaCatalogLookup(item),description:item.description,playable:!!item.video,tubi:!!item.tubi,fmhy:!!item.fmhy,imdb:item.imdb||'',imdbRating:item.imdbRating||0};
   });
  }
  function openWlaSearchResult(id){
@@ -1310,8 +1313,9 @@
    const visible=rows.filter(item=>filter==='all'||(filter==='tubi'?!!item.tubi:filter==='fmhy'?!!item.fmhy:filter===item.kind||(filter==='movie'&&item.kind==='film')));
    for(const item of visible){
     const card=node('button','','wla-result');card.type='button';
-    if(item.image){const image=node('img');image.src=item.image;image.alt='';image.loading='lazy';image.referrerPolicy='no-referrer';card.append(image)}
-    else card.append(node('span','▤', 'wla-poster-placeholder'));
+    const placeholder=()=>node('span',item.title.slice(0,70),'wla-poster-placeholder');
+    if(item.image||wlaPosterFallback(item)){const image=node('img');image.alt=item.title+' poster';image.loading='lazy';image.referrerPolicy='no-referrer';image.addEventListener('error',()=>{const fallback=item.imageFallback||wlaPosterFallback(item);if(fallback&&image.src!==fallback&&!image.dataset.fallbackTried){image.dataset.fallbackTried='1';image.src=fallback}else image.replaceWith(placeholder())});image.src=item.image||wlaPosterFallback(item);card.append(image)}
+    else card.append(placeholder());
     const labels=node('span','','wla-result-label');labels.append(node('strong',item.title),node('small',[item.year,item.kind==='series'?'Series':item.kind==='film'?'Full film · watch here':'Movie'].filter(Boolean).join(' · ')));
     const tags=node('span','','wla-source-tags');
     if(item.video){const tag=node('span','','wla-source-tag wla-source-own');const skull=node('span','','wla-skull-mask');skull.setAttribute('aria-hidden','true');tag.append(skull,node('span','WLA · free here'));tags.append(tag)}
@@ -1345,7 +1349,7 @@
    const source=link(item.kind==='series'?'TVmaze title information':item.kind==='film'?'Original film and rights information':(item.sourceLabel||'Movie information'),item.source);if(source)selection.append(source);
    const official=link('Official show website',item.official);if(official)selection.append(official);
    if(/^tt\d+$/.test(item.imdb||'')){const imdb=link('IMDb title page ↗','https://www.imdb.com/title/'+item.imdb+'/');if(imdb)selection.append(imdb)}
-   const cinejoy=link('Cinejoy listing ↗','https://cinejoy.pk/?s='+encodeURIComponent(item.title));if(cinejoy){cinejoy.className='wla-cinejoy-link';selection.append(cinejoy,node('small','Opens Cinejoy’s own catalog. WLA does not extract, proxy or host third-party streams.'))}
+   const externalCatalog=link('☠',wlaCatalogLookup(item));if(externalCatalog){externalCatalog.className='wla-cinejoy-link wla-catalog-icon';externalCatalog.setAttribute('aria-label','External catalog search for '+item.title);externalCatalog.title='External catalog search · availability unverified';selection.append(externalCatalog)}
    if(item.fmhy){const guide=link('FMHY reviewed guide ↗',item.fmhy);if(guide){guide.className='wla-fmhy-link';selection.append(guide,node('small',item.fmhySource||'Reviewed legal lead from the FMHY guide.'))}}
    const libraryItem=wlaLibraryItem(item),catalog=window.__biglwaLibraryCatalog;
    const save=node('button',catalog?.hasTitle?.(libraryItem)?'Saved to Library':'Save to Library','wla-save-library');save.type='button';save.setAttribute('aria-pressed',String(!!catalog?.hasTitle?.(libraryItem)));

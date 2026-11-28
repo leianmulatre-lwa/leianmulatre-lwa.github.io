@@ -330,3 +330,7 @@ html body.night-mode #bl-studio-search-results :is(.bl-widget-symbol,.bl-search-
 }
 @media(hover:none){#bl-studio-search-results#bl-studio-search-results .bl-search-book .bl-book-jacket{flex-basis:46%!important;width:46%!important}}
 @media(prefers-reduced-motion:reduce){#bl-studio-search-results#bl-studio-search-results .bl-search-book .bl-book-jacket{transition:none!important}}
+
+#bl-studio-search-results .bl-wla-catalog-icon{display:inline-grid;place-items:center;min-width:30px;min-height:28px;font:700 20px/1 system-ui;color:inherit;border:1px solid currentColor;border-radius:6px;text-decoration:none}
+#bl-studio-search-results .bl-wla-title .bl-search-card-media{aspect-ratio:2/3;object-fit:cover;object-position:center;display:block}
+#bl-studio-search-results .bl-image-fallback,#bl-studio-search-results .bl-wla-title .bl-media-placeholder{display:grid;place-items:center;text-align:center;padding:12px;overflow-wrap:anywhere}

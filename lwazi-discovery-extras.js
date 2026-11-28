@@ -157,9 +157,9 @@ function wlaCards(items){
  return (items||[]).map(item=>{
   const tags=(item.playable?'<span class="bl-wla-source bl-wla-own"><span class="bl-wla-skull" aria-hidden="true"></span> WLA · Free here</span>':'')+(item.tubi?'<span class="bl-wla-source bl-wla-tubi">Tubi · Free with ads ↗</span>':'')+(!item.playable&&!item.tubi?'<span class="bl-wla-source">Title info only</span>':'');
   return '<article class="bl-search-card bl-media-card bl-wla-title" data-bl-destination="wla:'+esc(item.id)+'">'+
-   (item.image?'<img class="bl-search-card-media" src="'+esc(item.image)+'" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">':'')+
+   (item.image?'<img class="bl-search-card-media" src="'+esc(item.image)+'" data-bl-image-fallback="'+esc(item.imageFallback||'')+'" alt="'+esc(item.title)+' poster" loading="lazy" decoding="async" referrerpolicy="no-referrer">':'<div class="bl-search-card-media bl-media-placeholder">'+esc(item.title)+'</div>')+
    '<div class="bl-search-card-body"><span class="bl-search-kicker">WLA · '+(item.kind==='series'?'Series':'Movie')+' · '+esc(item.year||'Year unknown')+'</span><h3>'+esc(item.title)+'</h3>'+
-   '<div class="bl-wla-sources">'+tags+'</div><p>'+esc(String(item.description||'').slice(0,180))+'</p>'+
+   '<div class="bl-wla-sources">'+tags+(item.catalogLookup&&/^https:\/\/cinejoy\.pk\/\?s=/.test(item.catalogLookup)?'<a class="bl-wla-catalog-icon" href="'+esc(item.catalogLookup)+'" target="_blank" rel="noopener noreferrer" title="External catalog search · availability unverified" aria-label="External catalog search for '+esc(item.title)+'">☠</a>':'')+'</div><p>'+esc(String(item.description||'').slice(0,180))+'</p>'+
    '<button class="bl-search-go bl-search-primary-action" type="button" data-bl-wla-title="'+esc(item.id)+'">'+(item.playable?'Watch in WLA':item.kind==='series'?'Browse episodes in WLA':'Open in WLA')+' ↗</button></div></article>';
  });
 }
@@ -322,5 +322,17 @@ function attach(panel){
   }catch{frame.addEventListener('load',send,{once:true});}
  });
 }
+// Scope image failures to search results; use alternate provider art before a labelled placeholder.
+function recoverSearchImage(img){
+ if(!img?.matches?.('img.bl-search-card-media')||!img.closest('#bl-studio-search-results'))return;
+ const card=img.closest('.bl-search-card');if(!card)return;
+ const next=img.dataset.blImageFallback;
+ if(next&&/^https:\/\//i.test(next)&&next!==img.src&&!img.dataset.blImageRetried){img.dataset.blImageRetried='1';img.src=next;return}
+ if(card.classList.contains('bl-search-book')){card.classList.add('bl-book-no-cover');img.closest('.bl-book-jacket')?.remove();return}
+ const placeholder=document.createElement('div');placeholder.className='bl-search-card-media bl-media-placeholder bl-image-fallback';
+ placeholder.textContent=card.querySelector('h3')?.textContent?.slice(0,90)||img.alt||'Image unavailable';img.replaceWith(placeholder);
+}
+document.addEventListener('error',event=>recoverSearchImage(event.target),true);
+document.addEventListener('load',event=>{const img=event.target;if(img?.matches?.('.bl-search-book img.bl-search-card-media')&&img.naturalWidth<=1)recoverSearchImage(img)},true);
 window.BigLWADiscoveryExtras={symbol,mediaCards,herstoryCards,widgetCards,videoCards,wlaCards,placeCards,placePromo,toolIntentCards,discoveryIntentCards,attach};
 })();

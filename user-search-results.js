@@ -72,18 +72,18 @@
     close=function(){document.querySelector('#studioApp .bl-lwazi-history-popover')?.setAttribute('hidden','');if(!panel)return;if(layoutObserver)layoutObserver.disconnect();if(layoutRailObserver)layoutRailObserver.disconnect();panel.remove();panel=null;document.body.classList.remove('bl-search-is-open');var search=document.getElementById('globalSearch');if(search)search.setAttribute('aria-expanded','false');document.removeEventListener('keydown',onKey,true)};
     function mount(q){close();panel=document.createElement('aside');panel.className='bl-search-panel';panel.id='bl-studio-search-results';panel.setAttribute('role','region');panel.setAttribute('aria-label','Lwazi discovery search');var search=document.getElementById('globalSearch');var anchor=(search&&search.closest('header'))||search&&search.closest('[role="banner"]')||document.querySelector('#studioApp>header')||search&&search.parentElement||document.body.firstElementChild;if(anchor&&anchor.parentNode)anchor.insertAdjacentElement('afterend',panel);else document.body.insertBefore(panel,document.body.firstElementChild);document.body.classList.add('bl-search-is-open');observeSearchLayout();if(window.__biglwaLwaziSearchUi)window.__biglwaLwaziSearchUi.bind(panel);if(window.BigLWAMusicDiscovery)window.BigLWAMusicDiscovery.attachSearch(panel);if(window.BigLWADiscoveryExtras)window.BigLWADiscoveryExtras.attach(panel);if(search){search.setAttribute('aria-controls',panel.id);search.setAttribute('aria-expanded','true')}document.addEventListener('keydown',onKey,true)}
     function internalButton(label,route){return '<button type="button" class="bl-search-go bl-search-route'+(label==='Open in Library'?' bl-search-primary-action':'')+'" data-lwazi-route="'+esc(route)+'">'+esc(label)+' &#8599;</button>'}
-    function bookCover(b){if(b.cover_i)return 'https://covers.openlibrary.org/b/id/'+encodeURIComponent(b.cover_i)+'-M.jpg';if(b.isbn&&b.isbn[0])return 'https://covers.openlibrary.org/b/isbn/'+encodeURIComponent(b.isbn[0])+'-M.jpg';return ''}
+    function bookCover(b){if(b.cover_i)return 'https://covers.openlibrary.org/b/id/'+encodeURIComponent(b.cover_i)+'-M.jpg?default=false';if(b.isbn&&b.isbn[0])return 'https://covers.openlibrary.org/b/isbn/'+encodeURIComponent(b.isbn[0])+'-M.jpg?default=false';return ''}
     function userCard(u){
       var handle=String(u.username||'').replace(/^@/,''),name=u.name||handle;
       var initials=name.trim().split(/\s+/).map(function(part){return part[0]}).join('').slice(0,2).toUpperCase();
       var aura=/^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(u.auraColor)?u.auraColor:'#7777a9';
       var photo=String(u.profilePhotoUrl||''),pos=u.profilePhotoPosition||{};
       var position=[pos.x,pos.y].map(function(n){return (Number.isFinite(n)?Math.max(0,Math.min(100,n)):50)+'%'}).join(' ');
-      var image=/^https:\/\/biglwa-instagram-api\.leianmulatre-284\.workers\.dev\/media\/profile-photo\//.test(photo)?'<img src="'+esc(photo)+'" style="object-position:'+position+'" alt="" loading="lazy" onerror="this.hidden=true">':'';
+      var image=/^https:\/\/(?:api\.biglwa\.com|biglwa-instagram-api\.leianmulatre-284\.workers\.dev)\/media\/profile-photo\//.test(photo)?'<img src="'+esc(photo)+'" style="object-position:'+position+'" alt="" loading="lazy" onerror="this.hidden=true">':'';
       return '<article class="bl-search-card bl-user-card"><div class="bl-search-card-media bl-person-photo" style="--person-aura:'+aura+'"><span aria-hidden="true">'+esc(initials)+'</span>'+image+'</div><div class="bl-search-card-body"><h3>@'+esc(handle)+'</h3><p>'+esc(name)+'</p>'+(u.bio?'<p>'+esc(u.bio)+'</p>':'')+'<a class="bl-search-go" href="'+esc('/'+encodeURIComponent(handle))+'">View profile &#8594;</a></div></article>';
     }
     function bookCard(b){
-      var cover=bookCover(b),meta=(b.author_name||[]).slice(0,2).join(', ')+(b.first_publish_year?' · '+b.first_publish_year:'');
+      var cover=bookCover(b),fallback=b.cover_i&&b.isbn?.[0]?'https://covers.openlibrary.org/b/isbn/'+encodeURIComponent(b.isbn[0])+'-M.jpg?default=false':'',meta=(b.author_name||[]).slice(0,2).join(', ')+(b.first_publish_year?' · '+b.first_publish_year:'');
       var path=String(b.key||'');
       var libraryUrl=/^\/(?:works|books)\/[a-zA-Z0-9_-]+$/.test(path)?'https://openlibrary.org'+path:'';
       return '<article class="bl-search-card bl-media-card bl-search-book'+(cover?'':' bl-book-no-cover')+'"'+
@@ -92,7 +92,7 @@
         '" data-bl-book-year="'+esc(b.first_publish_year||'')+
         '" data-bl-book-cover="'+esc(cover)+'"'+
         (libraryUrl?' data-bl-destination="'+esc(libraryUrl)+'"':'')+'>'+
-        (cover?'<div class="bl-book-jacket" tabindex="0" aria-label="Preview book cover"><span class="bl-book-spine" aria-hidden="true"></span><img class="bl-search-card-media" src="'+esc(cover)+'" alt="Cover of '+esc(b.title||'this book')+'" loading="lazy"></div>':'')+
+        (cover?'<div class="bl-book-jacket" tabindex="0" aria-label="Preview book cover"><span class="bl-book-spine" aria-hidden="true"></span><img class="bl-search-card-media" src="'+esc(cover)+'" data-bl-image-fallback="'+esc(fallback)+'" alt="Cover of '+esc(b.title||'this book')+'" loading="lazy"></div>':'')+
         '<div class="bl-search-card-body"><span class="bl-search-kicker veve-eyebrow">Book</span><h3>'+esc(b.title||'Untitled')+'</h3>'+
         '<p class="bl-search-muted">'+esc(meta)+'</p>'+
         '<button type="button" class="bl-search-go bl-search-route bl-search-primary-action" data-lwazi-route="library" data-lwazi-book-open="1">Open in Library &#8599;</button>'+
@@ -101,7 +101,7 @@
     function songCard(s){
       // Only Apple-provided licensed preview clips play in-site; full tracks
       // remain on the publisher. Never cache or proxy preview audio.
-      var art=String(s.artworkUrl100||'').replace(/100x100bb(?=\.(?:jpg|png|webp)(?:\?|$))/i,'600x600bb');
+      var originalArt=String(s.artworkUrl100||''),art=originalArt.replace(/100x100bb(?=\.(?:jpg|png|webp)(?:\?|$))/i,'600x600bb');
       var original=String(s.trackViewUrl||'');
       var songUrl=/^https:\/\/(?:music|itunes)\.apple\.com\//i.test(original)?original:'';
       var preview=String(s.previewUrl||'');
@@ -112,7 +112,7 @@
         (previewUrl?' data-bl-song-preview="'+esc(previewUrl)+'"':'');
       return '<article class="bl-search-card bl-media-card bl-search-song"'+attrs+'>'+
         '<span class="bl-vinyl-record" aria-hidden="true"><span class="bl-vinyl-label"'+(art?' style="background-image:url(&quot;'+esc(art)+'&quot;)"':'')+'></span></span>'+
-        (art?'<img class="bl-search-card-media" src="'+esc(art)+'" alt="" loading="lazy" decoding="async">':'<div class="bl-search-card-media bl-media-placeholder" aria-hidden="true">♫</div>')+
+        (art?'<img class="bl-search-card-media" src="'+esc(art)+'" data-bl-image-fallback="'+esc(originalArt)+'" alt="" loading="lazy" decoding="async">':'<div class="bl-search-card-media bl-media-placeholder" aria-hidden="true">♫</div>')+
         '<div class="bl-search-card-body"><span class="bl-search-kicker veve-eyebrow">Song</span><h3>'+esc(title)+'</h3>'+
         '<p class="bl-search-muted">'+esc(artist)+(s.collectionName?' · '+esc(s.collectionName):'')+'</p></div>'+
         (songUrl?'<a class="bl-search-go bl-search-primary-action bl-vinyl-cover-link" href="'+esc(songUrl)+'" target="_blank" rel="noopener noreferrer" aria-label="'+
@@ -500,7 +500,7 @@
         }finally{
           if(panel===current){persistTurns();showTurns();send.disabled=false;input.focus();
              if(/\b(?:where|places?|nearby|visit|travel|museum|gallery|restaurant|cafe|park|hotel|beach|show.*(?:photo|picture|image)|tell me about)\b/i.test(follow)){
-               searchWikipedia(follow).then(function(items){return wikipediaImages(items).then(function(images){return {items:items,images:images}})}).then(function(data){
+               searchWikipedia(follow).then(function(items){return wikipediaImages(items).catch(function(){return {}}).then(function(images){return {items:items,images:images}})}).then(function(data){
                  if(panel===current&&current.isConnected)renderLwaziPhotoPreview(photoPreview,follow,data.items,data.images);
                }).catch(function(){});
              }
@@ -623,7 +623,7 @@
           html+=section('Veve video vibes',extras.mediaCards(parts[7].filter(function(p){return p.video})),'stream videos');
           html+=section('Herstory · women in STEM',extras.herstoryCards(parts[6],clean,activeCategory==='herstory'),'herstory');
           html+=section('Stream videos',extras.videoCards(clean,activeCategory==='stream'),'stream videos images');
-          html=section('WLA · Movies & series',extras.wlaCards?.(parts[8])||[],'stream videos movies')+html;
+          html=section('WLA · Movies & series',extras.wlaCards?.(parts[8])||[],'stream videos movies images')+html;
           if(activeCategory==='widgets')html+=section('Studio widgets',extras.widgetCards(),'widgets studio');
           if(activeCategory==='places')html+=section('Places & Maps',extras.placeCards(),'places maps');
         }
