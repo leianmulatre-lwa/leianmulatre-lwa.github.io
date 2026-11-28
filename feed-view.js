@@ -711,7 +711,8 @@ function timestampMs(value) {
 
 /* Studio's picture reel shuffles real published photographs; it never uses
    defaults or edits the underlying feed order and account data. */
-const HERO_SLOTS = 4;
+const HERO_SLOTS = 1;
+const HERO_ROTATION_MS = 30000;
 /* Film preview is a contact sheet for PHOTOGRAPHS, not video posters.
    Other Feed cards remain mixed-media and keep their existing video behavior.
    Imported Orbit photos must still use their durable managed R2 media URLs. */
@@ -739,6 +740,8 @@ let heroOn = null;
 let heroSignature = null;
 let heroSelectedKeys = [];
 let heroOwnerKey = null;
+let heroRotationTimer=0;
+let heroLastPhotoId='';
 const heroFailedUrls = new Set();
 const heroPostKey = post => String(post.id||'')+':'+heroPhotoUrl(post);
 
@@ -763,43 +766,53 @@ function shuffleHeroPosts(pool, previous=[]) {
   }
   return selected;
 }
-function renderHero(force) {
+function armHeroRotation(anchor,count){
+ clearTimeout(heroRotationTimer);heroRotationTimer=0;
+ if(!anchor?.isConnected||count<2)return;
+ heroRotationTimer=setTimeout(()=>{
+  heroRotationTimer=0;if(!anchor.isConnected)return;
+  if(document.hidden||anchor.hidden||!anchor.getClientRects().length||anchor.contains(document.activeElement)||anchor.querySelector('.is-photo-loading')){armHeroRotation(anchor,count);return;}
+  renderHero(true,true);
+ },HERO_ROTATION_MS);
+}
+function renderHero(force,rotate=false) {
   const anchor = document.getElementById("biglwaFeedHero");
-  if (!anchor) return;
+  if (!anchor) {clearTimeout(heroRotationTimer);heroRotationTimer=0;return;}
   /* The class lives on the markup in the module page, but it is asserted here as well so
      the strip is still a panel if that markup is ever built without it. */
-  anchor.classList.add("biglwa-feed-hero");
+  anchor.classList.add("biglwa-feed-hero","biglwa-feed-world-preview");
   /* Owner Studio uses only that signed-in member's approved account posts.
      Visitor previews use only the viewed profile's approved posts. */
   const isPublicProfile=Boolean(window.__biglwaPublicStorageView);
   const verifiedUid=String(window.BigLWAAccountStorage?.uid||identity()?.uid||'');
   const previewPosts=isPublicProfile?[]:(verifiedUid&&studioOwnerUid===verifiedUid?studioOwnPosts:[]);
   const ownerKey=(isPublicProfile?'public:':'owner:')+(isPublicProfile?String(window.__biglwaViewedProfile?.uid||''):verifiedUid);
-  if(heroOwnerKey!==ownerKey){heroOwnerKey=ownerKey;heroSelectedKeys=[];heroFailedUrls.clear();}
+  if(heroOwnerKey!==ownerKey){clearTimeout(heroRotationTimer);heroRotationTimer=0;heroOwnerKey=ownerKey;heroSelectedKeys=[];heroFailedUrls.clear();heroLastPhotoId='';if(!isPublicProfile&&verifiedUid)try{heroLastPhotoId=sessionStorage.getItem('biglwaMyFeedLastPhoto:'+verifiedUid)||''}catch{}}
   const storedPosts=previewPosts.filter(post=>!isSponsoredPost(post)&&post.state==='approved'&&heroPhotoUrl(post)&&!heroFailedUrls.has(heroPhotoUrl(post)));
   const requiresSync=previewPosts.some(post=>post.orbitImported&&
     ['instagram','pinterest'].includes(String(post.source||'').toLowerCase())&&!pictureUrls(post).length);
   // No member-published pictures? Never display fixed sample photographs.
   // Keep the restoration prompt if the account's Orbit photos need syncing.
-  anchor.hidden=!storedPosts.length&&!requiresSync;
+  anchor.hidden=isPublicProfile||!verifiedUid;
   if(anchor.hidden){
-    heroOn=null;heroSignature=null;heroSelectedKeys=[];
+    clearTimeout(heroRotationTimer);heroRotationTimer=0;heroOn=null;heroSignature=null;heroSelectedKeys=[];anchor.replaceChildren();
     return;
   }
   const viewedUid=isPublicProfile?String(window.__biglwaViewedProfile?.uid||''):verifiedUid;
   const signature=viewedUid+'|'+(isPublicProfile?'public':'owner')+'|'+
     String(requiresSync)+'|'+storedPosts.map(p=>p.id+':'+p.state+':'+heroPhotoUrl(p)+':'+(p.caption||'')).join('|');
   const sameContent=anchor===heroOn&&signature===heroSignature;
-  if(sameContent)return;
+  if(sameContent&&(!rotate||storedPosts.length<2)){if(!heroRotationTimer)armHeroRotation(anchor,storedPosts.length);return;}
   heroOn=anchor;
   heroSignature=signature;
 
   // Film previews change without reordering posts in MyFeed or altering storage.
   const byKey=new Map(storedPosts.map(post=>[heroPostKey(post),post]));
-  const retained=heroSelectedKeys.map(key=>byKey.get(key)).filter(Boolean);
-  const retainedKeys=new Set(retained.map(heroPostKey));
-  const slots=[...retained,...shuffleHeroPosts(storedPosts.filter(post=>!retainedKeys.has(heroPostKey(post))))].slice(0,HERO_SLOTS);
+  const retained=rotate?[]:heroSelectedKeys.map(key=>byKey.get(key)).filter(Boolean);
+  const previous=heroSelectedKeys.length?heroSelectedKeys:storedPosts.filter(p=>String(p.id)===heroLastPhotoId).map(heroPostKey);
+  const slots=retained.length?retained.slice(0,HERO_SLOTS):shuffleHeroPosts(storedPosts,previous);
   heroSelectedKeys=slots.map(heroPostKey);
+  if(slots[0]){heroLastPhotoId=String(slots[0].id||'');try{sessionStorage.setItem('biglwaMyFeedLastPhoto:'+verifiedUid,heroLastPhotoId)}catch{}}
   const cards = slots.map((post) => {
     const src = accentOf(post.source);
     const caption = (post.caption || "").trim();
@@ -812,16 +825,15 @@ function renderHero(force) {
       return '<div class="biglwa-feed-hero-empty biglwa-feed-needs-sync" style="--accent:' + src.accent + '">' +
         '<span role="img" aria-label="Image waiting for storage">▧</span><small>Image needs sync</small></div>';
     }
-    return '<button type="button" class="biglwa-feed-hero-preview" style="--accent:' + src.accent + '" aria-label="Preview ' + esc(caption || "feed picture") + '">' +
-      '<img src="' + esc(displayImage) + '" alt="' + esc(caption || "Feed picture") + '" loading="lazy" decoding="async">' +
+    return '<button type="button" class="biglwa-feed-hero-preview is-photo-loading" aria-busy="true" style="--accent:' + src.accent + '" aria-label="Preview ' + esc(caption || "feed picture") + '">' +
+      '<img src="' + esc(displayImage) + '" alt="' + esc(caption || "Feed picture") + '" loading="eager" decoding="async">' + '<span class="biglwa-feed-photo-loading" aria-hidden="true"><i></i><i></i><i></i></span>' +
       "</button>";
   });
 
-  const withImage=storedPosts;
-  const rest=Math.max(0,withImage.length-slots.length);
-  anchor.innerHTML = '<div class="biglwa-feed-hero-head"><h3>'+(isPublicProfile?'Published pictures':'Your published pictures')+'</h3><span>' +
-    (rest ? "+" + rest + " more below" : withImage.length + (withImage.length === 1 ? " picture" : " pictures")) +
-    "</span></div>" + '<div class="biglwa-feed-hero-grid">' + (cards.length?cards.join(""):Array.from({length:HERO_SLOTS},()=>'<div class="biglwa-feed-hero-empty" aria-label="Add your own published photo">Add your photo</div>').join('')) + "</div>" +
+  anchor.innerHTML='<div class="biglwa-feed-world-stage" aria-label="MyFeed photo preview">'+
+    '<div class="biglwa-feed-world-mark" aria-hidden="true"><img src="/assets/loading-globe-pixel-20261029.png" alt="" width="96" height="96" decoding="async"></div>'+
+    '<span class="biglwa-feed-world-lights" aria-hidden="true"><i></i><i></i><i></i></span>'+
+    '<div class="biglwa-feed-world-card">'+(cards.length?cards.join(""):'<div class="biglwa-feed-hero-empty">'+(requiresSync?'Image needs sync':'Your photos go here')+'</div>')+'</div></div>'+
     (requiresSync?'<button type="button" class="biglwa-feed-resync" data-feed-resync>↻ Restore imported photos</button><small class="biglwa-feed-sync-note" role="status">Reconnect Orbit if the original service no longer allows image downloads.</small>':'');
   anchor.querySelectorAll('.biglwa-feed-hero-preview').forEach((button,index)=>{
     button.addEventListener('click',()=>{
@@ -830,16 +842,19 @@ function renderHero(force) {
       openLightbox(post,Math.max(0,slideUrls(post).indexOf(selected)));
     });
   });
-  anchor.querySelector('.biglwa-feed-hero-grid')?.setAttribute('aria-label','Shuffle of published photographs');
-  anchor.querySelectorAll('.biglwa-feed-hero-grid img').forEach((img,index)=>{
-    img.addEventListener('error',()=>{
-      if(!img.isConnected)return;
-      heroFailedUrls.add(heroPhotoUrl(slots[index]));
-      heroSignature=null;
-      renderHero(true);
-    },{once:true});
-    if(img.complete&&img.naturalWidth===0)img.dispatchEvent(new Event('error'));
+  anchor.querySelectorAll('.biglwa-feed-world-card img').forEach((img,index)=>{
+    const button=img.closest('button'),started=performance.now();let settled=false,timeout=0;
+    const finish=ok=>{
+      if(settled)return;settled=true;clearTimeout(timeout);
+      if(!img.isConnected||heroOwnerKey!==ownerKey)return;
+      if(!ok){heroFailedUrls.add(heroPhotoUrl(slots[index]));heroSignature=null;queueMicrotask(()=>renderHero(true));return;}
+      const reveal=()=>{if(img.isConnected&&heroOwnerKey===ownerKey){button?.classList.remove('is-photo-loading');button?.setAttribute('aria-busy','false')}};
+      if(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)reveal();else setTimeout(reveal,Math.max(0,550-(performance.now()-started)));
+    };
+    img.addEventListener('load',()=>finish(true),{once:true});img.addEventListener('error',()=>finish(false),{once:true});
+    timeout=setTimeout(()=>finish(false),12000);if(img.complete)finish(img.naturalWidth>0);
   });
+  armHeroRotation(anchor,storedPosts.length);
 }
 
 let repairingFeedImages=false;

@@ -20,7 +20,7 @@ assert(css.includes('background:repeating-linear-gradient(90deg,')&&css.includes
 assert(css.includes('aspect-ratio:3 / 2!important'),'Four photo apertures retain consistent landscape proportions');
 assert(css.includes('pointer-events:none!important'),'Decorative perforations never block clicks');
 assert(css.includes('.biglwa-feed-hero-preview:focus-visible'),'Keyboard users can see active thumbnails');
-assert(feed.includes('const HERO_SLOTS = 4'),'Four photo slots retained');
+assert(feed.includes('const HERO_SLOTS = 1'),'One photo slot retained');
 const sponsorFilter=feed.match(/const isSponsoredPost=post=>[^;]+;/)?.[0];
 const photoFilter=feed.match(/const storedPosts=previewPosts\.filter\([^\n]+\);/)?.[0];
 assert(sponsorFilter&&photoFilter,'Actual photo selection and sponsored-content guard are present');
@@ -79,22 +79,22 @@ assert(feed.includes("const previewPosts=isPublicProfile?[]:(verifiedUid&&studio
   'Owner contact strip stays scoped to the signed-in UID, never the public wall');
 assert(feed.includes("post.state==='approved'&&heroPhotoUrl(post)"),
   'Draft, archived and pending-deletion posts never enter the shuffle');
-assert(feed.includes("anchor.hidden=!storedPosts.length&&!requiresSync"),
-  'A profile with no pictures does not show fixed default photos');
-assert(!feed.includes('window.setInterval(shuffleVisibleHero'), 'Preview never rotates on a timer');
+assert(feed.includes("anchor.hidden=isPublicProfile||!verifiedUid"),"Public views remain isolated");
+assert(feed.includes("Your photos go here"),"Empty member has no fabricated pictures");
+assert(feed.includes("const HERO_ROTATION_MS = 30000")&&feed.includes("renderHero(true,true)"),"Rotate local preview every 30 seconds");
 assert(feed.includes('heroFailedUrls.add(heroPhotoUrl(slots[index]))'), 'Failed photos are excluded before replacement');
 const shuffleBegin=feed.indexOf('const heroPostKey = post =>');
-const shuffleEnd=feed.indexOf('\nfunction renderHero(',shuffleBegin);
+const shuffleEnd=feed.indexOf('\nfunction armHeroRotation(',shuffleBegin);
 assert(shuffleBegin>=0&&shuffleEnd>shuffleBegin,'Shuffle helper is present');
-const shuffleEnv={heroPhotoUrl:post=>post.imageUrl,HERO_SLOTS:4};
+const shuffleEnv={heroPhotoUrl:post=>post.imageUrl,HERO_SLOTS:1};
 runInNewContext(feed.slice(shuffleBegin,shuffleEnd)+'\nthis.pick=shuffleHeroPosts;',shuffleEnv);
 const pictures=Array.from({length:10},(_,i)=>({id:'member-'+i,imageUrl:'https://example.com/real-'+i+'.jpg'}));
 const beforeOrder=pictures.map(p=>p.id);
 const frameOne=shuffleEnv.pick(pictures);
 const frameTwo=shuffleEnv.pick(pictures,frameOne.map(p=>p.id+':'+p.imageUrl));
-assert.equal(frameOne.length,4,'Exactly four actual photos are selected');
-assert.equal(new Set(frameOne.map(p=>p.id)).size,4,'No duplicate photographs in four slots');
-assert.equal(new Set(frameTwo.map(p=>p.id)).size,4,'Reshuffled frames remain unique');
+assert.equal(frameOne.length,1,'Exactly one actual photo is selected');
+assert.equal(new Set(frameOne.map(p=>p.id)).size,1,'Single photo slot');
+assert.equal(new Set(frameTwo.map(p=>p.id)).size,1,'Reshuffled photo');
 assert(frameTwo.every(p=>!frameOne.includes(p)),'When enough photos exist, next shuffle avoids current photos');
 assert.deepEqual(pictures.map(p=>p.id),beforeOrder,'Shuffling never mutates the stored feed order');
 const few=pictures.slice(0,3);
@@ -139,3 +139,5 @@ assert(trophyCss.includes('#studioApp #trophies #trophyPreview>.biglwa-default-t
 assert(trophyCss.includes('.trophy-case-version>.module-card'),'Trophies version spacing is constrained');
 
 assert(!read('studio-experience.js').includes('function ensureStreamDockButton'), 'Wide black dock bar is no longer inserted');
+
+assert(feed.includes('/assets/loading-globe-pixel-20261029.png'));assert(feed.includes('is-photo-loading'));assert(css.includes('biglwa-feed-pixel-load'));assert(css.includes('conic-gradient(from 20deg'));assert(feed.includes('document.hidden||anchor.hidden'));assert(feed.includes('sessionStorage.getItem'));assert(index.includes('&worldpreview=20261127-1'));

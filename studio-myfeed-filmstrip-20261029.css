@@ -299,3 +299,37 @@
     padding:9px 10px!important;min-height:42px!important
   }
 }
+
+
+/* MyFeed world preview: separate from legacy contact-strip markup. */
+#studioApp#studioApp #feed #biglwaFeedHero.biglwa-feed-world-preview{
+ background:transparent!important;background-image:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important;padding:5px 4px 7px!important;margin:0 0 8px!important;
+}
+#studioApp #feed #biglwaFeedHero.biglwa-feed-world-preview[hidden]{display:none!important}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-world-stage{
+ display:grid;grid-template-columns:minmax(0,.83fr) minmax(28px,.28fr) minmax(0,1.25fr);align-items:center;gap:clamp(5px,1.3vw,14px);width:100%;min-height:clamp(100px,12vw,176px);padding:6px;box-sizing:border-box;
+}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-world-mark{position:relative;isolation:isolate;display:grid;place-items:center;min-width:0}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-world-mark::before{
+ content:"";position:absolute;z-index:-1;inset:14% 7% 0;transform:translateY(6px);background:conic-gradient(from 20deg,#ef6161,#f0c753,#75ce9b,#6daada,#b084d9,#ef6161);filter:blur(14px);opacity:.28;border-radius:50%;pointer-events:none;
+}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-world-mark img{width:min(100%,118px)!important;height:auto!important;aspect-ratio:1;object-fit:contain!important;image-rendering:pixelated;filter:drop-shadow(1px 2px 0 #0003);display:block!important}
+#studioApp #feed #biglwaFeedHero :is(.biglwa-feed-world-lights,.biglwa-feed-photo-loading){display:flex;align-items:center;justify-content:center;gap:clamp(3px,.5vw,8px);pointer-events:none}
+#studioApp #feed #biglwaFeedHero :is(.biglwa-feed-world-lights,.biglwa-feed-photo-loading)>i{width:clamp(6px,.7vw,11px);aspect-ratio:1;flex:none;background:#f3c948;box-shadow:0 0 0 1px #15050966;display:block;border-radius:1px}
+#studioApp #feed #biglwaFeedHero :is(.biglwa-feed-world-lights,.biglwa-feed-photo-loading)>i:nth-child(2){background:#ec6675}
+#studioApp #feed #biglwaFeedHero :is(.biglwa-feed-world-lights,.biglwa-feed-photo-loading)>i:nth-child(3){background:#4ab77e}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-world-card{min-width:0;display:grid;align-items:center}
+#studioApp#studioApp #feed #biglwaFeedHero .biglwa-feed-world-card>:is(.biglwa-feed-hero-preview,.biglwa-feed-hero-empty){
+ position:relative;isolation:isolate;width:100%!important;max-width:100%!important;aspect-ratio:4/5!important;max-height:176px!important;min-height:0!important;display:grid!important;place-items:center;overflow:hidden!important;border:1px solid rgba(var(--aura-rgb,216,95,109),.55)!important;border-radius:5px!important;background:var(--widget-bg,#f8f0e4)!important;color:var(--widget-ink,#292321)!important;padding:0!important;margin:0!important;box-shadow:2px 3px 0 rgba(var(--aura-rgb,216,95,109),.18),0 3px 9px #0002!important;box-sizing:border-box;
+}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-world-card .biglwa-feed-hero-preview img{width:100%!important;height:100%!important;position:absolute!important;inset:0!important;object-fit:cover!important;object-position:center!important;display:block!important;opacity:1;transition:opacity .26s ease;pointer-events:none}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-world-card .is-photo-loading img{opacity:0!important}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-photo-loading{position:absolute;inset:0;opacity:0;transition:opacity .2s ease}
+#studioApp #feed #biglwaFeedHero .is-photo-loading .biglwa-feed-photo-loading{opacity:1}
+#studioApp #feed #biglwaFeedHero .is-photo-loading .biglwa-feed-photo-loading>i,#studioApp #feed #biglwaFeedHero:has(.is-photo-loading) .biglwa-feed-world-lights>i{animation:biglwa-feed-pixel-load .7s steps(2,end) infinite}
+#studioApp #feed #biglwaFeedHero :is(.biglwa-feed-world-lights,.biglwa-feed-photo-loading)>i:nth-child(2){animation-delay:.12s}
+#studioApp #feed #biglwaFeedHero :is(.biglwa-feed-world-lights,.biglwa-feed-photo-loading)>i:nth-child(3){animation-delay:.24s}
+@keyframes biglwa-feed-pixel-load{0%,100%{opacity:1;transform:translateY(0)}50%{opacity:.35;transform:translateY(-3px)}}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-world-card .biglwa-feed-hero-empty{padding:8px!important;text-align:center;font:600 11px/1.3 system-ui}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-world-card .biglwa-feed-hero-preview:focus-visible{outline:2px solid rgb(var(--aura-rgb,216,95,109));outline-offset:3px}
+@media(prefers-reduced-motion:reduce){#studioApp #feed #biglwaFeedHero.biglwa-feed-world-preview *{animation:none!important;transition:none!important}}
