@@ -11,7 +11,9 @@ const legacy=gunzipSync(archive).toString('utf8');
 for(const [file,source] of [['session-restore.js',session],['studio-onboarding.js',onboarding],['module-pages.js',modules]]){
   assert.doesNotThrow(()=>new Script(source,{filename:file}),file+' must parse');
 }
-const inline=home.match(/<noscript>[\s\S]*?<\/noscript><script>([\s\S]*?)<\/script><\/body>/);
+// A non-blocking Super 8 film tag sits between the noscript fallback and the
+// inline startup script; allow self-contained script tags there.
+const inline=home.match(/<noscript>[\s\S]*?<\/noscript>(?:<script\b[^>]*><\/script>)*<script>([\s\S]*?)<\/script><\/body>/);
 assert.ok(inline,'site has an inline startup script');
 assert.doesNotThrow(()=>new Script(inline[1]),'startup must parse');
 

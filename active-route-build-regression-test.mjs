@@ -21,7 +21,12 @@ assert.ok(readFileSync(new URL('./'+publishedArcade,import.meta.url),'utf8').inc
   'Published Arcade CSS must contain the folder marquee');
 const assetRefs=[...entry.matchAll(/(?:src|href)="\/([^"?#]+)\?v=([^"]+)"/g)].map(([,path])=>path);
 const codeAssets=assetRefs.filter(path=>/\.(?:js|css)$/i.test(path));
-assert.equal(codeAssets.length,new Set(codeAssets).size,'No duplicated executable JavaScript or CSS assets');
+// The Super 8 startup film is deliberately loaded twice: once for the initial
+// shell and once when the legacy Studio document is patched into place.
+const startupFilm='studio-loading-super8-20261128.js';
+const nonFilmAssets=codeAssets.filter(path=>path!==startupFilm);
+assert.equal(nonFilmAssets.length,new Set(nonFilmAssets).size,'No duplicated executable JavaScript or CSS assets');
+assert.equal(codeAssets.length-new Set(codeAssets).size,1,'Only the startup film is intentionally referenced twice');
 // Reusing an image for preload and actual display is intentional.
 assert.match(modules,/function orbitLinkEditor\(k,name,url\)/,'Link editor in current renderer');
 assert.match(modules,/data-orbit-edit-link="\$\{k\}"/,'Link action is in the same row as Connect');
