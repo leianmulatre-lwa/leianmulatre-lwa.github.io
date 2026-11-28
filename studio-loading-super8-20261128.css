@@ -2,4 +2,7 @@
 #biglwaStartupScreen{isolation:isolate!important;overflow:hidden!important}
 #biglwaStartupScreen>.biglwa-startup-inner{z-index:2!important}
 #biglwaStartupScreen>.biglwa-startup-inner{position:relative}
-#biglwaStartupScreen>.biglwa-super8-overlay{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;object-fit:cover!important;object-position:center!important;z-index:1!important;pointer-events:none!important;user-select:none!important;border:0!important;border-radius:inherit!important;mix-blend-mode:multiply!important;opacity:.36!important;filter:grayscale(1)!important;background:url("/assets/loading-super8-poster-20261128.webp") center/cover no-repeat!important;transition:none!important;animation:none!important}
+#biglwaStartupScreen>.biglwa-super8-overlay{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;margin:0!important;padding:0!important;object-fit:cover!important;object-position:center!important;z-index:1!important;pointer-events:none!important;user-select:none!important;border:0!important;border-radius:inherit!important;mix-blend-mode:multiply!important;opacity:.60!important;filter:grayscale(1)!important;background:url("/assets/loading-super8-poster-20261128.webp") center/cover no-repeat!important;transition:none!important;animation:none!important}
+
+/* Guard against old cached module markup. No Super 8 outside the full startup screen. */
+#studioApp .biglwa-super8-overlay{display:none!important;visibility:hidden!important}

@@ -5,7 +5,7 @@
  const motion=window.matchMedia('(prefers-reduced-motion: reduce)'),data=window.matchMedia('(prefers-reduced-data: reduce)');
  const records=new Map();let pending=0,observer,disposed=false;
  if(!document.getElementById('biglwaSuper8Styles')){
-  const link=document.createElement('link');link.id='biglwaSuper8Styles';link.rel='stylesheet';link.href='/studio-loading-super8-20261128.css?v=4';document.head.append(link);
+  const link=document.createElement('link');link.id='biglwaSuper8Styles';link.rel='stylesheet';link.href='/studio-loading-super8-20261128.css?v=5';document.head.append(link);
  }
  const allowed=()=>!document.hidden&&!motion.matches&&!data.matches&&!navigator.connection?.saveData;
  function visible(node){
@@ -29,6 +29,7 @@
  }
  function sync(){
   pending=0;if(disposed)return;
+  for(const stray of document.querySelectorAll('.biglwa-super8-overlay'))if(!stray.closest(SELECTOR)){stray.pause?.();stray.removeAttribute('src');stray.remove();stray.load?.()}
   for(const [node,state] of records){if(!node.isConnected){pause(state);state.cleanup();records.delete(node)}}
   for(const node of document.querySelectorAll(SELECTOR)){
    const state=attach(node);
@@ -37,7 +38,7 @@
   }
  }
  function schedule(){if(!disposed&&!pending)pending=requestAnimationFrame(sync)}
- function relevant(m){return m.type==='attributes'?m.target.matches?.(SELECTOR)||m.target.id==='studioApp'||m.target.classList?.contains('module-shell'):[...m.addedNodes,...m.removedNodes].some(n=>n.nodeType===1&&(n.matches?.(SELECTOR)||n.querySelector?.(SELECTOR)))}
+ function relevant(m){return m.type==='attributes'?m.target.matches?.(SELECTOR)||m.target.id==='studioApp'||m.target.classList?.contains('module-shell'):[...m.addedNodes,...m.removedNodes].some(n=>n.nodeType===1&&(n.matches?.(SELECTOR+',.biglwa-super8-overlay')||n.querySelector?.(SELECTOR+',.biglwa-super8-overlay')))}
  function start(){if(disposed)return;observer=new MutationObserver(ms=>{if(ms.some(relevant))schedule()});observer.observe(document.documentElement,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden','aria-hidden','class','style']});sync()}
  function stop(){disposed=true;observer?.disconnect();if(pending)cancelAnimationFrame(pending);for(const state of records.values()){pause(state);state.cleanup()}records.clear();document.removeEventListener('visibilitychange',schedule);window.removeEventListener('biglwa:startup-revealed',schedule);motion.removeEventListener?.('change',schedule);data.removeEventListener?.('change',schedule);navigator.connection?.removeEventListener?.('change',schedule);window.removeEventListener('pagehide',stop)}
  window.__biglwaSuper8Cleanup?.();window.__biglwaSuper8Cleanup=stop;
