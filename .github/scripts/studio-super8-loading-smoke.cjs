@@ -27,14 +27,16 @@ const media='/assets/loading-super8-20261128.webm',poster='/assets/loading-super
   await startup.evaluate(e=>e.setAttribute('aria-hidden','true'));
   await page.waitForFunction(()=>!document.querySelector('#biglwaStartupScreen video').hasAttribute('src'));
   await module.evaluate(e=>e.hidden=false);
-  const moduleFilm=module.locator('video');await moduleFilm.waitFor({state:'attached'});
-  assert.equal(await moduleFilm.evaluate(v=>getComputedStyle(v).opacity),'0.36');
+  await page.waitForTimeout(350);
+  assert.equal(await module.locator('video').count(),0,'Widget pages never receive the film');
+  await startup.evaluate(e=>e.removeAttribute('aria-hidden'));
+  await page.waitForFunction(()=>document.querySelector('#biglwaStartupScreen video').hasAttribute('src'));
   await page.emulateMedia({reducedMotion:'reduce'});
-  await page.waitForFunction(()=>!document.querySelector('.lwa-curtain video').hasAttribute('src'));
-  assert.equal(await moduleFilm.evaluate(v=>getComputedStyle(v).opacity),'0.36');
+  await page.waitForFunction(()=>!document.querySelector('#biglwaStartupScreen video').hasAttribute('src'));
+  assert.equal(await film.evaluate(v=>getComputedStyle(v).opacity),'0.36');
   assert.equal(await page.locator('.biglwa-avatar-loading video').count(),0);
   await module.evaluate(e=>e.hidden=true);
-  assert.equal(await moduleFilm.isVisible(),false);
-  console.log('PASS Super 8 first-paint poster, actual playback, same multiply layer, no independent fade, reduced motion still, hidden curtain');
+  assert.equal(await module.locator('video').count(),0);
+  console.log('PASS Super 8 first-paint poster, actual playback, same multiply layer, no independent fade, reduced motion still, startup only; no widget film');
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});

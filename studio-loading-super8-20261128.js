@@ -1,11 +1,11 @@
 /* The film layer is born with the curtain; only playback is optional. */
 (()=>{
- const SELECTOR='#biglwaStartupScreen,#studioApp .lwa-curtain[data-lwa-curtain="module"]';
+ const SELECTOR='#biglwaStartupScreen';
  const POSTER='/assets/loading-super8-poster-20261128.webp',SOURCE='/assets/loading-super8-20261128.webm';
  const motion=window.matchMedia('(prefers-reduced-motion: reduce)'),data=window.matchMedia('(prefers-reduced-data: reduce)');
  const records=new Map();let pending=0,observer,disposed=false;
  if(!document.getElementById('biglwaSuper8Styles')){
-  const link=document.createElement('link');link.id='biglwaSuper8Styles';link.rel='stylesheet';link.href='/studio-loading-super8-20261128.css?v=3';document.head.append(link);
+  const link=document.createElement('link');link.id='biglwaSuper8Styles';link.rel='stylesheet';link.href='/studio-loading-super8-20261128.css?v=4';document.head.append(link);
  }
  const allowed=()=>!document.hidden&&!motion.matches&&!data.matches&&!navigator.connection?.saveData;
  function visible(node){

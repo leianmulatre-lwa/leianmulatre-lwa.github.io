@@ -265,6 +265,8 @@ jobs:
           node .github/scripts/studio-rank-layout-smoke.cjs
           node .github/scripts/studio-stereo-layout-smoke.cjs
           node .github/scripts/studio-super8-loading-smoke.cjs
+          node arcade-2048-move-test.mjs
+          node .github/scripts/arcade-2048-animation-smoke.cjs
           node .github/scripts/lwazi-link-download-smoke.cjs
           node .github/scripts/studio-map-single-preview-smoke.cjs
       - name: Refresh original-source discovery feeds

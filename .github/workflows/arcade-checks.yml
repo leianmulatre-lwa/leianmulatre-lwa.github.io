@@ -5,6 +5,8 @@ on:
     paths:
       - 'module-pages.js'
       - 'games-arcade-test.mjs'
+      - 'arcade-puzzles.html'
+      - 'arcade-2048-move-test.mjs'
       - 'y8-embeds-20261112.js'
       - 'y8-embed-catalog-test.mjs'
       - 'arcade-y8-20261112.css'
@@ -22,6 +24,8 @@ on:
     paths:
       - 'module-pages.js'
       - 'games-arcade-test.mjs'
+      - 'arcade-puzzles.html'
+      - 'arcade-2048-move-test.mjs'
       - 'y8-embeds-20261112.js'
       - 'y8-embed-catalog-test.mjs'
       - 'arcade-y8-20261112.css'
@@ -48,6 +52,7 @@ jobs:
       - name: Run Arcade regression checks
         run: |
           node games-arcade-test.mjs
+          node arcade-2048-move-test.mjs
           node y8-embed-catalog-test.mjs
       - name: Verify both interactive Studio carousels and cabinet PNGs
         run: |

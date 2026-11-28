@@ -188,7 +188,6 @@
   const el=document.createElement('div');el.className='lwa-curtain lwa-pixel-curtain';el.dataset.lwaCurtain='module';
   label=String(label||'loading').toLowerCase();
   el.setAttribute('role','status');el.setAttribute('aria-label',label);
-  const film=document.createElement('video');film.className='biglwa-super8-overlay';film.poster='/assets/loading-super8-poster-20261128.webp';film.muted=true;film.loop=true;film.playsInline=true;film.preload='none';film.setAttribute('aria-hidden','true');film.tabIndex=-1;el.append(film);
   const mark=document.createElement('div');mark.className='lwa-curtain-brand';
   mark.setAttribute('aria-hidden','true');
   mark.innerHTML='<span class="lwa-curtain-brand-b">big</span><span class="lwa-curtain-brand-w">lwa</span>';

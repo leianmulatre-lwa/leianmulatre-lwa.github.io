@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';import vm from 'node:vm';
+const html=readFileSync(new URL('./arcade-puzzles.html',import.meta.url),'utf8');
+const start=html.indexOf('function planMove('),end=html.indexOf('function updateStatus()',start);
+const ctx={};vm.runInNewContext(html.slice(start,end)+';globalThis.plan=planMove;',ctx);
+const pad=values=>values.concat(Array(16-values.length).fill(0));
+const plain=x=>JSON.parse(JSON.stringify(x));
+let r=plain(ctx.plan(pad([2,2,2,2]),'left'));assert.deepEqual(r.next,pad([4,4]));assert.equal(r.points,8);assert.deepEqual(r.merges,[0,1]);assert.equal(r.moves.length,4);
+r=plain(ctx.plan(pad([2,2,4,0]),'right'));assert.deepEqual(r.next,pad([0,0,4,4]));assert.equal(r.points,4);
+r=plain(ctx.plan(pad([4,0,0,0,4,0,0,0]),'down'));assert.equal(r.next[12],8);assert.equal(r.points,8);
+r=plain(ctx.plan(pad([0,0,0,0,0,8,0,0]),'up'));assert.equal(r.next[1],8);assert.equal(r.points,0);
+r=plain(ctx.plan(pad([2,4,8,16]),'left'));assert.equal(r.changed,false);
+assert.match(html,/personal\.v1/);assert.match(html,/not a global ranking/);assert.match(html,/prefers-reduced-motion/);
+console.log('PASS 2048 directional moves, single merges, accurate points, personal leaderboard scope');

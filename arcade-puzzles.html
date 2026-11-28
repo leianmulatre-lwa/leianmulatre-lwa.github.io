@@ -61,16 +61,36 @@ html.biglwa-arcade-embed .arcade-direction-pad{margin:3px auto;gap:4px}
 html.biglwa-arcade-embed .arcade-direction-pad button{height:29px;width:36px;font-size:16px}
 html.biglwa-arcade-embed:has(#game2048:not([hidden])){overflow:hidden;overscroll-behavior:contain}
 html.biglwa-arcade-embed:has(#game2048:not([hidden])) body{height:100dvh;max-height:100dvh;overflow:hidden;overscroll-behavior:contain}
+
+/* Tile movement is an overlay over the real 4×4 grid, so board dimensions never change. */
+.grid2048{position:relative;isolation:isolate}
+.grid2048 .tile.is-moving{background:#c5b2a0!important;color:transparent!important}
+.grid2048 .tile.tile-flight{position:absolute;z-index:3;pointer-events:none;margin:0;aspect-ratio:auto;transition:none;will-change:transform}
+.grid2048 .tile.tile-spawn{animation:tile2048-spawn 140ms ease-out}
+.grid2048 .tile.tile-merge{animation:tile2048-merge 170ms ease-out}
+@keyframes tile2048-spawn{from{transform:scale(.45);opacity:.5}to{transform:scale(1);opacity:1}}
+@keyframes tile2048-merge{0%,100%{transform:scale(1)}48%{transform:scale(1.10)}}
+.scoreline{flex-wrap:wrap;gap:5px}.scoreline b{padding:6px 10px}
+#leader2048{background:#672836;color:#fff5e6;border-color:#672836}
+#leader2048dialog{width:min(350px,calc(100% - 20px));max-height:90dvh;overflow:auto;border:2px solid #843847;border-radius:12px;background:#fff7e9;color:#39272b;padding:16px}
+#leader2048dialog::backdrop{background:#170b0caa}
+#leader2048dialog h2{font:700 22px Georgia;margin:0}
+#leader2048dialog .leader-header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#leader2048dialog table{width:100%;border-collapse:collapse;font-size:12px}
+#leader2048dialog td,#leader2048dialog th{text-align:left;border-bottom:1px solid #deccbd;padding:6px 3px}
+#leader2048dialog td:nth-child(2),#leader2048dialog th:nth-child(2){text-align:right;font-variant-numeric:tabular-nums}
+html.biglwa-arcade-embed .scoreline b,html.biglwa-arcade-embed .scoreline button{font-size:11px;padding:5px 7px}
+@media(prefers-reduced-motion:reduce){.grid2048 .tile{animation:none!important}}
 </style><script>if(new URLSearchParams(location.search).get('embed')==='1')document.documentElement.classList.add('biglwa-arcade-embed');</script></head>
 <body><header><h1>big lwa · arcade</h1><div class="tabs" role="tablist"><button role="tab" type="button" data-tab="2048" aria-selected="true">2048</button><button role="tab" type="button" data-tab="crossword" aria-selected="false">mini crossword</button></div></header>
 <div id="biglwaArcadeIdentity" class="arcade-identity" aria-live="polite"><span class="arcade-identity-portrait" aria-hidden="true">◉</span><div><strong>playing as guest</strong><small><a href="/avatar/mii-editor.html?v=20261016-mii-opt-in-1">Set up your Big LWA avatar ↗</a> to use it in the games.</small></div></div>
-<section id="game2048"><p class="info">Join tiles with the same number. Use your arrow keys, WASD, or swipe. Try to make 2048!</p><div class="scoreline"><b>score <span id="score">0</span></b><button type="button" id="new2048">new game ↻</button></div><div id="grid2048" class="grid2048" role="grid" tabindex="0" aria-label="2048 number puzzle: use arrows or WASD"></div>
+<section id="game2048"><p class="info">Join tiles with the same number. Use your arrow keys, WASD, or swipe. Try to make 2048!</p><div class="scoreline"><b>score <span id="score">0</span></b><b>best <span id="best2048">0</span></b><button type="button" id="leader2048">scores ★</button><button type="button" id="new2048">new game ↻</button></div><div id="grid2048" class="grid2048" role="grid" tabindex="0" aria-label="2048 number puzzle: use arrows or WASD"></div>
 <div class="arcade-direction-pad" role="group" aria-label="Move 2048 tiles">
 <button type="button" data-2048-direction="up" aria-label="Move up">↑</button>
 <button type="button" data-2048-direction="left" aria-label="Move left">←</button>
 <button type="button" data-2048-direction="down" aria-label="Move down">↓</button>
 <button type="button" data-2048-direction="right" aria-label="Move right">→</button></div>
-<p class="feedback" id="2048status" role="status"></p></section>
+<p class="feedback" id="2048status" role="status"></p><dialog id="leader2048dialog" aria-labelledby="leader2048title"><div class="leader-header"><h2 id="leader2048title">2048 leaderboard</h2><button id="closeLeader2048" type="button" aria-label="Close leaderboard">×</button></div><p class="note">Personal best runs on this device · not a global ranking.</p><table><thead><tr><th>Rank</th><th>Score</th><th>Highest tile</th></tr></thead><tbody id="leader2048rows"></tbody></table><p id="leader2048empty">Play a game to set your first score.</p></dialog></section>
 <section id="gameCrossword" hidden><p class="info">An original mini crossword. Fill the letter squares from the clues, then check your answers.</p><div class="cross-layout"><div><div id="crossGrid" class="cross-grid" role="group" aria-label="7 by 7 crossword grid"></div><div class="action-row"><button type="button" id="checkCross">check</button><button type="button" id="resetCross">reset</button></div><p class="feedback" id="crossStatus" role="status"></p></div><aside class="clue-list"><h3>across</h3><div id="acrossClues"></div><h3>down</h3><div id="downClues"></div></aside></div></section>
 <section id="gameQuest" hidden aria-label="Character Quest">
 <h2>character quest</h2>
@@ -84,18 +104,73 @@ html.biglwa-arcade-embed:has(#game2048:not([hidden])) body{height:100dvh;max-hei
 <script>
 (()=>{
 const Q=s=>document.querySelector(s);
-let board=[],score=0;
-const randomTile=()=>{const spaces=[];board.forEach((v,i)=>{if(!v)spaces.push(i)});if(spaces.length){const at=spaces[Math.floor(Math.random()*spaces.length)];board[at]=Math.random()<.9?2:4}};
-const render2048=()=>{Q('#grid2048').innerHTML=board.map(n=>'<div class="tile" data-value="'+n+'" role="gridcell" aria-label="'+(n||'empty')+'">'+(n||'')+'</div>').join('');Q('#score').textContent=score;};
-const reset2048=()=>{board=Array(16).fill(0);score=0;randomTile();randomTile();render2048();document.getElementById('2048status').textContent=''};
-const collapse=line=>{let n=line.filter(Boolean),out=[];for(let i=0;i<n.length;i++){if(n[i]===n[i+1]){out.push(n[i]*2);score+=n[i]*2;i++}else out.push(n[i])}return out.concat(Array(4-out.length).fill(0))};
-const move=direction=>{if(Q('#game2048').hidden)return;const before=board.join(',');for(let z=0;z<4;z++){let ix=Array.from({length:4},(_,k)=>direction==='left'?z*4+k:direction==='right'?z*4+3-k:direction==='up'?k*4+z:(3-k)*4+z);const values=collapse(ix.map(x=>board[x]));ix.forEach((x,k)=>board[x]=values[k])}if(board.join(',')!==before)randomTile();render2048();document.getElementById('2048status').textContent=board.includes(2048)?'2048! You made it. Keep going!':board.every(Boolean)&&!['left','right','up','down'].some(d=>{for(let r=0;r<4;r++)for(let c=0;c<4;c++)if((d==='left'&&c<3&&board[r*4+c]===board[r*4+c+1])||(d==='up'&&r<3&&board[r*4+c]===board[(r+1)*4+c]))return true;return false})?'No moves left. Try a new game.':''};
+let board=[],score=0,runId='',busy=false,generation=0,queued=[],flights=[],finishTimer=0;
+const leaderboardKey='biglwa.arcade.2048.personal.v1';
+let records=[];
+try{const stored=JSON.parse(localStorage.getItem(leaderboardKey)||'[]');if(Array.isArray(stored))records=stored.filter(r=>typeof r.id==='string'&&Number.isSafeInteger(r.score)&&r.score>0&&Number.isSafeInteger(r.tile)&&r.tile>=2).sort((a,b)=>b.score-a.score).slice(0,10)}catch{}
+function saveScore(){
+ if(!score)return;
+ const entry={id:runId,score,tile:Math.max(...board)};
+ records=[...records.filter(r=>r.id!==runId),entry].sort((a,b)=>b.score-a.score||b.tile-a.tile).slice(0,10);
+ try{localStorage.setItem(leaderboardKey,JSON.stringify(records))}catch{}
+}
+function renderLeaderboard(){
+ Q('#best2048').textContent=records[0]?.score||0;
+ const rows=Q('#leader2048rows');rows.replaceChildren();
+ for(const [i,entry] of records.entries()){const row=document.createElement('tr');for(const value of [i+1,entry.score,entry.tile]){const cell=document.createElement('td');cell.textContent=String(value);row.append(cell)}rows.append(row)}
+ Q('#leader2048empty').hidden=records.length>0;
+}
+const leader=Q('#leader2048dialog');
+Q('#leader2048').onclick=()=>{renderLeaderboard();leader.showModal()};
+Q('#closeLeader2048').onclick=()=>leader.close();
+leader.addEventListener('close',()=>Q('#grid2048').focus({preventScroll:true}));
+const randomTile=()=>{const spaces=[];board.forEach((v,i)=>{if(!v)spaces.push(i)});if(spaces.length){const at=spaces[Math.floor(Math.random()*spaces.length)];board[at]=Math.random()<.9?2:4;return at}return -1};
+const render2048=(spawn=-1,merges=[])=>{Q('#grid2048').innerHTML=board.map((n,i)=>'<div class="tile'+(i===spawn?' tile-spawn':merges.includes(i)?' tile-merge':'')+'" data-value="'+n+'" role="gridcell" aria-label="'+(n||'empty')+'">'+(n||'')+'</div>').join('');Q('#score').textContent=score;renderLeaderboard()};
+function clearFlights(){clearTimeout(finishTimer);for(const el of flights){el.getAnimations?.().forEach(a=>a.cancel());el.remove()}flights=[];busy=false;queued=[]}
+const reset2048=()=>{generation++;clearFlights();board=Array(16).fill(0);score=0;runId=globalThis.crypto?.randomUUID?.()||Date.now()+'-'+Math.random();randomTile();randomTile();render2048();Q('#2048status').textContent=''};
+function planMove(before,direction){
+ const next=Array(16).fill(0),moves=[],merges=[];let points=0;
+ for(let z=0;z<4;z++){
+  const ix=Array.from({length:4},(_,k)=>direction==='left'?z*4+k:direction==='right'?z*4+3-k:direction==='up'?k*4+z:(3-k)*4+z);
+  const filled=ix.filter(i=>before[i]);let dest=0;
+  for(let i=0;i<filled.length;i++){
+   const from=filled[i],to=ix[dest++],value=before[from];
+   moves.push({from,to,value});next[to]=value;
+   if(i+1<filled.length&&before[filled[i+1]]===value){moves.push({from:filled[++i],to,value});next[to]=value*2;points+=value*2;merges.push(to)}
+  }
+ }
+ return {next,moves,merges,points,changed:next.some((v,i)=>v!==before[i])};
+}
+function updateStatus(){
+ const available=board.some(v=>!v)||board.some((v,i)=>(i%4<3&&v===board[i+1])||(i<12&&v===board[i+4]));
+ Q('#2048status').textContent=!available?'No moves left. Try a new game.':board.some(v=>v>=2048)?'2048! You made it. Keep going!':'';
+}
+const move=direction=>{
+ if(Q('#game2048').hidden||leader.open||!['left','right','up','down'].includes(direction))return;
+ if(busy){if(queued.length<3)queued.push(direction);return}
+ const plan=planMove(board,direction);if(!plan.changed){updateStatus();return}
+ const grid=Q('#grid2048'),cells=[...grid.children],rect=grid.getBoundingClientRect(),ticket=++generation;
+ const animate=!window.matchMedia('(prefers-reduced-motion: reduce)').matches&&typeof Element.prototype.animate==='function'&&rect.width>0;
+ board=plan.next;score+=plan.points;const spawn=randomTile();saveScore();
+ const finish=()=>{if(ticket!==generation)return;clearTimeout(finishTimer);for(const el of flights)el.remove();flights=[];busy=false;render2048(spawn,plan.merges);updateStatus();const next=queued.shift();if(next)move(next)};
+ if(!animate){finish();return}
+ busy=true;
+ for(const step of plan.moves){
+  if(step.from===step.to)continue;
+  const from=cells[step.from].getBoundingClientRect(),to=cells[step.to].getBoundingClientRect();
+  const clone=cells[step.from].cloneNode(true);clone.className='tile tile-flight';clone.removeAttribute('role');clone.setAttribute('aria-hidden','true');
+  Object.assign(clone.style,{left:(from.left-rect.left-grid.clientLeft)+'px',top:(from.top-rect.top-grid.clientTop)+'px',width:from.width+'px',height:from.height+'px'});
+  cells[step.from].classList.add('is-moving');grid.append(clone);flights.push(clone);
+  clone.animate([{transform:'translate(0,0)'},{transform:'translate('+(to.left-from.left)+'px,'+(to.top-from.top)+'px)'}],{duration:125,easing:'cubic-bezier(.2,.75,.3,1)',fill:'forwards'});
+ }
+ finishTimer=setTimeout(finish,130);
+};
 Q('#new2048').onclick=reset2048;reset2048();
 const moveKeys={ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',a:'left',d:'right',w:'up',s:'down',
   A:'left',D:'right',W:'up',S:'down'};
 // Parent cabinet and embedded game can own keyboard focus independently.
 window.addEventListener('keydown',ev=>{
-  if(ev.ctrlKey||ev.altKey||ev.metaKey||ev.target?.closest?.('input,textarea,[contenteditable="true"]')||Q('#game2048').hidden)return;
+  if(leader.open||ev.ctrlKey||ev.altKey||ev.metaKey||ev.target?.closest?.('input,textarea,[contenteditable="true"]')||Q('#game2048').hidden)return;
   const direction=moveKeys[ev.key]||moveKeys[({KeyW:'w',KeyA:'a',KeyS:'s',KeyD:'d'})[ev.code]];
   if(direction){ev.preventDefault();move(direction)}
 },true);
