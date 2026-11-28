@@ -25,7 +25,7 @@
       #studioApp#studioApp[data-widget-finish="frosted"] :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
         backdrop-filter:blur(var(--widget-blur,18px)) saturate(1.35)!important;-webkit-backdrop-filter:blur(var(--widget-blur,18px)) saturate(1.35)!important;
         background:linear-gradient(145deg,#ffffff38,transparent 43%,#ffffff13 76%,#ffffff26),var(--widget-bg)!important;
-        border-color:#ffffff80!important;box-shadow:inset 0 1px 2px #fff9,inset 0 -2px 6px #fff2,0 5px 18px #0002!important;
+        border-color:#ffffff80!important;--widget-finish-shadow:inset 0 1px 2px #fff9,inset 0 -2px 6px #fff2,0 5px 18px #0002;box-shadow:var(--widget-finish-shadow)!important;
       }
       #studioApp#studioApp[data-widget-finish="frosted"] :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
         background:linear-gradient(135deg,#ffffff24,#ffffff09),var(--widget-bg)!important;
@@ -33,14 +33,14 @@
       }
       #studioApp#studioApp[data-widget-finish="frutiger"] :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
         background:linear-gradient(175deg,#ffffff85 0%,#ffffff28 35%,transparent 48%,rgba(var(--aura-rgb),.17) 78%,#ffffff35 100%),var(--widget-bg)!important;
-        border-color:#fff9!important;box-shadow:inset 0 2px 2px #fffc,inset 0 -4px 8px #0002,0 5px 14px #0003!important;
+        border-color:#fff9!important;--widget-finish-shadow:inset 0 2px 2px #fffc,inset 0 -4px 8px #0002,0 5px 14px #0003;box-shadow:var(--widget-finish-shadow)!important;
       }
       #studioApp#studioApp[data-widget-finish="block"] :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
         background:linear-gradient(140deg,#ffffff20,transparent 50%,#00000015),var(--widget-bg)!important;
-        border-color:#ffffff60!important;box-shadow:inset 2px 2px 0 #fff6,inset -2px -2px 0 #0003,3px 4px 0 #0003,0 6px 12px #0002!important;
+        border-color:#ffffff60!important;--widget-finish-shadow:inset 2px 2px 0 #fff6,inset -2px -2px 0 #0003,3px 4px 0 #0003,0 6px 12px #0002;box-shadow:var(--widget-finish-shadow)!important;
       }
       #studioApp#studioApp[data-widget-depth]:not([data-widget-depth="0"]) :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
-        box-shadow:inset 0 1px 1px #fff5,var(--widget-depth-edge) var(--widget-depth-edge) 0 rgba(0,0,0,var(--widget-depth-alpha)),0 var(--widget-depth-y) var(--widget-depth-blur) rgba(0,0,0,var(--widget-depth-alpha))!important;
+        box-shadow:var(--widget-finish-shadow,inset 0 1px 1px #fff5),var(--widget-depth-edge) var(--widget-depth-edge) 0 rgba(0,0,0,var(--widget-depth-alpha)),0 var(--widget-depth-y) var(--widget-depth-blur) rgba(0,0,0,var(--widget-depth-alpha))!important;
       }
 
       /* Color chips + editable HEX value sit beside the native color wheel. */
