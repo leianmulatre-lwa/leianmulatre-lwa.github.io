@@ -41,6 +41,13 @@ test('Orbit box faces use the shared shadow-key source colors',()=>{
   assert.match(orbitCss,/data-orbit-app="deviantart"[\s\S]{0,160}--orbit-source:#45ad47/);
   assert.match(orbitCss,/background:var\(--orbit-source,#e6d7ff\)!important/);
   assert.match(orbitCss,/\.orbit-platform-badge\{\s*background:var\(--orbit-source,#d9c6ee\)!important/);
+  // The day-mode skin has a more specific !important background, so this
+  // override must come after it and include an equally specific selector.
+  const daySkin=orbitCss.indexOf('body:not(.night-mode) #studioApp #orbit #orbitGrid>button[data-orbit-app]{\n background:rgba(255,252,254,.68)!important');
+  const sourceOverride=orbitCss.indexOf('#studioApp #orbit #orbitGrid>button[data-orbit-app]{\n background:var(--orbit-source,#e6d7ff)!important');
+  assert.ok(daySkin>=0&&sourceOverride>daySkin);
+  assert.match(orbitCss,/body:not\(\.night-mode\) #studioApp #orbit #orbitGrid>button\[data-orbit-app\],[\s\S]{0,500}background:var\(--orbit-source,#e6d7ff\)!important/);
+  assert.match(orbitCss,/module-orbit-row\[data-orbit-row\]>\.module-actions>\.orbit-platform-badge,[\s\S]{0,500}background:var\(--orbit-source,#d9c6ee\)!important/);
 });
 
 test('DeviantArt is available as a saved public profile in Orbit',()=>{
@@ -56,9 +63,9 @@ test('shell cache keys bust every edited Orbit asset in every shell and self-loa
     assert.ok(!/orbitex=20261127-1/.test(shell));
     assert.match(shell,/orbitex=20261127-2/);
   }
-  assert.equal((root.match(/orbitpolish=20261127-1/g)||[]).length,5);
-  assert.equal((studio.match(/orbitpolish=20261127-1/g)||[]).length,5);
-  assert.match(pages,/orbitex=20261127-2&orbitpolish=20261127-1/);
+  assert.equal((root.match(/orbitpolish=20261127-2/g)||[]).length,5);
+  assert.equal((studio.match(/orbitpolish=20261127-2/g)||[]).length,5);
+  assert.match(pages,/orbitex=20261127-2&orbitpolish=20261127-2/);
   assert.match(routeGuard,/orbitex=20261127-2/);
   assert.match(workerConfigTest,/const key='orbitex=20261127-2';/);
 });
