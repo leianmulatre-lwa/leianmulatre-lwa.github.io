@@ -491,3 +491,45 @@ body.night-mode #studioApp#studioApp #orbit#orbit:not(:has(>.orbit-portal-tiles)
 @media(prefers-reduced-motion:reduce){
  #studioApp#studioApp #orbit#orbit>.orbit-foreground-planet{display:none!important}
 }
+/* 2026-11-27: Orbit planet faces and orbit-row badges now use the exact source
+   color from the shared shadow key. Only the accent/face color changes; planets,
+   layout, links, and OAuth behavior stay where they are. */
+#studioApp #orbit #orbitGrid>button[data-orbit-app="instagram"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="instagram"]{--orbit-source:#f36b21;--orbit-ink:#fff}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="deviantart"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="deviantart"]{--orbit-source:#45ad47;--orbit-ink:#fff}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="tiktok"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="tiktok"]{--orbit-source:#772dcc;--orbit-ink:#fff}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="pinterest"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="pinterest"]{--orbit-source:#e60023;--orbit-ink:#fff}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="facebook"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="facebook"]{--orbit-source:#1658be;--orbit-ink:#fff}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="youtube"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="youtube"]{--orbit-source:#fff1ec;--orbit-ink:#332b2e}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="snapchat"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="snapchat"]{--orbit-source:#ffda00;--orbit-ink:#332b04}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="tumblr"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="tumblr"]{--orbit-source:#1b304b;--orbit-ink:#fff}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="x"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="x"]{--orbit-source:#0e0e0e;--orbit-ink:#fff}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="soundcloud"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="soundcloud"]{--orbit-source:#ff7700;--orbit-ink:#fff}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="spotify"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="spotify"]{--orbit-source:#1db954;--orbit-ink:#fff}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="drive"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="drive"]{--orbit-source:#e7be31;--orbit-ink:#4c3508}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="calendar"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="calendar"]{--orbit-source:#4285f4;--orbit-ink:#fff}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="goodreads"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="goodreads"]{--orbit-source:#7a5c3e;--orbit-ink:#fff}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="letterboxd"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="letterboxd"]{--orbit-source:#2c3440;--orbit-ink:#fff}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="imdb"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="imdb"]{--orbit-source:#e6a800;--orbit-ink:#332600}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="vsco"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="vsco"]{--orbit-source:#b51668;--orbit-ink:#fff}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="bereal"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="bereal"]{--orbit-source:#777b83;--orbit-ink:#fff}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="substack"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="substack"]{--orbit-source:#da521b;--orbit-ink:#fff}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="xbox"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="xbox"]{--orbit-source:#a3d65e;--orbit-ink:#1c310c}
+#studioApp #orbit #orbitGrid>button[data-orbit-app="website"],#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row="website"]{--orbit-source:rgb(var(--aura-rgb,216,95,109));--orbit-ink:#fff}
+#studioApp #orbit #orbitGrid>button[data-orbit-app]{
+ background:var(--orbit-source,#e6d7ff)!important;color:var(--orbit-ink,#fff)!important;
+ border-color:var(--orbit-source,#e6d7ff)!important;
+ box-shadow:3px 3px 0 var(--orbit-source,#e6d7ff)!important;
+}
+#studioApp #orbit #orbitGrid>button[data-orbit-app]:is(:hover,:focus-visible){
+ background:var(--orbit-source,#e6d7ff)!important;
+ filter:brightness(1.08)!important;
+}
+#studioApp #orbit #orbitGrid>button[data-orbit-app]>.orbit-glyph{
+ background:var(--orbit-source,#d9c6ee)!important;color:var(--orbit-ink,#fff)!important;
+ -webkit-text-fill-color:var(--orbit-ink,#fff)!important;text-shadow:none!important;
+ box-shadow:inset -7px -6px 12px rgba(0,0,0,.18),inset 5px 4px 10px rgba(255,255,255,.72),0 5px 12px rgba(10,6,40,.18)!important;
+}
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row] .orbit-platform-badge{
+ background:var(--orbit-source,#d9c6ee)!important;color:var(--orbit-ink,#fff)!important;
+ -webkit-text-fill-color:var(--orbit-ink,#fff)!important;
+}

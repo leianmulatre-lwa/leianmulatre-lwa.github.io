@@ -7,7 +7,7 @@
  if(window.BigLWAShadowKey)return;
  const sources=Object.freeze([
   ['instagram','Instagram','#f36b21'],['tiktok','TikTok','#772dcc'],
-  ['pinterest','Pinterest','#e60023'],['facebook','Facebook','#1658be'],
+  ['pinterest','Pinterest','#e60023'],['deviantart','DeviantArt','#45ad47'],['facebook','Facebook','#1658be'],
   ['youtube','YouTube','#fff1ec'],['snapchat','Snapchat','#ffda00'],
   ['tumblr','Tumblr','#1b304b'],['x','X','#0e0e0e'],
   ['soundcloud','SoundCloud','#ff7700'],['spotify','Spotify','#1db954'],

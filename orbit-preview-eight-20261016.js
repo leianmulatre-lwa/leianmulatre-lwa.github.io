@@ -16,6 +16,7 @@
   ];
   const MORE=[
     ['facebook','FB','Facebook'],
+    ['deviantart','DA','DeviantArt'],
     ['drive','GD','Google Drive'],
     ['soundcloud','SC','SoundCloud'],
     ['spotify','SP','Spotify'],
@@ -68,7 +69,8 @@
     youtube:['youtube.com','www.youtube.com','m.youtube.com'],
     x:['x.com','www.x.com','twitter.com','www.twitter.com'],
     snapchat:['snapchat.com','www.snapchat.com'],
-    tumblr:['tumblr.com','www.tumblr.com']
+    tumblr:['tumblr.com','www.tumblr.com'],
+    deviantart:['deviantart.com','www.deviantart.com']
   };
   function ownerLink(id){
     const profile=window.__biglwaViewedProfile;
@@ -207,7 +209,7 @@
       case 'pinterest':return window.__biglwaPinterest?.connect?.();
       case 'tiktok':return window.__biglwaTikTokOrbit?.connect?.();
       case 'youtube':case 'calendar':case 'drive':return window.__biglwaGoogleOrbit?.connect?.();
-      case 'spotify':case 'soundcloud':case 'goodreads':case 'letterboxd':case 'imdb':
+      case 'spotify':case 'soundcloud':case 'goodreads':case 'letterboxd':case 'imdb':case 'deviantart':
         openOrbit();
         requestAnimationFrame(()=>document.querySelector(
           '#moduleWorkspace[data-module-key="orbit"] [data-orbit-row="'+id+'"] input[data-orbit-path]'
