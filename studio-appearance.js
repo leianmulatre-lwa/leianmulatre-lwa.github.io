@@ -48,7 +48,7 @@
       #studioApp #widgetShadowDial:active{cursor:grabbing}
       #studioApp #widgetShadowDial:focus-visible{outline:2px solid rgb(var(--aura-rgb,216,95,109));outline-offset:2px}
       #studioApp #widgetShadowDial>span{position:absolute;left:var(--dial-x,50%);top:var(--dial-y,81%);transform:translate(-50%,-50%);display:grid;place-items:center;width:17px;height:17px;border:1px solid #fff9;border-radius:50%;background:rgb(var(--aura-rgb,216,95,109));color:var(--aura-button-ink,#fff);font:700 15px/1 system-ui;pointer-events:none}
-      #pageWallpaper#pageWallpaper{opacity:var(--widget-wallpaper-scroll-opacity,1)!important}
+      #pageWallpaper#pageWallpaper{opacity:var(--widget-wallpaper-scroll-opacity,1)!important;transition:opacity .28s linear!important}
       /* Color chips + editable HEX value sit beside the native color wheel. */
       #studioApp .biglwa-color-choices{display:grid;gap:7px;padding:9px;margin:5px 0 12px;border:1px solid rgba(var(--aura-rgb,216,95,109),.24);border-radius:10px;background:rgba(255,255,255,.15)}
       #studioApp .biglwa-color-choices strong{font:650 11px/1.3 Inter,system-ui,sans-serif}
@@ -152,8 +152,8 @@
       #pageWallpaper.biglwa-video-wallpaper{background-image:none!important}
       #pageWallpaper.biglwa-video-wallpaper>.biglwa-wallpaper-video{display:block}
       #studioApp #hero::after{content:none!important}
-      #pageWallpaper::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(to bottom,rgba(255,235,227,.10),rgba(255,235,227,.05) 55%,transparent),linear-gradient(to top,rgba(var(--aura-rgb,216,95,109),.36) 0,rgba(var(--aura-rgb,216,95,109),.16) 18%,transparent 46%)}
-      #pageWallpaper::after{z-index:2}
+      #pageWallpaper#pageWallpaper::before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(to bottom,rgba(255,235,227,.025),rgba(255,235,227,.012) 55%,transparent),linear-gradient(to top,rgba(var(--aura-rgb,216,95,109),.12) 0,rgba(var(--aura-rgb,216,95,109),.045) 18%,transparent 38%)!important}
+      #pageWallpaper#pageWallpaper::after{z-index:2;background:linear-gradient(to bottom,rgba(248,231,220,calc(var(--page-overlay,0) * .45)) 0%,rgba(248,231,220,calc(var(--page-overlay,0) * .75)) 58%,rgba(248,241,233,var(--page-overlay,0)) 100%)!important}
       body.night-mode #studioApp .wallpaper-safety-status{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.14)}
       body.night-mode #studioApp .wallpaper-safety-status[data-state="pending"]{background:rgba(255,190,48,.1);border-color:rgba(255,202,87,.44);color:#f2cf84!important}
       @media(max-width:900px){#studioApp.profile-editor-widgets .profile-card.profile-is-editing{min-height:410px!important}#studioApp.profile-editor-wallpaper .profile-card.profile-is-editing{min-height:520px!important}}
@@ -172,7 +172,7 @@
   const depthValue=v=>String(Math.max(0,Math.min(100,Number(v)||0)));
   function directionValue(value){const n=Number(value);return value==null||value===''||!Number.isFinite(n)?90:((Math.round(n)%360)+360)%360}
   function shadowVector(depth,angle){const r=directionValue(angle)*Math.PI/180;return {x:Math.round(Math.cos(r)*depth*.16),y:Math.round(Math.sin(r)*depth*.16),edgeX:Math.round(Math.cos(r)*depth*.07),edgeY:Math.round(Math.sin(r)*depth*.07)}}
-  function wallpaperFadeOpacity(scroll,available,viewport){const span=Math.max(1,available,viewport*3);const p=Math.max(0,Math.min(1,(scroll/span-.12)/.88));return 1-.52*p*p*(3-2*p)}
+  function wallpaperFadeOpacity(scroll,available,viewport){const span=Math.max(1,available,viewport*4);const start=Math.max(span*.55,viewport*2);const p=Math.max(0,Math.min(1,(scroll-start)/Math.max(1,span-start)));return 1-.12*p*p*(3-2*p)}
   let fadeFrame=0;
   function scheduleWallpaperFade(){if(fadeFrame)return;fadeFrame=requestAnimationFrame(()=>{fadeFrame=0;const root=document.documentElement,scroller=document.scrollingElement||root;const viewport=window.innerHeight||root.clientHeight;const opacity=wallpaperFadeOpacity(Math.max(0,scroller.scrollTop||window.scrollY||0),Math.max(0,scroller.scrollHeight-viewport),viewport);root.style.setProperty('--widget-wallpaper-scroll-opacity',opacity.toFixed(4))})}
   function paintDirection(angle){const dial=$('#widgetShadowDial');if(!dial)return;const r=directionValue(angle)*Math.PI/180;dial.style.setProperty('--dial-x',(50+31*Math.cos(r))+'%');dial.style.setProperty('--dial-y',(50+31*Math.sin(r))+'%');dial.setAttribute('aria-valuenow',String(directionValue(angle)));dial.setAttribute('aria-valuetext',directionValue(angle)+' degrees');}
