@@ -127,7 +127,7 @@ leader.addEventListener('close',()=>Q('#grid2048').focus({preventScroll:true}));
 const randomTile=()=>{const spaces=[];board.forEach((v,i)=>{if(!v)spaces.push(i)});if(spaces.length){const at=spaces[Math.floor(Math.random()*spaces.length)];board[at]=Math.random()<.9?2:4;return at}return -1};
 const render2048=(spawn=-1,merges=[])=>{Q('#grid2048').innerHTML=board.map((n,i)=>'<div class="tile'+(i===spawn?' tile-spawn':merges.includes(i)?' tile-merge':'')+'" data-value="'+n+'" role="gridcell" aria-label="'+(n||'empty')+'">'+(n||'')+'</div>').join('');Q('#score').textContent=score;renderLeaderboard()};
 function clearFlights(){clearTimeout(finishTimer);for(const el of flights){el.getAnimations?.().forEach(a=>a.cancel());el.remove()}flights=[];busy=false;queued=[]}
-const reset2048=()=>{generation++;clearFlights();board=Array(16).fill(0);score=0;runId=globalThis.crypto?.randomUUID?.()||Date.now()+'-'+Math.random();randomTile();randomTile();render2048();Q('#2048status').textContent=''};
+const reset2048=()=>{generation++;clearFlights();board=Array(16).fill(0);score=0;runId=globalThis.crypto?.randomUUID?.()||Date.now()+'-'+Math.random();randomTile();randomTile();render2048();document.getElementById('2048status').textContent=''};
 function planMove(before,direction){
  const next=Array(16).fill(0),moves=[],merges=[];let points=0;
  for(let z=0;z<4;z++){
@@ -143,7 +143,7 @@ function planMove(before,direction){
 }
 function updateStatus(){
  const available=board.some(v=>!v)||board.some((v,i)=>(i%4<3&&v===board[i+1])||(i<12&&v===board[i+4]));
- Q('#2048status').textContent=!available?'No moves left. Try a new game.':board.some(v=>v>=2048)?'2048! You made it. Keep going!':'';
+ document.getElementById('2048status').textContent=!available?'No moves left. Try a new game.':board.some(v=>v>=2048)?'2048! You made it. Keep going!':'';
 }
 const move=direction=>{
  if(Q('#game2048').hidden||leader.open||!['left','right','up','down'].includes(direction))return;

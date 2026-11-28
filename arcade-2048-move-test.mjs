@@ -12,3 +12,5 @@ r=plain(ctx.plan(pad([0,0,0,0,0,8,0,0]),'up'));assert.equal(r.next[1],8);assert.
 r=plain(ctx.plan(pad([2,4,8,16]),'left'));assert.equal(r.changed,false);
 assert.match(html,/personal\.v1/);assert.match(html,/not a global ranking/);assert.match(html,/prefers-reduced-motion/);
 console.log('PASS 2048 directional moves, single merges, accurate points, personal leaderboard scope');
+
+assert.doesNotMatch(html,/Q\('#[0-9]/,'Numeric-leading IDs must use getElementById rather than invalid CSS selectors');
