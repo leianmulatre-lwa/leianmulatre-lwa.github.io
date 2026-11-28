@@ -11,6 +11,11 @@ const orbitCss=read('orbit-space-20261114.css');
 const preview=read('orbit-preview-eight-20261016.js');
 const root=read('index.html');
 const studio=read('studio/index.html');
+const notFound=read('404.html');
+const liveStudio=read('live-studio-shell.html');
+const routeGuard=read('politc-route-guard.js');
+const workerConfigTest=read('scripts/oauth-worker-config.test.mjs');
+const audit=read('scripts/performance/audit.mjs');
 
 test('repeated Manage clicks cannot stack duplicate Orbit provider buttons',()=>{
   assert.match(pages,/function openConnectionsPopup\(\)\{[\s\S]{0,400}data-biglwa-popup="connections"/);
@@ -46,11 +51,21 @@ test('DeviantArt is available as a saved public profile in Orbit',()=>{
   assert.match(preview,/deviantart:\['deviantart\.com','www\.deviantart\.com'\]/);
 });
 
-test('shell cache keys bust every edited Orbit asset on root and Studio',()=>{
-  for(const shell of [root,studio]){
-    assert.equal((shell.match(/orbitex=20261127-2/g)||[]).length,1);
-    assert.equal((shell.match(/orbitex=20261127-1/g)||[]).length,3);
-    assert.equal((shell.match(/orbitpolish=20261127-1/g)||[]).length,5);
+test('shell cache keys bust every edited Orbit asset in every shell and self-loader',()=>{
+  for(const shell of [root,studio,notFound,liveStudio]){
+    assert.ok(!/orbitex=20261127-1/.test(shell));
+    assert.match(shell,/orbitex=20261127-2/);
   }
+  assert.equal((root.match(/orbitpolish=20261127-1/g)||[]).length,5);
+  assert.equal((studio.match(/orbitpolish=20261127-1/g)||[]).length,5);
   assert.match(pages,/orbitex=20261127-2&orbitpolish=20261127-1/);
+  assert.match(routeGuard,/orbitex=20261127-2/);
+  assert.match(workerConfigTest,/const key='orbitex=20261127-2';/);
+});
+
+test('performance budgets include the current WLA shell references',()=>{
+  assert.match(audit,/landingJsRefs:118,landingCssRefs:96/);
+  assert.match(audit,/landingJsRawBytes:2900000,landingCssRawBytes:1020000/);
+  assert.match(audit,/studioJsRefs:117,studioCssRefs:94/);
+  assert.match(audit,/studioJsRawBytes:2900000,studioCssRawBytes:1020000/);
 });
