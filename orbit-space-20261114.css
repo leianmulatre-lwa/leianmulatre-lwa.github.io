@@ -533,3 +533,31 @@ body.night-mode #studioApp#studioApp #orbit#orbit:not(:has(>.orbit-portal-tiles)
  background:var(--orbit-source,#d9c6ee)!important;color:var(--orbit-ink,#fff)!important;
  -webkit-text-fill-color:var(--orbit-ink,#fff)!important;
 }
+
+/* The day-mode Orbit skin above has a more specific background rule. Keep the
+   source colors authoritative for tiles, labels, glyphs and row badges in both
+   themes without moving any layout. */
+body:not(.night-mode) #studioApp #orbit #orbitGrid>button[data-orbit-app],
+body.night-mode #studioApp #orbit #orbitGrid>button[data-orbit-app],
+#studioApp #orbit #orbitGrid>button[data-orbit-app]{
+ background:var(--orbit-source,#e6d7ff)!important;color:var(--orbit-ink,#fff)!important;
+ border-color:var(--orbit-source,#e6d7ff)!important;
+ box-shadow:3px 3px 0 var(--orbit-source,#e6d7ff)!important;
+}
+body:not(.night-mode) #studioApp #orbit #orbitGrid>button[data-orbit-app] :is(b,small,.orbit-label,.orbit-glyph),
+body.night-mode #studioApp #orbit #orbitGrid>button[data-orbit-app] :is(b,small,.orbit-label,.orbit-glyph),
+#studioApp #orbit #orbitGrid>button[data-orbit-app] :is(b,small,.orbit-label,.orbit-glyph){
+ color:var(--orbit-ink,#fff)!important;-webkit-text-fill-color:var(--orbit-ink,#fff)!important;
+}
+body:not(.night-mode) #studioApp #orbit #orbitGrid>button[data-orbit-app]:is(:hover,:focus-visible),
+body.night-mode #studioApp #orbit #orbitGrid>button[data-orbit-app]:is(:hover,:focus-visible),
+#studioApp #orbit #orbitGrid>button[data-orbit-app]:is(:hover,:focus-visible){
+ background:var(--orbit-source,#e6d7ff)!important;border-color:var(--orbit-source,#e6d7ff)!important;
+ filter:brightness(1.08)!important;
+}
+body:not(.night-mode) #studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]>.module-actions>.orbit-platform-badge,
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]>.module-actions>.orbit-platform-badge,
+#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row] .orbit-platform-badge{
+ background:var(--orbit-source,#d9c6ee)!important;color:var(--orbit-ink,#fff)!important;
+ -webkit-text-fill-color:var(--orbit-ink,#fff)!important;
+}
