@@ -233,7 +233,7 @@
     Object.entries(labels).forEach(([id,value])=>{const el=$('#'+id);if(el)el.textContent=value});
     const live=$('#widgetLiveConnection');
     if(live){const count=$$(WIDGET_SELECTOR).filter(widget=>!widget.classList.contains('widget-is-minimized')).length;const detail=$('span',live);if(detail)detail.textContent=`Connected to ${count} visible Studio widgets · changes apply instantly`}
-    if(save&&!appearanceDraft)saveOwned(APPEARANCE_KEY,values)
+    if(save&&!appearanceDraft&&!window.__biglwaPublicStorageView&&!document.documentElement.classList.contains('biglwa-preview-mode'))saveOwned(APPEARANCE_KEY,values)
   }
 
   function restoreAppearance(){
@@ -677,8 +677,10 @@
       syncColorChoices('widgetColor');syncColorChoices('auraColor');
     },
     save(){appearanceDraft=null;applyAppearance(true);applyWallpaperSettings(true);return true},
+    restoreOwner(){if(!window.__biglwaPublicStorageView&&!document.documentElement.classList.contains('biglwa-preview-mode')){restoreAppearance();restoreWallpaperSettings()}},
     apply(values={}){
       if($('#studioApp .profile-card.profile-is-editing'))return;
+      if(!values.appearance&&!values.wallpaper&&!values.media&&!window.__biglwaPublicStorageView&&!document.documentElement.classList.contains('biglwa-preview-mode')){restoreAppearance();restoreWallpaperSettings();return;}
       try{
         if(values&&typeof values.appearance==='object'){
           const ap=values.appearance;
@@ -704,7 +706,7 @@
       if(values&&values.media&&values.media.url)paintWallpaper(values.media);
       // Viewing a public profile must never overwrite the viewer's theme or wallpaper.
       if(!document.documentElement.classList.contains('biglwa-preview-mode')){
-        try{applyAppearance(true);applyWallpaperSettings(true)}catch{}
+        try{if(values.appearance)applyAppearance(true);if(values.wallpaper)applyWallpaperSettings(true)}catch{}
       }
     },
     media:paintWallpaper,

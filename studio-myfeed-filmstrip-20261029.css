@@ -333,3 +333,7 @@
 #studioApp #feed #biglwaFeedHero .biglwa-feed-world-card .biglwa-feed-hero-empty{padding:8px!important;text-align:center;font:600 11px/1.3 system-ui}
 #studioApp #feed #biglwaFeedHero .biglwa-feed-world-card .biglwa-feed-hero-preview:focus-visible{outline:2px solid rgb(var(--aura-rgb,216,95,109));outline-offset:3px}
 @media(prefers-reduced-motion:reduce){#studioApp #feed #biglwaFeedHero.biglwa-feed-world-preview *{animation:none!important;transition:none!important}}
+
+#studioApp #feed #biglwaFeedHero .biglwa-feed-world-card{justify-items:center}
+#studioApp#studioApp #feed #biglwaFeedHero .biglwa-feed-world-card>:is(.biglwa-feed-hero-preview,.biglwa-feed-hero-empty){width:min(100%,141px)!important;height:auto!important;aspect-ratio:4/5!important;max-height:none!important}
+#studioApp #feed #biglwaFeedHero .biglwa-feed-world-stage{grid-template-columns:minmax(0,1fr) minmax(28px,.35fr) minmax(0,1.15fr);gap:clamp(5px,1.3vw,14px)}
