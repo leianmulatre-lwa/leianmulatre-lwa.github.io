@@ -4,6 +4,7 @@ import {test} from 'node:test';
 
 const read=name=>readFileSync(new URL('./'+name,import.meta.url),'utf8');
 const pages=read('module-pages.js');
+const google=read('google-orbit.js');
 const loader=read('studio-loading-dots-20261021.js');
 const keyCss=read('source-shadow-key-20261025.css');
 const keyJs=read('source-shadow-key-20261025.js');
@@ -58,21 +59,33 @@ test('DeviantArt is available as a saved public profile in Orbit',()=>{
   assert.match(preview,/deviantart:\['deviantart\.com','www\.deviantart\.com'\]/);
 });
 
+test('Google requests only read-only YouTube and Calendar; Drive stays a public link',()=>{
+  assert.doesNotMatch(google,/drive\.metadata\.readonly/);
+  assert.match(google,/auth\/youtube\.readonly[\s\S]{0,120}auth\/calendar\.readonly/);
+  assert.doesNotMatch(google,/state\.drive|api\/drive\/v3/);
+  assert.match(pages,/new Set\(\['instagram','tiktok','pinterest','facebook','youtube','calendar'\]\)/);
+  assert.match(pages,/for\(const id of \['youtube','calendar'\]\)/);
+  assert.match(pages,/\['drive','GD','Google Drive','#e7be31'\]/);
+  for(const shell of [root,studio,notFound,liveStudio]){
+    assert.match(shell,/google-orbit\.js\?v=[^"']*googlelite=20261127-1/, 'Google helper is cache-busted in '+shell);
+  }
+});
+
 test('shell cache keys bust every edited Orbit asset in every shell and self-loader',()=>{
   for(const shell of [root,studio,notFound,liveStudio]){
     assert.ok(!/orbitex=20261127-1/.test(shell));
-    assert.match(shell,/orbitex=20261127-2/);
+    assert.match(shell,/orbitex=20261127-3/);
   }
   assert.equal((root.match(/orbitpolish=20261127-2/g)||[]).length,5);
   assert.equal((studio.match(/orbitpolish=20261127-2/g)||[]).length,5);
-  assert.match(pages,/orbitex=20261127-2&orbitpolish=20261127-2/);
-  assert.match(routeGuard,/orbitex=20261127-2/);
-  assert.match(workerConfigTest,/const key='orbitex=20261127-2';/);
+  assert.match(pages,/orbitex=20261127-3&orbitpolish=20261127-2/);
+  assert.match(routeGuard,/orbitex=20261127-3/);
+  assert.match(workerConfigTest,/const key='orbitex=20261127-3';/);
 });
 
 test('performance budgets include the current WLA shell references',()=>{
   assert.match(audit,/landingJsRefs:119,landingCssRefs:96/);
-  assert.match(audit,/landingJsRawBytes:2900000,landingCssRawBytes:1020000/);
+  assert.match(audit,/landingJsRawBytes:2900000,landingCssRawBytes:1040000/);
   assert.match(audit,/studioJsRefs:118,studioCssRefs:95/);
-  assert.match(audit,/studioJsRawBytes:2900000,studioCssRawBytes:1020000/);
+  assert.match(audit,/studioJsRawBytes:2900000,studioCssRawBytes:1040000/);
 });

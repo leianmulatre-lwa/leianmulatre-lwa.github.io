@@ -3,23 +3,25 @@
   if (window.__biglwaGoogleOrbit) { return; }
 
   var CLIENT_ID = '208529705083-q6hlebsrlt1n5i78ubtubf1nrg9gv488.apps.googleusercontent.com';
+  // Keep Google access to the two read-only feeds Orbit actually shows.
+  // Drive metadata was a restricted scope used only for a three-item preview;
+  // it is now a saved public profile link instead of an OAuth connection.
   var SCOPES = [
     'https://www.googleapis.com/auth/youtube.readonly',
-    'https://www.googleapis.com/auth/drive.metadata.readonly',
     'https://www.googleapis.com/auth/calendar.readonly'
   ].join(' ');
   var tokenClient = null;
   var accessToken = '';
   var loadingPromise = null;
   var expiryTimer = null;
-  var state = { connected: false, uid: '', expiresAt: 0, drive: [], calendar: [], youtube: null, error: '' };
+  var state = { connected: false, uid: '', expiresAt: 0, calendar: [], youtube: null, error: '' };
   function currentUid(){return String(window.__biglwaIdentity?.uid||window.BigLWAAccountStorage?.uid||'').trim();}
   function hasActiveToken(){return Boolean(accessToken&&state.connected&&state.uid&&
     state.uid===currentUid()&&state.expiresAt>Date.now()+1500);}
   function expireGoogleSession(message){
     if(expiryTimer){window.clearTimeout(expiryTimer);expiryTimer=null;}
     accessToken='';state.connected=false;state.uid='';state.expiresAt=0;
-    state.drive=[];state.calendar=[];state.youtube=null;
+    state.calendar=[];state.youtube=null;
     state.error=message||'';
     render();
     document.dispatchEvent(new CustomEvent('biglwa:google-state'));
@@ -83,13 +85,11 @@
   function loadData() {
     var now = encodeURIComponent(new Date().toISOString());
     return Promise.allSettled([
-      googleApi('https://www.googleapis.com/drive/v3/files?pageSize=5&orderBy=modifiedTime%20desc&fields=files(id,name,mimeType,modifiedTime,webViewLink)'),
       googleApi('https://www.googleapis.com/calendar/v3/calendars/primary/events?maxResults=5&singleEvents=true&orderBy=startTime&timeMin=' + now),
       googleApi('https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true')
     ]).then(function (results) {
-      if (results[0].status === 'fulfilled') { state.drive = results[0].value.files || []; }
-      if (results[1].status === 'fulfilled') { state.calendar = results[1].value.items || []; }
-      if (results[2].status === 'fulfilled') { state.youtube = (results[2].value.items || [])[0] || null; }
+      if (results[0].status === 'fulfilled') { state.calendar = results[0].value.items || []; }
+      if (results[1].status === 'fulfilled') { state.youtube = (results[1].value.items || [])[0] || null; }
       if(!hasActiveToken())throw new Error('Google authorization expired. Reconnect in Orbit.');
       if(results.every(function(r){return r.status==='rejected'}))
         throw new Error('Google granted access, but no Google services responded. Check API permissions and reconnect.');
@@ -140,14 +140,14 @@
             state.connected=true;
             if(expiryTimer)window.clearTimeout(expiryTimer);
             expiryTimer=window.setTimeout(function(){
-              if(Date.now()>=state.expiresAt-1500)expireGoogleSession('Google session expired. Reconnect to continue using Calendar, Drive and YouTube.');
+              if(Date.now()>=state.expiresAt-1500)expireGoogleSession('Google session expired. Reconnect to continue using Calendar and YouTube.');
             },Math.max(1000,state.expiresAt-Date.now()-1000));
             render();
             document.dispatchEvent(new CustomEvent('biglwa:google-state'));
             state.error = '';
-            showStatus('Google Orbit connected. Loading Calendar, Drive, and YouTube...');
+            showStatus('Google Orbit connected. Loading Calendar and YouTube...');
             loadData().then(function () {
-              if(hasActiveToken())showStatus('Google authorized. Calendar, Drive, and YouTube status updated in Orbit.');
+              if(hasActiveToken())showStatus('Google authorized. Calendar and YouTube status updated in Orbit.');
             }).catch(function (error) {
               state.error = error.message;
               showStatus(error.message);
@@ -176,9 +176,6 @@
 
   function preview(kind) {
     if (!state.connected) { return ''; }
-    if (kind === 'drive') {
-      return state.drive.slice(0, 3).map(function (item) { return '<li>' + escapeText(item.name) + '</li>'; }).join('');
-    }
     if (kind === 'calendar') {
       return state.calendar.slice(0, 3).map(function (item) { return '<li>' + escapeText(item.summary || 'Untitled event') + '</li>'; }).join('');
     }
@@ -235,7 +232,7 @@
       // The Studio preview has a fixed, owner-selected set of eight planets.
       // Do not automatically append the old Facebook tile from the Google helper.
       ensurePlanetary();
-      ['youtube', 'drive', 'calendar'].forEach(function (kind) {
+      ['youtube', 'calendar'].forEach(function (kind) {
         all('[data-orbit-app="' + kind + '"]').forEach(function (tile) {
           tile.setAttribute('aria-label', (state.connected ? 'View connected ' : 'Connect ') + kind);
           var small = one('small', tile);
@@ -279,7 +276,7 @@
       else window.location.assign('/studio/orbit');
       return;
     }
-    var tile = target.closest('[data-orbit-app="youtube"],[data-orbit-app="drive"],[data-orbit-app="calendar"],[data-google-orbit-connect]');
+    var tile = target.closest('[data-orbit-app="youtube"],[data-orbit-app="calendar"],[data-google-orbit-connect]');
     if (tile) {
       if(document.documentElement?.classList?.contains('biglwa-preview-mode'))return;
       event.preventDefault();
