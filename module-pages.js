@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261127-1&callback=20261124-2&threads=20261125-1&avatarload=20261125-1&linkmedia=20261125-1&myfeed=20261125-1&crushlayout=20261126-1&caldedupe=20261126-1&orbitex=20261127-2&orbitpolish=20261127-2&lounge=20261127-1';
+        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261127-1&callback=20261124-2&threads=20261125-1&avatarload=20261125-1&linkmedia=20261125-1&myfeed=20261125-1&crushlayout=20261126-1&caldedupe=20261126-1&orbitex=20261127-2&orbitpolish=20261127-2&lounge=20261127-2';
         document.head.appendChild(script);
       }, 250);
     }
@@ -2913,10 +2913,10 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
        '<h2>Welcome to the Room</h2>'+
        '<p>Your shared community entryway. Head to <strong>Lounge</strong> for source-linked trending searches, saved rooms, and conversation drafts. Real-time member chat is not enabled yet.</p></section></div>';
     const loungeView='<div class="module-grid room-lounge-mode">'+
-       '<section class="module-card wide room-lounge-searches"><h2>Trending searches &amp; topics</h2>'+
-       '<p>Source-linked UN observances and topics from connected Instagram media, with links to search X and Instagram. These are <strong>not verified global trending rankings</strong>.</p>'+
+       '<section class="module-card wide room-lounge-searches"><header class="lounge-topic-title"><h2>Trending searches &amp; topics</h2></header>'+
+       '<div class="lounge-topic-menu"><span>Culture　 Music　 Screen</span><span aria-hidden="true">●</span></div><div class="lounge-topic-dates" id="loungeTopicDates"></div><p class="lounge-topic-note">Culture picks, recent stories and your own tags · <strong>not verified global trending rankings</strong>.</p>'+
        '<div class="room-trend-grid" id="roomTrendSources" role="list"><p>Looking for source-linked topics…</p></div>'+
-       '<p class="module-status" id="roomTrendStatus" role="status">No fabricated hashtags, viewers, or activity counts.</p></section>'+
+       '<p class="module-status" id="roomTrendStatus" role="status">Source-linked discovery</p><aside class="lounge-ad-space" aria-label="Reserved advertising space"><small>Advertisement</small><span>Reserved space</span></aside></section>'+
        '<section class="module-card wide"><h2>Your lounges</h2><p>Your saved room names appear here. Public trending rooms and participant counts are not invented.</p>'+
        '<div class="module-launchers" id="trendingRooms">'+allRooms.map((r,i)=>chip(r,i)).join('')+'</div></section>'+
        '<section class="module-card wide lounge-im" aria-label="Lounge draft window">'+
@@ -2998,13 +2998,14 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
         img.onerror=()=>{avatarHost.hidden=true};img.src=url.href;
       }catch(error){console.info('[BIG LWA Lounge] Avatar preview unavailable:',error?.message||error)}
     })();
+    const dates=$('#loungeTopicDates',body);if(dates){const now=new Date(),next=new Date(now);next.setDate(now.getDate()+1);const fmt=d=>d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});dates.textContent='Today · '+fmt(now)+'　|　Tomorrow · '+fmt(next)}
     const gen=body;
     Promise.resolve().then(()=>window.BigLWARoomSignals?.load?.()||[]).then(items=>{
         const slot=$('#roomTrendSources',gen),note=$('#roomTrendStatus',gen);
         if(!slot||!slot.isConnected)return;
         slot.replaceChildren();
         if(!items.length){
-          const p=document.createElement('p');p.textContent='No recent verified source signals available. Connect Instagram or check official UN observances.';slot.append(p);
+          const p=document.createElement('p');p.textContent='No culture stories available right now.';slot.append(p);
           if(note)note.textContent='No live ranking feed is connected.';return;
         }
         items.forEach(item=>{
@@ -3013,16 +3014,16 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
           const desc=document.createElement('small');desc.textContent=item.kind+' · '+item.detail;
           const links=document.createElement('div');links.className='room-trend-links';
           const addLink=(label,url)=>{
-            if(!/^https:\/\/(?:www\.)?(?:un\.org|x\.com|instagram\.com)\//i.test(url||''))return;
+            try{const u=new URL(url);if(u.protocol!=='https:'||u.username||u.password||u.port||!['x.com','www.x.com','instagram.com','www.instagram.com','writerofpop.com','www.writerofpop.com','nmaahc.si.edu','www.sundance.org','sundance.org','www.metmuseum.org','folkways.si.edu','family.20thcenturystudios.com','catalog.afi.com','www.aljazeera.com'].includes(u.hostname))return;}catch{return;}
             const a=document.createElement('a');a.textContent=label;a.href=url;
             a.target='_blank';a.rel='noopener noreferrer';links.append(a);
           };
-          if(item.kind==='United Nations')addLink('UN source',item.url);
+          if(item.kind!=='Connected Instagram')addLink('Source',item.url);
           addLink('X search',item.links?.x);
           addLink('Instagram search',item.links?.instagram);
           card.append(name,desc,links);slot.append(card);
         });
-        if(note)note.textContent=items.length+' source-linked topics shown. X and Instagram links open live searches; they do not imply platform trend ranking.';
+        if(note)note.textContent=items.length+' culture and personal topics · search links open live results.';
       }).catch(()=>{const p=$('#roomTrendStatus',gen);if(p)p.textContent='No verified source topics available right now.';});
     const goTo=index=>{
       const target=allRooms[Number(index)];if(!target)return;

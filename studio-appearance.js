@@ -18,6 +18,31 @@
     let style=$('#biglwa-studio-appearance-style');
     if(!style){style=document.createElement('style');style.id='biglwa-studio-appearance-style';document.head.appendChild(style)}
     style.textContent=`
+
+      /* Opt-in finishes. The original style and specialized media/player skins stay intact. */
+      #studioApp #widgetFinish{max-width:100%;padding:5px 8px;font:600 11px system-ui;background:var(--widget-bg,#fff);color:var(--widget-ink,#171717);border:1px solid currentColor;border-radius:5px}
+      #studioApp#studioApp[data-widget-finish="liquid"] :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)),
+      #studioApp#studioApp[data-widget-finish="frosted"] :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
+        backdrop-filter:blur(var(--widget-blur,18px)) saturate(1.35)!important;-webkit-backdrop-filter:blur(var(--widget-blur,18px)) saturate(1.35)!important;
+        background:linear-gradient(145deg,#ffffff38,transparent 43%,#ffffff13 76%,#ffffff26),var(--widget-bg)!important;
+        border-color:#ffffff80!important;box-shadow:inset 0 1px 2px #fff9,inset 0 -2px 6px #fff2,0 5px 18px #0002!important;
+      }
+      #studioApp#studioApp[data-widget-finish="frosted"] :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
+        background:linear-gradient(135deg,#ffffff24,#ffffff09),var(--widget-bg)!important;
+        backdrop-filter:blur(calc(var(--widget-blur,18px) + 6px)) saturate(1.08)!important;-webkit-backdrop-filter:blur(calc(var(--widget-blur,18px) + 6px)) saturate(1.08)!important;
+      }
+      #studioApp#studioApp[data-widget-finish="frutiger"] :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
+        background:linear-gradient(175deg,#ffffff85 0%,#ffffff28 35%,transparent 48%,rgba(var(--aura-rgb),.17) 78%,#ffffff35 100%),var(--widget-bg)!important;
+        border-color:#fff9!important;box-shadow:inset 0 2px 2px #fffc,inset 0 -4px 8px #0002,0 5px 14px #0003!important;
+      }
+      #studioApp#studioApp[data-widget-finish="block"] :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
+        background:linear-gradient(140deg,#ffffff20,transparent 50%,#00000015),var(--widget-bg)!important;
+        border-color:#ffffff60!important;box-shadow:inset 2px 2px 0 #fff6,inset -2px -2px 0 #0003,3px 4px 0 #0003,0 6px 12px #0002!important;
+      }
+      #studioApp#studioApp[data-widget-depth]:not([data-widget-depth="0"]) :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
+        box-shadow:inset 0 1px 1px #fff5,var(--widget-depth-edge) var(--widget-depth-edge) 0 rgba(0,0,0,var(--widget-depth-alpha)),0 var(--widget-depth-y) var(--widget-depth-blur) rgba(0,0,0,var(--widget-depth-alpha))!important;
+      }
+
       /* Color chips + editable HEX value sit beside the native color wheel. */
       #studioApp .biglwa-color-choices{display:grid;gap:7px;padding:9px;margin:5px 0 12px;border:1px solid rgba(var(--aura-rgb,216,95,109),.24);border-radius:10px;background:rgba(255,255,255,.15)}
       #studioApp .biglwa-color-choices strong{font:650 11px/1.3 Inter,system-ui,sans-serif}
@@ -125,19 +150,27 @@
     return [parseInt(hex.slice(0,2),16),parseInt(hex.slice(2,4),16),parseInt(hex.slice(4,6),16)];
   }
 
+  const FINISHES=['classic','liquid','frosted','frutiger','block'];
+  const finishValue=v=>FINISHES.includes(v)?v:'classic';
+  const depthValue=v=>String(Math.max(0,Math.min(100,Number(v)||0)));
   function readAppearance(){
     return {
       color:$('#widgetColor')?.value||'#faf7f1',
       radius:$('#widgetRadius')?.value||'16',
       opacity:$('#widgetOpacity')?.value||'84',
       blur:$('#widgetBlur')?.value||'18',
-      aura:$('#auraColor')?.value||'#d85f6d'
+      aura:$('#auraColor')?.value||'#d85f6d',
+      finish:finishValue($('#widgetFinish')?.value),
+      depth:depthValue($('#widgetDepth')?.value)
     };
   }
 
   function applyAppearance(save=true){
     const app=$('#studioApp');if(!app)return;
     const values=readAppearance();
+    app.dataset.widgetFinish=values.finish;app.dataset.widgetDepth=values.depth;
+    const depth=Number(values.depth);app.style.setProperty('--widget-depth-y',Math.round(depth*.16)+'px');app.style.setProperty('--widget-depth-blur',Math.round(depth*.32)+'px');app.style.setProperty('--widget-depth-edge',Math.round(depth*.07)+'px');app.style.setProperty('--widget-depth-alpha',String(depth*.004));
+    const dv=$('#widgetDepthValue');if(dv)dv.textContent=values.depth+'%';
     const [r,g,b]=parseHex(values.color,'#faf7f1'),alpha=Math.min(1,Math.max(.20,(Number(values.opacity)||84)/100));
     // Account for the actual *translucent* card surface. The old logic read
     // only the solid swatch, producing white letters on light wallpaper at 35%.
@@ -167,8 +200,9 @@
 
   function restoreAppearance(){
     let values=readOwned(APPEARANCE_KEY)
+    if($('#widgetFinish'))$('#widgetFinish').value=finishValue(values?.finish);if($('#widgetDepth'))$('#widgetDepth').value=depthValue(values?.depth);
     if(values){
-      const mapping={widgetColor:'color',widgetRadius:'radius',widgetOpacity:'opacity',widgetBlur:'blur',auraColor:'aura'};
+      const mapping={widgetColor:'color',widgetRadius:'radius',widgetOpacity:'opacity',widgetBlur:'blur',auraColor:'aura',widgetFinish:'finish',widgetDepth:'depth'};
       Object.entries(mapping).forEach(([id,key])=>{const input=$('#'+id);if(input&&values[key]!=null)input.value=values[key]});
     }
     applyAppearance(false);
@@ -264,11 +298,16 @@
     const aura=controlsRow('auraAppearanceRow','Aura customization',widgets);
     const widgetControls=[opacityLabel,...['widgetRadius','widgetBlur','widgetColor'].map(id=>document.getElementById(id)?.closest('label'))];
     widgetControls.forEach(label=>{if(label&&label.parentElement!==widgets)widgets.append(label)});
+    if(!$('#widgetFinish',widgets)){
+      const label=document.createElement('label');label.innerHTML='Surface finish <select id="widgetFinish" aria-label="Widget surface finish"><option value="classic">Original (classic)</option><option value="liquid">Liquid glass</option><option value="frosted">Frosted glass</option><option value="frutiger">Frutiger Aero · glossy</option><option value="block">3D block · bevel</option></select>';
+      const depth=document.createElement('label');depth.innerHTML='Shadow depth <span id="widgetDepthValue">0%</span><input id="widgetDepth" type="range" min="0" max="100" step="5" value="0" aria-label="Widget shadow depth">';
+      widgets.append(label,depth);
+    }
     if(section.dataset.biglwaAppearanceBound!=='1'){
       section.dataset.biglwaAppearanceBound='1';
-      section.addEventListener('input',event=>{if(event.target.matches('#widgetColor,#widgetRadius,#widgetOpacity,#widgetBlur,#auraColor'))applyAppearance(true)});
-      section.addEventListener('change',event=>{if(event.target.matches('#widgetColor,#widgetRadius,#widgetOpacity,#widgetBlur,#auraColor'))applyAppearance(true)});
-      $('#resetWidgets',section)?.addEventListener('click',()=>queueMicrotask(()=>applyAppearance(true)));
+      section.addEventListener('input',event=>{if(event.target.matches('#widgetColor,#widgetRadius,#widgetOpacity,#widgetBlur,#auraColor,#widgetFinish,#widgetDepth'))applyAppearance(true)});
+      section.addEventListener('change',event=>{if(event.target.matches('#widgetColor,#widgetRadius,#widgetOpacity,#widgetBlur,#auraColor,#widgetFinish,#widgetDepth'))applyAppearance(true)});
+      $('#resetWidgets',section)?.addEventListener('click',()=>queueMicrotask(()=>{if($('#widgetFinish'))$('#widgetFinish').value='classic';if($('#widgetDepth'))$('#widgetDepth').value='0';applyAppearance(true)}));
     }
     // Aura hue and text now live together in Widget & Aura, not the Song pane.
     const auraInput=$('#auraColor'),auraLabel=auraInput?.closest('label');
@@ -591,7 +630,7 @@
     beginEdit(){appearanceDraft={appearance:readAppearance(),wallpaper:currentWallpaperSettings()};},
     cancelEdit(){
       const draft=appearanceDraft;if(!draft)return;appearanceDraft=null;
-      const mapping={widgetColor:'color',widgetRadius:'radius',widgetOpacity:'opacity',widgetBlur:'blur',auraColor:'aura'};
+      const mapping={widgetColor:'color',widgetRadius:'radius',widgetOpacity:'opacity',widgetBlur:'blur',auraColor:'aura',widgetFinish:'finish',widgetDepth:'depth'};
       Object.entries(mapping).forEach(([id,key])=>{const input=$('#'+id);if(input)input.value=draft.appearance[key]});
       const mappingWallpaper={fitSelect:'fit',blurRange:'blur',overlayRange:'overlay'};
       Object.entries(mappingWallpaper).forEach(([id,key])=>{const input=$('#'+id);if(input)input.value=draft.wallpaper[key]});
@@ -604,6 +643,8 @@
       try{
         if(values&&typeof values.appearance==='object'){
           const ap=values.appearance;
+          if($('#widgetFinish'))$('#widgetFinish').value=finishValue(ap.finish);
+          if($('#widgetDepth'))$('#widgetDepth').value=depthValue(ap.depth);
           const colorInput=$('#widgetColor');if(colorInput&&ap.color!=null)colorInput.value=ap.color;
           const radiusInput=$('#widgetRadius');if(radiusInput&&ap.radius!=null)radiusInput.value=String(ap.radius);
           const opacityInput=$('#widgetOpacity');if(opacityInput&&ap.opacity!=null)opacityInput.value=String(ap.opacity);

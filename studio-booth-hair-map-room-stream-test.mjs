@@ -95,7 +95,7 @@ test('Room and Lounge replace invented trending and online counts with sourced s
  const win={BigLWAObservances:un,__biglwaIdentity:null,__biglwaPublicStorageView:false};
  vm.runInNewContext(rooms,{window:win,document:{documentElement:{classList:{contains:()=>false}}},Date,Intl,encodeURIComponent},{timeout:1000});
  const items=await win.BigLWARoomSignals.load();
- assert(items.some(item=>item.kind==='United Nations'&&item.links.x.includes('x.com/search')&&item.links.instagram.includes('instagram.com')));
+ assert(items.some(item=>item.kind==='Culture spotlight'&&item.links.x.includes('x.com/search')&&item.links.instagram.includes('instagram.com')));assert(!items.some(item=>item.kind==='United Nations'));
  assert(items.every(item=>!/trending room|global trend/i.test(item.detail)||item.detail.includes('not a global trend')||item.detail.includes('not social-platform')));
 });
 test('Room/Lounge tabs share the title row rather than making a second toolbar',()=>{
