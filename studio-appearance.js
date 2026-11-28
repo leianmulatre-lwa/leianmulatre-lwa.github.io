@@ -19,28 +19,29 @@
     if(!style){style=document.createElement('style');style.id='biglwa-studio-appearance-style';document.head.appendChild(style)}
     style.textContent=`
 
-      /* Opt-in finishes. The original style and specialized media/player skins stay intact. */
+      /* Opt-in finishes. Reflections follow Aura rather than washing out the chosen widget color. */
+      #studioApp{--widget-glare-light:color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 72%,white);--widget-glare-color:rgb(var(--aura-rgb,216,95,109))}
       #studioApp #widgetFinish{max-width:100%;padding:5px 8px;font:600 11px system-ui;background:var(--widget-bg,#fff);color:var(--widget-ink,#171717);border:1px solid currentColor;border-radius:5px}
       #studioApp#studioApp[data-widget-finish="liquid"] :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)),
       #studioApp#studioApp[data-widget-finish="frosted"] :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
         backdrop-filter:blur(var(--widget-blur,18px)) saturate(1.35)!important;-webkit-backdrop-filter:blur(var(--widget-blur,18px)) saturate(1.35)!important;
-        background:linear-gradient(145deg,#ffffff38,transparent 43%,#ffffff13 76%,#ffffff26),var(--widget-bg)!important;
-        border-color:#ffffff80!important;--widget-finish-shadow:inset 0 1px 2px #fff9,inset 0 -2px 6px #fff2,0 5px 18px #0002;box-shadow:var(--widget-finish-shadow)!important;
+        background:linear-gradient(145deg,color-mix(in srgb,var(--widget-glare-light) 36%,transparent),transparent 43%,rgba(var(--aura-rgb,216,95,109),.08) 76%,color-mix(in srgb,var(--widget-glare-light) 22%,transparent)),var(--widget-bg)!important;
+        border-color:color-mix(in srgb,var(--widget-glare-light) 65%,transparent)!important;--widget-finish-shadow:inset 0 1px 2px color-mix(in srgb,var(--widget-glare-light) 68%,transparent),inset 0 -2px 6px rgba(var(--aura-rgb,216,95,109),.15),0 5px 18px #0002;box-shadow:var(--widget-finish-shadow)!important;
       }
       #studioApp#studioApp[data-widget-finish="frosted"] :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
-        background:linear-gradient(135deg,#ffffff24,#ffffff09),var(--widget-bg)!important;
+        background:linear-gradient(135deg,color-mix(in srgb,var(--widget-glare-light) 22%,transparent),rgba(var(--aura-rgb,216,95,109),.045)),var(--widget-bg)!important;
         backdrop-filter:blur(calc(var(--widget-blur,18px) + 6px)) saturate(1.08)!important;-webkit-backdrop-filter:blur(calc(var(--widget-blur,18px) + 6px)) saturate(1.08)!important;
       }
       #studioApp#studioApp[data-widget-finish="frutiger"] :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
-        background:linear-gradient(175deg,#ffffff85 0%,#ffffff28 35%,transparent 48%,rgba(var(--aura-rgb),.17) 78%,#ffffff35 100%),var(--widget-bg)!important;
-        border-color:#fff9!important;--widget-finish-shadow:inset 0 2px 2px #fffc,inset 0 -4px 8px #0002,0 5px 14px #0003;box-shadow:var(--widget-finish-shadow)!important;
+        background:linear-gradient(175deg,color-mix(in srgb,var(--widget-glare-light) 54%,transparent) 0%,color-mix(in srgb,var(--widget-glare-light) 20%,transparent) 35%,transparent 48%,rgba(var(--aura-rgb,216,95,109),.17) 78%,color-mix(in srgb,var(--widget-glare-light) 22%,transparent) 100%),var(--widget-bg)!important;
+        border-color:color-mix(in srgb,var(--widget-glare-light) 72%,transparent)!important;--widget-finish-shadow:inset 0 2px 2px color-mix(in srgb,var(--widget-glare-light) 78%,transparent),inset 0 -4px 8px #0002,0 5px 14px #0003;box-shadow:var(--widget-finish-shadow)!important;
       }
       #studioApp#studioApp[data-widget-finish="block"] :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
-        background:linear-gradient(140deg,#ffffff20,transparent 50%,#00000015),var(--widget-bg)!important;
-        border-color:#ffffff60!important;--widget-finish-shadow:inset 2px 2px 0 #fff6,inset -2px -2px 0 #0003,3px 4px 0 #0003,0 6px 12px #0002;box-shadow:var(--widget-finish-shadow)!important;
+        background:linear-gradient(140deg,color-mix(in srgb,var(--widget-glare-light) 20%,transparent),transparent 50%,#00000015),var(--widget-bg)!important;
+        border-color:color-mix(in srgb,var(--widget-glare-light) 48%,transparent)!important;--widget-finish-shadow:inset 2px 2px 0 color-mix(in srgb,var(--widget-glare-light) 52%,transparent),inset -2px -2px 0 #0003,3px 4px 0 #0003,0 6px 12px #0002;box-shadow:var(--widget-finish-shadow)!important;
       }
       #studioApp#studioApp[data-widget-depth]:not([data-widget-depth="0"]) :is(.profile-card:not(.profile-is-editing),.aura-card,.guest-check-card,.masonry .card:not(.manifesto-card):not(#orbit):not(#stream):not(#camera)){
-        box-shadow:var(--widget-finish-shadow,inset 0 1px 1px #fff5),var(--widget-depth-edge-x) var(--widget-depth-edge-y) 0 rgba(0,0,0,var(--widget-depth-alpha)),var(--widget-depth-x) var(--widget-depth-y) var(--widget-depth-blur) rgba(0,0,0,var(--widget-depth-alpha))!important;
+        box-shadow:var(--widget-finish-shadow,inset 0 1px 1px color-mix(in srgb,var(--widget-glare-light) 34%,transparent)),var(--widget-depth-edge-x) var(--widget-depth-edge-y) 0 rgba(0,0,0,var(--widget-depth-alpha)),var(--widget-depth-x) var(--widget-depth-y) var(--widget-depth-blur) rgba(0,0,0,var(--widget-depth-alpha))!important;
       }
 
       #studioApp .widget-shadow-direction{display:inline-flex;align-items:center;flex:none}
