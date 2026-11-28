@@ -36,13 +36,15 @@ test('Google token callback exposes active owner-scoped connection without brows
  assert.equal(api.hasActiveToken(),false,'old Google OAuth must not carry into the next BIG LWA identity');
  assert.equal(api.state.connected,false);
 });
-test('Full Orbit listens to successful Google OAuth and shows all three true token-backed services',()=>{
- assert.match(pages,/new Set\(\['instagram','tiktok','pinterest','facebook','youtube','calendar','drive'\]\)/);
+test('Full Orbit listens to successful Google OAuth and shows the two true token-backed services',()=>{
+ assert.match(pages,/new Set\(\['instagram','tiktok','pinterest','facebook','youtube','calendar'\]\)/);
  assert.match(pages,/hasActiveToken\?\.\(\)===true/);
  assert.match(pages,/google\?\.state\?\.uid===uid/);
  assert.match(pages,/if\(activeModuleKey==='orbit'\)renderOrbitPage\(\)/);
- assert.match(pages,/calendar:window\.__biglwaGoogleOrbit,drive:window\.__biglwaGoogleOrbit/);
- assert.match(pages,/else if\(\['youtube','calendar','drive'\]\.includes\(k\)\)/);
+ assert.match(pages,/calendar:window\.__biglwaGoogleOrbit\}/);
+ assert.doesNotMatch(pages,/drive:window\.__biglwaGoogleOrbit/);
+ assert.match(pages,/else if\(\['youtube','calendar'\]\.includes\(k\)\)/);
+ assert.doesNotMatch(google,/drive\.metadata\.readonly/);
 });
 test('Map provider options are accessible on demand and the tall turn list is bounded',()=>{
  assert.match(map,/el\('details','map-service-links'\)/);

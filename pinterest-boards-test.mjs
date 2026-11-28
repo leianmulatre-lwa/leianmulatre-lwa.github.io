@@ -44,7 +44,7 @@ assert.ok(worker.includes("key='pinterest/saved/'+user.uid+'/library.json'"),'Sa
 assert.ok(worker.includes("return json({ok:true,library}"),'Worker responds with persisted Saved collection');
 assert.ok(!menu.includes("document.querySelectorAll('.login-public-footer nav, .site-policy-footer nav').forEach(addFooterLink)"),'Login footer no longer adds Settings link');
 assert.ok(menu.includes("document.querySelectorAll('.login-public-footer nav a[href=\"/settings\"]').forEach(link=>link.remove())"),'old cached Settings link is removed from login footer');
-assert.ok(feed.includes("const storedPosts=previewPosts.filter(post=>!isSponsoredPost(post)&&post.state==='approved'&&heroPhotoUrl(post)&&!heroFailedUrls.has(heroPhotoUrl(post)))")&&feed.includes("const withImage=storedPosts;"),'Studio Feed preview count uses the filtered picture list');
+assert.ok(feed.includes("const storedPosts=previewPosts.filter(post=>!isSponsoredPost(post)&&post.state==='approved'&&heroPhotoUrl(post)&&!heroFailedUrls.has(heroPhotoUrl(post)))")&&feed.includes("storedPosts.map(p=>p.id+':'+p.state+':'+heroPhotoUrl(p)+':'+(p.caption||''))")&&!feed.includes('const withImage='),'Studio Feed preview count uses the filtered picture list');
 console.log('Pinterest masonry, Saved, Studio and login footer regressions passed');
 
 // The Studio thumbnail was intentionally redesigned from the old six-tile

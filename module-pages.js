@@ -14,7 +14,7 @@
         window.__biglwaModulePagesWaitingForMain = false;
         if (!document.querySelector('.main') || window.__biglwaModulePagesReadyV3) return;
         const script = document.createElement('script');
-        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261127-1&callback=20261124-2&threads=20261125-1&avatarload=20261125-1&linkmedia=20261125-1&myfeed=20261125-1&crushlayout=20261126-1&caldedupe=20261126-1&orbitex=20261127-2&orbitpolish=20261127-2&lounge=20261127-2';
+        script.src = '/module-pages.js?v=20261118-map-live-guide&widgets=20261110-2&previewfix=20261110-1&crushes=20261110-2&y8=20261112-1&polish=20261112-2&mapsplit=20261113-1&booth=20261114-1&rfont=20261114-mixed1&roomheader=20261114-1&orbitcanvas=20261114-2&calendar=20261116-events-news&studioTour=20261116-1&desk=20261116-2&faceicon=20261117-1&igpersonal=20261124-1&orbitsync=20261127-1&callback=20261124-2&threads=20261125-1&avatarload=20261125-1&linkmedia=20261125-1&myfeed=20261125-1&crushlayout=20261126-1&caldedupe=20261126-1&orbitex=20261127-3&orbitpolish=20261127-2&lounge=20261127-2';
         document.head.appendChild(script);
       }, 250);
     }
@@ -1389,8 +1389,10 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     ['website','WWW','My website','rgb(var(--aura-rgb,216,95,109))']
   ];
   const ORBIT_OAUTH_PROVIDERS=['x','snapchat','tumblr','threads'];
-  const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest','facebook','youtube','calendar','drive']);
-  const ORBIT_LIVE=new Set(['instagram','tiktok','pinterest','facebook','youtube','calendar','drive']);
+  // Drive is deliberately link-only. Google Identity now requests only the
+  // read-only YouTube and Calendar scopes that back these two live rows.
+  const ORBIT_CONNECTED=new Set(['instagram','tiktok','pinterest','facebook','youtube','calendar']);
+  const ORBIT_LIVE=new Set(['instagram','tiktok','pinterest','facebook','youtube','calendar']);
   const ORBIT_APP_NAMES=Object.fromEntries([...ORBIT_APPS,...PLANETARY_APPS].map(([k,,n])=>[k,n]));
   /* Each API's chip wears that API's own colour. They were all one black pill, which read as
      a row of dead black dots with unreadable lettering rather than as a list of services.
@@ -1403,7 +1405,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
     try{rows.push(...Object.values(window.__biglwaConnections?.connections?.()||{}).filter(row=>row&&row.id&&row.link))}catch{}
     // Google Identity Services returns a short-lived in-memory access token;
     // it is not an account-level token nor a public profile link. Reflect it in
-    // all three Orbit rows only for the signed-in member who authorized it.
+    // the two Google-backed Orbit rows only for the signed-in member who authorized it.
     try{
       const google=window.__biglwaGoogleOrbit;
       const uid=String(window.__biglwaIdentity?.uid||window.BigLWAAccountStorage?.uid||'').trim();
@@ -1411,10 +1413,9 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
         google.hasActiveToken?.()===true&&uid&&
         !document.documentElement.classList.contains('biglwa-preview-mode');
       if(active){
-        for(const id of ['youtube','drive','calendar']){
-          rows.push({id,label:id==='calendar'?'Google Calendar':id==='drive'?'Google Drive':'YouTube',
-            name:id==='youtube'?google.state.youtube?.snippet?.title||'YouTube authorized':
-              id==='drive'?'Google Drive authorized':'Google Calendar authorized',
+        for(const id of ['youtube','calendar']){
+          rows.push({id,label:id==='calendar'?'Google Calendar':'YouTube',
+            name:id==='youtube'?google.state.youtube?.snippet?.title||'YouTube authorized':'Google Calendar authorized',
             verifiedFromProvider:true,googleSession:true,link:''});
         }
       }
@@ -1534,7 +1535,7 @@ const labels = {create:'Create',veve:'veve',calendar:'Calendar',orbit:'Orbit',fe
   }
   /* The source clients each own their own connect button, so the Orbit page hands the click
      over rather than reimplementing the OAuth start. */
-  const ORBIT_HANDS=key=>{if(ORBIT_OAUTH_PROVIDERS.includes(key))return Boolean(window.BigLWAOrbitOAuth?.connect);const map={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.BigLWAFacebookPersonal,youtube:window.__biglwaGoogleOrbit,calendar:window.__biglwaGoogleOrbit,drive:window.__biglwaGoogleOrbit};return Boolean(map[key])};
+  const ORBIT_HANDS=key=>{if(ORBIT_OAUTH_PROVIDERS.includes(key))return Boolean(window.BigLWAOrbitOAuth?.connect);const map={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.BigLWAFacebookPersonal,youtube:window.__biglwaGoogleOrbit,calendar:window.__biglwaGoogleOrbit};return Boolean(map[key])};
    // Planet card dimensions are applied directly by the Orbit renderer.
    // Earlier standalone CSS patches lost to later module/provider styles and
    // left X/YouTube stretched while Facebook's link editor grew taller.
@@ -1734,7 +1735,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
          return;
        }
        if(!ORBIT_LIVE.has(k)){say('This provider is not configured for sign-in yet.');return;}
-       const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.BigLWAFacebookPersonal,youtube:window.__biglwaGoogleOrbit,calendar:window.__biglwaGoogleOrbit,drive:window.__biglwaGoogleOrbit}[k];
+       const client={instagram:window.__biglwaInstagramOrbit,tiktok:window.__biglwaTikTokOrbit,pinterest:window.__biglwaPinterest,facebook:window.BigLWAFacebookPersonal,youtube:window.__biglwaGoogleOrbit,calendar:window.__biglwaGoogleOrbit}[k];
        if(!client?.connect){say('That connection is still loading. Try again in a moment.');return;}
        connect.disabled=true;
        try{
@@ -1749,7 +1750,7 @@ const legacyFb=e.target.closest('[data-facebook-legacy-connect]');
        const k=unlink.dataset.orbitUnlink;unlink.disabled=true;say('Unlinking…');
        try{
          if(ORBIT_OAUTH_PROVIDERS.includes(k))await window.BigLWAOrbitOAuth.disconnect(k);
-         else if(['youtube','calendar','drive'].includes(k))await window.__biglwaGoogleOrbit?.disconnect?.();
+         else if(['youtube','calendar'].includes(k))await window.__biglwaGoogleOrbit?.disconnect?.();
          else if(k==='facebook'&&window.BigLWAFacebookPersonal?.state?.connected)await window.BigLWAFacebookPersonal.disconnect();
          else if(k==='facebook'&&window.__biglwaFacebookOrbit?.state?.connected)await window.__biglwaFacebookOrbit.disconnect();
          else await window.__biglwaConnections?.forget?.(k);
