@@ -223,7 +223,7 @@
       .finally(()=>{button.disabled=false});
   });
 
-  async function connect() {
+  async function connect(slot=1) {
     try {
       if (!crypto.subtle) throw new Error('TikTok needs a secure page (https) to connect from this browser.');
       if (!await firebaseIdToken() || !authUid) throw new Error('Sign in to Big LWA before connecting TikTok.');
@@ -242,7 +242,8 @@
       sessionStorage.removeItem(PENDING_KEY);
       const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)));
       const challenge = btoa(String.fromCharCode(...digest)).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-      location.assign(API + '/tiktok/start?challenge=' + encodeURIComponent(challenge) + '&return_to=' + encodeURIComponent(location.origin + '/studio?view=orbit&orbit_return=1'));
+      if(slot===2)location.assign(API + '/tiktok/start?slot=2&challenge=' + encodeURIComponent(challenge) + '&return_to=' + encodeURIComponent(location.origin + '/studio?view=orbit&orbit_return=1'));
+      else location.assign(API + '/tiktok/start?challenge=' + encodeURIComponent(challenge) + '&return_to=' + encodeURIComponent(location.origin + '/studio?view=orbit&orbit_return=1'));
     } catch (e) { notice(e.message); }
   }
   async function syncTikTokDrafts(){
@@ -521,7 +522,7 @@
         if(!/^[a-f0-9]{64}$/.test(verifier))throw new Error('TikTok verification was lost. Start again from the same browser and domain.');
         const result=await api('session',{handoff:pending.handoff,verifier,firebaseIdToken:token});
         if(!result.session||!result.persisted)throw new Error('TikTok authorized but could not link to this Big LWA account.');
-        save(result.session);
+        if(result.slot!==2)save(result.session);
         // Redeeming the one-use handoff already wrote the account binding.
         // A second cross-edge KV read can still return the previous binding.
         sessionStorage.removeItem(PENDING_KEY);
@@ -538,7 +539,7 @@
         }
       }
     }
-    render();await restore();
+    render();await restore();await refreshSecondary();
   }
   document.addEventListener('input',e=>{
     if(!e.target.matches?.('[data-tiktok-public-url]'))return;
@@ -703,6 +704,30 @@
   });
   window.addEventListener('biglwa:account-ready',recoverAfterLogin);
   window.addEventListener('biglwa:external-stats-updated',renderTikTokAnalytics);
+
+  let secondaryBusy=false,secondaryUid='',secondaryProfile=null,secondaryError='',secondaryChecked=false;
+  function secondaryPanel(){
+    const row=document.querySelector('#moduleWorkspace[data-module-key="orbit"] [data-orbit-row="tiktok"] .orbit-main');if(!row)return;
+    let box=row.querySelector('.tiktok-secondary-slot');if(!box){box=document.createElement('section');box.className='tiktok-secondary-slot';row.append(box)}
+    const name=document.createElement('strong');name.textContent='TikTok · second account';
+    const detail=document.createElement('span');detail.textContent=secondaryError||(secondaryProfile?String(secondaryProfile.username?'@'+secondaryProfile.username:secondaryProfile.display_name||'Authorized TikTok account')+' · connected':secondaryBusy?'Checking connection…':'Not connected');
+    const b=document.createElement('button');b.type='button';b.className='module-action ghost';b.textContent=secondaryProfile?'Reconnect second TikTok':'Connect second TikTok';b.disabled=secondaryBusy;b.onclick=()=>connect(2);
+    const refresh=document.createElement('button');refresh.type='button';refresh.className='module-action ghost';refresh.textContent='Verify second account';refresh.disabled=secondaryBusy;refresh.onclick=()=>refreshSecondary();
+    box.replaceChildren(name,detail,b,refresh);
+    if(secondaryProfile){const remove=document.createElement('button');remove.type='button';remove.className='module-action ghost';remove.textContent='Disconnect second account';remove.disabled=secondaryBusy;remove.onclick=()=>refreshSecondary(true);box.append(remove)}
+  }
+  async function refreshSecondary(disconnect=false){
+    if(secondaryBusy)return;secondaryBusy=true;secondaryError='';secondaryPanel();
+    try{const token=await firebaseIdToken();const uid=authUid;if(!token||!uid)throw Error('Sign in to BIG LWA.');
+      if(secondaryUid!==uid){secondaryProfile=null;secondaryUid=uid}const response=await fetch(API+'/tiktok/session/account?slot=2',{headers:{Authorization:'Bearer '+token},cache:'no-store'});const result=await response.json();if(!response.ok)throw Error(result.error||'Second account lookup failed.');
+      if(authUid!==uid)throw Error('Account changed.');secondaryProfile=null;
+      if(result.connected&&/^[A-Za-z0-9_-]{43}$/.test(result.session)){const action=disconnect?'disconnect':'profile';const r=await fetch(API+'/tiktok/'+action,{method:disconnect?'POST':'GET',headers:{Authorization:'Bearer '+result.session},cache:'no-store'});const p=await r.json();if(!r.ok)throw Error(p.error||'Second account verification failed.');if(authUid!==uid)throw Error('Account changed.');if(!disconnect&&p.open_id)secondaryProfile=p}
+    }catch(e){secondaryProfile=null;secondaryError=e.message}finally{secondaryBusy=false;secondaryChecked=true;secondaryPanel()}
+  }
+  function secondarySchedule(){const row=document.querySelector('#moduleWorkspace[data-module-key="orbit"] [data-orbit-row="tiktok"]');if(!row)return;if(secondaryUid!==authUid){secondaryProfile=null;secondaryChecked=false;secondaryError=''}if(!row.querySelector('.tiktok-secondary-slot'))secondaryPanel();if(!secondaryChecked&&!secondaryBusy&&authUid)refreshSecondary()}
+  document.addEventListener('biglwa:module-open',()=>setTimeout(secondarySchedule,100));document.addEventListener('biglwa:tiktok-status',()=>setTimeout(secondarySchedule,100));
+  new MutationObserver(records=>{if(records.some(r=>Array.from(r.addedNodes).some(n=>n.nodeType===1&&(n.matches?.('[data-orbit-row="tiktok"]')||n.querySelector?.('[data-orbit-row="tiktok"]')))))secondarySchedule()}).observe(document.documentElement,{childList:true,subtree:true});
+
   window.__biglwaTikTokOrbit={connect,restore,disconnect,render,publicVideo,renderTikTokFeedImporter,
     get state(){return {connected,uid:authUid,profile:connected?{...profile}:{},lastError,videoPermissionPending,videoLoadError,videoCount:videos.length,lastCollectiveSync}}};
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true}); else init();

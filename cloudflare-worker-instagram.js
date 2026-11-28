@@ -704,7 +704,8 @@ async function ttRoute(request, env) {
     if (!/^[A-Za-z0-9_-]{43}$/.test(challenge)) ttFail('Start TikTok connection from Orbit.', 400);
     const state = randomToken(32), browser = randomToken(32);
     const returnTo=ttReturnUrl(url.searchParams.get('return_to'),env);
-    await env.OAUTH_SESSIONS.put('tt:state:' + state, JSON.stringify({ browser, challenge, callback: ttCallback(request, env), returnTo }), { expirationTtl: 600 });
+    const slot=url.searchParams.get('slot')==='2'?2:1;
+    await env.OAUTH_SESSIONS.put('tt:state:' + state, JSON.stringify({ browser, challenge, callback: ttCallback(request, env), returnTo,slot }), { expirationTtl: 600 });
     const dest = new URL('https://www.tiktok.com/v2/auth/authorize/');
     // Request optional statistics only when the TikTok developer app is
     // approved for user.info.stats. A connected basic profile alone must not
@@ -740,7 +741,7 @@ async function ttRoute(request, env) {
     }
     const id = randomToken(32), handoff = randomToken(32);
     await ttSave(env, id, token);
-    await env.OAUTH_SESSIONS.put('tt:handoff:' + handoff, JSON.stringify({ id, challenge: saved.challenge }), { expirationTtl: 600 });
+    await env.OAUTH_SESSIONS.put('tt:handoff:' + handoff, JSON.stringify({ id, challenge: saved.challenge,slot:saved.slot===2?2:1 }), { expirationTtl: 600 });
     destination.searchParams.set('tiktok_handoff', handoff);
     return ttRedirect(destination.href, '');
   }
@@ -749,7 +750,7 @@ async function ttRoute(request, env) {
     const header=request.headers.get('Authorization')||'';
     const uid=await firebaseUidFromToken(header.startsWith('Bearer ')?header.slice(7).trim():'',env);
     if(!uid)return json({error:'Sign in to Big LWA first.'},401,request,env);
-    const id=await env.OAUTH_SESSIONS.get('tt:firebase:'+uid);
+    const id=await env.OAUTH_SESSIONS.get('tt:firebase:'+uid+(url.searchParams.get('slot')==='2'?':2':''));
     const session=id?await env.OAUTH_SESSIONS.get('tt:session:'+id,'json'):null;
     // An expired access token remains recoverable if its refresh grant is valid.
     // The profile route refreshes the access token after account restoration.
@@ -768,21 +769,26 @@ async function ttRoute(request, env) {
     if(!firebaseUid)ttFail('Sign in to Big LWA to finish connecting TikTok.',401);
     const entry=await env.OAUTH_SESSIONS.get('tt:session:'+saved.id,'json');
     if(!entry)ttFail('TikTok authorization expired. Please reconnect.',401);
-    const previousId=await env.OAUTH_SESSIONS.get('tt:firebase:'+firebaseUid);
-    await env.OAUTH_SESSIONS.put('tt:session:'+saved.id,JSON.stringify({...entry,firebaseUid}),{expirationTtl:Math.max(60,Math.min(Number(entry.refresh_expires_in||86400),31536000))});
-    await env.OAUTH_SESSIONS.put('tt:firebase:'+firebaseUid,saved.id,{expirationTtl:Math.max(60,Math.min(Number(entry.refresh_expires_in||86400),31536000))});
+    const slot=saved.slot===2?2:1;
+    const binding='tt:firebase:'+firebaseUid+(slot===2?':2':'');
+    const otherId=await env.OAUTH_SESSIONS.get('tt:firebase:'+firebaseUid+(slot===1?':2':''));
+    const other=otherId?await env.OAUTH_SESSIONS.get('tt:session:'+otherId,'json'):null;
+    if(other?.open_id&&entry.open_id===other.open_id){await env.OAUTH_SESSIONS.delete('tt:session:'+saved.id);await env.OAUTH_SESSIONS.delete(key);ttFail('This TikTok account is already connected in the other slot. Switch accounts on TikTok and try again.',409);}
+    const previousId=await env.OAUTH_SESSIONS.get(binding);
+    await env.OAUTH_SESSIONS.put('tt:session:'+saved.id,JSON.stringify({...entry,firebaseUid,slot}),{expirationTtl:Math.max(60,Math.min(Number(entry.refresh_expires_in||86400),31536000))});
+    await env.OAUTH_SESSIONS.put(binding,saved.id,{expirationTtl:Math.max(60,Math.min(Number(entry.refresh_expires_in||86400),31536000))});
     if(previousId&&previousId!==saved.id){
       const prior=await env.OAUTH_SESSIONS.get('tt:session:'+previousId,'json');
       if(prior?.firebaseUid===firebaseUid)await env.OAUTH_SESSIONS.delete('tt:session:'+previousId);
     }
     await env.OAUTH_SESSIONS.delete(key);
-    return json({ session: saved.id, persisted: true }, 200, request, env);
+    return json({ session: saved.id, persisted: true,slot }, 200, request, env);
   }
   const id = (request.headers.get('Authorization') || '').replace(/^Bearer /, '');
   let session = /^[A-Za-z0-9_-]{43}$/.test(id) ? await env.OAUTH_SESSIONS.get('tt:session:' + id, 'json') : null;
   if (!session) ttFail('TikTok session expired. Please reconnect.', 401);
   if (path === '/tiktok/disconnect' && request.method === 'POST') {
-    if(session.firebaseUid)await env.OAUTH_SESSIONS.delete('tt:firebase:'+session.firebaseUid);
+    if(session.firebaseUid){const binding='tt:firebase:'+session.firebaseUid+(session.slot===2?':2':'');if(await env.OAUTH_SESSIONS.get(binding)===id)await env.OAUTH_SESSIONS.delete(binding);}
     await env.OAUTH_SESSIONS.delete('tt:session:' + id);
     return json({ ok: true }, 200, request, env);
   }
@@ -792,7 +798,7 @@ async function ttRoute(request, env) {
     const previous=session;
     session = await ttSave(env, id, await ttToken(env, { grant_type: 'refresh_token', refresh_token: session.refresh_token }));
     if(previous.firebaseUid){
-      session.firebaseUid=previous.firebaseUid;
+      session.firebaseUid=previous.firebaseUid;session.slot=previous.slot===2?2:1;
       await env.OAUTH_SESSIONS.put('tt:session:'+id,JSON.stringify(session),{expirationTtl:Math.max(60,Math.min(Number(session.refresh_expires_in||86400),31536000))});
     }
   }

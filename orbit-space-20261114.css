@@ -571,3 +571,6 @@ body #studioApp#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbi
 body #studioApp#studioApp #moduleWorkspace[data-module-key="orbit"] .module-orbit-row[data-orbit-row]:is(:hover,:focus-within){
  box-shadow:4px 4px 0 var(--orbit-source,#aa84ce),0 7px 18px #0003!important;
 }
+
+#studioApp .module-orbit-row .tiktok-secondary-slot{display:grid;gap:6px;margin-top:7px;padding-top:7px;border-top:1px dashed currentColor;font:600 11px/1.4 system-ui}
+#studioApp .module-orbit-row .tiktok-secondary-slot button{justify-self:start}
