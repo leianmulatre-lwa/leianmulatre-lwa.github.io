@@ -18,6 +18,21 @@
  };
  const STREAMING=/^(?:www\.|m\.|music\.)?(?:youtube\.com|youtu\.be|tiktok\.com|vimeo\.com|instagram\.com|facebook\.com|soundcloud\.com|spotify\.com|twitter\.com|x\.com|dailymotion\.com|twitch\.tv|streamable\.com)$/i;
  const MAX_MANIFEST=8;
+ // Source pages may resolve to a separately available, explicitly registered file.
+ // This is not a streaming-platform extractor; only named first-party resources.
+ const publishedVideoSources=Object.freeze({
+  'y5-VFRw_uMQ':{path:'/super-8mm-film-effect-free-overlays-2160-ytshorts.savetube.me.mp4',title:'Super 8mm Film Effect free overlays'}
+ });
+ function resolveMedia(input){
+  const u=typeof input==='string'?parse(input):input;if(!u)return null;
+  const host=u.hostname.toLowerCase().replace(/^www\./,'').replace(/^m\./,'');
+  const id=host==='youtu.be'?u.pathname.split('/')[1]:host==='youtube.com'?(u.pathname.startsWith('/shorts/')?u.pathname.split('/')[2]:u.searchParams.get('v')):'';
+  const published=id&&Object.prototype.hasOwnProperty.call(publishedVideoSources,id)?publishedVideoSources[id]:null;
+  if(published)return {url:new URL(published.path,location.origin).href,kind:'video',title:published.title};
+  const linked=window.__biglwaFeed?.linkedMedia?.(u.href);
+  return linked&&parse(linked.url)?linked:null;
+ }
+
  const classify=(url,mime)=>{
   let path=url.pathname;
   try{path=decodeURIComponent(path)}catch{}
@@ -89,19 +104,21 @@
  function renderForQuery(panel,raw,options={}){
   let url=parse(raw);
   if(!url)return false;
-  const supplied=url,linked=window.__biglwaFeed?.linkedMedia?.(url.href);
+  const supplied=url,linked=resolveMedia(url);
   if(linked&&parse(linked.url))url=parse(linked.url);
   const {kind:detected,extension}=classify(url),initial=linked?.kind||detected;
-  let kind=initial;
+  let kind=initial,videoHeight=0,videoWidth=0;
+  const compact=Boolean(options.inline);
   const card=tag('section','bl-link-inspector');
   card.setAttribute('aria-label','L’wazi link and download options');
+  if(compact)card.className+=' bl-link-compact';
   const head=tag('div','bl-link-inspector-head');
   const title=tag('div');
-  title.append(tag('span','bl-link-eyebrow','L’wazi · Link detected'),tag('h2','', 'Convert and download'));
+  title.append(tag('span','bl-link-eyebrow','L’wazi · Link detected'),tag('h2','', linked?.title||'Convert and download'));
   const close=tag('button','bl-link-close','×');
   close.type='button';close.setAttribute('aria-label','Close link inspector');
   close.addEventListener('click',()=>{
-   activeTransfer?.abort();releaseReady();
+   activeTransfer?.abort();releaseReady();for(const media of preview.querySelectorAll?.('video,audio')||[]){media.pause();media.removeAttribute('src');media.load?.()}
    if(!options.inline)window.__biglwaUserCardsClose?.();
    if(card.isConnected)card.remove();
   });
@@ -146,7 +163,7 @@
     element.alt='Image preview from supplied link';element.loading='lazy';
    }else{
     element.controls=true;element.preload='metadata';
-    if(kind==='video')element.playsInline=true;
+    if(kind==='video'){element.playsInline=true;element.addEventListener('loadedmetadata',()=>{if(!card.isConnected)return;const changed=videoHeight!==element.videoHeight;videoHeight=element.videoHeight;videoWidth=element.videoWidth;if(changed&&!activeTransfer)setControls()})}
    }
    preview.replaceChildren(element);preview.hidden=false;
   };
@@ -158,15 +175,19 @@
   };
   const setControls=()=>{
    if(activeTransfer)return;
+   const previous=controls.querySelector?.('select')?.value;
    controls.replaceChildren();
    if(['image','audio','video','archive','document','file','link'].includes(kind)){
     const formats={image:['png','jpeg','webp'],video:['mp4','webm','mp3'],audio:['mp3','wav','m4a']};
+    const qualities=kind==='video'&&videoHeight?[2160,1440,1080,720,480,360,240,144].filter(h=>h<videoHeight&&Math.floor(videoWidth*h/videoHeight)>=2):[];
     const select=tag('select','bl-link-action');select.setAttribute('aria-label','Download format');
-    for(const format of ['original',...(formats[kind]||[])]){
-     const option=tag('option','',format==='original'?'Original file':format.toUpperCase());option.value=format;select.append(option);
+    for(const format of ['original',...(formats[kind]||[]),...qualities.map(h=>'mp4-'+h)]){
+     const label=format==='original'?(kind==='video'&&videoHeight?'Original · '+videoHeight+'p':'Original file'):format.startsWith('mp4-')?'MP4 · '+format.slice(4)+'p (convert)':format.toUpperCase();
+     const option=tag('option','',label);option.value=format;select.append(option);
     }
+    if(previous&&[...select.children].some(option=>option.value===previous))select.value=previous;
     controls.append(select);
-    const save=add('Download file',async()=>{
+    const save=add(compact&&kind==='video'?'Download video':'Download file',async()=>{
      if(activeTransfer)return;
      const format=select.value||'original',target=url,controller=new AbortController();
      activeTransfer=controller;releaseReady();save.disabled=true;transferStatus.hidden=false;progress.removeAttribute('value');
@@ -201,7 +222,7 @@
       }
       if(format!=='original'){
        verdict.textContent='Converting to '+format.toUpperCase()+'…';progress.removeAttribute('value');
-       const converter=await import('/tools-studio.js?v=20261128-download-transfer-1');
+       const converter=await import('/tools-studio.js?v=20261128-download-transfer-2');
        file=await converter.convertLinkedMedia(file,kind,format);
       }
       if(controller.signal.aborted){verdict.textContent='Download canceled. You can try again.';return}
@@ -211,10 +232,11 @@
       verdict.textContent=controller.signal.aborted?'Download canceled. You can try again.':error instanceof TypeError?'This host does not allow cross-origin file requests. Open the source and use Save As, or use its official download link.':String(error?.message||'Download failed.');
      }finally{if(activeTransfer===controller)activeTransfer=null;save.disabled=false;transferStatus.hidden=true}
     });
+    if(compact)save.className+=' bl-link-primary';
    }
    controls.append(originalLink(url,kind,filename));
-   add('Save link (.txt)',saveReference);
-   add('File details (.json)',saveDetails);
+   if(!compact||kind==='stream'){add('Save link (.txt)',saveReference);add('File details (.json)',saveDetails)}
+   if(compact&&kind==='stream')add('Use direct file link',()=>{const field=panel.closest?.('.tool-links')?.querySelector('#toolLinkForm input');if(field){field.focus();field.select()}});
    if(['video','audio','image'].includes(kind))add('Preview '+kind,previewMedia);
    if(kind==='video'){
     add('Check video resolution',()=>checkVideo());
@@ -242,7 +264,8 @@
    const timer=setTimeout(()=>finish('Resolution could not be read. Original source remains available.'),8500);
    video.onloadedmetadata=()=>{
     const label=videoLabel(video.videoWidth,video.videoHeight);
-    finish(label+'. The original is the only verified downloadable quality.');
+    videoHeight=video.videoHeight;videoWidth=video.videoWidth;
+    finish(label+'. Smaller MP4 resolutions are generated locally, not separate source files.');setControls();
    };
    video.onerror=()=>finish('The source does not expose playable metadata to this browser. No unverified qualities will be offered.');
    video.src=url.href;
@@ -273,7 +296,7 @@
   }
   async function inspect(){
    if(kind==='stream'){
-    verdict.textContent='Streaming platform page · open it to use the provider’s own download or save controls, when allowed.';
+    verdict.textContent='Streaming platform page · no downloadable file is connected. Open the source for its download options, or paste an authorized direct file URL.';
     setControls();
     return;
    }
@@ -342,7 +365,8 @@
    }
   }
   setControls();inspect();
+  if(compact&&kind==='video'&&typeof preview.querySelector==='function')previewMedia();
   return true;
  }
- window.BigLWALinkTools={parse,classify,renderForQuery,responseName};
+ window.BigLWALinkTools={parse,classify,renderForQuery,responseName,resolveMedia};
 })();

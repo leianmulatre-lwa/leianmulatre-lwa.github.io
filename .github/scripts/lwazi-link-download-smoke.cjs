@@ -3,6 +3,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs');
 const {chromium}=require('playwright');
 const tools=fs.readFileSync('tools-studio.js','utf8'),inspector=fs.readFileSync('lwazi-link-tools-20261114.js','utf8');
 const video=Buffer.from([0,0,0,16,102,116,121,112,109,112,52,50,0,0,0,0]);
+const overlay=fs.readFileSync('super-8mm-film-effect-free-overlays-2160-ytshorts.savetube.me.mp4');
 const ordinary=Buffer.from('A real ordinary file.\n','utf8');
 (async()=>{
  const browser=await chromium.launch({headless:true});
@@ -15,6 +16,7 @@ const ordinary=Buffer.from('A real ordinary file.\n','utf8');
    if(path==='/lwazi-link-tools-20261114.js')return route.fulfill({contentType:'application/javascript',body:inspector});
    if(path==='/tools-craft.js')return route.fulfill({contentType:'application/javascript',body:'export function mountCraftSuite(){}'});
    if(path==='/clip.mp4')return route.fulfill({contentType:'video/mp4',headers:{'Content-Disposition':'attachment; filename="sample.mp4"','Content-Length':String(video.length)},body:request.method()==='HEAD'?undefined:video});
+   if(path==='/super-8mm-film-effect-free-overlays-2160-ytshorts.savetube.me.mp4')return route.fulfill({contentType:'video/mp4',headers:{'Content-Length':String(overlay.length)},body:request.method()==='HEAD'?undefined:overlay});
    if(path==='/not-a-file.mp4')return route.fulfill({contentType:'text/html',body:'<html>Not a downloadable file</html>'});
    return route.fulfill({status:404,body:'Not found'});
   });
@@ -27,17 +29,20 @@ const ordinary=Buffer.from('A real ordinary file.\n','utf8');
   await page.evaluate(async()=>{window.BigLWAAds={createDownloadCard(){throw Error('ad service unavailable')}};const mod=await import('/tools-studio.js');mod.mountToolsStudio(document.querySelector('#workshop'))});
   const field=page.locator('#toolLinkForm input');
   async function paste(url){await field.fill(url);await field.dispatchEvent('paste');await page.locator('#toolLinkDownloads .bl-link-inspector').waitFor()}
-  async function download(expected,bytes){
+  async function download(expected,bytes,button='Download file'){
    const event=page.waitForEvent('download');
-   await page.getByRole('button',{name:'Download file',exact:true}).click();
+   await page.getByRole('button',{name:button,exact:true}).click();
    const file=await event;assert.equal(file.suggestedFilename(),expected);
    assert.deepEqual(fs.readFileSync(await file.path()),bytes);
    assert(await page.locator('.bl-link-ready').isVisible());
   }
-  await paste('https://biglwa.com/clip.mp4');await download('sample.mp4',video);
+  await paste('https://biglwa.com/clip.mp4');await download('sample.mp4',video,'Download video');
   await paste('https://files.example/download?id=42');await download('my notes.txt',ordinary);
+  await paste('https://www.youtube.com/watch?v=y5-VFRw_uMQ&list=PLabc&index=40');
+  await download('super-8mm-film-effect-free-overlays-2160-ytshorts.savetube.me.mp4',overlay,'Download video');
+  assert.equal(await page.locator('#toolLinkPreview iframe').count(),0);
   await paste('https://biglwa.com/not-a-file.mp4');
-  await page.getByRole('button',{name:'Download file',exact:true}).click();
+  await page.getByRole('button',{name:/^Download (file|video)$/}).click();
   await page.getByRole('status').filter({hasText:'webpage, not a file'}).waitFor();
   assert.equal(await page.locator('.bl-link-ready').isVisible(),false);
   console.log('PASS Workshop paste, lazy inspector, actual MP4/file bytes, HEAD 405 fallback, ad failure independence, HTML rejection');

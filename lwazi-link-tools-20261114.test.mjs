@@ -170,3 +170,16 @@ test('Workshop does not silently skip a missing link module and the ad adapter i
  assert.match(ads,/downloadCampaign=null/);assert.match(ads,/createDownloadCard/);
  assert(src.indexOf('const pending=fetch(target.href')<src.indexOf('showSponsor();'));
 });
+
+test('registered Super 8 source resolves playlist and short URL to real hosted MP4, not a playback page',async()=>{
+ const {api,doc,calls}=setup(()=>response());
+ const url='https://www.youtube.com/watch?v=y5-VFRw_uMQ&list=PLabc&index=40';
+ assert.equal(api.resolveMedia(url).kind,'video');
+ assert.equal(api.resolveMedia('https://youtu.be/y5-VFRw_uMQ').url,api.resolveMedia(url).url);
+ assert.equal(api.resolveMedia('https://example.com/watch?v=y5-VFRw_uMQ'),null);
+ const panel=doc.createElement('aside');api.renderForQuery(panel,url,{inline:true});await tick();
+ const card=panel.children[0],actions=card.children.find(x=>x.className==='bl-link-actions');
+ assert(actions.children.some(x=>x.textContent==='Download video'));
+ assert(actions.children.some(x=>x.download&&x.href.endsWith('.mp4')));
+ assert(calls.every(x=>x.url.startsWith('https://biglwa.com/')));
+});

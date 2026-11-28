@@ -70,3 +70,20 @@ body.night-mode .bl-link-action,body.dark-mode .bl-link-action{
 
 .bl-link-ready[hidden]{display:none!important}
 .bl-link-sponsor video{width:100%;max-height:200px;object-fit:contain;background:#111;border-radius:6px}
+
+/* Compact Workshop download result: readable surface with actual file preview on the left. */
+#studioApp #toolLinkDownloads .bl-link-inspector.bl-link-compact{
+ --link-ink:#292326;display:grid;grid-template-columns:minmax(150px,30%) minmax(0,1fr);
+ gap:10px 16px;padding:16px;max-width:920px;background:#f8f4ef!important;color:var(--link-ink)!important;
+}
+#studioApp #toolLinkDownloads .bl-link-compact :is(.bl-link-inspector-head,.bl-link-source,.bl-link-verdict,.bl-link-actions,.bl-link-variants,.bl-link-transfer,.bl-link-note,.bl-link-ready,.bl-link-sponsor){grid-column:2;min-width:0;color:var(--link-ink)!important}
+#studioApp #toolLinkDownloads .bl-link-compact :is(h2,p,button,a,select){-webkit-text-fill-color:currentColor!important}
+#studioApp #toolLinkDownloads .bl-link-compact .bl-link-preview:not([hidden]){grid-column:1;grid-row:1 / span 5;align-self:start;padding:0;background:#181417;border:0;border-radius:9px}
+#studioApp #toolLinkDownloads .bl-link-compact .bl-link-preview video{width:100%;aspect-ratio:16/9;max-height:190px;object-fit:contain}
+#studioApp #toolLinkDownloads .bl-link-compact .bl-link-primary{background:#692636!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#692636!important;padding:10px 18px}
+#studioApp #toolLinkDownloads .bl-link-compact:not(:has(.bl-link-preview:not([hidden]))){grid-template-columns:minmax(0,1fr)}
+#studioApp #toolLinkDownloads .bl-link-compact:not(:has(.bl-link-preview:not([hidden])))>*{grid-column:1}
+#studioApp #toolLinkDownloads .bl-link-compact .bl-link-actions{align-items:center}
+#studioApp #toolLinkDownloads .bl-link-compact select{background:#fff!important;color:#292326!important;border-color:#bba5a9!important}
+body.night-mode #studioApp #toolLinkDownloads .bl-link-inspector.bl-link-compact,body.dark-mode #studioApp #toolLinkDownloads .bl-link-inspector.bl-link-compact{--link-ink:#f8eee8;background:#292126!important}
+@media(max-width:650px){#studioApp #toolLinkDownloads .bl-link-inspector.bl-link-compact{grid-template-columns:1fr}#studioApp #toolLinkDownloads .bl-link-compact>*{grid-column:1!important;grid-row:auto!important}#studioApp #toolLinkDownloads .bl-link-compact .bl-link-preview:not([hidden]){grid-row:2!important;max-width:300px}}

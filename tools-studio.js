@@ -241,9 +241,11 @@ export async function convertLinkedMedia(file,kind,format){
   if(file.size>MEMORY_HEAVY_TRANSCODE)throw Error('Choose a file under 125 MB for browser conversion.');
   if(kind==='image'&&IMAGE_TARGETS[format])return convertImage(file,IMAGE_TARGETS[format],.92);
   if(kind==='audio'&&format==='wav')return audioToWav(file);
-  const op=(kind==='audio'?AUDIO_OPS:kind==='video'?VIDEO_OPS:{})[format];
+  const height=kind==='video'&&/^mp4-(2160|1440|1080|720|480|360|240|144)$/.test(format)?Number(format.slice(4)):0;
+  const op=height?{...VIDEO_OPS.mp4,args:()=>['-vf',"scale=-2:'min(ih,"+height+")'",...VIDEO_OPS.mp4.args()]}:(kind==='audio'?AUDIO_OPS:kind==='video'?VIDEO_OPS:{})[format];
   if(!op)throw Error('Choose a format for this media type.');
-  return runEngine(file,op);
+  const output=await runEngine(file,op);
+  return height?new File([output],baseName(file.name)+'-'+height+'p.mp4',{type:'video/mp4'}):output;
 }
 function toolLinks(names){
   return names.map(name=>ONLINE_TOOLS.find(tool=>tool.name===name)).filter(Boolean);
@@ -347,7 +349,7 @@ export function mountToolsStudio(root,helper){
     if(!link){note.textContent='Paste a link first.';return}
     note.textContent='Checking your link…';
     if(!window.BigLWALinkTools){
-      try{await import('/lwazi-link-tools-20261114.js?v=20261114-link-inspector-v1&transfer=20261128-1')}catch{}
+      try{await import('/lwazi-link-tools-20261114.js?v=20261114-link-inspector-v1&transfer=20261128-2')}catch{}
     }
     if(request!==linkRequest||!root.isConnected)return;
     if(!window.BigLWALinkTools){note.textContent='Download tools could not load. Please refresh and try again.';return}
@@ -357,6 +359,9 @@ export function mountToolsStudio(root,helper){
       note.textContent='Use a secure https:// media link.';return
     }
     if(!window.BigLWALinkTools.renderForQuery(downloads,url.href,{inline:true})){note.textContent='The download tool could not read this link.';return;}
+    if(window.BigLWALinkTools.resolveMedia(url)){
+      note.textContent='Choose a format or resolution and download the available file.';return;
+    }
     const host=url.hostname.toLowerCase();
     let embed='',label='';
     if(['youtube.com','www.youtube.com','m.youtube.com','youtu.be'].includes(host)){
@@ -376,7 +381,7 @@ export function mountToolsStudio(root,helper){
     frame.title=label+' media preview';frame.loading='lazy';
     frame.referrerPolicy='strict-origin-when-cross-origin';
     frame.allow='autoplay; encrypted-media; picture-in-picture; fullscreen';
-    frame.style.cssText='display:block;width:100%;height:'+ (label==='SoundCloud'?'180px':'420px')+';max-height:76vh;border:0;border-radius:12px';
+    frame.style.cssText='display:block;width:100%;height:'+ (label==='SoundCloud'?'145px':'240px')+';max-height:76vh;border:0;border-radius:12px';
     frame.src=embed;
     const original=document.createElement('a');
     original.href=url.href;original.target='_blank';original.rel='noopener noreferrer';
