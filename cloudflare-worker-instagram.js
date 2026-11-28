@@ -755,7 +755,7 @@ async function ttRoute(request, env) {
     // An expired access token remains recoverable if its refresh grant is valid.
     // The profile route refreshes the access token after account restoration.
     return json(session&&(session.expiresAt>Date.now()||!!session.refresh_token)
-      ?{connected:true,session:id}:{connected:false},200,request,env);
+      ?{connected:true,session:id,slot:session.slot===2?2:1}:{connected:false,slot:url.searchParams.get('slot')==='2'?2:1},200,request,env);
   }
   if (path === '/tiktok/session' && request.method === 'POST') {
     const body = await request.json();

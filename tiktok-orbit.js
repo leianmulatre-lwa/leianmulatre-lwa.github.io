@@ -722,7 +722,7 @@
   async function refreshSecondary(disconnect=false){
     if(secondaryBusy)return;secondaryBusy=true;secondaryError='';secondaryPanel();
     try{const token=await firebaseIdToken();const uid=authUid;if(!token||!uid)throw Error('Sign in to BIG LWA.');
-      if(secondaryUid!==uid){secondaryProfile=null;secondaryUid=uid}const response=await fetch(API+'/tiktok/session/account?slot=2',{headers:{Authorization:'Bearer '+token},cache:'no-store'});const result=await response.json();if(!response.ok)throw Error(result.error||'Second account lookup failed.');
+      if(secondaryUid!==uid){secondaryProfile=null;secondaryUid=uid}const health=await api('health');if(health.secondaryAccounts!==true)throw Error('Second account support is not active on the server yet.');const response=await fetch(API+'/tiktok/session/account?slot=2',{headers:{Authorization:'Bearer '+token},cache:'no-store'});const result=await response.json();if(!response.ok)throw Error(result.error||'Second account lookup failed.');if(result.slot!==2)throw Error('Second account binding could not be verified. Primary account left unchanged.');
       if(authUid!==uid)throw Error('Account changed.');secondaryProfile=null;
       if(result.connected&&/^[A-Za-z0-9_-]{43}$/.test(result.session)){const action=disconnect?'disconnect':'profile';const r=await fetch(API+'/tiktok/'+action,{method:disconnect?'POST':'GET',headers:{Authorization:'Bearer '+result.session},cache:'no-store'});const p=await r.json();if(!r.ok)throw Error(p.error||'Second account verification failed.');if(authUid!==uid)throw Error('Account changed.');if(!disconnect&&p.open_id)secondaryProfile=p}
     }catch(e){secondaryProfile=null;secondaryError=e.message}finally{secondaryBusy=false;secondaryChecked=true;secondaryPanel()}
