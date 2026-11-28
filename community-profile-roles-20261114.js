@@ -5,7 +5,7 @@
 (()=>{
  'use strict';
  if(window.BigLWACommunityProfile)return;
- const ROLES=['Student','Researcher','Creative','Freelancer','Educator','Artist','Organizer','Developer','Music maker','Other'];
+ const ROLES=['Student','Researcher','Creative','Freelancer','Educator','Artist','Organizer','Developer','Music maker','Producer','Writer','Director','Creator','Stylist','Founder','Other'];
  const AGES=['Under 18','18–24','25–34','35–44','45+'];
  const FIREBASE_CONFIG={apiKey:'AIzaSyAPUT8_pLNxdh5tbGpAmXBJiID3jVcA9DY',
   authDomain:'biglwa.firebaseapp.com',projectId:'biglwa',
