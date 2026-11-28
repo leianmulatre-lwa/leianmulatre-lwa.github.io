@@ -2,9 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
+import {File,resolveObjectURL} from 'node:buffer';
 const read=path=>readFileSync(new URL('./'+path,import.meta.url),'utf8');
 const src=read('lwazi-link-tools-20261114.js'),css=read('lwazi-link-tools-20261114.css');
-function setup(responseFor){
+function setup(responseFor,sponsor){
  const nodes=[];
  class Node{
   constructor(type){this.type=type;this.children=[];this.events={};this.style={};this.dataset={};this.attrs={};this.hidden=false;this.textContent='';this.isConnected=true;nodes.push(this);}
@@ -12,7 +13,7 @@ function setup(responseFor){
   replaceChildren(...args){this.children=args}
   setAttribute(name,value){this.attrs[name]=String(value)}
   addEventListener(name,fn){this.events[name]=fn}
-  click(){this.events.click?.()}
+  click(){this.clicked=true;return this.events.click?.()}
   remove(){this.isConnected=false}
   removeAttribute(name){delete this.attrs[name]}
   getContext(){return null}
@@ -21,9 +22,9 @@ function setup(responseFor){
  const doc={createElement:name=>new Node(name),body:new Node('body')};
  const url=new URL('https://biglwa.com/studio');
  const calls=[];
- const context={window:{},document:doc,location:url,console,URL,URLSearchParams,
-  Blob,Date,Math,Number,encodeURIComponent,decodeURIComponent,
-  setTimeout,clearTimeout,
+ const context={window:{BigLWAAds:sponsor},document:doc,location:url,console,URL,URLSearchParams,
+  Blob,File,AbortController,TypeError,Date,Math,Number,encodeURIComponent,decodeURIComponent,
+  setTimeout:(fn,ms)=>{const timer=setTimeout(fn,ms);timer.unref();return timer},clearTimeout,
   fetch:async(address,options)=>{
    calls.push({url:String(address),method:options?.method||'GET'});
    return responseFor(String(address),options?.method||'GET');
@@ -124,4 +125,48 @@ test('search entry intercepts pasted links before general AI/results and preserv
   assert.match(html,/lwazi-link-tools-20261114\.css\?v=20261114-link-inspector-v1/,path);
   assert(html.indexOf('lwazi-link-tools-20261114.js')<html.indexOf('user-search-results.js'),path+' loads inspector first');
  }
+});
+
+test('direct video download saves actual bytes, not a reference, and sponsor failure is non-blocking',async()=>{
+ const bytes=Uint8Array.from([0,0,0,16,102,116,121,112,109,112,52,50,0,0,0,0]);
+ let adCalls=0;
+ const {api,doc,calls}=setup((url,method)=>new Response(method==='HEAD'?null:bytes,{headers:{'Content-Type':'video/mp4','Content-Length':String(bytes.length),'Content-Disposition':'attachment; filename="owned-clip.mp4"'}}),{createDownloadCard(){adCalls++;throw Error('no inventory')}});
+ const panel=doc.createElement('aside');api.renderForQuery(panel,'https://biglwa.com/clip');
+ await tick();
+ const card=panel.children[0],controls=card.children.find(x=>x.className==='bl-link-actions');
+ await controls.children.find(x=>x.textContent==='Download file').click();
+ const ready=card.children.find(x=>x.className.includes('bl-link-ready'));
+ assert.equal(ready.download,'owned-clip.mp4');assert(ready.clicked);
+ assert.deepEqual(new Uint8Array(await resolveObjectURL(ready.href).arrayBuffer()),bytes);
+ assert.equal(adCalls,1);assert(calls.some(x=>x.method==='GET'));
+ URL.revokeObjectURL(ready.href);
+});
+test('ordinary extensionless file still downloads if HEAD is rejected',async()=>{
+ const {api,doc}=setup((url,method)=>method==='HEAD'?new Response(null,{status:405}):new Response('plain text data',{headers:{'Content-Type':'text/plain','Content-Disposition':"attachment; filename*=UTF-8''my%20notes.txt"}}));
+ const panel=doc.createElement('aside');api.renderForQuery(panel,'https://files.example/download?id=42');
+ await tick();
+ const card=panel.children[0],controls=card.children.find(x=>x.className==='bl-link-actions');
+ await controls.children.find(x=>x.textContent==='Download file').click();
+ const ready=card.children.find(x=>x.className.includes('bl-link-ready'));
+ assert.equal(ready.download,'my notes.txt');assert.equal(await resolveObjectURL(ready.href).text(),'plain text data');
+ URL.revokeObjectURL(ready.href);
+});
+test('HTML responses and blocked cross-origin requests are not fake downloads',async()=>{
+ for(const result of ['html','blocked']){
+  const {api,doc}=setup(()=>{if(result==='blocked')throw new TypeError('Failed to fetch');return new Response('<html>sign in</html>',{headers:{'Content-Type':'text/html'}})});
+  const panel=doc.createElement('aside');api.renderForQuery(panel,'https://files.example/example.mp4');
+  const card=panel.children[0],controls=card.children.find(x=>x.className==='bl-link-actions');
+  await controls.children.find(x=>x.textContent==='Download file').click();
+  assert.equal(card.children.find(x=>x.className.includes('bl-link-ready')).hidden,true);
+  assert.match(card.children.find(x=>x.className==='bl-link-verdict').textContent,/webpage|cross-origin/);
+  assert(controls.children.some(x=>x.href==='https://files.example/example.mp4'));
+ }
+});
+test('Workshop does not silently skip a missing link module and the ad adapter is disabled',()=>{
+ const workshop=read('tools-studio.js'),ads=read('ads-privacy-config-20261123.js');
+ assert.match(workshop,/await import\('\/lwazi-link-tools-20261114\.js/);
+ assert.match(workshop,/if\(!window\.BigLWALinkTools\.renderForQuery\(downloads/);
+ assert.match(workshop,/name="url" type="text" inputmode="url"/);
+ assert.match(ads,/downloadCampaign=null/);assert.match(ads,/createDownloadCard/);
+ assert(src.indexOf('const pending=fetch(target.href')<src.indexOf('showSponsor();'));
 });

@@ -57,3 +57,16 @@ body.night-mode .bl-link-action,body.dark-mode .bl-link-action{
  .bl-link-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
  .bl-link-action{min-width:0;white-space:normal}
 }
+
+/* Shared search and Workshop downloader: progress never shares the ad surface. */
+#toolLinkDownloads .bl-link-inspector{display:grid;gap:10px;margin:12px 0;padding:14px;border:1px solid color-mix(in srgb,rgb(var(--aura-rgb,216,95,109)) 55%,transparent);border-radius:10px;background:var(--widget-bg,#fff9f3);color:var(--widget-ink,#302830)}
+#toolLinkDownloads .bl-link-inspector h2{margin:4px 0 0}
+.bl-link-transfer{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.bl-link-transfer[hidden],.bl-link-sponsor[hidden]{display:none!important}
+.bl-link-progress{flex:1;min-width:100px;height:12px;accent-color:rgb(var(--aura-rgb,216,95,109))}
+.bl-link-sponsor{margin-top:10px;max-width:420px}
+.bl-link-sponsor .biglwa-sponsored-card{display:grid!important;background:#fff!important;color:#222!important}
+#toolLinkDownloads .bl-link-action:disabled{opacity:.6;cursor:wait}
+
+.bl-link-ready[hidden]{display:none!important}
+.bl-link-sponsor video{width:100%;max-height:200px;object-fit:contain;background:#111;border-radius:6px}
